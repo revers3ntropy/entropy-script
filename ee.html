@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        Entropy Script
+    </title>
+
+    <meta name="viewport" content="width=device-width">
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+<body style="text-align: center">
+<style>
+    :root {
+        --input-bg: rgb(255, 255, 255);
+    }
+
+    #input {
+        padding-bottom: 0;
+        margin-bottom: 10px;
+        background-color: var(--input-bg);
+        height: 30px;
+        outline: none;
+        font-family: Menlo,Monaco,Consolas,'Courier New',monospace;
+        font-size: 13px;
+        width: 100%;
+        border: 1px solid #e7e7e7;
+    }
+</style>
+
+<textarea id="input" rows="5"></textarea>
+<button id="submit"> Run </button>
+<div id="output" style="
+    text-align: left;
+    white-space: pre-line;
+    width: 100%;
+    height: 90%;
+    padding-top: 0;
+    margin-top: 0;
+    border: none;
+    background-color: var(--input-bg);
+    font-family: Menlo,Monaco,Consolas,'Courier New',monospace;
+    font-size: 13px;
+"></div>
+
+</body>
+</html>
+
+<script type="module">
+    import {run, init} from "./build";
+	import './build/tests.js';
+	import {str} from "./build/util.js";
+	import {globalConstants} from "./build/constants.js";
+
+	import * as ee from "../entropy-engine/1.0";
+
+	globalConstants.ee = ee;
+
+	const input = $('#input');
+	const output = $('#output');
+	const submit = $('#submit');
+
+	function outputFunc (message) {
+		output.html(`${str(message)} \n${output.html()}`);
+	}
+
+    init(outputFunc);
+
+	submit.click(e => {
+		output.html('');
+		let res = run(input.val());
+		if (res.error) outputFunc(res.error.str);
+    });
+
+</script>

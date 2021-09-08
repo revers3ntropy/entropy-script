@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "module": "es2020",
+    "target": "es6",
+    "outDir": "./build",
+    "lib": [ "es2016", "dom" ],
+    "strict": true
+  },
+  "include": ["../entropy-script/src/*"],
+  "exclude": [
+    "build"
+  ]
+}
