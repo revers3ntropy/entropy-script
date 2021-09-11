@@ -1,5 +1,11 @@
-import { Undefined } from "./constants.js";
 import { Node } from "./nodes.js";
+import { ESType } from "./type.js";
+/**
+ * @desc opens a modal window to display a message
+ * @return bool - success or failure
+ * @param obj
+ * @param hash
+ */
 export function deepClone(obj, hash = new WeakMap()) {
     // Do not try to clone primitives or functions
     if (Object(obj) !== obj || obj instanceof Function)
@@ -30,8 +36,8 @@ export function str(val, depth = 0) {
     let result = '';
     if (typeof val === 'undefined')
         return 'undefined';
-    if (val instanceof Undefined) {
-        return 'Undefined';
+    if (val instanceof ESType) {
+        return val.name;
     }
     if (val instanceof Node) {
         return val.constructor.name;

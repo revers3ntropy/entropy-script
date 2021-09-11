@@ -28,7 +28,7 @@ export class Lexer {
     public generate (): [Token[], ESError | undefined] {
 
         if (!this.text)
-            return[[new Token(this.position, this.position, tt.EOF)], undefined];
+            return[[new Token(this.position, tt.EOF)], undefined];
 
         const tokens: Token[] = [];
 
@@ -66,13 +66,13 @@ export class Lexer {
                     let startPos = this.position.clone;
                     let char = this.currentChar;
                     this.advance();
-                    return [[], new IllegalCharError(startPos, this.position, char)];
+                    return [[], new IllegalCharError(startPos, char)];
                 }
 
             }
         }
 
-        tokens.push(new Token(this.position, this.position, tt.EOF));
+        tokens.push(new Token(this.position, tt.EOF));
 
         return [tokens, undefined];
     }
@@ -97,7 +97,7 @@ export class Lexer {
             this.advance();
         }
 
-        return new Token (startPos, this.position.clone, tt.NUMBER, parseFloat(numStr));
+        return new Token (startPos, tt.NUMBER, parseFloat(numStr));
     }
 
     private makeString () {
@@ -122,7 +122,7 @@ export class Lexer {
         }
         this.advance();
 
-        return new Token (startPos, this.position.clone, tt.STRING, str);
+        return new Token (startPos, tt.STRING, str);
     }
 
     private makeIdentifier () {
@@ -139,7 +139,7 @@ export class Lexer {
         if (KEYWORDS.includes(idStr))
             tokType = tt.KEYWORD;
 
-        return new Token(posStart, this.position, tokType, idStr);
+        return new Token(posStart, tokType, idStr);
     }
 
     private unknownChar (): Token | undefined {
@@ -154,7 +154,7 @@ export class Lexer {
                         this.advance();
                         this.advance();
 
-                        return new Token(startPos, this.position.clone, tripleCharTokens[triple]);
+                        return new Token(startPos, tripleCharTokens[triple]);
                     }
         }
 
@@ -165,7 +165,7 @@ export class Lexer {
                         this.advance();
                         this.advance();
 
-                        return new Token(startPos, this.position.clone, doubleCharTokens[double]);
+                        return new Token(startPos, doubleCharTokens[double]);
                     }
         }
 
@@ -173,7 +173,7 @@ export class Lexer {
             let startPos = this.position.clone;
             let val = singleCharTokens[this.currentChar];
             this.advance();
-            return new Token(startPos, this.position, val);
+            return new Token(startPos, val);
         }
 
         return undefined;

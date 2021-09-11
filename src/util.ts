@@ -1,5 +1,5 @@
-import {Undefined} from "./constants.js";
 import {Node} from "./nodes.js";
+import {ESType} from "./type.js";
 
 export type enumDict<T extends number, U> = { [K in T]: U };
 
@@ -40,8 +40,8 @@ export function str (val: any, depth = 0): string {
     if (typeof val === 'undefined')
         return 'undefined';
 
-    if (val instanceof Undefined) {
-        return 'Undefined';
+    if (val instanceof ESType) {
+        return val.name;
     }
 
     if (val instanceof Node) {

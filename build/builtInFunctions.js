@@ -1,18 +1,20 @@
 import { str } from "./util.js";
 import * as n from './nodes.js';
-import { digits, None, Undefined } from "./constants.js";
+import { digits, None } from "./constants.js";
 import { ESError } from "./errors.js";
 import { Position } from "./position.js";
+import { ESType } from "./type.js";
+import { Node } from "./nodes.js";
 export const builtInFunctions = {
     'range': context => {
         let n = context.get('n');
-        if (n instanceof Undefined)
-            n = undefined;
+        if (n instanceof ESType || n instanceof Node)
+            return [];
         try {
             return [...Array(n).keys()];
         }
         catch (e) {
-            return new ESError(Position.unknown, Position.unknown, 'RangeError', `Cannot make range of length '${str(n)}'`);
+            return new ESError(Position.unknown, 'RangeError', `Cannot make range of length '${str(n)}'`);
         }
     },
     'log': context => {
@@ -44,8 +46,8 @@ export const builtInFunctions = {
                     return 'function';
                 else if (val instanceof n.N_class)
                     return 'type';
-                else if (val instanceof Undefined)
-                    return 'undefined';
+                else if (val instanceof ESType)
+                    return val.name;
                 else if (Array.isArray(val))
                     return 'array';
                 return (_a = val.constructor.name) !== null && _a !== void 0 ? _a : 'object';
@@ -101,7 +103,7 @@ export const builtInFunctions = {
         return parseFloat(numStr);
     },
     'throw': context => {
-        return new ESError(Position.unknown, Position.unknown, 'Thrown Error', 'Thrown error in code');
+        return new ESError(Position.unknown, 'Thrown Error', 'Thrown error in code');
     },
     'len': context => {
         let total = 0;

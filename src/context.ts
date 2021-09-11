@@ -1,11 +1,13 @@
 import {initialise} from "./init.js";
 import {ESError, TypeError} from "./errors.js";
 import {Position} from "./position.js";
+import {ESType} from "./type.js";
 
 export type symbolOptions = {
     isConstant?: boolean;
     isAccessible?: boolean;
     global?: boolean;
+    type?: ESType
 }
 
 export class ESSymbol {
@@ -13,12 +15,14 @@ export class ESSymbol {
     value: any;
     identifier: string;
     isAccessible: boolean;
+    type: ESType;
 
     constructor (value: any, identifier: string, options: symbolOptions = {}) {
         this.value = value;
         this.identifier = identifier;
         this.isConstant = options.isConstant ?? false;
         this.isAccessible = options.isAccessible ?? true;
+        this.type = options.type ?? ESType.any;
     }
 }
 
@@ -49,14 +53,15 @@ export class Context {
 
     getSymbol (identifier: string): undefined | ESSymbol | ESError {
         let symbol = this.symbolTable[identifier];
+
         if (symbol !== undefined && !symbol.isAccessible)
             return new TypeError(
-                Position.unknown,
                 Position.unknown,
                 'assessable',
                 'inaccessible',
                 symbol.identifier
             );
+
         if (symbol === undefined && this.parent) {
             let res: any = this.parent.getSymbol(identifier);
             if (res instanceof ESError)
@@ -90,7 +95,6 @@ export class Context {
         if (symbol instanceof ESError) return symbol;
         if (symbol?.isConstant) {
             return new TypeError(
-                Position.unknown,
                 Position.unknown,
                 'dynamic',
                 'constant',

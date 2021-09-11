@@ -5,13 +5,11 @@ export class Token {
     type: tokenType;
     value: any;
     startPos: Position;
-    endPos: Position;
 
-    constructor (startPos: Position, endPos: Position, type: tokenType, value: any = undefined) {
+    constructor (startPos: Position, type: tokenType, value: any = undefined) {
         this.type = type;
         this.value = value;
         this.startPos = startPos;
-        this.endPos = endPos;
     }
 
     public matches(type: tokenType, val: any) {
@@ -58,7 +56,11 @@ export enum tokenType {
     COLON,
     DOT,
 
-    EOF
+    EOF,
+
+    BITWISE_OR,
+    BITWISE_AND,
+    BITWISE_NOT,
 }
 
 export let tt = tokenType;
@@ -95,13 +97,17 @@ export const tokenTypeString: enumDict<tokenType, string> = {
     [tt.LT]: '<',
     [tt.GTE]: '>=',
     [tt.LTE]: '<=',
-    [tt.AND]: '&',
-    [tt.OR]: '|',
+    [tt.AND]: '&&',
+    [tt.OR]: '||',
 
     [tt.COLON]: ':',
     [tt.DOT]: '.',
 
-    [tt.EOF]: 'End of File'
+    [tt.EOF]: 'End of File',
+
+    [tt.BITWISE_AND]: '&',
+    [tt.BITWISE_OR]: '|',
+    [tt.BITWISE_NOT]: '~',
 }
 
 export const singleCharTokens: {[char: string]: tokenType} = {
@@ -112,8 +118,6 @@ export const singleCharTokens: {[char: string]: tokenType} = {
     '(': tt.OPAREN,
     ')': tt.CPAREN,
     '^': tt.POW,
-    '&': tt.AND,
-    '|': tt.OR,
     '{': tt.OBRACES,
     '}': tt.CBRACES,
     ',': tt.COMMA,
@@ -126,6 +130,9 @@ export const singleCharTokens: {[char: string]: tokenType} = {
     '>': tt.GT,
     '<': tt.LT,
     '!': tt.NOT,
+    '|': tt.BITWISE_OR,
+    '&': tt.BITWISE_AND,
+    '~': tt.BITWISE_NOT
 };
 
 export const doubleCharTokens: {[char: string]: tokenType} = {
@@ -137,6 +144,8 @@ export const doubleCharTokens: {[char: string]: tokenType} = {
     '-=': tt.ASSIGN,
     '*=': tt.ASSIGN,
     '/=': tt.ASSIGN,
+    '&&': tt.AND,
+    '||': tt.OR
 };
 
 export const tripleCharTokens: {[char: string]: tokenType} = {

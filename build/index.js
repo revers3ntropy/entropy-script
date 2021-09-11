@@ -24,10 +24,10 @@ export function run(msg, { env = global, measurePerformance = false } = {}) {
         interprets: 0,
     };
     const start = now();
-    globalConstants.timer.start();
+    globalConstants.timer[0].start();
     if (!env.root.initialisedAsGlobal) {
         const res = new interpretResult();
-        res.error = new ESError(Position.unknown, Position.unknown, 'Uninitialised', 'Global context has not been initialised with global values');
+        res.error = new ESError(Position.unknown, 'Uninitialised', 'Global context has not been initialised with global values');
         return res;
     }
     const lexer = new Lexer(msg);
@@ -37,8 +37,8 @@ export function run(msg, { env = global, measurePerformance = false } = {}) {
         res_.error = error;
         return res_;
     }
-    timeData.lexerTotal = globalConstants.timer.get();
-    globalConstants.timer.reset();
+    timeData.lexerTotal = globalConstants.timer[0].get();
+    globalConstants.timer[0].reset();
     const parser = new Parser(tokens);
     const res = parser.parse();
     if (res.error) {
@@ -46,15 +46,15 @@ export function run(msg, { env = global, measurePerformance = false } = {}) {
         res_.error = res.error;
         return res_;
     }
-    timeData.parserTotal = globalConstants.timer.get();
-    globalConstants.timer.reset();
+    timeData.parserTotal = globalConstants.timer[0].get();
+    globalConstants.timer[0].reset();
     if (!res.node) {
         const res = new interpretResult();
         res.val = [];
         return res;
     }
     const finalRes = res.node.interpret(env);
-    timeData.interpretTotal = globalConstants.timer.get();
+    timeData.interpretTotal = globalConstants.timer[0].get();
     timeData.total = now() - start;
     timeData.nodeMax = Node.maxTime;
     timeData.nodeTotal = Node.totalTime;

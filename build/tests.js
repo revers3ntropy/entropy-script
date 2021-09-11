@@ -15,10 +15,10 @@ expect(['Undefined'], 'undefined');
 expect([false], '2==1');
 expect([true], '2==2');
 expect([false], '2!=2');
-expect([false], '2 == 4 | 3 == 2');
-expect([true], '2 + 2 == 4 | 3 + 2 == 2');
-expect([false], '2 + 2 == 4 & 3 + 2 == 2');
-expect([true], 'true & 3 - 1 == 2');
+expect([false], '2 == 4 || 3 == 2');
+expect([true], '2 + 2 == 4 || 3 + 2 == 2');
+expect([false], '2 + 2 == 4 && 3 + 2 == 2');
+expect([true], 'true && 3 - 1 == 2');
 expect([true], '!false');
 expect([true], '"hi" == "hi"');
 expect([true], '"hi" != "hijj"');
@@ -43,7 +43,7 @@ expect(['aa', 'bb', true, 'Undefined', false], `
 let a = 'aa';
 let b = 'bb';
 let res = true;
-if (a == 'aa' & b != 'cc')
+if (a == 'aa' && b != 'cc')
     res = false;
 res;
 `);
@@ -66,7 +66,7 @@ expect(['hello', 'hello world'], `
 `);
 // if
 expect(['Undefined'], `
-    if (!true & 1 | 7 + 2) {
+    if (!true && 1 || 7 + 2) {
         
     } else {
         
@@ -377,7 +377,7 @@ expect(['Object', 'N_function', 'e'], `
     a.a()[1];
 `);
 // classes
-expect(['N_class'], `
+expect(['ESType'], `
     var myClass = class {
         init () {
             
@@ -388,14 +388,14 @@ expect(['N_class'], `
         }
     };
 `);
-expect(['N_class'], `
+expect(['ESType'], `
     var myClass = class {
         init (a) {
             this.a = a;
         }
     };
 `);
-expect(['N_class', 'myClass', 3], `
+expect(['ESType', 'myClass', 3], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -405,7 +405,7 @@ expect(['N_class', 'myClass', 3], `
     var myInstance = myClass(3);
     myInstance.a;
 `);
-expect(['N_class', 'myClass', 3, 'Undefined', 5], `
+expect(['ESType', 'myClass', 3, 'Undefined', 5], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -421,7 +421,7 @@ expect(['N_class', 'myClass', 3, 'Undefined', 5], `
     myInstance.setA(5);
     myInstance.a;
 `);
-expect(['N_class', 'myClass', 3, 'Undefined', 10], `
+expect(['ESType', 'myClass', 3, 'Undefined', 10], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -441,7 +441,7 @@ expect(['N_class', 'myClass', 3, 'Undefined', 10], `
     myInstance.doThing();
     myInstance.a;
 `);
-expect(['N_class', 'myClass', 3, 'myClass', true, false, false], `
+expect(['ESType', 'myClass', 3, 'myClass', true, false, false], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -459,7 +459,7 @@ expect(['N_class', 'myClass', 3, 'myClass', true, false, false], `
     this_ == myClass(3);
     myInstance == myClass(3);
 `);
-expect(['N_class', 'N_class', 'childClass', 2, 3, 'childClass'], `
+expect(['ESType', 'ESType', 'childClass', 2, 3, 'childClass'], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -476,7 +476,7 @@ expect(['N_class', 'N_class', 'childClass', 2, 3, 'childClass'], `
     instance.b;
     instance.constructor.name;
 `);
-expect(['N_class', 'N_class', 'N_class', 'grandChildClass', 2, 3, 4, 'grandChildClass'], `
+expect(['ESType', 'ESType', 'ESType', 'grandChildClass', 2, 3, 4, 'grandChildClass'], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -500,7 +500,7 @@ expect(['N_class', 'N_class', 'N_class', 'grandChildClass', 2, 3, 4, 'grandChild
     instance.c;
     instance.constructor.name;
 `);
-expect(['N_class', 'N_class', 'N_class', 'N_class', 'greatGrandChildClass', 2, 3, 4, 5, 'greatGrandChildClass'], `
+expect(['ESType', 'ESType', 'ESType', 'ESType', 'greatGrandChildClass', 2, 3, 4, 5, 'greatGrandChildClass'], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -533,7 +533,7 @@ expect(['N_class', 'N_class', 'N_class', 'N_class', 'greatGrandChildClass', 2, 3
     instance.constructor.name;
 `);
 // vector library
-expect(['N_class', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
+expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
     var v2 = class {
         init (x, y) {
             this.x = x;

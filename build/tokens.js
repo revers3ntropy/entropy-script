@@ -1,9 +1,8 @@
 export class Token {
-    constructor(startPos, endPos, type, value = undefined) {
+    constructor(startPos, type, value = undefined) {
         this.type = type;
         this.value = value;
         this.startPos = startPos;
-        this.endPos = endPos;
     }
     matches(type, val) {
         return this.type === type && this.value === val;
@@ -41,6 +40,9 @@ export var tokenType;
     tokenType[tokenType["COLON"] = 27] = "COLON";
     tokenType[tokenType["DOT"] = 28] = "DOT";
     tokenType[tokenType["EOF"] = 29] = "EOF";
+    tokenType[tokenType["BITWISE_OR"] = 30] = "BITWISE_OR";
+    tokenType[tokenType["BITWISE_AND"] = 31] = "BITWISE_AND";
+    tokenType[tokenType["BITWISE_NOT"] = 32] = "BITWISE_NOT";
 })(tokenType || (tokenType = {}));
 export let tt = tokenType;
 export const tokenTypeString = {
@@ -69,11 +71,14 @@ export const tokenTypeString = {
     [tt.LT]: '<',
     [tt.GTE]: '>=',
     [tt.LTE]: '<=',
-    [tt.AND]: '&',
-    [tt.OR]: '|',
+    [tt.AND]: '&&',
+    [tt.OR]: '||',
     [tt.COLON]: ':',
     [tt.DOT]: '.',
-    [tt.EOF]: 'End of File'
+    [tt.EOF]: 'End of File',
+    [tt.BITWISE_AND]: '&',
+    [tt.BITWISE_OR]: '|',
+    [tt.BITWISE_NOT]: '~',
 };
 export const singleCharTokens = {
     '*': tt.MUL,
@@ -83,8 +88,6 @@ export const singleCharTokens = {
     '(': tt.OPAREN,
     ')': tt.CPAREN,
     '^': tt.POW,
-    '&': tt.AND,
-    '|': tt.OR,
     '{': tt.OBRACES,
     '}': tt.CBRACES,
     ',': tt.COMMA,
@@ -97,6 +100,9 @@ export const singleCharTokens = {
     '>': tt.GT,
     '<': tt.LT,
     '!': tt.NOT,
+    '|': tt.BITWISE_OR,
+    '&': tt.BITWISE_AND,
+    '~': tt.BITWISE_NOT
 };
 export const doubleCharTokens = {
     '==': tt.EQUALS,
@@ -107,5 +113,7 @@ export const doubleCharTokens = {
     '-=': tt.ASSIGN,
     '*=': tt.ASSIGN,
     '/=': tt.ASSIGN,
+    '&&': tt.AND,
+    '||': tt.OR
 };
 export const tripleCharTokens = {};

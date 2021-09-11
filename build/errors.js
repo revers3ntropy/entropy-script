@@ -1,9 +1,8 @@
 import { Position } from "./position.js";
 import { str } from "./util.js";
 export class ESError {
-    constructor(startPos, endPos, name, details) {
+    constructor(startPos, name, details) {
         this.startPos = startPos;
-        this.endPos = endPos;
         this.name = name;
         this.details = details;
     }
@@ -12,37 +11,37 @@ export class ESError {
     }
 }
 export class IllegalCharError extends ESError {
-    constructor(startPos, endPos, char) {
-        super(startPos, endPos, 'IllegalCharError', `'${char}'`);
+    constructor(startPos, char) {
+        super(startPos, 'IllegalCharError', `'${char}'`);
     }
 }
 export class InvalidSyntaxError extends ESError {
-    constructor(startPos, endPos, details) {
-        super(startPos, endPos, 'InvalidSyntaxError', details);
+    constructor(startPos, details) {
+        super(startPos, 'InvalidSyntaxError', details);
     }
 }
 export class ExpectedCharError extends ESError {
-    constructor(startPos, endPos, char) {
-        super(startPos, endPos, 'ExpectedCharError', `'${char}'`);
+    constructor(startPos, char) {
+        super(startPos, 'ExpectedCharError', `'${char}'`);
     }
 }
 export class TypeError extends ESError {
-    constructor(startPos, endPos, expectedType, actualType, value = '', detail = '') {
-        super(startPos, endPos, 'TypeError', `Expected type '${expectedType}', got type '${actualType}' ${typeof value === 'undefined' ? '' : ` on value ${str(value)}`} ${!detail ? '' : detail}`);
+    constructor(startPos, expectedType, actualType, value = '', detail = '') {
+        super(startPos, 'TypeError', `Expected type '${expectedType}', got type '${actualType}' ${typeof value === 'undefined' ? '' : ` on value ${str(value)}`} ${!detail ? '' : detail}`);
     }
 }
 export class ImportError extends ESError {
-    constructor(startPos, endPos, url, detail = '') {
-        super(startPos, endPos, 'ImportError', `Could not import ${url}: ${detail}`);
+    constructor(startPos, url, detail = '') {
+        super(startPos, 'ImportError', `Could not import ${url}: ${detail}`);
     }
 }
 export class ReferenceError extends ESError {
-    constructor(startPos, endPos, ref) {
-        super(startPos, endPos, 'ReferenceError', `${ref} is not defined`);
+    constructor(startPos, ref) {
+        super(startPos, 'ReferenceError', `${ref} is not defined`);
     }
 }
 export class TestFailed extends ESError {
     constructor(detail) {
-        super(Position.unknown, Position.unknown, 'TestFailed', detail);
+        super(Position.unknown, 'TestFailed', detail);
     }
 }

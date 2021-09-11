@@ -14,7 +14,7 @@ export class Lexer {
     }
     generate() {
         if (!this.text)
-            return [[new Token(this.position, this.position, tt.EOF)], undefined];
+            return [[new Token(this.position, tt.EOF)], undefined];
         const tokens = [];
         while (this.currentChar !== undefined) {
             // add semi-colon after
@@ -47,11 +47,11 @@ export class Lexer {
                     let startPos = this.position.clone;
                     let char = this.currentChar;
                     this.advance();
-                    return [[], new IllegalCharError(startPos, this.position, char)];
+                    return [[], new IllegalCharError(startPos, char)];
                 }
             }
         }
-        tokens.push(new Token(this.position, this.position, tt.EOF));
+        tokens.push(new Token(this.position, tt.EOF));
         return [tokens, undefined];
     }
     makeNumber() {
@@ -71,7 +71,7 @@ export class Lexer {
             }
             this.advance();
         }
-        return new Token(startPos, this.position.clone, tt.NUMBER, parseFloat(numStr));
+        return new Token(startPos, tt.NUMBER, parseFloat(numStr));
     }
     makeString() {
         const startPos = this.position.clone;
@@ -93,7 +93,7 @@ export class Lexer {
             this.advance();
         }
         this.advance();
-        return new Token(startPos, this.position.clone, tt.STRING, str);
+        return new Token(startPos, tt.STRING, str);
     }
     makeIdentifier() {
         let idStr = '';
@@ -105,7 +105,7 @@ export class Lexer {
         let tokType = tt.IDENTIFIER;
         if (KEYWORDS.includes(idStr))
             tokType = tt.KEYWORD;
-        return new Token(posStart, this.position, tokType, idStr);
+        return new Token(posStart, tokType, idStr);
     }
     unknownChar() {
         if (this.currentChar === undefined)
@@ -118,7 +118,7 @@ export class Lexer {
                         this.advance();
                         this.advance();
                         this.advance();
-                        return new Token(startPos, this.position.clone, tripleCharTokens[triple]);
+                        return new Token(startPos, tripleCharTokens[triple]);
                     }
         }
         for (let double in doubleCharTokens) {
@@ -127,14 +127,14 @@ export class Lexer {
                     const startPos = this.position.clone;
                     this.advance();
                     this.advance();
-                    return new Token(startPos, this.position.clone, doubleCharTokens[double]);
+                    return new Token(startPos, doubleCharTokens[double]);
                 }
         }
         if (singleCharTokens.hasOwnProperty(this.currentChar)) {
             let startPos = this.position.clone;
             let val = singleCharTokens[this.currentChar];
             this.advance();
-            return new Token(startPos, this.position, val);
+            return new Token(startPos, val);
         }
         return undefined;
     }

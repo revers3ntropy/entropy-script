@@ -175,7 +175,7 @@ global enter_flight_details = func () {
 };
 
 global calculate_cost = func () {
-    if (uk_airport == "" | overseas_airport == undefined) {
+    if (uk_airport == "" || overseas_airport == undefined) {
         print('Sorry, please enter flight details first');
         main_menu();
         return;
@@ -205,7 +205,7 @@ global calculate_cost = func () {
     let get_first_class_seats = func () {
         input('Please enter the price of a first class seat', func (price) {
             price = parseNum(price);
-            if ((!price & price != undefined) | price < 0) {
+            if ((!price && price != undefined) || price < 0) {
                 print('error, please try again');
                 get_first_class_seats();
                 return;
@@ -214,7 +214,7 @@ global calculate_cost = func () {
             let get_standard_seats = func () {
                 input('Please enter the price of a standard class seat', func (price) {
                     price = parseNum(price);
-                    if ((!price & price != undefined) | price < 0) {
+                    if ((!price && price != undefined) || price < 0) {
                         print('error, please try again');
                         get_standard_seats();
                         return;

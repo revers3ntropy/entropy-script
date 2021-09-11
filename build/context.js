@@ -1,13 +1,15 @@
 import { initialise } from "./init.js";
 import { ESError, TypeError } from "./errors.js";
 import { Position } from "./position.js";
+import { ESType } from "./type.js";
 export class ESSymbol {
     constructor(value, identifier, options = {}) {
-        var _a, _b;
+        var _a, _b, _c;
         this.value = value;
         this.identifier = identifier;
         this.isConstant = (_a = options.isConstant) !== null && _a !== void 0 ? _a : false;
         this.isAccessible = (_b = options.isAccessible) !== null && _b !== void 0 ? _b : true;
+        this.type = (_c = options.type) !== null && _c !== void 0 ? _c : ESType.any;
     }
 }
 export class Context {
@@ -32,7 +34,7 @@ export class Context {
     getSymbol(identifier) {
         let symbol = this.symbolTable[identifier];
         if (symbol !== undefined && !symbol.isAccessible)
-            return new TypeError(Position.unknown, Position.unknown, 'assessable', 'inaccessible', symbol.identifier);
+            return new TypeError(Position.unknown, 'assessable', 'inaccessible', symbol.identifier);
         if (symbol === undefined && this.parent) {
             let res = this.parent.getSymbol(identifier);
             if (res instanceof ESError)
@@ -64,7 +66,7 @@ export class Context {
         if (symbol instanceof ESError)
             return symbol;
         if (symbol === null || symbol === void 0 ? void 0 : symbol.isConstant) {
-            return new TypeError(Position.unknown, Position.unknown, 'dynamic', 'constant', identifier);
+            return new TypeError(Position.unknown, 'dynamic', 'constant', identifier);
         }
         this.symbolTable[identifier] = new ESSymbol(value, identifier, options);
         return value;

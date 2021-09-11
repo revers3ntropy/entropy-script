@@ -1,10 +1,10 @@
 import {builtInArgs, builtInFunctions} from "./builtInFunctions.js";
 import {N_builtInFunction, N_function, N_functionCall, N_string} from "./nodes.js";
 import {Context} from "./context.js";
-import {ImportError, TypeError} from "./errors.js";
+import {ESError, ImportError, TypeError} from "./errors.js";
 import {Position} from "./position.js";
 import {run} from "./index.js";
-import {global, globalConstants} from "./constants.js";
+import {globalConstants, None, setNone} from "./constants.js";
 import {str} from "./util.js";
 import {Token, tt} from "./tokens.js";
 
@@ -16,10 +16,10 @@ export function initialise (globalContext: Context, printFunc: (...args: any[]) 
         else if (typeof context === 'string')
             url = context;
         else
-            return new TypeError(Position.unknown, Position.unknown, 'string | Context', typeof context);
+            return new TypeError(Position.unknown, 'string | Context', typeof context);
 
         function error (detail = 'Import Failed') {
-            return new ImportError(Position.unknown, Position.unknown, url, detail + '. Remember that relative URLs are only allowed with node.js');
+            return new ImportError(Position.unknown, url, detail + '. Remember that relative URLs are only allowed with node.js');
         }
 
         if (!url) return error('No URL given');
@@ -54,14 +54,14 @@ export function initialise (globalContext: Context, printFunc: (...args: any[]) 
                         console.log(res.error.str);
                 }
                 catch(e){
-                    console.log((new ImportError(Position.unknown, Position.unknown, `
+                    console.log((new ImportError(Position.unknown, `
                         Could not import file ${url}
                     `)).str);
                 }
             });
 
         } catch (e) {
-            return new ImportError(Position.unknown, Position.unknown, `
+            return new ImportError(Position.unknown, `
             Could not import file ${url}
         `)
         }
@@ -83,8 +83,8 @@ export function initialise (globalContext: Context, printFunc: (...args: any[]) 
         inputFunc(context.get('msg'), (msg) => {
             let cb = context.get('cb');
             if (cb instanceof N_function) {
-                let caller = new N_functionCall(Position.unknown, Position.unknown, cb, [
-                    new N_string(Position.unknown, Position.unknown, new Token(Position.unknown, Position.unknown, tt.STRING, msg))
+                let caller = new N_functionCall(Position.unknown, cb, [
+                    new N_string(Position.unknown, new Token(Position.unknown, tt.STRING, msg))
                 ]);
                 let res = caller.interpret(context);
                 if (res.error)
@@ -105,10 +105,15 @@ export function initialise (globalContext: Context, printFunc: (...args: any[]) 
     }
 
     for (let constant in globalConstants) {
-        globalContext.set(constant, globalConstants[constant], {
+        const [value, type] = globalConstants[constant];
+        globalContext.set(constant, value, {
             global: true,
-            isConstant: true
+            isConstant: true,
+            type
         });
+
+        if (constant === 'undefined')
+            setNone(value);
     }
 
     for (let lib of libs) {
