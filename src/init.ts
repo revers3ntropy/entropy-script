@@ -1,10 +1,10 @@
 import {builtInArgs, builtInFunctions} from "./builtInFunctions.js";
 import {N_builtInFunction, N_function, N_functionCall, N_string} from "./nodes.js";
 import {Context} from "./context.js";
-import {ESError, ImportError, TypeError} from "./errors.js";
+import {ImportError, TypeError} from "./errors.js";
 import {Position} from "./position.js";
 import {run} from "./index.js";
-import {globalConstants, None, setNone} from "./constants.js";
+import {globalConstants, setNone} from "./constants.js";
 import {str} from "./util.js";
 import {Token, tt} from "./tokens.js";
 

@@ -29,6 +29,7 @@ export class Node {
             res.funcReturn = val.funcReturn;
             res.shouldBreak = val.shouldBreak;
             res.shouldContinue = val.shouldContinue;
+            res.type = val.type;
         }
         else
             res.val = val;
@@ -134,12 +135,20 @@ export class N_varAssign extends Node {
     }
     interpret_(context) {
         const res = this.value.interpret(context);
+        const typeRes = this.type.interpret(context);
         if (res.error)
             return res;
+        if (typeRes.error)
+            return res;
+        if (!(typeRes.val instanceof ESType))
+            return new TypeError(this.varNameTok.startPos, 'Type', typeof typeRes.val, typeRes.val);
+        if (!typeRes.val.includesType(res.type))
+            return new TypeError(this.varNameTok.startPos, typeRes.val.name, res.type.name, res.val);
         if (this.assignType === '=') {
             const setRes = context.set(this.varNameTok.value, res.val, {
                 global: this.isGlobal,
-                isConstant: this.isConstant
+                isConstant: this.isConstant,
+                type: typeRes.val
             });
             if (setRes instanceof ESError)
                 return setRes;
@@ -301,6 +310,7 @@ export class N_array extends Node {
         this.items = items;
     }
     interpret_(context) {
+        let result = new interpretResult();
         let interpreted = [];
         for (let item of this.items) {
             const res = item.interpret(context);
@@ -308,7 +318,9 @@ export class N_array extends Node {
                 return res;
             interpreted.push(deepClone(res.val));
         }
-        return interpreted;
+        result.val = interpreted;
+        result.type = ESType.array;
+        return result;
     }
 }
 export class N_objectLiteral extends Node {
@@ -386,23 +398,33 @@ export class N_functionCall extends Node {
         else
             return new TypeError(this.startPos, 'function', typeof func.val);
     }
-    genContext(context, paramNames) {
-        var _b;
+    genContext(context, params) {
+        var _b, _c;
         const newContext = new Context();
         newContext.parent = context;
         let args = [];
-        let max = Math.max(paramNames.length, this.arguments.length);
+        let max = Math.max(params.length, this.arguments.length);
         for (let i = 0; i < max; i++) {
             let value = None;
+            let type = ESType.any;
             if (this.arguments[i] !== undefined) {
                 let res = this.arguments[i].interpret(context);
                 if (res.error)
                     return res.error;
                 value = (_b = res.val) !== null && _b !== void 0 ? _b : None;
+                type = (_c = res.type) !== null && _c !== void 0 ? _c : ESType.any;
             }
             args.push(value);
-            if (paramNames[i] !== undefined)
-                newContext.setOwn(value, paramNames[i]);
+            if (params[i] !== undefined) {
+                // type checking
+                const [name, typeNode] = params[i];
+                let typeRes = typeNode.interpret(context);
+                if (!(typeRes.val instanceof ESType))
+                    return new TypeError(this.startPos, 'Type', typeof typeRes.val, typeRes.val);
+                if (!typeRes.val.includesType(type))
+                    return new TypeError(this.startPos, typeRes.val.name, type.name);
+                newContext.setOwn(value, name, { type });
+            }
         }
         let setRes = newContext.setOwn(args, 'args');
         if (setRes instanceof ESError)
@@ -421,6 +443,12 @@ export class N_functionCall extends Node {
         if (setRes instanceof ESError)
             return setRes;
         const res = func.body.interpret(newContext);
+        // type checking
+        let returnTypeRes = func.returnType.interpret(context).val;
+        if (!(returnTypeRes instanceof ESType))
+            return new TypeError(this.startPos, 'Type', typeof returnTypeRes, returnTypeRes);
+        if (!returnTypeRes.includesType(res.type))
+            return new TypeError(this.startPos, returnTypeRes.name, res.type.name, res.funcReturn, '(from function return)');
         if (res.funcReturn !== undefined) {
             res.val = res.funcReturn;
             res.funcReturn = undefined;
@@ -428,7 +456,8 @@ export class N_functionCall extends Node {
         return res;
     }
     runBuiltInFunction(func, context) {
-        const newContext = this.genContext(context, func.argNames);
+        const args = func.argNames.map(([name, type]) => [name, new N_any(type)]);
+        const newContext = this.genContext(context, args);
         if (newContext instanceof ESError)
             return newContext;
         return func.interpret(newContext);
@@ -442,15 +471,19 @@ export class N_functionCall extends Node {
     }
 }
 export class N_function extends Node {
-    constructor(startPos, body, argNames, name = '<anon func>', this_ = {}) {
+    constructor(startPos, body, argNames, returnType, name = '<anon func>', this_ = {}) {
         super(startPos);
         this.arguments = argNames;
         this.body = body;
         this.name = name;
         this.this_ = this_;
+        this.returnType = returnType;
     }
     interpret_(context) {
-        return this;
+        const res = new interpretResult();
+        res.val = this;
+        res.type = ESType.function;
+        return res;
     }
 }
 export class N_builtInFunction extends Node {
@@ -479,6 +512,7 @@ export class N_return extends Node {
         if (val.error)
             return val.error;
         res.funcReturn = val.val;
+        res.type = val.type;
         return res;
     }
 }
@@ -496,8 +530,10 @@ export class N_yield extends Node {
         let val = this.value.interpret(context);
         if (val.error)
             return val.error;
-        if (val.val)
+        if (val.val) {
             res.funcReturn = val.val;
+            res.type = val.type;
+        }
         return res;
     }
 }
@@ -612,7 +648,7 @@ export class N_class extends Node {
         }
         for (let method of this.methods) {
             // shallow clone of method with instance as this_
-            instance[method.name] = new N_function(method.startPos, method.body, method.arguments, method.name, instance);
+            instance[method.name] = new N_function(method.startPos, method.body, method.arguments, method.returnType, method.name, instance);
         }
         if (runInit) {
             newContext.setOwn(instance, 'this');
@@ -656,9 +692,13 @@ export class N_number extends Node {
         this.a = a;
     }
     interpret_(context) {
-        if (typeof this.a.value !== 'number')
-            return new TypeError(this.startPos, 'number', typeof this.a.value);
-        return this.a.value;
+        let val = this.a.value;
+        if (typeof val !== 'number')
+            return new TypeError(this.startPos, 'number', typeof val);
+        const res = new interpretResult();
+        res.val = val;
+        res.type = ESType.number;
+        return res;
     }
 }
 export class N_string extends Node {
@@ -667,21 +707,32 @@ export class N_string extends Node {
         this.a = a;
     }
     interpret_(context) {
-        if (typeof this.a.value !== 'string')
-            return new TypeError(this.startPos, 'string', typeof this.a.value);
-        return this.a.value;
+        let val = this.a.value;
+        if (typeof val !== 'string')
+            return new TypeError(this.startPos, 'string', typeof val);
+        const res = new interpretResult();
+        res.val = val;
+        res.type = ESType.string;
+        return res;
     }
 }
 export class N_variable extends Node {
-    constructor(startPos, a) {
-        super(startPos, true);
+    constructor(a) {
+        super(a.startPos, true);
         this.a = a;
     }
     interpret_(context) {
-        let val = context.get(this.a.value);
-        if (val === undefined)
+        if (!context.has(this.a.value))
             return new ReferenceError(this.a.startPos, this.a.value);
-        return val;
+        let res = new interpretResult();
+        let symbol = context.getSymbol(this.a.value);
+        if (!symbol)
+            return undefined;
+        if (symbol instanceof ESError)
+            return symbol;
+        res.val = symbol.value;
+        res.type = symbol.type;
+        return res;
     }
 }
 export class N_undefined extends Node {
@@ -689,7 +740,10 @@ export class N_undefined extends Node {
         super(startPos, true);
     }
     interpret_(context) {
-        return None;
+        const res = new interpretResult();
+        res.val = None;
+        res.type = ESType.undefined;
+        return res;
     }
 }
 export class N_break extends Node {
@@ -719,14 +773,5 @@ export class N_any extends Node {
     }
     interpret_(context) {
         return this.val;
-    }
-}
-// ----- TYPES ------- //
-export class N_Type extends Node {
-    constructor(startPos) {
-        super(startPos, true);
-    }
-    interpret_(context) {
-        return;
     }
 }

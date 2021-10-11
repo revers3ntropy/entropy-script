@@ -73,7 +73,10 @@ export const builtInFunctions: {[name: string]: (context: Context) => any} = {
         let arr = context.get('arr');
         if (!Array.isArray(arr))
             return arr;
-        for (let item of context.get('args')) {
+
+        let items = context.get('args');
+        items.shift();
+        for (let item of items) {
             arr.push(item);
         }
 
@@ -138,15 +141,15 @@ export const builtInFunctions: {[name: string]: (context: Context) => any} = {
     }
 }
 
-export const builtInArgs: {[name: string]: string[]} = {
-    'add': ['a', 'b'],
-    'range': ['n'],
-    'log': ['message'],
-    'str': ['val'],
-    'type': ['val'],
-    'input': ['msg', 'cb'],
-    'import': ['url'],
-    'contains': ['arr', 'element'],
-    'parseNum': ['number'],
-    'append': ['arr'],
+export const builtInArgs: {[name: string]: [string, ESType][]} = {
+    'add': [['a', ESType.number], ['b', ESType.number]],
+    'range': [['n', ESType.number]],
+    'log': [['message', ESType.string]],
+    'str': [['val', ESType.any]],
+    'type': [['val', ESType.any]],
+    'input': [['msg', ESType.string], ['cb', ESType.function]],
+    'import': [['url', ESType.string]],
+    'contains': [['arr', ESType.array], ['element', ESType.any]],
+    'parseNum': [['number', ESType.string]],
+    'append': [['arr', ESType.array]],
 }

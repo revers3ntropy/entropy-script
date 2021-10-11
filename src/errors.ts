@@ -41,7 +41,7 @@ export class TypeError extends ESError {
             startPos,
             'TypeError',
             `Expected type '${expectedType}', got type '${actualType}' ${
-                typeof value === 'undefined'? '' : ` on value ${str(value)}`
+                typeof value === 'undefined'? '' : ` on value '${str(value)}'`
             } ${!detail ? '' : detail}`
         );
     }

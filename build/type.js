@@ -4,6 +4,14 @@ export class ESType {
         this.name = name;
         this.value = value;
     }
+    includesType(t) {
+        if (this.equals(ESType.any) || t.equals(ESType.any))
+            return true;
+        return this.equals(t);
+    }
+    equals(t) {
+        return t.name === this.name && t.isPrimitive === this.isPrimitive && Object.is(this.value, t.value);
+    }
 }
 ESType.undefined = new ESType(true, 'UndefinedType');
 ESType.string = new ESType(true, 'String');

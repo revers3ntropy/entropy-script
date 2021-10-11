@@ -45,6 +45,7 @@ export abstract class Node {
             res.funcReturn = val.funcReturn;
             res.shouldBreak = val.shouldBreak;
             res.shouldContinue = val.shouldContinue;
+            res.type = val.type;
 
         } else
             res.val = val;
@@ -180,14 +181,26 @@ export class N_varAssign extends Node {
 
     interpret_(context: Context): any {
         const res = this.value.interpret(context);
+        const typeRes = this.type.interpret(context);
+
         if (res.error) return res;
+        if (typeRes.error) return res;
+
+        if (!(typeRes.val instanceof ESType))
+            return new TypeError(this.varNameTok.startPos, 'Type', typeof typeRes.val, typeRes.val);
+
+        if (!typeRes.val.includesType(res.type))
+            return new TypeError(this.varNameTok.startPos, typeRes.val.name, res.type.name, res.val);
+
         if (this.assignType === '=') {
             const setRes = context.set(this.varNameTok.value, res.val, {
                 global: this.isGlobal,
-                isConstant: this.isConstant
+                isConstant: this.isConstant,
+                type: typeRes.val
             });
             if (setRes instanceof ESError) return setRes;
         }
+
         else {
             const currentVal = context.get(this.varNameTok.value);
             if (currentVal instanceof ESError) return currentVal;
@@ -207,6 +220,7 @@ export class N_varAssign extends Node {
                 case '-':
                     newVal = currentVal - assignVal;
                     break;
+
                 default:
                     return new ESError(
                         this.startPos,
@@ -370,6 +384,7 @@ export class N_array extends Node {
     }
 
     interpret_ (context: Context): any {
+        let result = new interpretResult();
         let interpreted: any[] = [];
 
         for (let item of this.items) {
@@ -378,7 +393,10 @@ export class N_array extends Node {
             interpreted.push(deepClone(res.val));
         }
 
-        return interpreted;
+        result.val = interpreted;
+        result.type = ESType.array;
+
+        return result;
     }
 }
 
@@ -477,23 +495,35 @@ export class N_functionCall extends Node {
             return new TypeError(this.startPos,'function', typeof func.val);
     }
 
-    genContext (context: Context, paramNames: string[]) {
+    genContext (context: Context, params: [string, Node][]) {
         const newContext = new Context();
         newContext.parent = context;
 
         let args = [];
 
-        let max = Math.max(paramNames.length, this.arguments.length);
+        let max = Math.max(params.length, this.arguments.length);
         for (let i = 0; i < max; i++) {
             let value = None;
+            let type = ESType.any;
             if (this.arguments[i] !== undefined) {
                 let res = this.arguments[i].interpret(context);
                 if (res.error) return res.error;
                 value = res.val ?? None;
+                type = res.type ?? ESType.any;
             }
             args.push(value);
-            if (paramNames[i] !== undefined)
-                newContext.setOwn(value, paramNames[i]);
+            if (params[i] !== undefined) {
+                // type checking
+                const [name, typeNode] = params[i];
+                let typeRes = typeNode.interpret(context);
+                if (!(typeRes.val instanceof ESType))
+                    return new TypeError(this.startPos, 'Type', typeof typeRes.val, typeRes.val);
+
+                if (!typeRes.val.includesType(type))
+                    return new TypeError(this.startPos, typeRes.val.name, type.name);
+
+                newContext.setOwn(value, name, { type });
+            }
         }
 
         let setRes = newContext.setOwn(args, 'args');
@@ -521,7 +551,18 @@ export class N_functionCall extends Node {
 
         const res = func.body.interpret(newContext);
 
+        // type checking
+        let returnTypeRes = func.returnType.interpret(context).val;
+
+        if (!(returnTypeRes instanceof ESType))
+            return new TypeError(this.startPos, 'Type', typeof returnTypeRes, returnTypeRes);
+
+
+        if (!returnTypeRes.includesType(res.type))
+            return new TypeError(this.startPos, returnTypeRes.name, res.type.name, res.funcReturn, '(from function return)');
+
         if (res.funcReturn !== undefined) {
+
             res.val = res.funcReturn;
             res.funcReturn = undefined;
         }
@@ -529,7 +570,8 @@ export class N_functionCall extends Node {
     }
 
     runBuiltInFunction (func: N_builtInFunction, context: Context) {
-        const newContext = this.genContext(context, func.argNames);
+        const args: [string, Node][] = func.argNames.map(([name, type]) => [name, new N_any(type)]);
+        const newContext = this.genContext(context, args);
         if (newContext instanceof ESError) return newContext;
         return func.interpret(newContext);
     }
@@ -543,27 +585,32 @@ export class N_functionCall extends Node {
 
 export class N_function extends Node {
     body: Node;
-    arguments: string[];
+    arguments: [string, Node][];
     name: string;
     this_: any;
+    returnType: Node;
 
-    constructor(startPos: Position, body: Node, argNames: string[], name = '<anon func>', this_: any = {}) {
+    constructor(startPos: Position, body: Node, argNames: [string, Node][], returnType: Node, name = '<anon func>', this_: any = {}) {
         super(startPos);
         this.arguments = argNames;
         this.body = body;
         this.name = name;
         this.this_ = this_;
+        this.returnType = returnType;
     }
 
     interpret_ (context: Context): any {
-        return this;
+        const res = new interpretResult();
+        res.val = this;
+        res.type = ESType.function;
+        return res;
     }
 }
 
 export class N_builtInFunction extends Node {
-    func: (context: Context) => Promise<any>;
-    argNames: string[];
-    constructor(func: (context: Context) => Promise<any>, argNames: string[]) {
+    func: (context: Context) => any;
+    argNames: [string, ESType][];
+    constructor(func: (context: Context) => any, argNames: [string, ESType][]) {
         super(Position.unknown);
         this.func = func;
         this.argNames = argNames;
@@ -594,6 +641,7 @@ export class N_return extends Node {
         if (val.error) return val.error;
 
         res.funcReturn = val.val;
+        res.type = val.type;
         return res;
     }
 }
@@ -616,8 +664,11 @@ export class N_yield extends Node {
         let val = this.value.interpret(context);
         if (val.error) return val.error;
 
-        if (val.val)
+        if (val.val) {
             res.funcReturn = val.val;
+            res.type = val.type;
+        }
+
         return res;
     }
 }
@@ -777,6 +828,7 @@ export class N_class extends Node {
                 method.startPos,
                 method.body,
                 method.arguments,
+                method.returnType,
                 method.name,
                 instance
             );
@@ -827,14 +879,19 @@ export class N_number extends Node {
         super(startPos, true);
         this.a = a;
     }
-    interpret_ (context: Context): number | ESError {
-        if (typeof this.a.value !== 'number') return new TypeError(
+    interpret_ (context: Context): interpretResult | ESError {
+        let val = this.a.value;
+
+        if (typeof val !== 'number') return new TypeError(
             this.startPos,
             'number',
-            typeof this.a.value
+            typeof val
         );
 
-        return this.a.value;
+        const res = new interpretResult();
+        res.val = val;
+        res.type = ESType.number;
+        return res;
     }
 }
 
@@ -844,31 +901,43 @@ export class N_string extends Node {
         super(startPos, true);
         this.a = a;
     }
-    interpret_ (context: Context): string | ESError {
-        if (typeof this.a.value !== 'string') return new TypeError(
+    interpret_ (context: Context): interpretResult | ESError {
+        let val = this.a.value;
+
+        if (typeof val !== 'string') return new TypeError(
             this.startPos,
             'string',
-            typeof this.a.value
+            typeof val
         );
 
-        return this.a.value;
+        const res = new interpretResult();
+        res.val = val;
+        res.type = ESType.string;
+        return res;
     }
 }
 
 export class N_variable extends Node {
     a: Token;
-    constructor(startPos: Position, a: Token) {
-        super(startPos, true);
+    constructor(a: Token) {
+        super(a.startPos, true);
         this.a = a;
     }
 
     interpret_ (context: Context) {
-        let val = context.get(this.a.value);
-
-        if (val === undefined)
+        if (!context.has(this.a.value))
             return new ReferenceError(this.a.startPos, this.a.value);
 
-        return val;
+        let res = new interpretResult();
+        let symbol = context.getSymbol(this.a.value);
+
+        if (!symbol) return undefined;
+        if (symbol instanceof ESError) return symbol;
+
+        res.val = symbol.value;
+        res.type = symbol.type;
+
+        return res;
     }
 }
 
@@ -879,7 +948,10 @@ export class N_undefined extends Node {
     }
 
     interpret_ (context: Context) {
-        return None;
+        const res = new interpretResult();
+        res.val = None;
+        res.type = ESType.undefined;
+        return res;
     }
 }
 
@@ -917,17 +989,3 @@ export class N_any extends Node {
         return this.val;
     }
 }
-
-
-// ----- TYPES ------- //
-
-export class N_Type extends Node {
-    constructor(startPos: Position) {
-        super(startPos, true);
-    }
-
-    interpret_(context: Context): any {
-        return
-    }
-}
-

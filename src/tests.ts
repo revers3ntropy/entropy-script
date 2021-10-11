@@ -574,32 +574,121 @@ expect(['ESType', 'ESType', 'ESType', 'ESType', 'greatGrandChildClass', 2, 3, 4,
 `);
 
 
+// --- TYPING ---
+
+// assignment
+expect([10, 10], `
+    let a: number = 10;
+    a;
+`);
+expect('TypeError', `
+    const a: number = 'hi';
+`);
+expect(['ESType', 'myClass', 'myClass'], `
+    const myClass = class {};
+    
+    let a = myClass();
+
+    let b: myClass = a;
+`);
+expect('TypeError', `
+    const myClass = class {};
+    let b: myClass = 1;
+`);
+expect('TypeError', `
+    let b: string = func () return 0;
+`);
+expect('TypeError', `
+    let b: number = ['hi'];
+`);
+expect('TypeError', `
+    let b: string = undefined;
+`);
+
+// functions
+expect(['N_function', 'hello world'], `
+    const f = func (a: string, b: string) {
+        return a + b;
+    };
+    f('hello', ' world');
+`);
+expect(['N_function', 21], `
+    const f = func (x: number){
+        return 2 * x + 1;
+    };
+    f(10);
+`);
+expect('TypeError', `
+    const f = func (x: number) {
+    log(x);
+        return 2 * x + 1;
+    };
+    f([10]);
+`);
+expect(['N_function', [10]], `
+    const append_ = func (a: array, item: any): array {
+        append(a, item);
+        return a;
+    };
+    append_([], 10);
+`);
+expect('TypeError', `
+    const append_ = func (a: array, item: any): number {
+        append(a, item);
+        return a;
+    };
+    append_([], 10);
+`);
+expect(['ESType', 'Concatenator', 'hello world'], `
+    const Concatenator = class {
+        init (str1: string) {
+            this.str = str1;
+        }
+        
+        concat (str2: string): string {
+            return this.str + str2;
+        }
+    };
+    
+    const concat = Concatenator('hello ');
+    concat.concat('world');
+    
+`);
+expect('TypeError', `
+    const Concatenator = class {
+        init (str1: string) {
+            this.str = str1;
+        }
+    };
+    const concat = Concatenator(12);
+`);
+
 
 // vector library
 expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
     var v2 = class {
-        init (x, y) {
+        init (x: number, y: number) {
             this.x = x;
             this.y = y;
         }
         
-        add (v) {
+        add (v: v2): v2 {
             this.x += v.x;
             this.y += v.y;
             return this;
         }
         
-        scale (n) {
+        scale (n: number): v2 {
             this.x *= n;
             this.y *= n;
             return this;
         }
        
-        clone () {
+        clone (): v2 {
             return v2(this.x, this.y);
         }
         
-        str () {
+        str (): string {
             return this.x + ', ' + this.y;
         }
     };

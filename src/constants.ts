@@ -1,5 +1,6 @@
 import {Context, ESSymbol} from "./context.js";
 import {ESType, Undefined} from "./type.js";
+import addHTTPS from "./https";
 
 export const digits = '0123456789';
 export const identifierChars = '_$@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -11,6 +12,8 @@ export let None: ESSymbol | undefined;
 export const setNone = (v: ESSymbol) => void (None = v);
 
 export const stringSurrounds = ['\'', '`', '"'];
+
+export const IS_NODE_INSTANCE = typeof window === 'undefined' && typeof document === 'undefined';
 
 export const KEYWORDS = [
     'var',
@@ -71,11 +74,13 @@ export const globalConstants: {[name: string]: [any, ESType]} = {
 }
 
 export let now: (() => number) = () => 0;
-async function setNow () {
-    now = (typeof window === 'undefined') ? () => 0 : () => performance.now();
-    if (typeof window === 'undefined') {
+(async (IS_NODE_INSTANCE: boolean) => {
+    if (IS_NODE_INSTANCE) {
         const performance: any = await import('perf_hooks');
         now = (() => performance?.performance?.now()) ?? (() => 0);
+        await addHTTPS(globalConstants);
+
+    } else {
+        now = () => performance.now()
     }
-}
-setNow();
+})(IS_NODE_INSTANCE);

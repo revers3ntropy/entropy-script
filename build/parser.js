@@ -1,7 +1,7 @@
 import { Token } from "./tokens.js";
 import * as n from './nodes.js';
-import { N_undefined } from './nodes.js';
-import { InvalidSyntaxError } from "./errors.js";
+import { N_undefined, N_variable } from './nodes.js';
+import { ESError, InvalidSyntaxError } from "./errors.js";
 import { tokenType, tokenTypeString, tt } from "./tokens.js";
 import { ESType } from "./type.js";
 export class ParseResults {
@@ -187,7 +187,7 @@ export class Parser {
     }
     atomIdentifier(res, startPos, tok) {
         this.advance(res);
-        let node = new n.N_variable(startPos, tok);
+        let node = new n.N_variable(tok);
         let prevNode = new n.N_undefined(startPos);
         let functionCall = false;
         while ([tt.OPAREN, tt.OSQUARE, tt.DOT].includes(this.currentToken.type)) {
@@ -353,6 +353,14 @@ export class Parser {
         }
         return res.success(left);
     }
+    typeExpr() {
+        const res = new ParseResults();
+        if (this.currentToken.type !== tt.IDENTIFIER)
+            return res.failure(new InvalidSyntaxError(this.currentToken.startPos.clone, `Expected an identifier`));
+        let tok = this.currentToken;
+        this.advance(res);
+        return res.success(new N_variable(tok));
+    }
     makeFunctionCall(to, this_ = new n.N_undefined()) {
         const res = new ParseResults();
         let args = [];
@@ -417,7 +425,7 @@ export class Parser {
         // @ts-ignore
         if (this.currentToken.type === tt.COLON) {
             this.consume(res, tt.COLON);
-            type = res.register(this.expr());
+            type = res.register(this.typeExpr());
         }
         // @ts-ignore doesn't like two different comparisons after each other with different values
         if (this.currentToken.type !== tt.ASSIGN) {
@@ -525,42 +533,72 @@ export class Parser {
         this.addEndStatement(res);
         return res.success(new n.N_while(startPos, condition, loop));
     }
+    /**
+     * Gets the name and type of a parameter, for example `arg1: number`
+     * @param {ParseResults} res
+     * @private
+     * @returns {[string, Node] | ESError}
+     */
+    parameter(res) {
+        let name;
+        let type = new n.N_any(ESType.any);
+        if (this.currentToken.type !== tt.IDENTIFIER)
+            return new InvalidSyntaxError(this.currentToken.startPos, "Expected identifier");
+        name = this.currentToken.value;
+        this.advance(res);
+        // @ts-ignore
+        if (this.currentToken.type === tt.COLON) {
+            this.consume(res, tt.COLON);
+            if (res.error)
+                return res.error;
+            type = res.register(this.typeExpr());
+            if (res.error)
+                return res.error;
+        }
+        return [name, type];
+    }
+    /**
+     * () {} part of the function or method
+     * @private
+     */
     funcCore() {
         const res = new ParseResults();
         const startPos = this.currentToken.startPos;
-        let body, args = [];
-        if (this.currentToken.type !== tt.OPAREN)
-            return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected '(' after 'func'"));
-        this.advance(res);
+        let body, args = [], returnType = new n.N_any(ESType.any);
+        this.consume(res, tt.OPAREN);
         // @ts-ignore
         if (this.currentToken.type === tt.CPAREN) {
             this.advance(res);
-            args = [];
         }
         else {
-            // @ts-ignore
-            if (this.currentToken.type !== tt.IDENTIFIER)
-                return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected identifier"));
-            args.push(this.currentToken.value);
-            this.advance(res);
+            let param = this.parameter(res);
+            if (param instanceof ESError)
+                return res.failure(param);
+            args.push(param);
             // @ts-ignore
             while (this.currentToken.type === tt.COMMA) {
                 this.advance(res);
-                // @ts-ignore
-                if (this.currentToken.type !== tt.IDENTIFIER)
-                    return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected identifier"));
-                args.push(this.currentToken.value);
-                this.advance(res);
+                let param = this.parameter(res);
+                if (param instanceof ESError)
+                    return res.failure(param);
+                args.push(param);
             }
             // @ts-ignore
             if (this.currentToken.type !== tt.CPAREN)
                 return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected ',' or ')'"));
             this.advance(res);
         }
+        // @ts-ignore
+        if (this.currentToken.type === tt.COLON) {
+            this.advance(res);
+            returnType = res.register(this.typeExpr());
+            if (res.error)
+                return res;
+        }
         body = res.register(this.bracesExp());
         if (res.error)
             return res;
-        return res.success(new n.N_function(startPos, body, args));
+        return res.success(new n.N_function(startPos, body, args, returnType));
     }
     funcExpr() {
         const res = new ParseResults();
@@ -738,7 +776,7 @@ export class Parser {
                         Try using \`key: value\` syntax.`));
                 // reverse back to the identifier
                 this.reverse();
-                value = new n.N_variable(this.currentToken.startPos, this.currentToken);
+                value = new n.N_variable(this.currentToken);
                 this.advance(res);
                 if (this.currentToken.type === tt.COMMA)
                     this.advance(res);

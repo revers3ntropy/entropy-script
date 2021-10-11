@@ -1,12 +1,12 @@
 /**
- * Entropy Engine for Node.js
+ * Entropy Script for Node.js
  *
  * Syntax:
  *
- * >> node ee.js ./path/to/script.es
+ * >> node es.js ./path/to/script.es
  * will run a .es script
  *
- * >> node ee.js
+ * >> node es.js
  * will start the terminal
  */
 

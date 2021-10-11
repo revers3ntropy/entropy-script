@@ -65,7 +65,9 @@ export const builtInFunctions = {
         let arr = context.get('arr');
         if (!Array.isArray(arr))
             return arr;
-        for (let item of context.get('args')) {
+        let items = context.get('args');
+        items.shift();
+        for (let item of items) {
             arr.push(item);
         }
         return arr;
@@ -122,14 +124,14 @@ export const builtInFunctions = {
     }
 };
 export const builtInArgs = {
-    'add': ['a', 'b'],
-    'range': ['n'],
-    'log': ['message'],
-    'str': ['val'],
-    'type': ['val'],
-    'input': ['msg', 'cb'],
-    'import': ['url'],
-    'contains': ['arr', 'element'],
-    'parseNum': ['number'],
-    'append': ['arr'],
+    'add': [['a', ESType.number], ['b', ESType.number]],
+    'range': [['n', ESType.number]],
+    'log': [['message', ESType.string]],
+    'str': [['val', ESType.any]],
+    'type': [['val', ESType.any]],
+    'input': [['msg', ESType.string], ['cb', ESType.function]],
+    'import': [['url', ESType.string]],
+    'contains': [['arr', ESType.array], ['element', ESType.any]],
+    'parseNum': [['number', ESType.string]],
+    'append': [['arr', ESType.array]],
 };
