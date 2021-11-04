@@ -4,21 +4,34 @@
  * Syntax:
  *
  * >> node es.js ./path/to/script.es
- * will run a .es script
+ * will run a script
  *
  * >> node es.js
  * will start the terminal
  */
 
-import * as es from './build/index.js';
+// node libs that scripts should have access to
+import * as https from 'https';
+import * as http from 'http';
+import * as fs from 'fs';
+import * as sql from 'sync-mysql';
 import readline from 'readline';
+import * as dotenv from 'dotenv';
+dotenv.config();
+
+import * as es from './build/index.js';
 import {Test} from "./build/testFramework.js";
 import './build/tests.js';
 import {str} from "./build/util.js";
 import {builtInFunctions} from "./build/builtInFunctions.js";
+import addNodeLibs from "./build/nodeLibs.js";
+import {refreshPerformanceNow} from "./build/constants.js";
+import {ESString} from "./build/primitiveTypes.js";
+await refreshPerformanceNow(true);
 
 /**
- * Syntax: String(await askQuestion(query). Waits for Node I/O and when the user inputs something from the command line returns the line.
+ * Syntax: String(await askQuestion(query).
+ * Waits for Node I/O and when the user inputs something from the command line returns the line.
  * @param query
  * @return {Promise<string>}
  */
@@ -38,34 +51,43 @@ function askQuestion(query) {
  * Initialise
  * @return {Promise<void>}
  */
-async function init () {
+export async function init () {
 	es.init(
 		console.log,
-		async (msg, cb) => cb(await askQuestion(msg)),
-		['./std.es']
+		async (msg, cb) => cb(await askQuestion(msg).catch(console.log)),
+		[]
 	);
+
+	addNodeLibs(https, http, fs, sql);
 }
 
 /**
  * Runs a .es script
  * @param {string} path
  */
-function runScript (path) {
-	builtInFunctions['import'](path);
+export function runScript (path) {
+	builtInFunctions['import'](new ESString(path));
+}
+
+/**
+ * @param {any} r
+ */
+function handlePromiseError (r) {
+	console.log(`Error in promise: \n${r}`);
 }
 
 /**
  * Starts the terminal
  * @return {Promise<void>}
  */
-async function runTerminal () {
+export async function runTerminal () {
 	const input = String(await askQuestion('>>> '));
 	if (input === 'exit') return;
 
 	else if (input === 'test') {
 		const res = await Test.testAll();
 		console.log(res.str());
-		runTerminal();
+		runTerminal().catch(handlePromiseError);
 		return;
 
 	} else if (/run [\w_\/.]+\.es/.test(input)) {
@@ -80,20 +102,26 @@ async function runTerminal () {
 
 	let res = es.run(input);
 
-	let out = res.val;
+	let out = res.val?.valueOf();
 
-	if (out === undefined) out = '--undefined--';
-	if (out.length === 0)  out = '';
-	if (out.length === 1)  out = out[0];
-	if (res.error)         out = res.error.str;
-	if (out !== undefined) console.log(str(out));
+	if (res.val === undefined) out = '--undefined--';
+	else if (out.length === 0) out = '';
+	else if (out.length === 1) out = out[0];
+	if (res.error)             out = res.error.str;
+	if (out !== undefined)
+		// final out
+		console.log(str(out));
 
 	runTerminal();
 }
 
-init();
+export async function main () {
+	await init().catch(handlePromiseError);
 
-if (process.argv.length === 2)
-	runTerminal();
-else
-	runScript(process.argv[2]);
+	if (process.argv.length === 2)
+		runTerminal();
+	else
+		runScript(process.argv[2]);
+}
+
+main();

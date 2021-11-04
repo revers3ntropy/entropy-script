@@ -1,11 +1,11 @@
 import { Lexer } from "./lexer.js";
 import { Parser } from "./parser.js";
-import { global, globalConstants, now } from "./constants.js";
+import { global, now } from "./constants.js";
 import { initialise } from "./init.js";
 import { ESError } from "./errors.js";
 import { Position } from "./position.js";
-import { interpretResult } from "./nodes.js";
-import { Node } from "./nodes.js";
+import { interpretResult, Node } from "./nodes.js";
+import { ESArray } from "./primitiveTypes.js";
 export function init(printFunc = console.log, inputFunc, libs) {
     initialise(global, printFunc, inputFunc, libs);
 }
@@ -23,8 +23,7 @@ export function run(msg, { env = global, measurePerformance = false } = {}) {
         nodeTotal: 0,
         interprets: 0,
     };
-    const start = now();
-    globalConstants.timer[0].start();
+    let start = now();
     if (!env.root.initialisedAsGlobal) {
         const res = new interpretResult();
         res.error = new ESError(Position.unknown, 'Uninitialised', 'Global context has not been initialised with global values');
@@ -37,8 +36,8 @@ export function run(msg, { env = global, measurePerformance = false } = {}) {
         res_.error = error;
         return res_;
     }
-    timeData.lexerTotal = globalConstants.timer[0].get();
-    globalConstants.timer[0].reset();
+    timeData.lexerTotal = now() - start;
+    start = now();
     const parser = new Parser(tokens);
     const res = parser.parse();
     if (res.error) {
@@ -46,15 +45,15 @@ export function run(msg, { env = global, measurePerformance = false } = {}) {
         res_.error = res.error;
         return res_;
     }
-    timeData.parserTotal = globalConstants.timer[0].get();
-    globalConstants.timer[0].reset();
+    timeData.parserTotal = now() - start;
+    start = now();
     if (!res.node) {
         const res = new interpretResult();
-        res.val = [];
+        res.val = new ESArray([]);
         return res;
     }
     const finalRes = res.node.interpret(env);
-    timeData.interpretTotal = globalConstants.timer[0].get();
+    timeData.interpretTotal = now() - start;
     timeData.total = now() - start;
     timeData.nodeMax = Node.maxTime;
     timeData.nodeTotal = Node.totalTime;

@@ -8,8 +8,16 @@
 
     <meta name="viewport" content="width=device-width">
     <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
 </head>
 <body style="text-align: center; height: 100%">
+    <textarea id="input" rows="5"></textarea>
+    <button id="submit"> Run </button>
+    <button id="perf-test"> Performance Test </button>
+    <div id="output"></div>
+</body>
+</html>
+
 <style>
     :root {
         --input-bg: rgb(255, 255, 255);
@@ -46,14 +54,6 @@
     }
 </style>
 
-<textarea id="input" rows="5"></textarea>
-<button id="submit"> Run </button>
-<button id="perf-test"> Performance Test </button>
-<div id="output"></div>
-
-</body>
-</html>
-
 <script type="module">
     import {run, init} from "./build";
 	import './build/tests.js';
@@ -75,7 +75,7 @@
 
 	localStorage.last ||= `print('hello world');`;
 
-    init(outputFunc, () => outputFunc('This does not support the input function.'), ['https://entropyengine.dev/entropy-script/std.es']);
+    init(outputFunc, () => outputFunc('This does not support the input function.'), []);
 
 	submit.click(async e => {
 		output.innerHTML = '';

@@ -1,15 +1,15 @@
 import { initialise } from "./init.js";
 import { ESError, TypeError } from "./errors.js";
 import { Position } from "./position.js";
-import { ESType } from "./type.js";
+import { ESPrimitive } from "./primitiveTypes.js";
+import { str } from "./util.js";
 export class ESSymbol {
     constructor(value, identifier, options = {}) {
-        var _a, _b, _c;
+        var _a, _b;
         this.value = value;
         this.identifier = identifier;
         this.isConstant = (_a = options.isConstant) !== null && _a !== void 0 ? _a : false;
         this.isAccessible = (_b = options.isAccessible) !== null && _b !== void 0 ? _b : true;
-        this.type = (_c = options.type) !== null && _c !== void 0 ? _c : ESType.any;
     }
 }
 export class Context {
@@ -59,6 +59,8 @@ export class Context {
         return context.setOwn(value, identifier, options);
     }
     setOwn(value, identifier, options = {}) {
+        if (!(value instanceof ESPrimitive))
+            value = ESPrimitive.wrap(value);
         // is not global
         if (options.global && !this.initialisedAsGlobal)
             options.global = false;
@@ -87,12 +89,32 @@ export class Context {
         return parent;
     }
     resetAsGlobal() {
+        var _a, _b;
         if (!this.initialisedAsGlobal)
             return;
         const printFunc = this.root.get('print');
         const inputFunc = this.root.get('input');
+        if (!(printFunc instanceof ESPrimitive) || !(inputFunc instanceof ESPrimitive)) {
+            console.error('Error with print and input functions.');
+            return;
+        }
         this.symbolTable = {};
         this.initialisedAsGlobal = false;
-        initialise(this, (printFunc === null || printFunc === void 0 ? void 0 : printFunc.func) || console.log, (inputFunc === null || inputFunc === void 0 ? void 0 : inputFunc.func) || (() => { }), this.libs);
+        initialise(this, ((_a = printFunc.valueOf()) === null || _a === void 0 ? void 0 : _a.func) || console.log, ((_b = inputFunc.valueOf()) === null || _b === void 0 ? void 0 : _b.func) || (() => { }), this.libs);
+    }
+    log() {
+        console.log('---- CONTEXT ----');
+        for (let key in this.symbolTable) {
+            const symbol = this.symbolTable[key];
+            let out = key;
+            if (symbol.isConstant)
+                out += ' (CONST)';
+            if (!symbol.isAccessible)
+                out += ' (INACCESSIBLE)';
+            out += ': ';
+            out += str(this.symbolTable[key].value);
+            console.log(out);
+        }
+        console.log('-----------------');
     }
 }

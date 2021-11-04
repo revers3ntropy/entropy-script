@@ -87,13 +87,13 @@ global medium_narrow = 0;
 global large_narrow = 1;
 global medium_wide = 2;
 
-// variables for each type of airplane
+// variables for each __type__ of airplane
 global running_cost = 0;
 global max_range = 1;
 global max_capacity = 2;
 global min_first_class = 3;
 
-// fixed data for each type of airplane
+// fixed data for each __type__ of airplane
 global airplane_types_data = {
     [medium_narrow]: {
         [running_cost]: 8,
@@ -129,7 +129,7 @@ global Airplane = class {
 global Airport = class {
     init (data) {
         this.code = data[0];
-        this.name = data[1];
+        this.__name__ = data[1];
         this.dist_LJL = data[2];
         this.dist_BI = data[3];
     }
@@ -173,7 +173,7 @@ global enter_airport_details = func () {
                     if (i.code == overseas_airport) {
                         valid = true;
                         overseas_airport = i;
-                        print('The name of the overseas airport is ', i.name, '.');
+                        print('The __name__ of the overseas airport is ', i.__name__, '.');
                     }
                 }
 
@@ -246,7 +246,7 @@ global calculate_cost = func () {
         main_menu();
         return;
     } else if (airplane_type == -1) {
-        print('Sorry, please enter airplane type first');
+        print('Sorry, please enter airplane __type__ first');
         main_menu();
         return;
     } else if (first_seats == 0) {

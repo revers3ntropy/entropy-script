@@ -6,7 +6,9 @@
     "lib": [ "es2016", "dom" ],
     "strict": true
   },
-  "include": ["../entropy-script/src/*"],
+  "include": [
+    "./src/*"
+  ],
   "exclude": [
     "build"
   ]

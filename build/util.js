@@ -1,5 +1,5 @@
 import { Node } from "./nodes.js";
-import { ESType } from "./type.js";
+import { ESPrimitive } from "./primitiveTypes.js";
 /**
  * @desc opens a modal window to display a message
  * @return bool - success or failure
@@ -28,6 +28,9 @@ export function deepClone(obj, hash = new WeakMap()) {
     // Clone and assign enumerable own properties recursively
     return Object.assign(result, ...Object.keys(obj).map(key => ({ [key]: deepClone(obj[key], hash) })));
 }
+/**
+ * @param {any} val to be turned to string. used by .str primitive method
+ */
 export function str(val, depth = 0) {
     if (typeof val === 'string')
         return val;
@@ -36,12 +39,10 @@ export function str(val, depth = 0) {
     let result = '';
     if (typeof val === 'undefined')
         return 'undefined';
-    if (val instanceof ESType) {
-        return val.name;
-    }
-    if (val instanceof Node) {
-        return val.constructor.name;
-    }
+    if (val instanceof ESPrimitive)
+        return val.str().valueOf();
+    if (val instanceof Node)
+        return `<RunTimeNode: ${val.constructor.name}>`;
     if (typeof val === 'object') {
         if (Array.isArray(val)) {
             result += '[';
@@ -58,18 +59,27 @@ export function str(val, depth = 0) {
             result += ']';
         }
         else {
-            result += val.constructor.name;
-            result += ': ';
-            result += '{';
+            try {
+                result += val.constructor.name;
+            }
+            catch (e) {
+                result += 'UNKNOWN_CONSTRUCTOR';
+            }
+            result += ': {\n';
             let i = 0;
             for (let item in val) {
                 i++;
-                if (val.hasOwnProperty(item) && !['this', 'this_', 'constructor', 'self'].includes(item))
-                    result += `${item}: ${str(val[item], depth + 1) || ''}, `;
+                if (!val.hasOwnProperty)
+                    continue;
+                if (!val.hasOwnProperty(item))
+                    continue;
+                if (!['this', 'this_', 'constructor', 'self'].includes(item)) {
+                    result += `  ${item}: ${str(val[item], depth + 1) || ''}, \n`;
+                }
             }
-            if (i)
-                result = result.substring(0, result.length - 2);
-            result += '}';
+            if (i > 0)
+                result = result.substring(0, result.length - 3);
+            result += '\n}\n';
         }
     }
     else if (typeof val === 'string' && depth !== 0) {
@@ -80,4 +90,8 @@ export function str(val, depth = 0) {
     }
     return result;
 }
+/**
+ * Returns a promise which is resolved after a set number of ms.
+ * @param {number} ms
+ */
 export const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));

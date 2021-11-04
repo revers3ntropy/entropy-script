@@ -1,10 +1,11 @@
 import {Token} from "./tokens.js";
 import * as n from './nodes.js';
-import {N_undefined, N_variable, Node} from './nodes.js';
-import {ESError, InvalidSyntaxError} from "./errors.js";
+import { interpretResult, N_functionDefinition, N_undefined, N_variable, Node } from './nodes.js';
+import { ESError, InvalidSyntaxError, TypeError } from "./errors.js";
 import {tokenType, tokenTypeString, tt} from "./tokens.js";
 import {Position} from "./position";
-import {ESType} from "./type.js";
+import {ESType} from "./primitiveTypes.js";
+import { uninterpretedArgument } from "./argument.js";
 
 export class ParseResults {
     node: n.Node | undefined;
@@ -20,15 +21,16 @@ export class ParseResults {
         this.reverseCount = 0;
     }
 
-    registerAdvance () {
+    registerAdvance (): void {
         this.advanceCount = 1;
-        this.lastRegisteredAdvanceCount += 1;
+        this.lastRegisteredAdvanceCount++;
     }
 
-    register (res: ParseResults | any): any {
+    register (res: ParseResults | any): n.Node {
         this.lastRegisteredAdvanceCount = res.advanceCount;
         this.advanceCount += res.advanceCount;
-        if (res.error) this.error = res.error;
+        if (res.error)
+            this.error = res.error;
         return res.node;
     }
 
@@ -40,12 +42,12 @@ export class ParseResults {
         return this.register(res);
     }
 
-    success (node: n.Node) {
+    success (node: n.Node): ParseResults {
         this.node = node;
         return this;
     }
 
-    failure (error: ESError) {
+    failure (error: ESError): ParseResults {
         this.error = error;
         return this;
     }
@@ -79,7 +81,7 @@ export class Parser {
         return res;
     }
 
-    private advance (res?: ParseResults) {
+    private advance (res?: ParseResults): Token {
         if (res) res.registerAdvance();
 
         this.tokenIdx++;
@@ -87,13 +89,13 @@ export class Parser {
         return this.currentToken;
     }
 
-    private reverse (amount = 1) {
+    private reverse (amount = 1): Token {
         this.tokenIdx -= amount;
         this.currentToken = this.tokens[this.tokenIdx];
         return this.currentToken;
     }
 
-    private consume (res: ParseResults, type: tokenType, errorMsg?: string) {
+    private consume (res: ParseResults, type: tokenType, errorMsg?: string): void | ParseResults {
         if (this.currentToken.type !== type)
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.startPos,
@@ -103,13 +105,13 @@ export class Parser {
         this.advance(res);
     }
 
-    private clearEndStatements (res: ParseResults) {
+    private clearEndStatements (res: ParseResults): void {
         while (this.currentToken.type === tt.ENDSTATEMENT) {
             this.advance(res);
         }
     }
 
-    private statements (useArray = false) {
+    private statements (useArray = false): ParseResults {
         const res = new ParseResults();
         const startPos = this.currentToken.startPos;
         let statements = [];
@@ -144,7 +146,7 @@ export class Parser {
 
         let node = new n.N_statements(startPos, statements);
         if (useArray)
-            node = new n.N_array(startPos, statements);
+            node = new n.N_array(startPos, statements, true);
 
         return res.success(node);
     }
@@ -472,7 +474,7 @@ export class Parser {
         if (this.currentToken.type !== tt.OPAREN)
             return res.failure(new InvalidSyntaxError(
                 startPos,
-                "Expected '["
+                "Expected '['"
             ));
 
         this.advance(res);
@@ -480,7 +482,6 @@ export class Parser {
         // @ts-ignore
         if (this.currentToken.type === tt.CPAREN) {
             this.advance(res);
-
             return res.success(new n.N_functionCall(startPos, to, []));
         }
 
@@ -577,7 +578,7 @@ export class Parser {
         const varName = this.currentToken;
         this.advance(res);
 
-        let type = ESType.any;
+        let type: n.Node | ESType = ESType.any;
 
         // @ts-ignore
         if (this.currentToken.type === tt.COLON) {
@@ -600,7 +601,8 @@ export class Parser {
                 '=',
                 isGlobal,
                 // must be false ^
-                isConstant
+                isConstant,
+                type
             ));
         }
 
@@ -612,7 +614,7 @@ export class Parser {
 
         if (expr instanceof n.N_class)
             expr.name = varName.value;
-        else if (expr instanceof n.N_function)
+        else if (expr instanceof n.N_functionDefinition)
             expr.name = varName.value;
 
         return res.success(new n.N_varAssign(
@@ -765,14 +767,14 @@ export class Parser {
     }
 
     /**
-     * Gets the name and type of a parameter, for example `arg1: number`
+     * Gets the __name__ and __type__ of a parameter, for example `arg1: number`
      * @param {ParseResults} res
      * @private
      * @returns {[string, Node] | ESError}
      */
-    private parameter (res: ParseResults): [string, Node] | ESError {
+    private parameter (res: ParseResults): uninterpretedArgument | ESError {
         let name: string;
-        let type = new n.N_any(ESType.any);
+        let type: Node = new n.N_any(ESType.any);
 
         if (this.currentToken.type !== tt.IDENTIFIER)
             return new InvalidSyntaxError(
@@ -793,7 +795,7 @@ export class Parser {
             if (res.error) return res.error;
         }
 
-        return [name, type];
+        return { name, type };
     }
 
     /**
@@ -804,8 +806,8 @@ export class Parser {
         const res = new ParseResults();
         const startPos = this.currentToken.startPos;
         let body: n.Node,
-            args: [string, n.Node][] = [],
-            returnType = new n.N_any(ESType.any);
+            args: uninterpretedArgument[] = [],
+            returnType: Node = new n.N_any(ESType.any);
 
         this.consume(res, tt.OPAREN);
 
@@ -815,7 +817,8 @@ export class Parser {
 
         } else {
             let param = this.parameter(res);
-            if (param instanceof ESError) return res.failure(param);
+            if (param instanceof ESError)
+                return res.failure(param);
             args.push(param);
 
             // @ts-ignore
@@ -823,7 +826,8 @@ export class Parser {
                 this.advance(res);
 
                 let param = this.parameter(res);
-                if (param instanceof ESError) return res.failure(param);
+                if (param instanceof ESError)
+                    return res.failure(param);
                 args.push(param);
             }
 
@@ -848,7 +852,7 @@ export class Parser {
         body = res.register(this.bracesExp());
         if (res.error) return res;
 
-        return res.success(new n.N_function(startPos, body, args, returnType));
+        return res.success(new n.N_functionDefinition(startPos, body, args, returnType));
     }
 
     private funcExpr (): ParseResults {
@@ -871,8 +875,8 @@ export class Parser {
     private classExpr (name?: string): ParseResults {
         const res = new ParseResults();
         const startPos = this.currentToken.startPos;
-        const methods: n.N_function[] = [];
-        let init: n.N_function | undefined = undefined;
+        const methods: n.N_functionDefinition[] = [];
+        let init: n.N_functionDefinition | undefined = undefined;
         let extends_: Node | undefined;
 
         if (!this.currentToken.matches(tt.KEYWORD, 'class'))
@@ -912,6 +916,8 @@ export class Parser {
 
             const func = res.register(this.funcCore());
             if (res.error) return res;
+            if (!(func instanceof N_functionDefinition))
+                return res.failure(new ESError(this.currentToken.startPos, 'ParseError', `Tried to get function, but got ${func} instead`));
 
             func.name = methodId;
 

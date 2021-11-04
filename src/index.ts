@@ -1,11 +1,12 @@
 import {Lexer} from "./lexer.js";
 import {Parser} from "./parser.js";
-import {global, globalConstants, now} from "./constants.js";
+import {global, now} from "./constants.js";
 import {initialise} from "./init.js";
 import {ESError} from "./errors.js";
 import {Position} from "./position.js";
-import {interpretResult} from "./nodes.js";
-import {Node} from "./nodes.js";
+import {interpretResult, Node} from "./nodes.js";
+import { ESArray } from "./primitiveTypes.js";
+import { timeData } from "./util";
 
 export function init (printFunc: (...args: any) => void = console.log, inputFunc: (msg: string, cb: (...arg: any[]) => any) => void, libs: string[]) {
     initialise(global, printFunc, inputFunc, libs);
@@ -14,13 +15,13 @@ export function init (printFunc: (...args: any) => void = console.log, inputFunc
 export function run (msg: string, {
     env = global,
     measurePerformance = false
-}={}): interpretResult | any {
+}={}): interpretResult | ({ timeData: timeData } & interpretResult) {
 
     Node.maxTime = 0;
     Node.totalTime = 0;
     Node.interprets = 0;
 
-    const timeData = {
+    const timeData: timeData = {
         total: 0,
         lexerTotal: 0,
         parserTotal: 0,
@@ -31,8 +32,7 @@ export function run (msg: string, {
         interprets: 0,
     }
 
-    const start = now();
-    globalConstants.timer[0].start();
+    let start = now();
 
     if (!env.root.initialisedAsGlobal){
         const res = new interpretResult();
@@ -51,8 +51,8 @@ export function run (msg: string, {
         res_.error = error;
         return res_;
     }
-    timeData.lexerTotal = globalConstants.timer[0].get();
-    globalConstants.timer[0].reset();
+    timeData.lexerTotal = now() - start;
+    start = now();
 
     const parser = new Parser(tokens);
     const res = parser.parse();
@@ -61,17 +61,17 @@ export function run (msg: string, {
         res_.error = res.error;
         return res_;
     }
-    timeData.parserTotal = globalConstants.timer[0].get();
-    globalConstants.timer[0].reset();
+    timeData.parserTotal = now() - start;
+    start = now();
 
 
     if (!res.node) {
         const res = new interpretResult();
-        res.val = [];
+        res.val = new ESArray([]);
         return res;
     }
     const finalRes = res.node.interpret(env);
-    timeData.interpretTotal = globalConstants.timer[0].get();
+    timeData.interpretTotal = now() - start;
     timeData.total = now() - start;
 
     timeData.nodeMax = Node.maxTime;

@@ -1,7 +1,18 @@
 import {Node} from "./nodes.js";
-import {ESType} from "./type.js";
+import { ESFunction, ESPrimitive, ESType } from "./primitiveTypes.js";
 
-export type enumDict<T extends number, U> = { [K in T]: U };
+export type enumDict<T extends number, U> = { [k in T]: U };
+export type dict<T> = { [key in (string | number)]: T; };
+export interface timeData {
+    total: number,
+    lexerTotal: number,
+    parserTotal: number,
+    interpretTotal: number,
+    nodeMax: number,
+    nodeAvg: number,
+    nodeTotal: number,
+    interprets: number,
+}
 
 /**
  * @desc opens a modal window to display a message
@@ -32,6 +43,9 @@ export function deepClone(obj: any, hash = new WeakMap()): any {
     return Object.assign(result, ...Object.keys(obj).map(key => ({ [key]: deepClone(obj[key], hash) })));
 }
 
+/**
+ * @param {any} val to be turned to string. used by .str primitive method
+ */
 export function str (val: any, depth = 0): string {
     if (typeof val === 'string') return val;
     if (depth > 20) return '...';
@@ -40,13 +54,11 @@ export function str (val: any, depth = 0): string {
     if (typeof val === 'undefined')
         return 'undefined';
 
-    if (val instanceof ESType) {
-        return val.name;
-    }
+    if (val instanceof ESPrimitive)
+        return val.str().valueOf();
 
-    if (val instanceof Node) {
-        return val.constructor.name;
-    }
+    if (val instanceof Node)
+        return `<RunTimeNode: ${val.constructor.name}>`;
 
     if (typeof val === 'object') {
         if (Array.isArray(val)) {
@@ -63,17 +75,24 @@ export function str (val: any, depth = 0): string {
                 result = result.substring(0, result.length - 2);
             result += ']';
         } else {
-            result += val.constructor.name;
-            result += ': ';
-            result += '{';
+            try {
+                result += val.constructor.name;
+            } catch (e) {
+                result += 'UNKNOWN_CONSTRUCTOR';
+            }
+
+            result += ': {\n';
             let i = 0;
             for (let item in val) {
                 i++;
-                if (val.hasOwnProperty(item) && !['this', 'this_', 'constructor', 'self'].includes(item))
-                    result += `${item}: ${str(val[item], depth + 1) || ''}, `;
+                if (!val.hasOwnProperty) continue;
+                if (!val.hasOwnProperty(item)) continue;
+                if (!['this', 'this_', 'constructor', 'self'].includes(item)) {
+                    result += `  ${item}: ${str(val[item], depth + 1) || ''}, \n`;
+                }
             }
-            if (i) result = result.substring(0, result.length - 2);
-            result += '}';
+            if (i > 0) result = result.substring(0, result.length - 3);
+            result += '\n}\n';
         }
     } else if (typeof val === 'string' && depth !== 0) {
         result = `'${val}'`;
@@ -84,4 +103,8 @@ export function str (val: any, depth = 0): string {
     return result;
 }
 
+/**
+ * Returns a promise which is resolved after a set number of ms.
+ * @param {number} ms
+ */
 export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

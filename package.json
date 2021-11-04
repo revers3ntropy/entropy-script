@@ -1,6 +1,11 @@
 {
   "name": "entropy-script",
-  "version": "1.0.0",
-  "dependencies": {},
-  "type": "module"
+  "version": "1.0.0h",
+  "dependencies": {
+    "sync-mysql": "^3.0.1"
+  },
+  "type": "module",
+  "devDependencies": {
+    "dotenv": "^10.0.0"
+  }
 }

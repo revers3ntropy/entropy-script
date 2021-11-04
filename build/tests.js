@@ -9,8 +9,7 @@ expect([19], '3 + 4 ^ 2');
 // global constants
 expect([true], 'true');
 expect([false], 'false');
-expect([0], 'null');
-expect(['Undefined'], 'undefined');
+expect([undefined], 'undefined');
 // boolean logic
 expect([false], '2==1');
 expect([true], '2==2');
@@ -32,14 +31,14 @@ expect([1, 2, 1], 'var a = 1; a = 2; var a = 1;');
 expect('ReferenceError', 'a');
 expect([1], 'global a = 1');
 expect([1], 'a = 1');
-expect(['Undefined'], 'var a;');
+expect([undefined], 'var a;');
 expect([1, 2], 'var a = 1; a = a + 1;');
 expect('ReferenceError', 'var a = a + 1;');
-expect(['Undefined', true], 'var a; a == undefined;');
+expect([undefined, true], 'var a; a == undefined;');
 expect([1, 2], `let n = 1; n = 2;`);
 expect('TypeError', `const n = 1; n = 2;`);
 expect('TypeError', `const n = 1; const n = 2;`);
-expect(['aa', 'bb', true, 'Undefined', false], `
+expect(['aa', 'bb', true, undefined, false], `
 let a = 'aa';
 let b = 'bb';
 let res = true;
@@ -65,14 +64,14 @@ expect(['hello', 'hello world'], `
     n += ' world';
 `);
 // if
-expect(['Undefined'], `
+expect([undefined], `
     if (!true && 1 || 7 + 2) {
         
     } else {
         
     }
 `);
-expect([false, 'Undefined', 'Undefined', true], `
+expect([false, undefined, undefined, true], `
     var result = false;
     var output;
     if (result)
@@ -81,7 +80,7 @@ expect([false, 'Undefined', 'Undefined', true], `
         output = !result;
     output;
 `);
-expect(['Undefined', 'Undefined', false], `
+expect([undefined, undefined, false], `
     var output;
     if (true) {
         output = true;
@@ -93,7 +92,7 @@ expect(['Undefined', 'Undefined', false], `
    
 `);
 // while
-expect(['Undefined', 0, 'Undefined', 9, 10], `
+expect([undefined, 0, undefined, 9, 10], `
     var output;
     var i = 0;
     while (i < 10) {
@@ -102,7 +101,7 @@ expect(['Undefined', 0, 'Undefined', 9, 10], `
     }
     output; i;
 `);
-expect([0, 'Undefined', 10], `
+expect([0, undefined, 10], `
     var i = 0;
     while (i < 10)
         i = i + 1;
@@ -133,7 +132,7 @@ expect([[[1, 2], 1, 2], 5, [[1, 5], 1, 2]], `
     arr[0][1] = 5;
     arr;
 `);
-expect(['Object', 2], `
+expect([{ a: 1 }, 2], `
     n = {a: 1};
     n.a += 1;
 `);
@@ -142,25 +141,32 @@ expect('TypeError', `
     n.n = 1;
 `);
 // for
-expect(['Undefined', 'Undefined', 2], `
+expect([undefined, undefined, 2], `
     var output;
     for (var i in [0, 1, 2]) {
         output = i;
     }
     output;
 `);
-expect(['Undefined', 2], `
+expect([undefined, 2], `
     for (global i in [0, 1, 2]) {}
     i;
 `);
-expect(['Undefined', 'Undefined', 2], `
+expect([undefined, undefined, 2], `
     var output;
     for (i in [0, 1, 2]) {
         output = i;
     }
     output;
 `);
-expect(['Undefined', 'Undefined', 2], `
+expect([0, undefined, 3], `
+    var sum = 0;
+    for (i in [0, 1, 2]) {
+        sum = sum + i;
+    }
+    sum;
+`);
+expect([undefined, undefined, 2], `
     var output;
     for (i in 3) {
         output = i;
@@ -168,7 +174,7 @@ expect(['Undefined', 'Undefined', 2], `
     output;
 `);
 // break & continue
-expect(['Undefined', 0, 'Undefined', 0, 1], `
+expect([undefined, 0, undefined, 0, 1], `
     var output;
     var i_ = 0;
     for (i in range(3)) {
@@ -179,7 +185,7 @@ expect(['Undefined', 0, 'Undefined', 0, 1], `
     output;
     i_;
 `);
-expect(['Undefined', 0, 'Undefined', 2, 2], `
+expect([undefined, 0, undefined, 2, 2], `
     var output;
     var i_ = 0;
     for (i in range(3)) {
@@ -196,7 +202,7 @@ expect(['testing logging function'], `
 `);
 // range
 expect([[0, 1, 2]], 'range(3)');
-expect(['Undefined', 2], `
+expect([undefined, 2], `
     for (global i in range(3)) {}
     i;
 `);
@@ -205,14 +211,14 @@ expect([], '');
 expect([], '// hiii');
 expect([1], '// hiii \n 1');
 // functions
-expect(['N_function', 1], `
+expect(['<Func: myFunc>', 1], `
 var myFunc = func () {
     return 1; 
 };
 myFunc();
 `);
 // callbacks
-expect(['N_function', 1], `
+expect(['<Func: myFunc>', 1], `
 var myFunc = func (cb) {
     return cb(); 
 };
@@ -221,7 +227,7 @@ myFunc(func () {
 });
 `);
 // recursion
-expect(['N_function', 3], `
+expect(['<Func: myFunc>', 3], `
 var myFunc = func (n) {
     if (n < 4)
         return n;
@@ -230,26 +236,26 @@ var myFunc = func (n) {
 myFunc(10);
 `);
 // yield
-expect(['N_function', 1], `
+expect(['<Func: myFunc>', 1], `
 var myFunc = func () {
     yield 1; 
 };
 myFunc();
 `);
-expect(['N_function', 'Undefined'], `
+expect(['<Func: myFunc>', undefined], `
 var myFunc = func () {
     yield 0;
 };
 myFunc();
 `);
-expect(['N_function', 2], `
+expect(['<Func: myFunc>', 2], `
 var myFunc = func () {
     yield 0;
     return 2
 };
 myFunc();
 `);
-expect(['N_function', 'Undefined'], `
+expect(['<Func: myFunc>', undefined], `
 var myFunc = func () {
     return;
     return 2;
@@ -257,7 +263,7 @@ var myFunc = func () {
 myFunc();
 `);
 // nesting
-expect(['N_function', 4], `
+expect(['<Func: myFunc>', 4], `
 var myFunc = func (n, cb) {
     while (!cb(n)) {
         n = n - 1;
@@ -268,7 +274,7 @@ myFunc(20, func (n) {
     return n < 5; 
 });
 `);
-expect(['N_function', 'N_function', 1], `
+expect(['<Func: myFunc>', '<Func: myOtherFunc>', 1], `
 var myFunc = func (cb) {
     return cb();
 };
@@ -281,7 +287,7 @@ var myOtherFunc = func () {
 };
 myOtherFunc();
 `);
-expect(['N_function', 0], `
+expect(['<Func: myFunc>', 0], `
 var myFunc = func (arr) {
     for (var n in arr) {
         return n;
@@ -289,7 +295,7 @@ var myFunc = func (arr) {
 };
 myFunc([0, 1, 2, 3]);
 `);
-expect(['N_function', 3], `
+expect(['<Func: myFunc>', 3], `
 var myFunc = func (arr, cb) {
     for (var n in arr) {
         if (cb(n)) {
@@ -301,31 +307,31 @@ myFunc([0, 1, 2, 3], func (n) {
     return n == 3;
 });
 `);
-expect(['N_function', 2], `
+expect(['<Func: myFunc>', 2], `
 var myFunc = func () {
     return [0, 1, [0, 2]];
 };
 myFunc()[2][1];
 `);
-expect(['N_function', 'hi'], `
+expect(['<Func: myFunc>', 'hi'], `
 var myFunc = func () {
     return args[0];
 };
 myFunc('hi', 1, 2);
 `);
-expect(['N_function', 'Undefined'], `
+expect(['<Func: myFunc>', undefined], `
 var myFunc = func (arg) {
     return arg;
 };
 myFunc();
 `);
-expect(['N_function', 'hello world'], `
+expect(['<Func: myFunc>', 'hello world'], `
 var myFunc = func (str1, str2, str3) {
     return str1 + str2 + str3;
 };
 myFunc('hel', 'lo w', 'orld');
 `);
-expect(['N_function'], `
+expect(['<Func: airport>'], `
 global airport = func () {
     var exists = false;
     gg = false;
@@ -334,19 +340,19 @@ global airport = func () {
 };
 `);
 // objects + properties
-expect(['Object', 1, 1, 1], `
+expect([{}, 1, 1, 1], `
     var a = {};
     a['a'] = 1;
     a.a;
     a['a'];
 `);
-expect(['Object', 1, 1, 1], `
+expect([{}, 1, 1, 1], `
     var a = {};
     a.a = 1;
     a.a;
     a['a'];
 `);
-expect(['Object', 6, 6, 6, 6, 6], `
+expect([{ a: {} }, 6, 6, 6, 6, 6], `
     var a = {a: {}};
     a.a.a = 6;
     a.a.a;
@@ -354,22 +360,22 @@ expect(['Object', 6, 6, 6, 6, 6], `
     a.a['a'];
     a['a']['a'];
 `);
-expect(['Object', 1], `
+expect([{ a: 1 }, 1], `
     var a = {a: 1};
     a.a;
 `);
-expect(['Object', 1, 1], `
+expect([{ a: 1 }, 1, 1], `
     var a = {'a': 1};
     a['a'];
     a.a;
 `);
-expect(['a', 'Object', 1, 1], `
+expect(['a', { a: 1 }, 1, 1], `
     var b = 'a';
     var a = {[b]: 1};
     a['a'];
     a.a;
 `);
-expect(['Object', 'N_function', 'e'], `
+expect([{ a: '<Func: (anon)>' }, '<Func: (anon)>', 'e'], `
     var a = {a: func () {
         return 'hello world';
     }};
@@ -377,25 +383,20 @@ expect(['Object', 'N_function', 'e'], `
     a.a()[1];
 `);
 // classes
-expect(['ESType'], `
+expect(['<Type: myClass>'], `
     var myClass = class {
-        init () {
-            
-        }
-        
-        publicFunction () {
-            
-        }
+        init () {}
+        publicFunction () {}
     };
 `);
-expect(['ESType'], `
+expect(['<Type: myClass>'], `
     var myClass = class {
         init (a) {
             this.a = a;
         }
     };
 `);
-expect(['ESType', 'myClass', 3], `
+expect(['<Type: myClass>', 'myClass', 3], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -405,7 +406,7 @@ expect(['ESType', 'myClass', 3], `
     var myInstance = myClass(3);
     myInstance.a;
 `);
-expect(['ESType', 'myClass', 3, 'Undefined', 5], `
+expect(['<Type: myClass>', 'myClass', 3, undefined, 5], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -421,7 +422,7 @@ expect(['ESType', 'myClass', 3, 'Undefined', 5], `
     myInstance.setA(5);
     myInstance.a;
 `);
-expect(['ESType', 'myClass', 3, 'Undefined', 10], `
+expect(['<Type: myClass>', 'myClass', 3, undefined, 10], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -441,7 +442,7 @@ expect(['ESType', 'myClass', 3, 'Undefined', 10], `
     myInstance.doThing();
     myInstance.a;
 `);
-expect(['ESType', 'myClass', 3, 'myClass', true, false, false], `
+expect(['<Type: myClass>', 'myClass', 3, 'myClass', true, false, false], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -459,7 +460,7 @@ expect(['ESType', 'myClass', 3, 'myClass', true, false, false], `
     this_ == myClass(3);
     myInstance == myClass(3);
 `);
-expect(['ESType', 'ESType', 'childClass', 2, 3, 'childClass'], `
+expect(['<Type: parentClass>', '<Type: childClass>', 'childClass', 2, 3, 'childClass'], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -476,7 +477,7 @@ expect(['ESType', 'ESType', 'childClass', 2, 3, 'childClass'], `
     instance.b;
     instance.constructor.name;
 `);
-expect(['ESType', 'ESType', 'ESType', 'grandChildClass', 2, 3, 4, 'grandChildClass'], `
+expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', 'grandChildClass', 2, 3, 4, 'grandChildClass'], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -500,7 +501,7 @@ expect(['ESType', 'ESType', 'ESType', 'grandChildClass', 2, 3, 4, 'grandChildCla
     instance.c;
     instance.constructor.name;
 `);
-expect(['ESType', 'ESType', 'ESType', 'ESType', 'greatGrandChildClass', 2, 3, 4, 5, 'greatGrandChildClass'], `
+expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', '<Type: greatGrandChildClass>', 'greatGrandChildClass', 2, 3, 4, 5, 'greatGrandChildClass'], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -562,13 +563,13 @@ expect('TypeError', `
     let b: string = undefined;
 `);
 // functions
-expect(['N_function', 'hello world'], `
+expect(['<Func: f>', 'hello world'], `
     const f = func (a: string, b: string) {
         return a + b;
     };
     f('hello', ' world');
 `);
-expect(['N_function', 21], `
+expect(['<Func: f>', 21], `
     const f = func (x: number){
         return 2 * x + 1;
     };
@@ -576,21 +577,20 @@ expect(['N_function', 21], `
 `);
 expect('TypeError', `
     const f = func (x: number) {
-    log(x);
         return 2 * x + 1;
     };
     f([10]);
 `);
-expect(['N_function', [10]], `
+expect(['<Func: append_>', [10]], `
     const append_ = func (a: array, item: any): array {
-        append(a, item);
+        a.add(item);
         return a;
     };
     append_([], 10);
 `);
 expect('TypeError', `
     const append_ = func (a: array, item: any): number {
-        append(a, item);
+        a.add(item);
         return a;
     };
     append_([], 10);
@@ -618,6 +618,10 @@ expect('TypeError', `
     };
     const concat = Concatenator(12);
 `);
+// parse num built in function
+expect([1], 'parseNum("1")');
+expect([1.1], 'parseNum("1.1")');
+expect([1.1], 'parseNum(1.1)');
 // vector library
 expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
     var v2 = class {
@@ -654,6 +658,52 @@ expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 1
     pos.str();
     pos.clone() == pos;
     var clone = pos.clone().add(v2(1, 1));
+    pos.str();
+    clone.str();
+`);
+// vector library using operator override
+expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
+    var v2: type = class {
+        init (x: number, y: number) {
+            this.x = x;
+            this.y = y;
+        }
+        
+        __add__ (v: v2): v2 {
+            this.x += v.x;
+            this.y += v.y;
+            return this;
+        }
+        __subtract__ (v: v2): v2 {
+            this.x -= v.x;
+            this.y -= v.y;
+            return this;
+        }
+        
+        __multiply__ (n: number): v2 {
+            this.x *= n;
+            this.y *= n;
+            return this;
+        }
+       
+        clone (): v2 {
+            return v2(this.x, this.y);
+        }
+        
+        str (): string {
+            return this.x + ', ' + this.y;
+        }
+    };
+    
+    const pos = v2(0, 0);
+    pos.typeOf();
+    pos += v2(3, 4);
+    pos.str();
+    pos += v2(1, 1);
+    pos *= 2;
+    string(pos);
+    pos.clone() == pos;
+    const clone = pos.clone() + v2(1, 1);
     pos.str();
     clone.str();
 `);

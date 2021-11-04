@@ -1,28 +1,26 @@
 import {initialise} from "./init.js";
 import {ESError, TypeError} from "./errors.js";
 import {Position} from "./position.js";
-import {ESType} from "./type.js";
+import { ESPrimitive, Primitive } from "./primitiveTypes.js";
+import { str } from "./util.js";
 
 export type symbolOptions = {
     isConstant?: boolean;
     isAccessible?: boolean;
     global?: boolean;
-    type?: ESType
 }
 
 export class ESSymbol {
     isConstant: boolean;
-    value: any;
+    value: Primitive;
     identifier: string;
     isAccessible: boolean;
-    type: ESType;
 
     constructor (value: any, identifier: string, options: symbolOptions = {}) {
         this.value = value;
         this.identifier = identifier;
         this.isConstant = options.isConstant ?? false;
         this.isAccessible = options.isAccessible ?? true;
-        this.type = options.type ?? ESType.any;
     }
 }
 
@@ -37,15 +35,15 @@ export class Context {
         this.symbolTable = {};
     }
 
-    has (identifier: string) {
+    has (identifier: string): boolean {
         return this.get(identifier) !== undefined;
     }
 
-    hasOwn (identifier: string) {
+    hasOwn (identifier: string): boolean {
         return this.symbolTable[identifier] instanceof ESSymbol;
     }
 
-    get (identifier: string) {
+    get (identifier: string): Primitive | ESError | undefined {
         let symbol = this.getSymbol(identifier);
         if (symbol instanceof ESError || symbol == undefined) return symbol;
         return symbol.value;
@@ -72,7 +70,7 @@ export class Context {
         return symbol;
     }
 
-    set (identifier: string, value: any, options: symbolOptions = {}) {
+    set (identifier: string, value: Primitive, options: symbolOptions = {}) {
         let context: Context = this;
 
         if (options.global) {
@@ -88,7 +86,9 @@ export class Context {
         return context.setOwn(value, identifier, options);
     }
 
-    setOwn (value: any, identifier: string, options: symbolOptions = {}) {
+    setOwn (value: Primitive, identifier: string, options: symbolOptions = {}) {
+        if (!(value instanceof ESPrimitive))
+            value = ESPrimitive.wrap(value);
         // is not global
         if (options.global && !this.initialisedAsGlobal) options.global = false;
         let symbol = this.getSymbol(identifier);
@@ -133,9 +133,31 @@ export class Context {
         const printFunc = this.root.get('print');
         const inputFunc = this.root.get('input');
 
+        if (!(printFunc instanceof ESPrimitive) || !(inputFunc instanceof ESPrimitive)) {
+            console.error('Error with print and input functions.');
+            return;
+        }
+
         this.symbolTable = {};
         this.initialisedAsGlobal = false;
 
-        initialise(this, printFunc?.func || console.log, inputFunc?.func || (() => {}), this.libs);
+        initialise(this, printFunc.valueOf()?.func || console.log, inputFunc.valueOf()?.func || (() => {}), this.libs);
+    }
+
+    log () {
+        console.log('---- CONTEXT ----');
+        for (let key in this.symbolTable) {
+            const symbol = this.symbolTable[key];
+            let out = key;
+            if (symbol.isConstant)
+                out += ' (CONST)';
+            if (!symbol.isAccessible)
+                out += ' (INACCESSIBLE)';
+            out += ': ';
+            out += str(this.symbolTable[key].value);
+            console.log(out);
+        }
+
+        console.log('-----------------');
     }
 }

@@ -1,9 +1,8 @@
 import {Context, ESSymbol} from "./context.js";
-import {ESType, Undefined} from "./type.js";
-import addHTTPS from "./https";
+import { ESBoolean, ESUndefined, ESType, Primitive } from "./primitiveTypes.js";
 
 export const digits = '0123456789';
-export const identifierChars = '_$@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const singleLineComment = '//';
 
 export const global = new Context();
@@ -13,7 +12,8 @@ export const setNone = (v: ESSymbol) => void (None = v);
 
 export const stringSurrounds = ['\'', '`', '"'];
 
-export const IS_NODE_INSTANCE = typeof window === 'undefined' && typeof document === 'undefined';
+export let IS_NODE_INSTANCE = false;
+export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 
 export const KEYWORDS = [
     'var',
@@ -38,49 +38,36 @@ export const KEYWORDS = [
     'extends',
 ];
 
-export const globalConstants: {[name: string]: [any, ESType]} = {
-    'false': [false, ESType.bool],
-    'true': [true, ESType.bool],
-    'null': [0, ESType.undefined],
-    'undefined': [new Undefined(), ESType.undefined],
-    'maths': [Math, ESType.any],
-    'timer': [{
-        __startTime__: 0,
-
-        start: () => {
-            globalConstants.timer[0].__startTime__ = now();
-        },
-        reset: () => {
-            globalConstants.timer[0].__startTime__ = now();
-        },
-        log: () => {
-            console.log(`${globalConstants.timer[0].get()}ms`);
-        },
-        stop: () => {
-            globalConstants.timer[0].__startTime__ = 0;
-        },
-        get: () => {
-            let ms = now() - globalConstants.timer[0].__startTime__;
-            // @ts-ignore - ms of time number not string
-            return Number(ms.toPrecision(2));
-        }
-    }, ESType.any],
-    'any': [ESType.any, ESType.type],
-    'number': [ESType.number, ESType.type],
-    'string': [ESType.string, ESType.type],
-    'bool': [ESType.bool, ESType.type],
-    'function': [ESType.function, ESType.type],
-    'array': [ESType.array, ESType.type]
+export const globalConstants: {[name: string]: Primitive} = {
+    'false': new ESBoolean(false),
+    'true': new ESBoolean(true),
+    'undefined': new ESUndefined(),
+    'any': ESType.any,
+    'number': ESType.number,
+    'string': ESType.string,
+    'bool': ESType.bool,
+    'function': ESType.function,
+    'array': ESType.array,
+    'object': ESType.object,
+    'type': ESType.type,
+    'error': ESType.error,
 }
 
 export let now: (() => number) = () => 0;
-(async (IS_NODE_INSTANCE: boolean) => {
+export async function refreshPerformanceNow (IS_NODE_INSTANCE: boolean) {
     if (IS_NODE_INSTANCE) {
+        // @ts-ignore
         const performance: any = await import('perf_hooks');
         now = (() => performance?.performance?.now()) ?? (() => 0);
-        await addHTTPS(globalConstants);
 
     } else {
-        now = () => performance.now()
+        now = () => {
+            try {
+                return performance?.now();
+            } catch (e) {
+                return 0;
+            }
+        };
     }
-})(IS_NODE_INSTANCE);
+}
+refreshPerformanceNow(IS_NODE_INSTANCE);

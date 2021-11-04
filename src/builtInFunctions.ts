@@ -1,155 +1,33 @@
-import {Context} from "./context.js";
-import {str} from "./util.js";
-import * as n from './nodes.js';
-import {digits, None} from "./constants.js";
-import {ESError} from "./errors.js";
+import {ESError, TypeError} from "./errors.js";
 import {Position} from "./position.js";
-import {ESType} from "./type.js";
-import {Node} from "./nodes.js";
+import { ESArray, ESNumber, Primitive } from "./primitiveTypes.js";
 
-export const builtInFunctions: {[name: string]: (context: Context) => any} = {
-    'range': context => {
-        let n = context.get('n');
+export const builtInFunctions: {[name: string]: (...args: Primitive[]) => any} = {
+    'range': (num: Primitive) => {
+        if (!(num instanceof ESNumber))
+            return new TypeError(Position.unknown, 'Number', num.typeOf().valueOf(), num.valueOf());
 
-        if (n instanceof ESType || n instanceof Node)
-            return [];
+        const n: any = num.valueOf();
 
         try {
-            return [...Array(n).keys()];
+            return new ESArray([...Array(n).keys()].map(n => new ESNumber(n)));
         } catch (e) {
-            return new ESError(Position.unknown, 'RangeError', `Cannot make range of length '${str(n)}'`);
+            return new ESError(Position.unknown, 'RangeError', `Cannot make range of length '${num.str()}'`);
         }
     },
 
-    'log': context => {
-        let msg = context.get('message') ?? '';
-        console.log(msg);
-        return context.get('message');
+    'log': (msg: Primitive) => {
+        console.log(msg.str().valueOf());
     },
 
-    'str': context => {
-        let val = context.get('val');
-        return str(val);
-    },
-
-    'type': context => {
-        let val = context.get('val');
-        switch (typeof val) {
-            case "function":
-                return 'function';
-            case "boolean":
-                return 'bool';
-            case "number":
-                return 'number';
-            case "string":
-                return 'string';
-            case "undefined":
-                return 'undefined';
-            case "object":
-                if (val instanceof n.N_function)
-                    return 'function';
-                else if (val instanceof n.N_class)
-                    return 'type';
-                else if (val instanceof ESType)
-                    return val.name;
-                else if (Array.isArray(val))
-                    return 'array';
-
-                return val.constructor.name ?? 'object';
-
-            default:
-                return typeof val;
+    'parseNum': (str: Primitive) => {
+        try {
+            const val: number = parseFloat(str.str().valueOf());
+            if (isNaN(val))
+                return new ESNumber();
+            return new ESNumber(val);
+        } catch (e) {
+            return new TypeError(Position.unknown, 'String', str.typeOf().valueOf(), str.valueOf(), 'This string is not parseable as a number');
         }
-    },
-
-    'contains': context => {
-        let arr = context.get('arr');
-        if(!Array.isArray(arr))
-            return false;
-        return ((~arr.indexOf(context.get('element'))) || None) || false;
-    },
-
-    'append': context => {
-        let arr = context.get('arr');
-        if (!Array.isArray(arr))
-            return arr;
-
-        let items = context.get('args');
-        items.shift();
-        for (let item of items) {
-            arr.push(item);
-        }
-
-        return arr;
-    },
-
-    'strLower': context => {
-        return context.get('args')[0]?.toLowerCase() || '';
-    },
-
-    'strUpper': context => {
-        return context.get('args')[0]?.toLowerCase() || '';
-    },
-
-    'parseNum': context => {
-        let str = context.get('number');
-
-        if (typeof str == 'number') return str;
-
-        let idx = 0;
-        let numStr = '';
-        let dotCount = 0;
-
-        while (str[idx] !== undefined && (digits+'._').includes(str[idx])) {
-            if (str[idx] === '.') {
-                if (dotCount === 1)
-                    break;
-
-                dotCount++;
-                numStr += '.';
-
-                // use _ as a deliminator for sets of 0s - eg 1_000_000_000
-            } else {
-                numStr += str[idx];
-            }
-            idx++;
-        }
-
-        if (dotCount === 0)
-            return parseInt(numStr);
-        return parseFloat(numStr);
-    },
-
-    'throw': context => {
-        return new ESError(Position.unknown, 'Thrown Error', 'Thrown error in code');
-    },
-
-    'len': context => {
-        let total = 0;
-        for (let item of context.get('args')) {
-            if (typeof item === 'string' || Array.isArray(item)) {
-                total += item.length;
-            }
-            else if (typeof item === 'object') {
-                for (let prop in item)
-                    total++;
-            }
-            else total++;
-        }
-
-        return total;
     }
-}
-
-export const builtInArgs: {[name: string]: [string, ESType][]} = {
-    'add': [['a', ESType.number], ['b', ESType.number]],
-    'range': [['n', ESType.number]],
-    'log': [['message', ESType.string]],
-    'str': [['val', ESType.any]],
-    'type': [['val', ESType.any]],
-    'input': [['msg', ESType.string], ['cb', ESType.function]],
-    'import': [['url', ESType.string]],
-    'contains': [['arr', ESType.array], ['element', ESType.any]],
-    'parseNum': [['number', ESType.string]],
-    'append': [['arr', ESType.array]],
 }

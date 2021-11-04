@@ -1,22 +1,17 @@
-import {builtInArgs, builtInFunctions} from "./builtInFunctions.js";
-import {N_builtInFunction, N_function, N_functionCall, N_string} from "./nodes.js";
-import {Context} from "./context.js";
-import {ImportError, TypeError} from "./errors.js";
-import {Position} from "./position.js";
-import {run} from "./index.js";
-import {globalConstants, setNone} from "./constants.js";
-import {str} from "./util.js";
-import {Token, tt} from "./tokens.js";
+import { builtInFunctions } from "./builtInFunctions.js";
+import { Context } from "./context.js";
+import { ESError, ImportError, TypeError } from "./errors.js";
+import { Position } from "./position.js";
+import { run } from "./index.js";
+import { global, globalConstants, setNone } from "./constants.js";
+import { str } from "./util.js";
+import { ESFunction, ESString, Primitive } from "./primitiveTypes.js";
 
 export function initialise (globalContext: Context, printFunc: (...args: any[]) => void, inputFunc: (msg: string, cb: (...arg: any[]) => any) => void, libs: string[]) {
-    builtInFunctions['import'] = context => {
-        let url = '';
-        if (context instanceof Context)
-            url = context.get('url');
-        else if (typeof context === 'string')
-            url = context;
-        else
-            return new TypeError(Position.unknown, 'string | Context', typeof context);
+    builtInFunctions['import'] = (rawUrl: Primitive) => {
+        if (!(rawUrl instanceof ESString))
+            return new TypeError(Position.unknown, 'Number', rawUrl.typeOf().valueOf(), rawUrl.valueOf());
+        const url = rawUrl.valueOf();
 
         function error (detail = 'Import Failed') {
             return new ImportError(Position.unknown, url, detail + '. Remember that relative URLs are only allowed with node.js');
@@ -42,6 +37,7 @@ export function initialise (globalContext: Context, printFunc: (...args: any[]) 
 
         // node
         try {
+            // @ts-ignore
             import('fs').then(async (fs: any) => {
                 // data is actually a string
                 try {
@@ -52,68 +48,61 @@ export function initialise (globalContext: Context, printFunc: (...args: any[]) 
 
                     if (res.error)
                         console.log(res.error.str);
-                }
-                catch(e){
-                    console.log((new ImportError(Position.unknown, `
-                        Could not import file ${url}
-                    `)).str);
+                } catch(e) {
+                    console.error(e);
+                    console.log((new ImportError(Position.unknown, url, `
+                        Could not import file ${url}: ${e.toString()}`)).str);
                 }
             });
 
         } catch (e) {
             return new ImportError(Position.unknown, `
-            Could not import file ${url}
-        `)
+                Could not import file ${url}: ${e}
+            `);
         }
-    }
+    };
 
-    builtInFunctions['print'] = async context => {
-        let output = '> ';
-        if (context instanceof Context) {
-            for (let arg of context.get('args'))
-                output += str(arg);
-        } else {
-            output += str(context);
-        }
+    builtInFunctions['print'] = async (...args) => {
+        let out = `> `;
+        for (let arg of args)
+            out += str(arg);
+        printFunc(out);
+    };
 
-        printFunc(output);
-    }
-
-    builtInFunctions['input'] = async context => {
-        inputFunc(context.get('msg'), (msg) => {
-            let cb = context.get('cb');
-            if (cb instanceof N_function) {
-                let caller = new N_functionCall(Position.unknown, cb, [
-                    new N_string(Position.unknown, new Token(Position.unknown, tt.STRING, msg))
-                ]);
-                let res = caller.interpret(context);
-                if (res.error)
-                    console.log(res.error.str);
+    builtInFunctions['input'] = async (msg: Primitive, cbRaw: Primitive) => {
+        inputFunc(msg.valueOf(), (msg) => {
+            let cb = cbRaw?.valueOf();
+            if (cb instanceof ESFunction) {
+                let res = cb.__call__([
+                    new ESString(msg)
+                ], global);
+                if (res instanceof ESError)
+                    console.log(res.str);
             } else if (typeof cb === 'function')
                 cb(msg);
 
-            return '\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.'
+            return new ESString('\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.');
         });
-    }
+    };
 
     for (let builtIn in builtInFunctions) {
-        const node = new N_builtInFunction(builtInFunctions[builtIn], builtInArgs[builtIn] || []);
-        globalContext.set(builtIn, node, {
-            global: true,
-            isConstant: true
-        });
+        globalContext.set(builtIn,
+            new ESFunction(builtInFunctions[builtIn], [], builtIn),
+            {
+                global: true,
+                isConstant: true
+            });
     }
 
     for (let constant in globalConstants) {
-        const [value, type] = globalConstants[constant];
+        const value = globalConstants[constant];
         globalContext.set(constant, value, {
             global: true,
-            isConstant: true,
-            type
+            isConstant: true
         });
 
         if (constant === 'undefined')
-            setNone(value);
+            setNone(value.valueOf());
     }
 
     for (let lib of libs) {

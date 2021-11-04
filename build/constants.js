@@ -8,14 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { Context } from "./context.js";
-import { ESType, Undefined } from "./type.js";
+import { ESBoolean, ESUndefined, ESType } from "./primitiveTypes.js";
 export const digits = '0123456789';
-export const identifierChars = '_$@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const singleLineComment = '//';
 export const global = new Context();
 export let None;
 export const setNone = (v) => void (None = v);
 export const stringSurrounds = ['\'', '`', '"'];
+export let IS_NODE_INSTANCE = false;
+export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 export const KEYWORDS = [
     'var',
     'global',
@@ -35,47 +37,38 @@ export const KEYWORDS = [
     'extends',
 ];
 export const globalConstants = {
-    'false': [false, ESType.bool],
-    'true': [true, ESType.bool],
-    'null': [0, ESType.undefined],
-    'undefined': [new Undefined(), ESType.undefined],
-    'maths': [Math, ESType.any],
-    'timer': [{
-            __startTime__: 0,
-            start: () => {
-                globalConstants.timer[0].__startTime__ = now();
-            },
-            reset: () => {
-                globalConstants.timer[0].__startTime__ = now();
-            },
-            log: () => {
-                console.log(`${globalConstants.timer[0].get()}ms`);
-            },
-            stop: () => {
-                globalConstants.timer[0].__startTime__ = 0;
-            },
-            get: () => {
-                let ms = now() - globalConstants.timer[0].__startTime__;
-                // @ts-ignore - ms of time number not string
-                return Number(ms.toPrecision(2));
-            }
-        }, ESType.any],
-    'any': [ESType.any, ESType.type],
-    'number': [ESType.number, ESType.type],
-    'string': [ESType.string, ESType.type],
-    'bool': [ESType.bool, ESType.type],
-    'function': [ESType.function, ESType.type],
-    'array': [ESType.array, ESType.type]
+    'false': new ESBoolean(false),
+    'true': new ESBoolean(true),
+    'undefined': new ESUndefined(),
+    'any': ESType.any,
+    'number': ESType.number,
+    'string': ESType.string,
+    'bool': ESType.bool,
+    'function': ESType.function,
+    'array': ESType.array,
+    'object': ESType.object,
+    'type': ESType.type,
+    'error': ESType.error,
 };
 export let now = () => 0;
-function setNow() {
+export function refreshPerformanceNow(IS_NODE_INSTANCE) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        now = (typeof window === 'undefined') ? () => 0 : () => performance.now();
-        if (typeof window === 'undefined') {
+        if (IS_NODE_INSTANCE) {
+            // @ts-ignore
             const performance = yield import('perf_hooks');
             now = (_a = (() => { var _a; return (_a = performance === null || performance === void 0 ? void 0 : performance.performance) === null || _a === void 0 ? void 0 : _a.now(); })) !== null && _a !== void 0 ? _a : (() => 0);
         }
+        else {
+            now = () => {
+                try {
+                    return performance === null || performance === void 0 ? void 0 : performance.now();
+                }
+                catch (e) {
+                    return 0;
+                }
+            };
+        }
     });
 }
-setNow();
+refreshPerformanceNow(IS_NODE_INSTANCE);

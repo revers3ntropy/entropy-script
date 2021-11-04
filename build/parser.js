@@ -1,9 +1,9 @@
 import { Token } from "./tokens.js";
 import * as n from './nodes.js';
-import { N_undefined, N_variable } from './nodes.js';
+import { N_functionDefinition, N_undefined, N_variable } from './nodes.js';
 import { ESError, InvalidSyntaxError } from "./errors.js";
 import { tokenType, tokenTypeString, tt } from "./tokens.js";
-import { ESType } from "./type.js";
+import { ESType } from "./primitiveTypes.js";
 export class ParseResults {
     constructor() {
         this.advanceCount = 0;
@@ -106,7 +106,7 @@ export class Parser {
         this.clearEndStatements(res);
         let node = new n.N_statements(startPos, statements);
         if (useArray)
-            node = new n.N_array(startPos, statements);
+            node = new n.N_array(startPos, statements, true);
         return res.success(node);
     }
     statement() {
@@ -366,7 +366,7 @@ export class Parser {
         let args = [];
         const startPos = this.currentToken.startPos;
         if (this.currentToken.type !== tt.OPAREN)
-            return res.failure(new InvalidSyntaxError(startPos, "Expected '["));
+            return res.failure(new InvalidSyntaxError(startPos, "Expected '['"));
         this.advance(res);
         // @ts-ignore
         if (this.currentToken.type === tt.CPAREN) {
@@ -433,7 +433,7 @@ export class Parser {
                 return res.failure(new InvalidSyntaxError(startPos, 'Cannot initialise constant to undefined'));
             return res.success(new n.N_varAssign(startPos, varName, new n.N_undefined(this.currentToken.startPos), '=', isGlobal, 
             // must be false ^
-            isConstant));
+            isConstant, type));
         }
         let assignType = this.currentToken.value;
         this.advance(res);
@@ -442,7 +442,7 @@ export class Parser {
             return res;
         if (expr instanceof n.N_class)
             expr.name = varName.value;
-        else if (expr instanceof n.N_function)
+        else if (expr instanceof n.N_functionDefinition)
             expr.name = varName.value;
         return res.success(new n.N_varAssign(startPos, varName, expr, assignType, isGlobal, isConstant, type));
     }
@@ -534,7 +534,7 @@ export class Parser {
         return res.success(new n.N_while(startPos, condition, loop));
     }
     /**
-     * Gets the name and type of a parameter, for example `arg1: number`
+     * Gets the __name__ and __type__ of a parameter, for example `arg1: number`
      * @param {ParseResults} res
      * @private
      * @returns {[string, Node] | ESError}
@@ -555,7 +555,7 @@ export class Parser {
             if (res.error)
                 return res.error;
         }
-        return [name, type];
+        return { name, type };
     }
     /**
      * () {} part of the function or method
@@ -598,7 +598,7 @@ export class Parser {
         body = res.register(this.bracesExp());
         if (res.error)
             return res;
-        return res.success(new n.N_function(startPos, body, args, returnType));
+        return res.success(new n.N_functionDefinition(startPos, body, args, returnType));
     }
     funcExpr() {
         const res = new ParseResults();
@@ -641,6 +641,8 @@ export class Parser {
             const func = res.register(this.funcCore());
             if (res.error)
                 return res;
+            if (!(func instanceof N_functionDefinition))
+                return res.failure(new ESError(this.currentToken.startPos, 'ParseError', `Tried to get function, but got ${func} instead`));
             func.name = methodId;
             if (isInit)
                 init = func;

@@ -1,17 +1,28 @@
-import {tokenTypeString, tt} from "./tokens.js";
+import { tokenTypeString, tt } from "./tokens.js";
 import {Token} from "./tokens.js";
 import {ESError, InvalidSyntaxError, ReferenceError, TypeError} from "./errors.js";
-import {Context, ESSymbol} from "./context.js";
+import { Context } from "./context.js";
 import {Position} from "./position.js";
-import {deepClone} from "./util.js";
 import {None, now} from "./constants.js";
-import {ESType} from "./type.js";
+import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument.js";
+import {
+    ESArray,
+    ESBoolean,
+    ESFunction,
+    ESNumber,
+    ESObject,
+    ESPrimitive,
+    ESString,
+    ESType,
+    ESUndefined,
+    Primitive
+} from "./primitiveTypes.js";
+import { dict, str } from "./util.js";
 
 export class interpretResult {
-    val: any | undefined;
+    val: Primitive | undefined;
     error: ESError | undefined;
-    type = ESType.any;
-    funcReturn: any | undefined;
+    funcReturn: Primitive | undefined;
     shouldBreak = false;
     shouldContinue = false;
 }
@@ -29,7 +40,7 @@ export abstract class Node {
         this.startPos = startPos;
         this.isTerminal = isTerminal;
     }
-    abstract interpret_ (context: Context): any;
+    abstract interpret_ (context: Context): ESError | Primitive | interpretResult;
 
     interpret (context: Context): interpretResult {
         const start = now();
@@ -45,7 +56,6 @@ export abstract class Node {
             res.funcReturn = val.funcReturn;
             res.shouldBreak = val.shouldBreak;
             res.shouldContinue = val.shouldContinue;
-            res.type = val.type;
 
         } else
             res.val = val;
@@ -73,46 +83,75 @@ export class N_binOp extends Node {
         this.right = right;
     }
 
-     interpret_(context: Context): any {
+     interpret_(context: Context): ESError | Primitive {
         const left = this.left.interpret(context);
         const right = this.right.interpret(context);
 
-        if (left.error) return left;
-        if (right.error) return right;
+        if (left.error) return left.error;
+        if (right.error) return right.error;
 
         const l = left.val;
         const r = right.val;
+        if (typeof l === 'undefined')
+            return new TypeError(this.opTok.startPos, '~undefined', 'undefined', l, 'N_binOp.interpret_');
+
+        if (typeof r === 'undefined')
+            return new TypeError(this.opTok.startPos, '~undefined', 'undefined', r, 'N_binOp.interpret_');
+
+        function declaredBinOp (l: Primitive, r: Primitive, fnName: string, opTokPos: Position): ESError | Primitive {
+            if (!(l instanceof ESPrimitive) || !(r instanceof ESPrimitive) || !l.hasProperty(new ESString(fnName)))
+                return new TypeError(opTokPos, 'unknown', l?.typeOf().valueOf(), l?.valueOf(), `Unsupported operand for ${fnName}`);
+
+            // @ts-ignore
+            return l[fnName](r);
+        }
 
         switch (this.opTok.type) {
-            case tt.ADD:
-                return l + r;
-            case tt.DIV:
-                return l / r;
-            case tt.MUL:
-                return l * r;
+            case tt.LTE: {
+                const lt = declaredBinOp(l, r, '__lt__', this.opTok.startPos);
+                const eq = declaredBinOp(l, r, '__eq__', this.opTok.startPos);
+                if (lt instanceof ESError) return lt;
+                if (eq instanceof ESError) return eq;
+                return declaredBinOp(lt, eq, '__or__', this.opTok.startPos);
+
+            } case tt.GTE: {
+                const gt = declaredBinOp(l, r, '__gt__', this.opTok.startPos);
+                const eq = declaredBinOp(l, r, '__eq__', this.opTok.startPos);
+                if (gt instanceof ESError) return gt;
+                if (eq instanceof ESError) return eq;
+                return declaredBinOp(gt, eq, '__or__', this.opTok.startPos);
+
+            } case tt.NOTEQUALS: {
+                const res = declaredBinOp(l, r, '__eq__', this.opTok.startPos);
+                if (res instanceof ESError) return res;
+                return new ESBoolean(!res.bool().valueOf());
+
+            } case tt.ADD:
+                return declaredBinOp(l, r, '__add__', this.opTok.startPos);
             case tt.SUB:
-                return l - r;
+                return declaredBinOp(l, r, '__subtract__', this.opTok.startPos);
+            case tt.MUL:
+                return declaredBinOp(l, r, '__multiply__', this.opTok.startPos);
+            case tt.DIV:
+                return declaredBinOp(l, r, '__divide__', this.opTok.startPos);
             case tt.POW:
-                return l ** r;
-            case tt.LTE:
-                return l <= r;
-            case tt.GTE:
-                return l >= r;
-            case tt.GT:
-                return l > r;
-            case tt.LT:
-                return l < r;
+                return declaredBinOp(l, r, '__pow__', this.opTok.startPos);
             case tt.EQUALS:
-                return l === r;
-            case tt.NOTEQUALS:
-                return l !== r;
+                return declaredBinOp(l, r, '__eq__', this.opTok.startPos);
+            case tt.LT:
+                return declaredBinOp(l, r, '__lt__', this.opTok.startPos);
+            case tt.GT:
+                return declaredBinOp(l, r, '__gt__', this.opTok.startPos);
             case tt.AND:
-                return l && r;
+                return declaredBinOp(l, r, '__and__', this.opTok.startPos);
             case tt.OR:
-                return l || r;
+                return declaredBinOp(l, r, '__or__', this.opTok.startPos);
 
             default:
-                return 0;
+                return new InvalidSyntaxError(
+                    this.opTok.startPos,
+                    `Invalid binary operator: ${tokenTypeString[this.opTok.type]}`
+                );
         }
     }
 }
@@ -127,25 +166,24 @@ export class N_unaryOp extends Node {
         this.opTok = opTok;
     }
 
-    interpret_(context: Context): any {
+    interpret_(context: Context): ESError | Primitive {
         const res = this.a.interpret(context);
-        if (res.error) return res;
+        if (res.error) return res.error;
 
         switch (this.opTok.type) {
             case tt.SUB:
-                return -res.val;
             case tt.ADD:
-                return res.val;
+                if (!(res.val instanceof ESNumber))
+                    return new TypeError(this.startPos, 'Number', res.val?.typeOf().toString() || 'undefined_', res.val?.valueOf());
+                const numVal = res.val.valueOf();
+                return new ESNumber(this.opTok.type === tt.SUB ? -numVal : Math.abs(numVal));
             case tt.NOT:
-                if (res.val?.type === ESType.undefined)
-                    return true;
-                return !res.val;
+                return new ESBoolean(!res?.val?.bool().valueOf());
             default:
                 return new InvalidSyntaxError(
                     this.opTok.startPos,
                     `Invalid unary operator: ${tokenTypeString[this.opTok.type]}`
                 );
-
         }
     }
 }
@@ -179,33 +217,45 @@ export class N_varAssign extends Node {
         } else this.type = type;
     }
 
-    interpret_(context: Context): any {
+    interpret_(context: Context): interpretResult | ESError | Primitive {
         const res = this.value.interpret(context);
         const typeRes = this.type.interpret(context);
 
-        if (res.error) return res;
-        if (typeRes.error) return res;
+        if (res.error) return res.error;
+        if (typeRes.error) return typeRes.error;
 
-        if (!(typeRes.val instanceof ESType))
-            return new TypeError(this.varNameTok.startPos, 'Type', typeof typeRes.val, typeRes.val);
+        if (!typeRes.val || !(typeRes.val instanceof ESType))
+            return new TypeError(this.varNameTok.startPos, 'Type',
+                typeRes.val?.typeOf().valueOf() ?? 'undefined', typeRes.val?.str(), `@ !typeRes.val || !(typeRes.val instanceof ESType)`);
 
-        if (!typeRes.val.includesType(res.type))
-            return new TypeError(this.varNameTok.startPos, typeRes.val.name, res.type.name, res.val);
+        if (!res.val)
+            return new TypeError(this.varNameTok.startPos, '~undefined', 'undefined', 'N_varAssign.interpret_');
+
+        if (!typeRes.val.includesType(res.val.__type__))
+            return new TypeError(this.varNameTok.startPos,
+                typeRes.val.str().valueOf() ?? 'unknown type',
+                res.val?.typeOf().valueOf() ?? 'undefined__',
+                res.val?.str());
 
         if (this.assignType === '=') {
-            const setRes = context.set(this.varNameTok.value, res.val, {
+            // simple assign
+            let value = res.val;
+            if (value === undefined)
+                value = new ESUndefined();
+
+            const setRes = context.set(this.varNameTok.value, value, {
                 global: this.isGlobal,
-                isConstant: this.isConstant,
-                type: typeRes.val
+                isConstant: this.isConstant
             });
             if (setRes instanceof ESError) return setRes;
-        }
 
-        else {
-            const currentVal = context.get(this.varNameTok.value);
+
+        } else {
+            // assign with modifier like *= or -=
+            const currentVal = context.get(this.varNameTok.value)?.valueOf();
             if (currentVal instanceof ESError) return currentVal;
             let newVal;
-            let assignVal = res.val;
+            let assignVal = res.val?.valueOf();
 
             switch (this.assignType[0]) {
                 case '*':
@@ -234,7 +284,7 @@ export class N_varAssign extends Node {
                 isConstant: this.isConstant
             });
             if (setRes instanceof ESError) return setRes;
-            res.val = newVal;
+            res.val = ESPrimitive.wrap(newVal);
         }
         return res;
     }
@@ -252,24 +302,24 @@ export class N_if extends Node {
         this.ifTrue = ifTrue;
     }
 
-    interpret_(context: Context): any {
+    interpret_(context: Context): interpretResult {
         let newContext = new Context();
         newContext.parent = context;
-        let res: any = None;
+        let res: interpretResult = new interpretResult();
 
         let compRes = this.comparison.interpret(context);
         if (compRes.error) return compRes;
 
-        if (compRes.val) {
+        if (compRes.val?.bool().valueOf()) {
             res = this.ifTrue.interpret(newContext);
             // so that if statements always return a value of None
-            res.val = None;
+            res.val = new ESUndefined();
             if (res.error) return res;
 
         } else if (this.ifFalse) {
             res = this.ifFalse.interpret(newContext);
             // so that if statements always return a value of None
-            res.val = None;
+            res.val = new ESUndefined();
             if (res.error) return res;
         }
 
@@ -287,7 +337,7 @@ export class N_while extends Node {
         this.loop = loop;
     }
 
-    interpret_(context: Context): any {
+    interpret_(context: Context) {
         let newContext = new Context();
         newContext.parent = context;
 
@@ -295,13 +345,13 @@ export class N_while extends Node {
             let shouldLoop = this.comparison.interpret(context);
             if (shouldLoop.error) return shouldLoop;
 
-            if (!shouldLoop.val) break;
+            if (!shouldLoop.val?.bool()?.valueOf()) break;
 
             let potentialError = this.loop.interpret(newContext)
             if (potentialError.error) return potentialError;
             if (potentialError.shouldBreak) break;
         }
-        return None;
+        return new ESUndefined();
     }
 }
 
@@ -321,7 +371,7 @@ export class N_for extends Node {
         this.isConstId = isConstIdentifier;
     }
 
-    interpret_ (context: Context): any {
+    interpret_ (context: Context) {
         let newContext = new Context();
         newContext.parent = context;
         let res: any = None;
@@ -329,18 +379,19 @@ export class N_for extends Node {
         const array = this.array.interpret(context);
         if (array.error) return array;
 
+        if (!['Array', 'Number', 'Object', 'String', 'Any'].includes(array.val?.typeOf().valueOf() || ''))
+            return new TypeError(
+                this.identifier.startPos,
+                'Array | Number | Object | String',
+                typeof array.val + ' | ' + array.val?.typeOf()
+            );
 
-        if (!Array.isArray(array.val) && !['string', 'number', 'object'].includes(typeof array.val)) return new TypeError(
-            this.identifier.startPos,
-            'array | string',
-            typeof array.val
-        );
-
-        function iteration (body: Node, id: string, element: any, isGlobal: boolean, isConstant: boolean): 'break' | interpretResult | undefined {
+        function iteration (body: Node, id: string, element: Primitive, isGlobal: boolean, isConstant: boolean): 'break' | interpretResult | undefined {
             newContext.set(id, element, {
                 global: isGlobal,
                 isConstant
             });
+
             res = body.interpret(newContext);
             if (res.error || (res.funcReturn !== undefined)) return res;
             if (res.shouldBreak) {
@@ -351,50 +402,65 @@ export class N_for extends Node {
                 res.shouldContinue = false;
         }
 
-        if (typeof array.val === 'number') {
-            for (let i = 0; i < array.val; i++) {
-                const res = iteration(this.body, this.identifier.value, i, this.isGlobalId, this.isConstId);
+        if (array.val instanceof ESNumber || typeof array.val?.valueOf() == 'number') {
+            for (let i = 0; i < array.val.valueOf(); i++) {
+                const res = iteration(this.body, this.identifier.value, new ESNumber(i), this.isGlobalId, this.isConstId);
                 if (res === 'break') break;
                 if (res && (res.error || (res.funcReturn !== undefined))) return res;
             }
 
-        } else if (typeof array.val === 'object' && !Array.isArray(array.val)) {
-            for (let element in array.val) {
+        } else if (array.val instanceof ESObject ||
+            (typeof array.val?.valueOf() == 'number' && !Array.isArray(array.val?.valueOf()))
+        ) {
+            for (let element in array.val?.valueOf()) {
+                const res = iteration(this.body, this.identifier.value, new ESString(element), this.isGlobalId, this.isConstId);
+                if (res === 'break') break;
+                if (res && (res.error || (res.funcReturn !== undefined))) return res;
+            }
+        } else if (array.val instanceof ESArray || Array.isArray(array.val?.valueOf())) {
+            for (let element of array.val?.valueOf()) {
                 const res = iteration(this.body, this.identifier.value, element, this.isGlobalId, this.isConstId);
                 if (res === 'break') break;
                 if (res && (res.error || (res.funcReturn !== undefined))) return res;
             }
-        } else {
-            for (let element of array.val) {
-                const res = iteration(this.body, this.identifier.value, element, this.isGlobalId, this.isConstId);
-                if (res === 'break') break;
-                if (res && (res.error || (res.funcReturn !== undefined))) return res;
-            }
-        }
+        } else
+            return new TypeError(
+                this.identifier.startPos,
+                'Array | Number | Object | String',
+                typeof array.val
+            );
 
-        return res;
+        return new ESUndefined();
     }
 }
 
 export class N_array extends Node {
     items: Node[];
-    constructor(startPos: Position, items: Node[]) {
+    shouldClone: boolean;
+    constructor(startPos: Position, items: Node[], shouldClone=false) {
         super(startPos);
         this.items = items;
+        this.shouldClone = shouldClone
     }
 
-    interpret_ (context: Context): any {
+    interpret_ (context: Context) {
         let result = new interpretResult();
-        let interpreted: any[] = [];
+        let interpreted: Primitive[] = [];
 
         for (let item of this.items) {
             const res = item.interpret(context);
             if (res.error || (res.funcReturn !== undefined)) return res;
-            interpreted.push(deepClone(res.val));
+            if (!res.val) continue;
+            let val = res.val;
+            if (this.shouldClone)
+                val = val.clone();
+            interpreted.push(val);
+            if (!(val instanceof ESPrimitive))
+                console.log('NOT INSTANCE: ', str(val));
         }
 
-        result.val = interpreted;
-        result.type = ESType.array;
+
+        result.val = new ESArray(interpreted);
 
         return result;
     }
@@ -407,20 +473,21 @@ export class N_objectLiteral extends Node {
         this.properties = properties;
     }
 
-    interpret_ (context: Context): any {
-        let interpreted: any = {};
+    interpret_ (context: Context): Primitive | ESError {
+        let interpreted: dict<Primitive> = {};
 
         for (const [keyNode, valueNode] of this.properties) {
             const value = valueNode.interpret(context);
-            if (value.error) return value;
+            if (value.error) return value.error;
 
             const key = keyNode.interpret(context);
-            if (key.error) return key;
+            if (key.error) return key.error;
 
-            interpreted[key.val] = deepClone(value.val);
+            if (key.val && value.val)
+                interpreted[key.val.valueOf()] = value.val;
         }
 
-        return interpreted;
+        return new ESObject(interpreted);
     }
 }
 
@@ -430,7 +497,7 @@ export class N_emptyObject extends Node {
     }
 
     interpret_ (context: Context) {
-        return {};
+        return new ESObject({});
     }
 }
 
@@ -442,12 +509,17 @@ export class N_statements extends Node {
     }
 
     interpret_ (context: Context) {
+        let last;
         for (let item of this.items) {
             const res = item.interpret(context);
-            if (res.error || (res.funcReturn !== undefined) || res.shouldBreak || res.shouldContinue) return res;
+            if (res.error || (typeof res.funcReturn !== 'undefined') || res.shouldBreak || res.shouldContinue)
+                return res;
+            // return last statement
+            last = res.val;
         }
 
-        return None;
+        if (last) return last;
+        return new ESUndefined();
     }
 }
 
@@ -462,135 +534,42 @@ export class N_functionCall extends Node {
     }
 
     interpret_ (context: Context) {
+        let { val, error } = this.to.interpret(context);
+        if (error) return error;
+        if (!val)
+            return new TypeError(this.startPos, 'any', 'undefined', undefined, 'On function call');
+        if (!val.__call__)
+            return new TypeError(this.startPos, 'unknown',
+                val?.typeOf().valueOf() || 'undefined', val?.valueOf(),
+                'Can only () on something with __call__ property');
 
-        let func = this.to.interpret(context);
-        if (func.error) return func;
+        let params: Primitive[] = [];
 
-        if (func.val instanceof N_function)
-            return this.runFunc(func.val, context);
-
-        else if (func.val instanceof N_builtInFunction)
-            return this.runBuiltInFunction(func.val, context);
-
-        else if (func.val instanceof N_class)
-            return this.runConstructor(func.val, context);
-
-        else if (func.val instanceof ESType) {
-            if (!func.val.value) return {};
-            return this.runConstructor(func.val.value, context);
-
-        } else if (typeof func.val === 'function') {
-
-            let args: any = [];
-
-            for (let arg of this.arguments) {
-                let value = arg.interpret(context);
-                if (value.error) return value.error;
-                args.push(value.val);
-            }
-
-            return func.val(...args);
-
-        } else
-            return new TypeError(this.startPos,'function', typeof func.val);
-    }
-
-    genContext (context: Context, params: [string, Node][]) {
-        const newContext = new Context();
-        newContext.parent = context;
-
-        let args = [];
-
-        let max = Math.max(params.length, this.arguments.length);
-        for (let i = 0; i < max; i++) {
-            let value = None;
-            let type = ESType.any;
-            if (this.arguments[i] !== undefined) {
-                let res = this.arguments[i].interpret(context);
-                if (res.error) return res.error;
-                value = res.val ?? None;
-                type = res.type ?? ESType.any;
-            }
-            args.push(value);
-            if (params[i] !== undefined) {
-                // type checking
-                const [name, typeNode] = params[i];
-                let typeRes = typeNode.interpret(context);
-                if (!(typeRes.val instanceof ESType))
-                    return new TypeError(this.startPos, 'Type', typeof typeRes.val, typeRes.val);
-
-                if (!typeRes.val.includesType(type))
-                    return new TypeError(this.startPos, typeRes.val.name, type.name);
-
-                newContext.setOwn(value, name, { type });
-            }
+        for (let arg of this.arguments) {
+            const res = arg.interpret(context);
+            if (res.error)
+                return res;
+            if (res.val)
+                params.push(res.val);
         }
 
-        let setRes = newContext.setOwn(args, 'args');
-        if (setRes instanceof ESError) return setRes;
-        return newContext;
-    }
+        const res = val.__call__(params, context);
 
-    runFunc (func: N_function, context: Context) {
-        const newContext = this.genContext(context, func.arguments);
-        if (newContext instanceof ESError) return newContext;
+        if (res instanceof ESFunction)
+            console.log('RES: ', res.str());
 
-        let this_ = func.this_ ?? None;
-
-        if (typeof this_ !== 'object')
-            return new TypeError(
-                this.startPos,
-                'object',
-                typeof this_,
-                this_,
-                '\'this\' must be an object'
-            );
-
-        let setRes = newContext.set('this', this_);
-        if (setRes instanceof ESError) return setRes;
-
-        const res = func.body.interpret(newContext);
-
-        // type checking
-        let returnTypeRes = func.returnType.interpret(context).val;
-
-        if (!(returnTypeRes instanceof ESType))
-            return new TypeError(this.startPos, 'Type', typeof returnTypeRes, returnTypeRes);
-
-
-        if (!returnTypeRes.includesType(res.type))
-            return new TypeError(this.startPos, returnTypeRes.name, res.type.name, res.funcReturn, '(from function return)');
-
-        if (res.funcReturn !== undefined) {
-
-            res.val = res.funcReturn;
-            res.funcReturn = undefined;
-        }
         return res;
-    }
-
-    runBuiltInFunction (func: N_builtInFunction, context: Context) {
-        const args: [string, Node][] = func.argNames.map(([name, type]) => [name, new N_any(type)]);
-        const newContext = this.genContext(context, args);
-        if (newContext instanceof ESError) return newContext;
-        return func.interpret(newContext);
-    }
-
-    runConstructor (constructor: N_class, context: Context) {
-        const newContext = this.genContext(context, constructor?.init?.arguments ?? []);
-        if (newContext instanceof ESError) return newContext;
-        return constructor.genInstance(newContext);
     }
 }
 
-export class N_function extends Node {
+export class N_functionDefinition extends Node {
     body: Node;
-    arguments: [string, Node][];
+    arguments: uninterpretedArgument[];
     name: string;
     this_: any;
     returnType: Node;
 
-    constructor(startPos: Position, body: Node, argNames: [string, Node][], returnType: Node, name = '<anon func>', this_: any = {}) {
+    constructor(startPos: Position, body: Node, argNames: uninterpretedArgument[], returnType: Node, name = '(anon)', this_: any = {}) {
         super(startPos);
         this.arguments = argNames;
         this.body = body;
@@ -599,26 +578,15 @@ export class N_function extends Node {
         this.returnType = returnType;
     }
 
-    interpret_ (context: Context): any {
-        const res = new interpretResult();
-        res.val = this;
-        res.type = ESType.function;
-        return res;
-    }
-}
-
-export class N_builtInFunction extends Node {
-    func: (context: Context) => any;
-    argNames: [string, ESType][];
-    constructor(func: (context: Context) => any, argNames: [string, ESType][]) {
-        super(Position.unknown);
-        this.func = func;
-        this.argNames = argNames;
-    }
-
-    interpret_ (context: Context) {
-        // never called except to execute, so can use this function
-        return this.func(context);
+    interpret_ (context: Context): Primitive | ESError {
+        let args: runtimeArgument[] = [];
+        for (let arg of this.arguments) {
+            const res = interpretArgument(arg, context);
+            if (res instanceof ESError)
+                return res;
+            args.push(res);
+        }
+        return new ESFunction(this.body, args, this.name, this.this_);
     }
 }
 
@@ -633,7 +601,7 @@ export class N_return extends Node {
         const res = new interpretResult();
 
         if (this.value === undefined)  {
-            res.funcReturn = None;
+            res.funcReturn = new ESUndefined();
             return res;
         }
 
@@ -641,7 +609,6 @@ export class N_return extends Node {
         if (val.error) return val.error;
 
         res.funcReturn = val.val;
-        res.type = val.type;
         return res;
     }
 }
@@ -657,17 +624,15 @@ export class N_yield extends Node {
         const res = new interpretResult();
 
         if (this.value === undefined)  {
-            res.funcReturn = None;
+            res.funcReturn = new ESUndefined();
             return res;
         }
 
         let val = this.value.interpret(context);
         if (val.error) return val.error;
 
-        if (val.val) {
+        if (val.val?.bool())
             res.funcReturn = val.val;
-            res.type = val.type;
-        }
 
         return res;
     }
@@ -676,6 +641,7 @@ export class N_yield extends Node {
 export class N_indexed extends Node {
     base: Node;
     index: Node;
+    // not undefined if setting value
     value: Node | undefined;
     assignType: string | undefined;
 
@@ -683,6 +649,13 @@ export class N_indexed extends Node {
         super(startPos);
         this.base = base;
         this.index = index;
+    }
+
+    declaredBinOp (l: Primitive, r: Primitive, fnName: string, opTokPos: Position): ESError | Primitive {
+        if (!l.hasProperty(new ESString(fnName)))
+            return new ESError(opTokPos, 'TypeError', `Unsupported operand ${fnName} on type ${l.typeOf().valueOf()}`);
+        // @ts-ignore
+        return l[fnName](r);
     }
 
     interpret_ (context: Context) {
@@ -695,43 +668,32 @@ export class N_indexed extends Node {
         const index = indexRes.val;
         const base = baseRes.val;
 
-        if (!['string', 'number'].includes(typeof index))
-            return new TypeError(
-                this.startPos,
-                'string | number',
-                typeof index,
-                index,
-                `With base ${base} and index ${index}`
-            );
-
-        if (!['object', 'function', 'string'].includes(typeof base))
-            return new TypeError(
-                this.startPos,
-                'object | array | string | function',
-                typeof base
-            );
+        if (!base || !index)
+            return new ESUndefined();
 
         if (this.value !== undefined) {
             let valRes = this.value.interpret(context);
             if (valRes.error) return valRes;
 
-            const currentVal = base[index];
-            let newVal;
+            const currentVal = ESPrimitive.wrap(base.__getProperty__(index));
+            let newVal: Primitive | ESError;
             let assignVal = valRes.val;
             this.assignType ??= '=';
 
+            if (!assignVal)
+                return new TypeError(this.startPos, '~undefined', 'undefined', 'undefined', 'N_indexed.interpret_')
+
             switch (this.assignType[0]) {
                 case '*':
-                    newVal = currentVal * assignVal; break;
+                    newVal = this.declaredBinOp(currentVal, assignVal, '__multiply__', this.startPos); break;
                 case '/':
-                    newVal = currentVal / assignVal; break;
+                    newVal = this.declaredBinOp(currentVal, assignVal, '__divide__', this.startPos); break;
                 case '+':
-                    newVal = currentVal + assignVal; break;
+                    newVal = this.declaredBinOp(currentVal, assignVal, '__add__', this.startPos); break;
                 case '-':
-                    newVal = currentVal - assignVal; break;
+                    newVal = this.declaredBinOp(currentVal, assignVal, '__subtract__', this.startPos); break;
                 case '=':
                     newVal = assignVal; break;
-
 
                 default:
                     return new ESError(
@@ -741,22 +703,29 @@ export class N_indexed extends Node {
                     );
             }
 
-            base[index] = newVal ?? None;
-        }
+            if (newVal instanceof ESError)
+                return newVal;
 
-        return base[index];
+            if (!base.__setProperty__)
+                return new TypeError(this.startPos, 'mutable', 'immutable', base.valueOf());
+
+            const res = base.__setProperty__(index, newVal ?? new ESUndefined());
+            if (res instanceof ESError)
+                return res;
+        }
+        return ESPrimitive.wrap(base.__getProperty__(index));
     }
 }
 
 export class N_class extends Node {
 
-    init: N_function | undefined;
-    methods: N_function[];
+    init: N_functionDefinition | undefined;
+    methods: N_functionDefinition[];
     name: string;
     extends_: Node | undefined;
     instances: any[];
 
-    constructor(startPos: Position, methods: N_function[], extends_?: Node, init?: N_function, name = '<anon class>') {
+    constructor(startPos: Position, methods: N_functionDefinition[], extends_?: Node, init?: N_functionDefinition, name = '<anon class>') {
         super(startPos);
         this.init = init;
         this.methods = methods;
@@ -766,111 +735,34 @@ export class N_class extends Node {
     }
 
     interpret_ (context: Context) {
-        return new ESType(false, this.name, this);
-    }
-
-    genInstance (context: Context, runInit=true, on = {constructor: this})
-        : {constructor: N_class } | ESError
-    {
-        function dealWithExtends(context_: Context, classNode: Node, instance: any) {
-            const constructor = instance.constructor;
-            const classNodeRes = classNode.interpret(context);
-            if (classNodeRes.error) return classNodeRes.error;
-            if (!(classNodeRes.val instanceof ESType))
-                return new TypeError(
-                    classNode.startPos,
-                    'ESType',
-                    typeof classNodeRes.val,
-                    classNodeRes.val
-                );
-            const extendsClass = classNodeRes.val?.value;
-            if (!extendsClass) return instance;
-
-            let setRes = context_.setOwn( () => {
-                const newContext = new Context();
-                newContext.parent = context;
-                let setRes = newContext.setOwn(instance, 'this');
-                if (setRes instanceof ESError) return setRes;
-
-                if (extendsClass.extends_ !== undefined) {
-                    let _a = dealWithExtends(newContext, extendsClass.extends_, instance);
-                    if (_a instanceof ESError) return _a;
-                }
-
-                const res_ = extendsClass?.init?.body?.interpret(newContext);
-                if (res_ && res_.error) return res_;
-            }, 'super');
-            if (setRes instanceof ESError) return setRes;
-
-
-            instance = extendsClass.genInstance(context, false, instance);
-            if (instance instanceof ESError) return instance;
-
-            // index access to prevent annoying wiggly red line
-            instance.constructor = constructor;
-
-            return instance;
-        }
-
-        let instance: any = on;
-
-        const newContext = new Context();
-        newContext.parent = context;
-
-        if (this.extends_ !== undefined) {
-            let _a = dealWithExtends(newContext, this.extends_, instance);
-            if (_a instanceof ESError) return _a;
-        }
-
+        const methods: ESFunction[] = [];
         for (let method of this.methods) {
-            // shallow clone of method with instance as this_
-            instance[method.name] = new N_function(
-                method.startPos,
-                method.body,
-                method.arguments,
-                method.returnType,
-                method.name,
-                instance
-            );
+            const res = method.interpret(context);
+            if (res.error)
+                return res.error;
+            if (res.val instanceof ESFunction)
+                methods.push(res.val);
+        }
+        let extends_ = undefined;
+        if (this.extends_) {
+            const extendsRes = this.extends_.interpret(context);
+            if (extendsRes.error)
+                return extendsRes.error;
+            if (extendsRes.val instanceof ESType)
+                extends_ = extendsRes.val;
+        }
+        let init = undefined;
+        if (this.init) {
+            const initRes = this.init.interpret(context);
+            if (initRes.error)
+                return initRes.error;
+            if (initRes.val instanceof ESFunction)
+                init = initRes.val;
         }
 
-        if (runInit) {
-            newContext.setOwn(instance, 'this');
-
-            if (this.init) {
-                const res = this.init.body.interpret(newContext);
-                // return value of init is ignored
-                if (res.error) return res.error;
-            }
-        }
-
-        this.instances.push(instance);
-
-        return instance;
+        return new ESType(false, this.name, methods, extends_, init);
     }
 }
-/*
-export class N_fString extends Node {
-    parts: Node[];
-    constructor (startPos: Position, parts: Node[]) {
-        super(startPos);
-        this.parts = parts;
-    }
-
-    interpret_ (context: Context) {
-        let out = '';
-        for (let part of this.parts) {
-            let res = part.interpret(context);
-            if (res.error) return res;
-
-            // 1 to prevent '' around string
-            out += str(res.val, 1);
-        }
-
-        return out;
-    }
-}
- */
 
 // --- TERMINAL NODES ---
 export class N_number extends Node {
@@ -889,8 +781,7 @@ export class N_number extends Node {
         );
 
         const res = new interpretResult();
-        res.val = val;
-        res.type = ESType.number;
+        res.val = new ESNumber(val);
         return res;
     }
 }
@@ -911,8 +802,7 @@ export class N_string extends Node {
         );
 
         const res = new interpretResult();
-        res.val = val;
-        res.type = ESType.string;
+        res.val = new ESString(val);
         return res;
     }
 }
@@ -931,11 +821,12 @@ export class N_variable extends Node {
         let res = new interpretResult();
         let symbol = context.getSymbol(this.a.value);
 
-        if (!symbol) return undefined;
-        if (symbol instanceof ESError) return symbol;
+        if (!symbol)
+            return new ESUndefined();
+        if (symbol instanceof ESError)
+            return symbol;
 
         res.val = symbol.value;
-        res.type = symbol.type;
 
         return res;
     }
@@ -949,8 +840,7 @@ export class N_undefined extends Node {
 
     interpret_ (context: Context) {
         const res = new interpretResult();
-        res.val = None;
-        res.type = ESType.undefined;
+        res.val = new ESUndefined();
         return res;
     }
 }
@@ -986,6 +876,8 @@ export class N_any extends Node {
     }
 
     interpret_ (context: Context) {
-        return this.val;
+        if (this.val instanceof ESPrimitive)
+            return this.val;
+        return ESPrimitive.wrap(this.val);
     }
 }
