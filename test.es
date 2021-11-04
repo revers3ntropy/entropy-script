@@ -1,5 +1,1 @@
-const a = func (msg: array) {
-	return msg;
-};
-
-print(a('hello world'));
+print(({hi: 'hello world'})['hi']);

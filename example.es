@@ -19,7 +19,7 @@ i; // 2
 while (i < 10) {
     i += 1;
 }
-i; // 9
+i; // 9, as i is now defined globally
 
 
 // functions
@@ -34,15 +34,16 @@ let myFunc = func () {
 print(myFunc('hi ', 123, ['hi', 1])); // hi 123[hi, 1];
 
 // callbacks and higher order functions
-var wrapper = func (function) {
+var wrapper = func (function_) {
     return func () {
-        function('hi');
+        function_('hi');
     }
 };
 
-wrapper(func(message) {
+const func_ = wrapper(func(message) {
     print(message);
-}); // hi
+});
+func_(); // hi
 
 // objects
 let b = 0;

@@ -3,7 +3,7 @@ import { ESError, TypeError } from "./errors.js";
 import { Position } from "./position.js";
 import { Node } from "./nodes.js";
 import { runtimeArgument } from "./argument.js";
-import { Context, ESSymbol } from "./context.js";
+import { Context, ESSymbol, generateESFunctionCallContext } from "./context.js";
 import { global, None } from "./constants.js";
 
 export type typeName = 'Undefined' | 'String' | 'Array' | 'Number' | 'Any' | 'Function' | 'Boolean' | 'Type' | 'Object' | string;
@@ -42,7 +42,7 @@ export abstract class ESPrimitive <T> {
      * @param {ESType|false} type can ONLY be false for initialising the '__type__' ESType
      * @protected
      */
-    protected constructor (value: T, type: ESType | false = ESType.any) {
+    protected constructor (value: T, type: ESType | false = types.any) {
         // @ts-ignore
         this.__type__ = type || this;
         this.__value__ = value;
@@ -143,7 +143,7 @@ export class ESType extends ESPrimitive<undefined> {
     readonly __name__: typeName;
     readonly __extends__: undefined | ESType;
     readonly __methods__: ESFunction[];
-    readonly __init__: undefined | ESFunction;
+    readonly __init__: ESFunction;
     readonly __instances__: ESObject[] = [];
 
     constructor (
@@ -153,14 +153,24 @@ export class ESType extends ESPrimitive<undefined> {
         __extends__?: undefined | ESType,
         __init__?: undefined | ESFunction
     ) {
-        super(undefined, ESType?.type);
+        super(undefined, types?.type);
+
         this.__isPrimitive__ = isPrimitive;
         this.__name__ = name;
         this.__extends__ = __extends__;
         this.__methods__ = __methods__;
-        this.__init__ = __init__;
+        if (__init__) {
+            __init__.name = name;
+            this.__init__ = __init__;
+        } else
+            this.__init__ = new ESFunction((...args: Primitive[]) => {
+                const context = new Context();
+                context.parent = global;
+                return this.__call__(args, context);
+            }, [], name, {}, types.object);
 
-        if (!ESType.type)
+
+        if (!types.type)
             this.__type__ = this;
     }
 
@@ -175,7 +185,7 @@ export class ESType extends ESPrimitive<undefined> {
     }
 
     includesType = (t: ESType) => {
-        if (this.equals(ESType.any) || t.equals(ESType.any)) return true;
+        if (this.equals(types.any) || t.equals(types.any)) return true;
         return this.equals(t);
     }
 
@@ -193,7 +203,10 @@ export class ESType extends ESPrimitive<undefined> {
             switch (this.__name__) {
                 case 'UndefinedType':
                 case 'Type':
-                    return new ESUndefined();
+                    if (params.length < 1)
+                        return new ESType();
+                    else
+                        return params[0].typeOf();
                 case 'String':
                     return new ESString(params[0].str().valueOf());
                 case 'Array':
@@ -279,6 +292,8 @@ export class ESType extends ESPrimitive<undefined> {
             }
         }
 
+        on['constructor'] = this.__init__;
+
         const instance = new ESObject(on);
 
         this.__instances__.push(instance);
@@ -287,24 +302,12 @@ export class ESType extends ESPrimitive<undefined> {
     }
 
     str = () => new ESString(`<Type: ${this.__name__}>`);
-
-    static type = new ESType(true, 'Type');
-
-    static undefined = new ESType(true, 'Undefined');
-    static string = new ESType(true, 'String');
-    static array = new ESType(true, 'Array');
-    static number = new ESType(true, 'Number');
-    static any = new ESType(true, 'Any');
-    static function = new ESType(true, 'Function');
-    static bool = new ESType(true, 'Boolean');
-    static object = new ESType(true, 'Object');
-    static error = new ESType(true, 'Error');
 }
 
 
 export class ESNumber extends ESPrimitive <number> {
     constructor (value: number = 0) {
-        super(value, ESType.number);
+        super(value, types.number);
     }
 
     str = () => new ESString(this.valueOf().toString());
@@ -357,7 +360,7 @@ export class ESNumber extends ESPrimitive <number> {
 
 export class ESString extends ESPrimitive <string> {
     constructor (value: string = '') {
-        super(value, ESType.string);
+        super(value, types.string);
     }
 
     str = () => this;
@@ -438,7 +441,7 @@ export class ESString extends ESPrimitive <string> {
 
 export class ESUndefined extends ESPrimitive <any> {
     constructor () {
-        super(undefined, ESType.undefined);
+        super(undefined, types.undefined);
     }
 
     str = () => new ESString('<Undefined>');
@@ -450,7 +453,7 @@ export class ESUndefined extends ESPrimitive <any> {
 
 export class ESErrorPrimitive extends ESPrimitive <ESError> {
     constructor (error: ESError = new ESError(Position.unknown, 'Unknown', 'error type not specified')) {
-        super(error, ESType.error);
+        super(error, types.error);
     }
 
     str = () => new ESString(`<Error: ${this.valueOf().str}>`);
@@ -460,26 +463,25 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
     clone = (): ESErrorPrimitive => new ESErrorPrimitive(this.valueOf());
 }
 
-export class ESFunction extends ESPrimitive <(Node | ((...args: any[]) => any))> {
+export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => any))> {
     name: string;
     arguments_: runtimeArgument[];
     this_: any;
     returnType: ESType;
     constructor (
-        func: Node | ((...args: any[]) => any) = () => {},
+        func: Node | ((...args: Primitive[]) => any) = () => {},
         arguments_: runtimeArgument[] = [],
         name='(anonymous)',
         this_: any={},
-        returnType: undefined | ESType = ESType.any
+        returnType: undefined | ESType = types.any
     ) {
-        super(func, ESType.function);
+        super(func, types.function);
         this.arguments_ = arguments_;
         this.name = name;
         this.this_ = this_;
         this.returnType = returnType;
     }
     clone = (): ESFunction => {
-        console.log(`cloning ${this.name}...`);
         return new ESFunction(
             this.__value__,
             this.arguments_,
@@ -503,50 +505,13 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: any[]) => any))>
     
     __call__ = (params: Primitive[] = [], context = global): ESError | Primitive => {
 
-        function genContext (params: Primitive[], self: ESFunction) {
-
-            const newContext = new Context();
-            newContext.parent = context;
-
-            let max = Math.max(params.length, self.arguments_.length);
-
-            for (let i = 0; i < max; i++) {
-
-                let value: Primitive | undefined;
-                let type = ESType.any;
-
-                if (self.arguments_[i] !== undefined) {
-                    // __type__ checking
-                    const arg = self.arguments_[i];
-                    if (!(arg.type instanceof ESType))
-                        return new TypeError(Position.unknown, 'Type', typeof arg.type, arg.type);
-
-                    if (params[i] instanceof ESPrimitive) {
-                        type = params[i].__type__;
-                        value = params[i];
-                    }
-
-                    if (!arg.type.includesType(type))
-                        return new TypeError(Position.unknown, arg.type.__name__, type.__name__);
-
-                    if (value)
-                        newContext.setOwn(value, arg.name, {
-                            isConstant: true
-                        });
-                }
-            }
-
-            let setRes = newContext.setOwn(new ESArray(params), 'args');
-            if (setRes instanceof ESError) return setRes;
-            return newContext;
-        }
 
         const fn = this.__value__;
 
         if (fn instanceof Node) {
             // fn is the function root node
 
-            const newContext = genContext(params, this);
+            const newContext = generateESFunctionCallContext(params, this, context);
             if (newContext instanceof ESError) return newContext;
 
             let this_ = this.this_ ?? None;
@@ -567,15 +532,13 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: any[]) => any))>
 
             if (res.error) return res.error;
 
-            if (!this.returnType.includesType(res.val?.__type__ ?? ESType.any))
+            if (!this.returnType.includesType(res.val?.__type__ ?? types.any))
                 return new TypeError(Position.unknown, this.returnType.__name__, res.val?.typeOf().valueOf() || 'undefined', res.funcReturn, '(from function return)');
 
             if (res.funcReturn !== undefined) {
                 res.val = res.funcReturn;
                 res.funcReturn = undefined;
             }
-
-            console.log('HIIII~~~');
 
             if (res.val)
                 return res.val;
@@ -595,7 +558,7 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: any[]) => any))>
 
 export class ESBoolean extends ESPrimitive <boolean> {
     constructor (val: boolean = false) {
-        super(val, ESType.bool);
+        super(val, types.bool);
     }
 
     __eq__ = (n: Primitive) => {
@@ -619,7 +582,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
 
 export class ESObject extends ESPrimitive <dict<Primitive>> {
     constructor (val: dict<Primitive> = {}) {
-        super(val, ESType.object);
+        super(val, types.object);
     }
 
     str = () => new ESString(str(this.valueOf()));
@@ -658,7 +621,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             try {
                 obj[key] = toClone[key].clone();
             } catch (e) {
-                throw Error('Couldnt clone');
+                throw Error('Couldn\'t clone ' + str(toClone[key]));
             }
         }
         return new ESObject(obj);
@@ -669,7 +632,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     len: number;
 
     constructor(values: Primitive[] = []) {
-        super(values, ESType.array);
+        super(values, types.array);
         this.len = values.length;
     }
 
@@ -730,3 +693,15 @@ export class ESArray extends ESPrimitive <Primitive[]> {
 
     clone = (): ESArray => new ESArray(this.valueOf().map(v => v.clone()));
 }
+
+export let types: {[key: string] : ESType} = {};
+types['type'] = new ESType(true, 'Type');
+types['undefined'] = new ESType(true, 'Undefined');
+types['string'] = new ESType(true, 'String');
+types['array'] = new ESType(true, 'Array');
+types['number'] = new ESType(true, 'Number');
+types['any'] = new ESType(true, 'Any');
+types['function'] = new ESType(true, 'Function');
+types['bool'] = new ESType(true, 'Boolean');
+types['object'] = new ESType(true, 'Object');
+types['error'] = new ESType(true, 'Error');

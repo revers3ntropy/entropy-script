@@ -1,13 +1,14 @@
 import {initialise} from "./init.js";
 import {ESError, TypeError} from "./errors.js";
 import {Position} from "./position.js";
-import { ESPrimitive, Primitive } from "./primitiveTypes.js";
+import { ESArray, ESFunction, ESPrimitive, ESType, ESUndefined, Primitive, types } from "./primitiveTypes.js";
 import { str } from "./util.js";
 
 export type symbolOptions = {
     isConstant?: boolean;
     isAccessible?: boolean;
     global?: boolean;
+    forceThroughConst?: boolean;
 }
 
 export class ESSymbol {
@@ -86,24 +87,27 @@ export class Context {
         return context.setOwn(value, identifier, options);
     }
 
-    setOwn (value: Primitive, identifier: string, options: symbolOptions = {}) {
+    setOwn (value: Primitive, identifier: string, options: symbolOptions = {}): void | ESError {
+
         if (!(value instanceof ESPrimitive))
             value = ESPrimitive.wrap(value);
+
         // is not global
-        if (options.global && !this.initialisedAsGlobal) options.global = false;
-        let symbol = this.getSymbol(identifier);
-        if (symbol instanceof ESError) return symbol;
-        if (symbol?.isConstant) {
-            return new TypeError(
-                Position.unknown,
-                'dynamic',
-                'constant',
-                identifier
-            );
+        if (options.global && !this.initialisedAsGlobal)
+            options.global = false;
+
+        if (!options.forceThroughConst) {
+            let symbol = this.symbolTable[identifier];
+            if (symbol?.isConstant)
+                return new TypeError(
+                    Position.unknown,
+                    'dynamic',
+                    'constant',
+                    identifier
+                );
         }
 
         this.symbolTable[identifier] = new ESSymbol(value, identifier, options);
-        return value;
     }
 
     remove (identifier: string) {
@@ -160,4 +164,41 @@ export class Context {
 
         console.log('-----------------');
     }
+}
+
+export function generateESFunctionCallContext (params: Primitive[], self: ESFunction, parent: Context) {
+
+    const newContext = new Context();
+    newContext.parent = parent;
+
+    let max = Math.max(params.length, self.arguments_.length);
+
+    for (let i = 0; i < max; i++) {
+
+        let value: Primitive = new ESUndefined();
+        let type = types.any;
+
+        if (self.arguments_[i] == undefined) continue;
+
+        // __type__ checking
+        const arg = self.arguments_[i];
+        if (!(arg.type instanceof ESType))
+            return new TypeError(Position.unknown, 'Type', typeof arg.type, arg.type);
+
+        if (params[i] instanceof ESPrimitive) {
+            type = params[i].__type__;
+            value = params[i];
+        }
+
+        if (!arg.type.includesType(type))
+            return new TypeError(Position.unknown, arg.type.__name__, type.__name__);
+
+        newContext.setOwn(value, arg.name, {
+            forceThroughConst: true
+        });
+    }
+
+    let setRes = newContext.setOwn(new ESArray(params), 'args');
+    if (setRes instanceof ESError) return setRes;
+    return newContext;
 }

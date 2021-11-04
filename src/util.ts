@@ -60,46 +60,62 @@ export function str (val: any, depth = 0): string {
     if (val instanceof Node)
         return `<RunTimeNode: ${val.constructor.name}>`;
 
-    if (typeof val === 'object') {
-        if (Array.isArray(val)) {
-            result += '[';
-            for (let item of val) {
+    switch (typeof val) {
+        case 'object':
+            if (Array.isArray(val)) {
+                result += '[';
+                for (let item of val) {
+                    try {
+                        result += str(item, depth + 1)+`, `;
+                    }
+                    catch (e) {
+                        result += '<large property>, '
+                    }
+                }
+                if (val.length)
+                    result = result.substring(0, result.length - 2);
+                result += ']';
+            } else {
                 try {
-                    result += str(item, depth + 1)+`, `;
+                    result += val.constructor.name;
+                } catch (e) {
+                    result += 'UNKNOWN_CONSTRUCTOR';
                 }
-                catch (e) {
-                    result += '<large property>, '
-                }
-            }
-            if (val.length)
-                result = result.substring(0, result.length - 2);
-            result += ']';
-        } else {
-            try {
-                result += val.constructor.name;
-            } catch (e) {
-                result += 'UNKNOWN_CONSTRUCTOR';
-            }
 
-            result += ': {\n';
-            let i = 0;
-            for (let item in val) {
-                i++;
-                if (!val.hasOwnProperty) continue;
-                if (!val.hasOwnProperty(item)) continue;
-                if (!['this', 'this_', 'constructor', 'self'].includes(item)) {
-                    result += `  ${item}: ${str(val[item], depth + 1) || ''}, \n`;
+                result += ': {\n';
+                let i = 0;
+                for (let item in val) {
+                    i++;
+                    if (!val.hasOwnProperty) continue;
+                    if (!val.hasOwnProperty(item)) continue;
+                    if (!['this', 'this_', 'constructor', 'self'].includes(item)) {
+                        result += `  ${item}: ${str(val[item], depth + 1) || ''}, \n`;
+                    }
                 }
+                if (i > 0) result = result.substring(0, result.length - 3);
+                result += '\n}\n';
             }
-            if (i > 0) result = result.substring(0, result.length - 3);
-            result += '\n}\n';
-        }
-    } else if (typeof val === 'string' && depth !== 0) {
-        result = `'${val}'`;
-    } else {
-        result = `${val}`;
+            break;
+
+        case 'string':
+            result = `'${val}'`;
+            break;
+
+        case "bigint":
+        case "number":
+        case "boolean":
+            result = `${val}`;
+            break;
+
+        case "undefined":
+            result = '<NativeUndefined>';
+            break;
+
+        case "function":
+            result = `<NativeFunction ${val.name}>`;
+            break;
+
     }
-
     return result;
 }
 

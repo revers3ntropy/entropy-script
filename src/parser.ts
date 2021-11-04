@@ -1,10 +1,10 @@
 import {Token} from "./tokens.js";
 import * as n from './nodes.js';
-import { interpretResult, N_functionDefinition, N_undefined, N_variable, Node } from './nodes.js';
-import { ESError, InvalidSyntaxError, TypeError } from "./errors.js";
+import { N_functionDefinition, N_undefined, N_variable, Node } from './nodes.js';
+import { ESError, InvalidSyntaxError } from "./errors.js";
 import {tokenType, tokenTypeString, tt} from "./tokens.js";
 import {Position} from "./position";
-import {ESType} from "./primitiveTypes.js";
+import { ESType, types } from "./primitiveTypes.js";
 import { uninterpretedArgument } from "./argument.js";
 
 export class ParseResults {
@@ -578,7 +578,7 @@ export class Parser {
         const varName = this.currentToken;
         this.advance(res);
 
-        let type: n.Node | ESType = ESType.any;
+        let type: n.Node | ESType = types.any;
 
         // @ts-ignore
         if (this.currentToken.type === tt.COLON) {
@@ -774,7 +774,7 @@ export class Parser {
      */
     private parameter (res: ParseResults): uninterpretedArgument | ESError {
         let name: string;
-        let type: Node = new n.N_any(ESType.any);
+        let type: Node = new n.N_any(types.any);
 
         if (this.currentToken.type !== tt.IDENTIFIER)
             return new InvalidSyntaxError(
@@ -807,7 +807,7 @@ export class Parser {
         const startPos = this.currentToken.startPos;
         let body: n.Node,
             args: uninterpretedArgument[] = [],
-            returnType: Node = new n.N_any(ESType.any);
+            returnType: Node = new n.N_any(types.any);
 
         this.consume(res, tt.OPAREN);
 

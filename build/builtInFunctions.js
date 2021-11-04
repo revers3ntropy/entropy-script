@@ -13,8 +13,8 @@ export const builtInFunctions = {
             return new ESError(Position.unknown, 'RangeError', `Cannot make range of length '${num.str()}'`);
         }
     },
-    'log': (msg) => {
-        console.log(msg.str().valueOf());
+    'log': (...msgs) => {
+        console.log(...msgs.map(m => m.str().valueOf()));
     },
     'parseNum': (str) => {
         try {

@@ -15,7 +15,8 @@ import {
     ESString,
     ESType,
     ESUndefined,
-    Primitive
+    Primitive,
+    types
 } from "./primitiveTypes.js";
 import { dict, str } from "./util.js";
 
@@ -202,7 +203,7 @@ export class N_varAssign extends Node {
         assignType='=',
         isGlobal=false,
         isConstant=false,
-        type: ESType | Node = ESType.any
+        type: ESType | Node = types.any
     ) {
         super(startPos);
         this.value = value;
@@ -553,12 +554,7 @@ export class N_functionCall extends Node {
                 params.push(res.val);
         }
 
-        const res = val.__call__(params, context);
-
-        if (res instanceof ESFunction)
-            console.log('RES: ', res.str());
-
-        return res;
+        return val.__call__(params, context);
     }
 }
 

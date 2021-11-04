@@ -1,13 +1,14 @@
-import { Position } from "./position.js";
 import { global } from "./constants.js";
 import { Context } from "./context.js";
-import { ESError, TypeError } from "./errors.js";
-import { ESFunction, ESObject } from "./primitiveTypes.js";
+import { ESError } from "./errors.js";
+import { ESFunction, ESObject, ESString, types } from "./primitiveTypes.js";
 function addNodeLibs(https, http, fs, mysql) {
     global.set('nodeHTTPS', https);
     global.set('nodeHTTP', http);
     global.set('https', new ESObject({
-        createServer: new ESFunction((options, handlers) => {
+        createServer: new ESFunction((options_, handlers_) => {
+            let options = options_.valueOf();
+            let handlers = handlers_.valueOf();
             options = Object.assign({ port: 3000, secure: false, debug: false }, options);
             const handler = (req, res) => {
                 if (options.corsOrigin)
@@ -89,26 +90,25 @@ function addNodeLibs(https, http, fs, mysql) {
                 });
         })
     }));
-    global.set('open', new ESFunction((path, encoding = 'utf8') => {
-        return {
-            str: () => {
-                return fs.readFileSync(path, encoding);
-            },
-            write: (data) => {
-                if (typeof data !== "string")
-                    return new TypeError(Position.unknown, 'string', typeof data, data, 'Can only write strings to files');
-                fs.writeFileSync(path, data);
-            },
-            append: (data) => {
-                if (typeof data !== "string")
-                    return new TypeError(Position.unknown, 'string', typeof data, data, 'Can only write strings to files');
-                fs.appendFileSync(path, data);
-            },
-        };
+    global.set('open', new ESFunction((path_, encoding_) => {
+        const path = path_.valueOf();
+        const encoding = (encoding_ === null || encoding_ === void 0 ? void 0 : encoding_.valueOf()) || 'utf-8';
+        return new ESObject({
+            str: new ESFunction(() => {
+                return new ESString(fs.readFileSync(path, encoding));
+            }, [], 'str', undefined, types.string),
+            write: new ESFunction((data) => {
+                fs.writeFileSync(path, data.str().valueOf());
+            }),
+            append: new ESFunction((data) => {
+                fs.appendFileSync(path, data.str().valueOf());
+            }),
+        });
     }));
-    global.set('mysql', new ESFunction((options) => {
+    global.set('mysql', new ESFunction(options_ => {
+        const options = options_.valueOf();
         const connection = new mysql(options);
-        return (query) => connection.query(query);
+        return new ESFunction((query) => connection.query(query.valueOf()), [], 'queryMySQL');
     }));
 }
 export default addNodeLibs;

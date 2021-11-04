@@ -3,7 +3,7 @@ import * as n from './nodes.js';
 import { N_functionDefinition, N_undefined, N_variable } from './nodes.js';
 import { ESError, InvalidSyntaxError } from "./errors.js";
 import { tokenType, tokenTypeString, tt } from "./tokens.js";
-import { ESType } from "./primitiveTypes.js";
+import { types } from "./primitiveTypes.js";
 export class ParseResults {
     constructor() {
         this.advanceCount = 0;
@@ -12,7 +12,7 @@ export class ParseResults {
     }
     registerAdvance() {
         this.advanceCount = 1;
-        this.lastRegisteredAdvanceCount += 1;
+        this.lastRegisteredAdvanceCount++;
     }
     register(res) {
         this.lastRegisteredAdvanceCount = res.advanceCount;
@@ -421,7 +421,7 @@ export class Parser {
         }
         const varName = this.currentToken;
         this.advance(res);
-        let type = ESType.any;
+        let type = types.any;
         // @ts-ignore
         if (this.currentToken.type === tt.COLON) {
             this.consume(res, tt.COLON);
@@ -541,7 +541,7 @@ export class Parser {
      */
     parameter(res) {
         let name;
-        let type = new n.N_any(ESType.any);
+        let type = new n.N_any(types.any);
         if (this.currentToken.type !== tt.IDENTIFIER)
             return new InvalidSyntaxError(this.currentToken.startPos, "Expected identifier");
         name = this.currentToken.value;
@@ -564,7 +564,7 @@ export class Parser {
     funcCore() {
         const res = new ParseResults();
         const startPos = this.currentToken.startPos;
-        let body, args = [], returnType = new n.N_any(ESType.any);
+        let body, args = [], returnType = new n.N_any(types.any);
         this.consume(res, tt.OPAREN);
         // @ts-ignore
         if (this.currentToken.type === tt.CPAREN) {

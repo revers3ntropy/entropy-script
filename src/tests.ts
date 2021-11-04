@@ -224,7 +224,7 @@ expect ([undefined, 0,  undefined, 2, 2], `
 
 
 // run built in functions
-expect (['testing logging function'], `
+expect ([undefined], `
     log('testing logging function');
 `);
 
@@ -670,7 +670,8 @@ expect([1.1], 'parseNum(1.1)');
 
 // vector library
 expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
-    var v2 = class {
+    let v2 = type();
+    v2 = class {
         init (x: number, y: number) {
             this.x = x;
             this.y = y;
@@ -710,7 +711,8 @@ expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 1
 
 // vector library using operator override
 expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
-    var v2: type = class {
+    let v2 = type();
+    v2 = class {
         init (x: number, y: number) {
             this.x = x;
             this.y = y;

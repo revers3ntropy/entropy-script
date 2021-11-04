@@ -4,7 +4,7 @@ import { Context } from "./context.js";
 import { Position } from "./position.js";
 import { None, now } from "./constants.js";
 import { interpretArgument } from "./argument.js";
-import { ESArray, ESBoolean, ESFunction, ESNumber, ESObject, ESPrimitive, ESString, ESType, ESUndefined } from "./primitiveTypes.js";
+import { ESArray, ESBoolean, ESFunction, ESNumber, ESObject, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
 import { str } from "./util.js";
 export class interpretResult {
     constructor() {
@@ -146,7 +146,7 @@ export class N_unaryOp extends Node {
     }
 }
 export class N_varAssign extends Node {
-    constructor(startPos, varNameTok, value, assignType = '=', isGlobal = false, isConstant = false, type = ESType.any) {
+    constructor(startPos, varNameTok, value, assignType = '=', isGlobal = false, isConstant = false, type = types.any) {
         super(startPos);
         this.value = value;
         this.varNameTok = varNameTok;
@@ -407,7 +407,7 @@ export class N_statements extends Node {
         let last;
         for (let item of this.items) {
             const res = item.interpret(context);
-            if (res.error || (res.funcReturn !== undefined) || res.shouldBreak || res.shouldContinue)
+            if (res.error || (typeof res.funcReturn !== 'undefined') || res.shouldBreak || res.shouldContinue)
                 return res;
             // return last statement
             last = res.val;
@@ -439,10 +439,7 @@ export class N_functionCall extends Node {
             if (res.val)
                 params.push(res.val);
         }
-        const res = val.__call__(params, context);
-        if (res instanceof ESFunction)
-            console.log('RES: ', res.str());
-        return res;
+        return val.__call__(params, context);
     }
 }
 export class N_functionDefinition extends Node {

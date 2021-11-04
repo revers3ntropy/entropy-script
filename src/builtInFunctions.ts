@@ -16,8 +16,8 @@ export const builtInFunctions: {[name: string]: (...args: Primitive[]) => any} =
         }
     },
 
-    'log': (msg: Primitive) => {
-        console.log(msg.str().valueOf());
+    'log': (...msgs: Primitive[]) => {
+        console.log(...msgs.map(m => m.str().valueOf()));
     },
 
     'parseNum': (str: Primitive) => {
