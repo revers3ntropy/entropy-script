@@ -1,12 +1,14 @@
 export class Position {
+    file: string;
     idx: number;
     ln: number;
     col: number;
 
-    constructor (idx: number, ln: number, col: number) {
+    constructor (idx: number, ln: number, col: number, file: string='(unknown)') {
         this.idx = idx;
         this.ln = ln;
         this.col = col;
+        this.file = file;
     }
 
     advance (currentChar= '') {
@@ -22,14 +24,14 @@ export class Position {
     }
 
     get clone () {
-        return new Position(this.idx, this.ln, this.col);
+        return new Position(this.idx, this.ln, this.col, this.file);
     }
 
     get str () {
-        return `${this.ln+1}:${this.col+1}`;
+        return `File ${this.file}, ${this.ln+1}:${this.col+1}`;
     }
 
     static get unknown () {
-        return new Position(-2, -2, -2);
+        return new Position(-2, -2, -2, '(unknown)');
     }
 }

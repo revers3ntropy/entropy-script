@@ -1,3 +1,4 @@
+import './colourString.js';
 import { Lexer } from "./lexer.js";
 import { Parser } from "./parser.js";
 import { global, now } from "./constants.js";

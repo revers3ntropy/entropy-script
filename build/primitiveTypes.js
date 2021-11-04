@@ -91,7 +91,20 @@ export class ESType extends ESPrimitive {
             return new ESType(this.__isPrimitive__, this.__name__, this.__methods__.map(f => f.clone()), this.__extends__, (_b = this.__init__) === null || _b === void 0 ? void 0 : _b.clone());
         };
         this.includesType = (t) => {
+            var _b, _c, _d, _e, _f, _g;
             if (this.equals(types.any) || t.equals(types.any))
+                return true;
+            if ((_b = this.__extends__) === null || _b === void 0 ? void 0 : _b.equals(t))
+                return true;
+            if ((_c = this.__extends__) === null || _c === void 0 ? void 0 : _c.equals(types.any))
+                return true;
+            if ((_d = this.__extends__) === null || _d === void 0 ? void 0 : _d.includesType(t))
+                return true;
+            if ((_e = t.__extends__) === null || _e === void 0 ? void 0 : _e.equals(this))
+                return true;
+            if ((_f = t.__extends__) === null || _f === void 0 ? void 0 : _f.equals(types.any))
+                return true;
+            if ((_g = t.__extends__) === null || _g === void 0 ? void 0 : _g.includesType(this))
                 return true;
             return this.equals(t);
         };
@@ -181,6 +194,7 @@ export class ESType extends ESPrimitive {
             }
             on['constructor'] = this.__init__;
             const instance = new ESObject(on);
+            instance.__type__ = this;
             this.__instances__.push(instance);
             return instance;
         };
@@ -197,7 +211,7 @@ export class ESType extends ESPrimitive {
             this.__init__ = new ESFunction((...args) => {
                 const context = new Context();
                 context.parent = global;
-                return this.__call__(args, context);
+                return this.__call__(args, context, false);
             }, [], name, {}, types.object);
         if (!types.type)
             this.__type__ = this;
@@ -351,7 +365,7 @@ export class ESFunction extends ESPrimitive {
         };
         this.__bool__ = () => new ESBoolean(true);
         this.__call__ = (params = [], context = global) => {
-            var _b, _c, _d, _e;
+            var _b, _c, _d, _e, _f;
             const fn = this.__value__;
             if (fn instanceof Node) {
                 // fn is the function root node
@@ -367,12 +381,12 @@ export class ESFunction extends ESPrimitive {
                 const res = fn.interpret(newContext);
                 if (res.error)
                     return res.error;
-                if (!this.returnType.includesType((_d = (_c = res.val) === null || _c === void 0 ? void 0 : _c.__type__) !== null && _d !== void 0 ? _d : types.any))
-                    return new TypeError(Position.unknown, this.returnType.__name__, ((_e = res.val) === null || _e === void 0 ? void 0 : _e.typeOf().valueOf()) || 'undefined', res.funcReturn, '(from function return)');
                 if (res.funcReturn !== undefined) {
                     res.val = res.funcReturn;
                     res.funcReturn = undefined;
                 }
+                if (!this.returnType.includesType((_d = (_c = res.val) === null || _c === void 0 ? void 0 : _c.__type__) !== null && _d !== void 0 ? _d : types.any))
+                    return new TypeError(Position.unknown, this.returnType.__name__, ((_e = res.val) === null || _e === void 0 ? void 0 : _e.typeOf().valueOf()) || 'undefined', (_f = res.val) === null || _f === void 0 ? void 0 : _f.str().valueOf(), '(from function return)');
                 if (res.val)
                     return res.val;
                 else

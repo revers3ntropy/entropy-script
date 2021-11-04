@@ -584,11 +584,9 @@ expect([10, 10], `
 expect('TypeError', `
     const a: number = 'hi';
 `);
-expect(['ESType', 'myClass', 'myClass'], `
+expect(['<Type: myClass>', 'myClass', 'myClass'], `
     const myClass = class {};
-    
     let a = myClass();
-
     let b: myClass = a;
 `);
 expect('TypeError', `
@@ -638,7 +636,7 @@ expect('TypeError', `
     };
     append_([], 10);
 `);
-expect(['ESType', 'Concatenator', 'hello world'], `
+expect(['<Type: Concatenator>', 'Concatenator', 'hello world'], `
     const Concatenator = class {
         init (str1: string) {
             this.str = str1;
@@ -669,8 +667,8 @@ expect([1.1], 'parseNum(1.1)');
 
 
 // vector library
-expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
-    let v2 = type();
+expect(['<Type: v2>', '<Type: v2>', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
+    let v2 = type;
     v2 = class {
         init (x: number, y: number) {
             this.x = x;
@@ -711,7 +709,7 @@ expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 1
 
 // vector library using operator override
 expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
-    let v2 = type();
+    let v2 = type;
     v2 = class {
         init (x: number, y: number) {
             this.x = x;
@@ -744,7 +742,7 @@ expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 1
         }
     };
     
-    const pos = v2(0, 0);
+    var pos = v2(0, 0);
     pos.typeOf();
     pos += v2(3, 4);
     pos.str();

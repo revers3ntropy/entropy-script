@@ -575,6 +575,7 @@ export class N_functionDefinition extends Node {
     }
 
     interpret_ (context: Context): Primitive | ESError {
+
         let args: runtimeArgument[] = [];
         for (let arg of this.arguments) {
             const res = interpretArgument(arg, context);
@@ -582,7 +583,18 @@ export class N_functionDefinition extends Node {
                 return res;
             args.push(res);
         }
-        return new ESFunction(this.body, args, this.name, this.this_);
+        const returnTypeRes = this.returnType.interpret(context);
+        if (returnTypeRes.error) return returnTypeRes.error;
+        if (!(returnTypeRes.val instanceof ESType))
+            return new TypeError(
+                this.returnType.startPos,
+                'Type',
+                returnTypeRes.val?.typeOf().valueOf() ?? '<Undefined>',
+                returnTypeRes.val?.str().valueOf(),
+                `On func '${this.name }' return type`
+            );
+
+        return new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val);
     }
 }
 

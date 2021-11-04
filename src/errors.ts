@@ -13,7 +13,7 @@ export class ESError {
     }
 
     get str () {
-        return `${this.name}: ${this.details} \n at ${this.startPos.str}`;
+        return `${this.name.red}: ${this.details} \n at ${this.startPos.str.cyan}`;
     }
 }
 

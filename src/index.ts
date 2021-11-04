@@ -1,14 +1,19 @@
-import {Lexer} from "./lexer.js";
-import {Parser} from "./parser.js";
-import {global, now} from "./constants.js";
-import {initialise} from "./init.js";
-import {ESError} from "./errors.js";
-import {Position} from "./position.js";
-import {interpretResult, Node} from "./nodes.js";
+import './colourString.js';
+
+import { Lexer } from "./lexer.js";
+import { Parser } from "./parser.js";
+import { global, now } from "./constants.js";
+import { initialise } from "./init.js";
+import { ESError } from "./errors.js";
+import { Position } from "./position.js";
+import { interpretResult, Node } from "./nodes.js";
 import { ESArray } from "./primitiveTypes.js";
 import { timeData } from "./util";
 
-export function init (printFunc: (...args: any) => void = console.log, inputFunc: (msg: string, cb: (...arg: any[]) => any) => void, libs: string[]) {
+export function init (
+    printFunc: (...args: any) => void = console.log,
+    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void, libs: string[]
+) {
     initialise(global, printFunc, inputFunc, libs);
 }
 

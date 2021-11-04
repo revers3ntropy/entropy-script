@@ -452,6 +452,7 @@ export class N_functionDefinition extends Node {
         this.returnType = returnType;
     }
     interpret_(context) {
+        var _a, _b, _c;
         let args = [];
         for (let arg of this.arguments) {
             const res = interpretArgument(arg, context);
@@ -459,7 +460,12 @@ export class N_functionDefinition extends Node {
                 return res;
             args.push(res);
         }
-        return new ESFunction(this.body, args, this.name, this.this_);
+        const returnTypeRes = this.returnType.interpret(context);
+        if (returnTypeRes.error)
+            return returnTypeRes.error;
+        if (!(returnTypeRes.val instanceof ESType))
+            return new TypeError(this.returnType.startPos, 'Type', (_b = (_a = returnTypeRes.val) === null || _a === void 0 ? void 0 : _a.typeOf().valueOf()) !== null && _b !== void 0 ? _b : '<Undefined>', (_c = returnTypeRes.val) === null || _c === void 0 ? void 0 : _c.str().valueOf(), `On func '${this.name}' return type`);
+        return new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val);
     }
 }
 export class N_return extends Node {

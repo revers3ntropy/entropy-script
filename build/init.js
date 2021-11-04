@@ -50,7 +50,7 @@ export function initialise(globalContext, printFunc, inputFunc, libs) {
                         console.log(res.error.str);
                 }
                 catch (e) {
-                    console.error(e);
+                    console.log(e);
                     console.log((new ImportError(Position.unknown, url, `
                         Could not import file ${url}: ${e.toString()}`)).str);
                 }

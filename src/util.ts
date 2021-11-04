@@ -1,5 +1,5 @@
 import {Node} from "./nodes.js";
-import { ESFunction, ESPrimitive, ESType } from "./primitiveTypes.js";
+import { ESPrimitive } from "./primitiveTypes.js";
 
 export type enumDict<T extends number, U> = { [k in T]: U };
 export type dict<T> = { [key in (string | number)]: T; };

@@ -166,7 +166,7 @@ export class ESType extends ESPrimitive<undefined> {
             this.__init__ = new ESFunction((...args: Primitive[]) => {
                 const context = new Context();
                 context.parent = global;
-                return this.__call__(args, context);
+                return this.__call__(args, context, false);
             }, [], name, {}, types.object);
 
 
@@ -186,6 +186,15 @@ export class ESType extends ESPrimitive<undefined> {
 
     includesType = (t: ESType) => {
         if (this.equals(types.any) || t.equals(types.any)) return true;
+
+        if (this.__extends__?.equals(t)) return true;
+        if (this.__extends__?.equals(types.any)) return true;
+        if (this.__extends__?.includesType(t)) return true;
+
+        if (t.__extends__?.equals(this)) return true;
+        if (t.__extends__?.equals(types.any)) return true;
+        if (t.__extends__?.includesType(this)) return true;
+
         return this.equals(t);
     }
 
@@ -295,6 +304,7 @@ export class ESType extends ESPrimitive<undefined> {
         on['constructor'] = this.__init__;
 
         const instance = new ESObject(on);
+        instance.__type__ = this;
 
         this.__instances__.push(instance);
 
@@ -531,14 +541,18 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => 
             const res = fn.interpret(newContext);
 
             if (res.error) return res.error;
-
-            if (!this.returnType.includesType(res.val?.__type__ ?? types.any))
-                return new TypeError(Position.unknown, this.returnType.__name__, res.val?.typeOf().valueOf() || 'undefined', res.funcReturn, '(from function return)');
-
             if (res.funcReturn !== undefined) {
                 res.val = res.funcReturn;
                 res.funcReturn = undefined;
             }
+
+            if (!this.returnType.includesType(res.val?.__type__ ?? types.any))
+                return new TypeError(
+                    Position.unknown,
+                    this.returnType.__name__,
+                    res.val?.typeOf().valueOf() || 'undefined',
+                    res.val?.str().valueOf(),
+                    '(from function return)');
 
             if (res.val)
                 return res.val;

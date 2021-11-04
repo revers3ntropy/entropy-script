@@ -456,6 +456,7 @@ export class Parser {
 
     private typeExpr () {
         const res = new ParseResults();
+
         if (this.currentToken.type !== tt.IDENTIFIER)
             return res.failure(new InvalidSyntaxError(this.currentToken.startPos.clone, `Expected an identifier`));
 

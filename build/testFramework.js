@@ -30,12 +30,12 @@ export class TestResult {
     str() {
         return `
             ---   TEST REPORT   ---
-                ${this.failed} tests failed
-                ${this.passed} tests passed
+                ${(this.failed.toString())[this.failed < 1 ? 'green' : 'red']} tests failed
+                ${this.passed.toString().green} tests passed
                 
-            In ${this.time}ms
+            In ${this.time.toString().cyan}ms
             
-            ${this.failed === 0 ? 'All tests passed!' : ''}
+            ${this.failed === 0 ? 'All tests passed!'.green : ''}
             
             ${this.fails.map(error => `\n-----------------\n${error.str}\n`)}
         `;
