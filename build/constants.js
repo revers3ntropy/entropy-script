@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { Context } from "./context.js";
-import { ESBoolean, ESUndefined, types } from "./primitiveTypes.js";
+import { ESBoolean, ESUndefined, types, ESErrorPrimitive } from "./primitiveTypes.js";
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const singleLineComment = '//';
@@ -49,6 +49,7 @@ export const globalConstants = {
     'object': types.object,
     'type': types.type,
     'error': types.error,
+    'maths': ESErrorPrimitive.wrap(Math)
 };
 export let now = () => 0;
 export function refreshPerformanceNow(IS_NODE_INSTANCE) {

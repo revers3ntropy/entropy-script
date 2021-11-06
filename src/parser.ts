@@ -294,6 +294,7 @@ export class Parser {
         if (this.currentToken.type === tt.ASSIGN) {
             let assignType = this.currentToken.value;
             if (functionCall) {
+                // TODO: f(x) = x+1 syntax here
                 return res.failure(new InvalidSyntaxError(
                     startPos,
                     `Cannot assign to return value of function`
@@ -912,7 +913,6 @@ export class Parser {
             if (this.currentToken.type !== tt.IDENTIFIER)
                 break;
             let methodId = this.currentToken.value;
-            const isInit = methodId === 'init';
             this.advance(res);
 
             const func = res.register(this.funcCore());
@@ -922,7 +922,7 @@ export class Parser {
 
             func.name = methodId;
 
-            if (isInit)
+            if (methodId === 'init')
                 init = func;
             else
                 methods.push(func);

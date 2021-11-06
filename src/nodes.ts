@@ -456,10 +456,7 @@ export class N_array extends Node {
             if (this.shouldClone)
                 val = val.clone();
             interpreted.push(val);
-            if (!(val instanceof ESPrimitive))
-                console.log('NOT INSTANCE: ', str(val));
         }
-
 
         result.val = new ESArray(interpreted);
 
@@ -541,17 +538,15 @@ export class N_functionCall extends Node {
             return new TypeError(this.startPos, 'any', 'undefined', undefined, 'On function call');
         if (!val.__call__)
             return new TypeError(this.startPos, 'unknown',
-                val?.typeOf().valueOf() || 'undefined', val?.valueOf(),
+                val?.typeOf().valueOf() || 'unknown', val?.valueOf(),
                 'Can only () on something with __call__ property');
 
         let params: Primitive[] = [];
 
         for (let arg of this.arguments) {
             const res = arg.interpret(context);
-            if (res.error)
-                return res;
-            if (res.val)
-                params.push(res.val);
+            if (res.error) return res.error;
+            if (res.val) params.push(res.val);
         }
 
         return val.__call__(params, context);
@@ -562,10 +557,17 @@ export class N_functionDefinition extends Node {
     body: Node;
     arguments: uninterpretedArgument[];
     name: string;
-    this_: any;
+    this_: ESObject;
     returnType: Node;
 
-    constructor(startPos: Position, body: Node, argNames: uninterpretedArgument[], returnType: Node, name = '(anon)', this_: any = {}) {
+    constructor(
+        startPos: Position,
+        body: Node,
+        argNames: uninterpretedArgument[],
+        returnType: Node,
+        name = '(anon)',
+        this_: ESObject = new ESObject()
+    ) {
         super(startPos);
         this.arguments = argNames;
         this.body = body;
@@ -748,15 +750,27 @@ export class N_class extends Node {
             const res = method.interpret(context);
             if (res.error)
                 return res.error;
-            if (res.val instanceof ESFunction)
-                methods.push(res.val);
+            if (!(res.val instanceof ESFunction))
+                return new TypeError(
+                    this.startPos,
+                    'Function',
+                    res.val?.typeOf().valueOf() || 'undefined',
+                    'method on ' + this.name
+                );
+            methods.push(res.val);
         }
         let extends_ = undefined;
         if (this.extends_) {
             const extendsRes = this.extends_.interpret(context);
             if (extendsRes.error)
                 return extendsRes.error;
-            if (extendsRes.val instanceof ESType)
+            if (!(extendsRes.val instanceof ESType))
+                return new TypeError(
+                    this.startPos,
+                    'Function',
+                    extendsRes.val?.typeOf().valueOf() || 'undefined',
+                    'method on ' + this.name
+                );
                 extends_ = extendsRes.val;
         }
         let init = undefined;
@@ -764,8 +778,14 @@ export class N_class extends Node {
             const initRes = this.init.interpret(context);
             if (initRes.error)
                 return initRes.error;
-            if (initRes.val instanceof ESFunction)
-                init = initRes.val;
+            if (!(initRes.val instanceof ESFunction))
+                return new TypeError(
+                    this.startPos,
+                    'Function',
+                    initRes.val?.typeOf().valueOf() || 'undefined',
+                    'method on ' + this.name
+                );
+            init = initRes.val;
         }
 
         return new ESType(false, this.name, methods, extends_, init);

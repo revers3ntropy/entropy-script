@@ -7,7 +7,7 @@ import { global, globalConstants, setNone } from "./constants.js";
 import { str } from "./util.js";
 import { ESFunction, ESString, Primitive } from "./primitiveTypes.js";
 
-export function initialise (globalContext: Context, printFunc: (...args: any[]) => void, inputFunc: (msg: string, cb: (...arg: any[]) => any) => void, libs: string[]) {
+export function initialise (globalContext: Context, printFunc: (...args: any[]) => void, inputFunc: (msg: string, cb: (...arg: any[]) => any) => void, libs: string[] = []) {
     builtInFunctions['import'] = (rawUrl: Primitive) => {
         if (!(rawUrl instanceof ESString))
             return new TypeError(Position.unknown, 'Number', rawUrl.typeOf().valueOf(), rawUrl.valueOf());

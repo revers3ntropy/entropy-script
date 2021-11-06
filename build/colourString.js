@@ -1,8 +1,10 @@
-"use strict";
+import { IS_NODE_INSTANCE } from "./constants.js";
 function addProperty(name, colour) {
     Object.defineProperty(String.prototype, name, {
         get: function () {
-            return `\x1b[${colour}m` + this + '\x1b[0m';
+            if (IS_NODE_INSTANCE)
+                return `\x1b[${colour}m` + this + '\x1b[0m';
+            return '<span style="color: red">' + this + '</span>';
         }
     });
 }

@@ -1,5 +1,5 @@
 import {Context, ESSymbol} from "./context.js";
-import { ESBoolean, ESUndefined, ESType, Primitive, types } from "./primitiveTypes.js";
+import { ESBoolean, ESUndefined, ESType, Primitive, types, ESErrorPrimitive } from "./primitiveTypes.js";
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -51,6 +51,7 @@ export const globalConstants: {[name: string]: Primitive} = {
     'object': types.object,
     'type': types.type,
     'error': types.error,
+    'maths': ESErrorPrimitive.wrap(Math)
 }
 
 export let now: (() => number) = () => 0;

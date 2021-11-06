@@ -3,7 +3,7 @@ import { ESError, TypeError } from "./errors.js";
 import { Position } from "./position.js";
 import { Node } from "./nodes.js";
 import { Context, ESSymbol, generateESFunctionCallContext } from "./context.js";
-import { global, None } from "./constants.js";
+import { global } from "./constants.js";
 export class ESPrimitive {
     /**
      * @param value
@@ -179,27 +179,27 @@ export class ESType extends ESPrimitive {
                 if (_a instanceof ESError)
                     return _a;
             }
-            for (let method of this.__methods__) {
-                // shallow clone of method with instance as this_
-                on[method.name] = new ESFunction(method.valueOf, method.arguments_, method.name, on, method.returnType);
-            }
-            if (runInit) {
-                newContext.setOwn(on, 'this');
-                if (this.__init__) {
-                    const res = this.__init__.__call__(params, newContext);
-                    // return value of init is ignored
-                    if (res instanceof ESError)
-                        return res;
-                }
-            }
-            on['constructor'] = this.__init__;
+            on['constructor'] = this.__init__.clone();
             const instance = new ESObject(on);
+            for (let method of this.__methods__) {
+                const methodClone = method.clone();
+                methodClone.this_ = instance;
+                on[method.name] = methodClone;
+            }
+            if (runInit && this.__init__) {
+                this.__init__.this_ = instance;
+                const res = this.__init__.__call__(params, newContext);
+                // return value of init is ignored
+                if (res instanceof ESError)
+                    return res;
+            }
             instance.__type__ = this;
             this.__instances__.push(instance);
             return instance;
         };
         this.str = () => new ESString(`<Type: ${this.__name__}>`);
         this.__isPrimitive__ = isPrimitive;
+        this.__name__ = name;
         this.__name__ = name;
         this.__extends__ = __extends__;
         this.__methods__ = __methods__;
@@ -212,7 +212,7 @@ export class ESType extends ESPrimitive {
                 const context = new Context();
                 context.parent = global;
                 return this.__call__(args, context, false);
-            }, [], name, {}, types.object);
+            }, [], name, new ESObject(), types.object);
         if (!types.type)
             this.__type__ = this;
     }
@@ -350,7 +350,7 @@ export class ESErrorPrimitive extends ESPrimitive {
     }
 }
 export class ESFunction extends ESPrimitive {
-    constructor(func = () => { }, arguments_ = [], name = '(anonymous)', this_ = {}, returnType = types.any) {
+    constructor(func = (() => { }), arguments_ = [], name = '(anonymous)', this_ = new ESObject(), returnType = types.any) {
         super(func, types.function);
         this.clone = () => {
             return new ESFunction(this.__value__, this.arguments_, this.name, this.this_, this.returnType);
@@ -372,8 +372,8 @@ export class ESFunction extends ESPrimitive {
                 const newContext = generateESFunctionCallContext(params, this, context);
                 if (newContext instanceof ESError)
                     return newContext;
-                let this_ = (_b = this.this_) !== null && _b !== void 0 ? _b : None;
-                if (typeof this_ !== 'object')
+                let this_ = (_b = this.this_) !== null && _b !== void 0 ? _b : new ESObject();
+                if (!(this_ instanceof ESObject))
                     return new TypeError(Position.unknown, 'object', typeof this_, this_, '\'this\' must be an object');
                 let setRes = newContext.set('this', this_);
                 if (setRes instanceof ESError)
@@ -429,7 +429,7 @@ export class ESBoolean extends ESPrimitive {
 export class ESObject extends ESPrimitive {
     constructor(val = {}) {
         super(val, types.object);
-        this.str = () => new ESString(str(this.valueOf()));
+        this.str = () => new ESString(`<ESObject: ${str(this.valueOf())}>`);
         this.__eq__ = (n) => {
             if (!(n instanceof ESObject))
                 return new ESBoolean();
@@ -492,14 +492,24 @@ export class ESArray extends ESPrimitive {
         };
         // Util
         /**
-         *
+         * Uses JS Array.prototype.splice
          * @param val value to insert
          * @param idx index to insert at, defaults to end of array
          */
         this.add = (val, idx = new ESNumber(this.len - 1)) => {
             this.len++;
             this.__value__.splice(idx.valueOf(), 0, val);
-            return this.len;
+            return new ESNumber(this.len);
+        };
+        /**
+         * Uses JS Array.prototype.includes
+         * @param val value to check for
+         */
+        this.contains = (val) => {
+            for (let element of this.__value__)
+                if (val.valueOf() == element.valueOf())
+                    return true;
+            return false;
         };
         this.clone = () => new ESArray(this.valueOf().map(v => v.clone()));
         this.len = values.length;

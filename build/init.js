@@ -14,7 +14,7 @@ import { run } from "./index.js";
 import { global, globalConstants, setNone } from "./constants.js";
 import { str } from "./util.js";
 import { ESFunction, ESString } from "./primitiveTypes.js";
-export function initialise(globalContext, printFunc, inputFunc, libs) {
+export function initialise(globalContext, printFunc, inputFunc, libs = []) {
     builtInFunctions['import'] = (rawUrl) => {
         if (!(rawUrl instanceof ESString))
             return new TypeError(Position.unknown, 'Number', rawUrl.typeOf().valueOf(), rawUrl.valueOf());

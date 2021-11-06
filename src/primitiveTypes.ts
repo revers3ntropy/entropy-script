@@ -87,7 +87,7 @@ export abstract class ESPrimitive <T> {
 
     public static wrap (thing: any = undefined): Primitive {
         if (thing instanceof ESPrimitive)
-                return thing;
+            return thing;
 
         if (thing instanceof ESError)
             return new ESErrorPrimitive(thing);
@@ -157,6 +157,7 @@ export class ESType extends ESPrimitive<undefined> {
 
         this.__isPrimitive__ = isPrimitive;
         this.__name__ = name;
+        this.__name__ = name;
         this.__extends__ = __extends__;
         this.__methods__ = __methods__;
         if (__init__) {
@@ -167,7 +168,7 @@ export class ESType extends ESPrimitive<undefined> {
                 const context = new Context();
                 context.parent = global;
                 return this.__call__(args, context, false);
-            }, [], name, {}, types.object);
+            }, [], name, new ESObject(), types.object);
 
 
         if (!types.type)
@@ -280,30 +281,24 @@ export class ESType extends ESPrimitive<undefined> {
             if (_a instanceof ESError) return _a;
         }
 
-        for (let method of this.__methods__) {
-            // shallow clone of method with instance as this_
-            on[method.name] = new ESFunction(
-                method.valueOf,
-                method.arguments_,
-                method.name,
-                on,
-                method.returnType,
-            );
-        }
-
-        if (runInit) {
-            newContext.setOwn(on, 'this');
-
-            if (this.__init__) {
-                const res = this.__init__.__call__(params, newContext);
-                // return value of init is ignored
-                if (res instanceof ESError) return res;
-            }
-        }
-
-        on['constructor'] = this.__init__;
+        on['constructor'] = this.__init__.clone();
 
         const instance = new ESObject(on);
+
+        for (let method of this.__methods__) {
+            const methodClone = method.clone();
+            methodClone.this_ = instance;
+            on[method.name] = methodClone;
+        }
+
+        if (runInit && this.__init__) {
+            this.__init__.this_ = instance;
+
+            const res = this.__init__.__call__(params, newContext);
+            // return value of init is ignored
+            if (res instanceof ESError) return res;
+        }
+
         instance.__type__ = this;
 
         this.__instances__.push(instance);
@@ -476,13 +471,13 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
 export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => any))> {
     name: string;
     arguments_: runtimeArgument[];
-    this_: any;
+    this_: ESObject;
     returnType: ESType;
     constructor (
-        func: Node | ((...args: Primitive[]) => any) = () => {},
+        func: Node | ((...args: Primitive[]) => any) = (() => {}),
         arguments_: runtimeArgument[] = [],
         name='(anonymous)',
-        this_: any={},
+        this_: ESObject = new ESObject(),
         returnType: undefined | ESType = types.any
     ) {
         super(func, types.function);
@@ -515,7 +510,6 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => 
     
     __call__ = (params: Primitive[] = [], context = global): ESError | Primitive => {
 
-
         const fn = this.__value__;
 
         if (fn instanceof Node) {
@@ -524,9 +518,9 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => 
             const newContext = generateESFunctionCallContext(params, this, context);
             if (newContext instanceof ESError) return newContext;
 
-            let this_ = this.this_ ?? None;
+            let this_ = this.this_ ?? new ESObject();
 
-            if (typeof this_ !== 'object')
+            if (!(this_ instanceof ESObject))
                 return new TypeError(
                     Position.unknown,
                     'object',
@@ -599,7 +593,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         super(val, types.object);
     }
 
-    str = () => new ESString(str(this.valueOf()));
+    str = () => new ESString(`<ESObject: ${str(this.valueOf())}>`);
 
     __eq__ = (n: Primitive) => {
         if (!(n instanceof ESObject))
@@ -695,15 +689,26 @@ export class ESArray extends ESPrimitive <Primitive[]> {
 
     // Util
     /**
-     *
+     * Uses JS Array.prototype.splice
      * @param val value to insert
      * @param idx index to insert at, defaults to end of array
      */
     add = (val: Primitive, idx: Primitive = new ESNumber(this.len - 1)) => {
         this.len++;
         this.__value__.splice(idx.valueOf(), 0, val);
-        return this.len;
+        return new ESNumber(this.len);
     }
+
+    /**
+     * Uses JS Array.prototype.includes
+     * @param val value to check for
+     */
+    contains = (val: Primitive) => {
+        for (let element of this.__value__)
+            if (val.valueOf() == element.valueOf())
+                return true;
+        return false;
+    };
 
     clone = (): ESArray => new ESArray(this.valueOf().map(v => v.clone()));
 }

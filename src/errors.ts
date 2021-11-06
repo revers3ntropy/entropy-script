@@ -15,6 +15,10 @@ export class ESError {
     get str () {
         return `${this.name.red}: ${this.details} \n at ${this.startPos.str.cyan}`;
     }
+
+    get uncolouredStr () {
+        return `${this.name}: ${this.details} \n at ${this.startPos.str}`;
+    }
 }
 
 export class IllegalCharError extends ESError {

@@ -668,8 +668,8 @@ expect([1.1], 'parseNum(1.1)');
 
 // vector library
 expect(['<Type: v2>', '<Type: v2>', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
-    let v2 = type;
-    v2 = class {
+    let v2 = class {};
+    const v2 = class {
         init (x: number, y: number) {
             this.x = x;
             this.y = y;
@@ -692,7 +692,7 @@ expect(['<Type: v2>', '<Type: v2>', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v
         }
         
         str (): string {
-            return this.x + ', ' + this.y;
+            return this.x.str() + ', ' + this.y.str();
         }
     };
     
@@ -703,54 +703,6 @@ expect(['<Type: v2>', '<Type: v2>', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v
     pos.str();
     pos.clone() == pos;
     var clone = pos.clone().add(v2(1, 1));
-    pos.str();
-    clone.str();
-`);
-
-// vector library using operator override
-expect(['ESType', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
-    let v2 = type;
-    v2 = class {
-        init (x: number, y: number) {
-            this.x = x;
-            this.y = y;
-        }
-        
-        __add__ (v: v2): v2 {
-            this.x += v.x;
-            this.y += v.y;
-            return this;
-        }
-        __subtract__ (v: v2): v2 {
-            this.x -= v.x;
-            this.y -= v.y;
-            return this;
-        }
-        
-        __multiply__ (n: number): v2 {
-            this.x *= n;
-            this.y *= n;
-            return this;
-        }
-       
-        clone (): v2 {
-            return v2(this.x, this.y);
-        }
-        
-        str (): string {
-            return this.x + ', ' + this.y;
-        }
-    };
-    
-    var pos = v2(0, 0);
-    pos.typeOf();
-    pos += v2(3, 4);
-    pos.str();
-    pos += v2(1, 1);
-    pos *= 2;
-    string(pos);
-    pos.clone() == pos;
-    const clone = pos.clone() + v2(1, 1);
     pos.str();
     clone.str();
 `);

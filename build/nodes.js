@@ -5,7 +5,6 @@ import { Position } from "./position.js";
 import { None, now } from "./constants.js";
 import { interpretArgument } from "./argument.js";
 import { ESArray, ESBoolean, ESFunction, ESNumber, ESObject, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
-import { str } from "./util.js";
 export class interpretResult {
     constructor() {
         this.shouldBreak = false;
@@ -363,8 +362,6 @@ export class N_array extends Node {
             if (this.shouldClone)
                 val = val.clone();
             interpreted.push(val);
-            if (!(val instanceof ESPrimitive))
-                console.log('NOT INSTANCE: ', str(val));
         }
         result.val = new ESArray(interpreted);
         return result;
@@ -430,12 +427,12 @@ export class N_functionCall extends Node {
         if (!val)
             return new TypeError(this.startPos, 'any', 'undefined', undefined, 'On function call');
         if (!val.__call__)
-            return new TypeError(this.startPos, 'unknown', (val === null || val === void 0 ? void 0 : val.typeOf().valueOf()) || 'undefined', val === null || val === void 0 ? void 0 : val.valueOf(), 'Can only () on something with __call__ property');
+            return new TypeError(this.startPos, 'unknown', (val === null || val === void 0 ? void 0 : val.typeOf().valueOf()) || 'unknown', val === null || val === void 0 ? void 0 : val.valueOf(), 'Can only () on something with __call__ property');
         let params = [];
         for (let arg of this.arguments) {
             const res = arg.interpret(context);
             if (res.error)
-                return res;
+                return res.error;
             if (res.val)
                 params.push(res.val);
         }
@@ -443,7 +440,7 @@ export class N_functionCall extends Node {
     }
 }
 export class N_functionDefinition extends Node {
-    constructor(startPos, body, argNames, returnType, name = '(anon)', this_ = {}) {
+    constructor(startPos, body, argNames, returnType, name = '(anon)', this_ = new ESObject()) {
         super(startPos);
         this.arguments = argNames;
         this.body = body;
@@ -580,29 +577,33 @@ export class N_class extends Node {
         this.instances = [];
     }
     interpret_(context) {
+        var _a, _b, _c;
         const methods = [];
         for (let method of this.methods) {
             const res = method.interpret(context);
             if (res.error)
                 return res.error;
-            if (res.val instanceof ESFunction)
-                methods.push(res.val);
+            if (!(res.val instanceof ESFunction))
+                return new TypeError(this.startPos, 'Function', ((_a = res.val) === null || _a === void 0 ? void 0 : _a.typeOf().valueOf()) || 'undefined', 'method on ' + this.name);
+            methods.push(res.val);
         }
         let extends_ = undefined;
         if (this.extends_) {
             const extendsRes = this.extends_.interpret(context);
             if (extendsRes.error)
                 return extendsRes.error;
-            if (extendsRes.val instanceof ESType)
-                extends_ = extendsRes.val;
+            if (!(extendsRes.val instanceof ESType))
+                return new TypeError(this.startPos, 'Function', ((_b = extendsRes.val) === null || _b === void 0 ? void 0 : _b.typeOf().valueOf()) || 'undefined', 'method on ' + this.name);
+            extends_ = extendsRes.val;
         }
         let init = undefined;
         if (this.init) {
             const initRes = this.init.interpret(context);
             if (initRes.error)
                 return initRes.error;
-            if (initRes.val instanceof ESFunction)
-                init = initRes.val;
+            if (!(initRes.val instanceof ESFunction))
+                return new TypeError(this.startPos, 'Function', ((_c = initRes.val) === null || _c === void 0 ? void 0 : _c.typeOf().valueOf()) || 'undefined', 'method on ' + this.name);
+            init = initRes.val;
         }
         return new ESType(false, this.name, methods, extends_, init);
     }

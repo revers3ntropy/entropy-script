@@ -19,15 +19,17 @@ import readline from 'readline';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
+import {refreshPerformanceNow, runningInNode} from "./build/constants.js";
+runningInNode();
+await refreshPerformanceNow(true);
+
 import * as es from './build/index.js';
 import {Test} from "./build/testFramework.js";
 import './build/tests.js';
 import {str} from "./build/util.js";
 import {builtInFunctions} from "./build/builtInFunctions.js";
 import addNodeLibs from "./build/nodeLibs.js";
-import {refreshPerformanceNow} from "./build/constants.js";
 import {ESString} from "./build/primitiveTypes.js";
-await refreshPerformanceNow(true);
 
 /**
  * Syntax: String(await askQuestion(query).
