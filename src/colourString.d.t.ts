@@ -22,4 +22,8 @@ declare global {
         bgCyan: string;
         bgWhite: string;
     }
+
+    interface Array <T> {
+        includes: (item: T) => boolean;
+    }
 }

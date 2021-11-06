@@ -14,10 +14,15 @@ export interface timeData {
     interprets: number,
 }
 
+// @ts-ignore
+Array.prototype.includes = function (element: any) {
+    return this.indexOf(element) !== -1;
+};
+
 /**
  * @desc opens a modal window to display a message
  * @return bool - success or failure
- * @param obj
+ * @param {any} obj
  * @param hash
  */
 export function deepClone(obj: any, hash = new WeakMap()): any {
