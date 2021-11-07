@@ -1,1 +1,2 @@
 build/*.js linguist-detectable=false
+npm-package/*.js linguist-detectable=false
