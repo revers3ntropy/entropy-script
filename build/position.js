@@ -20,6 +20,9 @@ export class Position {
     get str() {
         return `File ${this.file}, ${this.ln + 1}:${this.col + 1}`;
     }
+    get isUnknown() {
+        return this.idx === -2;
+    }
     static get unknown() {
         return new Position(-2, -2, -2, '(unknown)');
     }

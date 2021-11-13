@@ -1,5 +1,5 @@
 import {Context, ESSymbol} from "./context.js";
-import { ESBoolean, ESUndefined, ESType, Primitive, types, ESErrorPrimitive } from "./primitiveTypes.js";
+import { ESBoolean, ESUndefined, Primitive, types, ESErrorPrimitive } from "./primitiveTypes.js";
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

@@ -31,8 +31,10 @@ export class Node {
         }
         else
             res.val = val;
-        let time = now() - start;
+        if (res.error && res.error.startPos.isUnknown)
+            res.error.startPos = this.startPos;
         Node.interprets++;
+        let time = now() - start;
         Node.totalTime += time;
         if (time > Node.maxTime)
             Node.maxTime = time;
@@ -52,9 +54,9 @@ export class N_binOp extends Node {
     }
     interpret_(context) {
         const left = this.left.interpret(context);
-        const right = this.right.interpret(context);
         if (left.error)
             return left.error;
+        const right = this.right.interpret(context);
         if (right.error)
             return right.error;
         const l = left.val;
@@ -462,7 +464,7 @@ export class N_functionDefinition extends Node {
             return returnTypeRes.error;
         if (!(returnTypeRes.val instanceof ESType))
             return new TypeError(this.returnType.startPos, 'Type', (_b = (_a = returnTypeRes.val) === null || _a === void 0 ? void 0 : _a.typeOf().valueOf()) !== null && _b !== void 0 ? _b : '<Undefined>', (_c = returnTypeRes.val) === null || _c === void 0 ? void 0 : _c.str().valueOf(), `On func '${this.name}' return type`);
-        return new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val);
+        return new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val, context);
     }
 }
 export class N_return extends Node {
@@ -498,7 +500,7 @@ export class N_yield extends Node {
         let val = this.value.interpret(context);
         if (val.error)
             return val.error;
-        if ((_a = val.val) === null || _a === void 0 ? void 0 : _a.bool())
+        if ((_a = val.val) === null || _a === void 0 ? void 0 : _a.bool().valueOf())
             res.funcReturn = val.val;
         return res;
     }

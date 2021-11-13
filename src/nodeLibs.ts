@@ -20,8 +20,8 @@ function addNodeLibs (https: any, http: any, fs: any, mysql: any) {
 
     global.set('https', new ESObject({
         createServer: new ESFunction((options_: Primitive, handlers_: Primitive) => {
-            let options: serverOptions = <any>options_.valueOf();
-            let handlers: {[path: string]: ESFunction} = <any>handlers_.valueOf();
+            let options: serverOptions = ESPrimitive.strip(options_);
+            let handlers: {[path: string]: ESFunction} = ESPrimitive.strip(handlers_);
 
             options = {
                 port: 3000,
@@ -67,26 +67,33 @@ function addNodeLibs (https: any, http: any, fs: any, mysql: any) {
                         }
 
                         const context = new Context();
-                        context.parent = global;
+                        context.parent = fn.__closure__;
                         context.set('body', new ESObject(body));
-                        const esRes = fn.__call__([], context);
+                        fn.__closure__ = context;
+                        const esRes = fn.__call__([]);
 
                         if (esRes instanceof ESError) {
                             console.log(esRes.str);
+                            res.writeHead(500);
+                            res.end(`{}`);
                             return;
                         }
 
                         let response = '';
                         try {
-                            if (['String', 'Number'].indexOf(esRes.typeOf().valueOf()) !== -1)
-                                // @ts-ignore
-                                esRes.val = {value: esRes.val};
-
-                            response = JSON.stringify(esRes);
+                            if (esRes instanceof ESObject) {
+                                response = JSON.stringify(ESPrimitive.strip(esRes));
+                            } else {
+                                res.writeHead(500);
+                                res.end(`{}`);
+                                return;
+                            }
                         } catch (e) {
                             console.log(`Incorrect return value for handler of ${url}. Must be JSONifyable.`)
                             if (options.debug)
                                 console.log(`Detail: Expected type (object|undefined) but got value ${esRes.valueOf()} of type ${esRes.typeOf()}`);
+                            res.writeHead(500);
+                            res.end(`{}`);
                             return;
                         }
 

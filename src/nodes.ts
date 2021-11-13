@@ -18,7 +18,7 @@ import {
     Primitive,
     types
 } from "./primitiveTypes.js";
-import { dict, str } from "./util.js";
+import { dict } from "./util.js";
 
 export class interpretResult {
     val: Primitive | undefined;
@@ -61,10 +61,14 @@ export abstract class Node {
         } else
             res.val = val;
 
-        let time = now() - start;
+        if (res.error && res.error.startPos.isUnknown)
+            res.error.startPos = this.startPos;
+
         Node.interprets++;
+        let time = now() - start;
         Node.totalTime += time;
         if (time > Node.maxTime) Node.maxTime = time;
+
         return res;
     }
 }
@@ -86,9 +90,8 @@ export class N_binOp extends Node {
 
      interpret_(context: Context): ESError | Primitive {
         const left = this.left.interpret(context);
+         if (left.error) return left.error;
         const right = this.right.interpret(context);
-
-        if (left.error) return left.error;
         if (right.error) return right.error;
 
         const l = left.val;
@@ -596,7 +599,7 @@ export class N_functionDefinition extends Node {
                 `On func '${this.name }' return type`
             );
 
-        return new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val);
+        return new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val, context);
     }
 }
 
@@ -641,7 +644,7 @@ export class N_yield extends Node {
         let val = this.value.interpret(context);
         if (val.error) return val.error;
 
-        if (val.val?.bool())
+        if (val.val?.bool().valueOf())
             res.funcReturn = val.val;
 
         return res;

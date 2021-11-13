@@ -11,7 +11,7 @@ import { builtInFunctions } from "./builtInFunctions.js";
 import { ESError, ImportError, TypeError } from "./errors.js";
 import { Position } from "./position.js";
 import { run } from "./index.js";
-import { global, globalConstants, setNone } from "./constants.js";
+import { globalConstants, setNone } from "./constants.js";
 import { str } from "./util.js";
 import { ESFunction, ESString } from "./primitiveTypes.js";
 export function initialise(globalContext, printFunc, inputFunc, libs = []) {
@@ -74,7 +74,7 @@ export function initialise(globalContext, printFunc, inputFunc, libs = []) {
             if (cb instanceof ESFunction) {
                 let res = cb.__call__([
                     new ESString(msg)
-                ], global);
+                ]);
                 if (res instanceof ESError)
                     console.log(res.str);
             }

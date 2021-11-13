@@ -1,6 +1,6 @@
-import {initialise} from "./init.js";
-import {ESError, TypeError} from "./errors.js";
-import {Position} from "./position.js";
+import { initialise } from "./init.js";
+import { ESError, TypeError } from "./errors.js";
+import { Position } from "./position.js";
 import { ESArray, ESFunction, ESPrimitive, ESType, ESUndefined, Primitive, types } from "./primitiveTypes.js";
 import { str } from "./util.js";
 
@@ -35,7 +35,6 @@ export class Context {
     constructor () {
         this.symbolTable = {};
     }
-
     has (identifier: string): boolean {
         return this.get(identifier) !== undefined;
     }
@@ -78,9 +77,9 @@ export class Context {
             context = this.root;
         } else {
             // searches upwards to find the identifier, and if none can be found then it assigns it to the current context
-            while (!context.hasOwn(identifier) && context.parent !== undefined) {
+            while (!context.hasOwn(identifier) && context.parent !== undefined)
                 context = context.parent;
-            }
+
             if (!context.hasOwn(identifier))
                 context = this;
         }
@@ -146,6 +145,34 @@ export class Context {
         this.initialisedAsGlobal = false;
 
         initialise(this, printFunc.valueOf()?.func || console.log, inputFunc.valueOf()?.func || (() => {}), this.libs);
+    }
+
+    clone (): Context {
+        const newContext = new Context();
+        newContext.parent = this.parent;
+        newContext.deleted = this.deleted;
+        newContext.initialisedAsGlobal = this.initialisedAsGlobal;
+        newContext.libs = [...this.libs];
+        newContext.symbolTable = {
+            ...newContext.symbolTable,
+            ...this.symbolTable
+        };
+        return newContext;
+    }
+
+    deepClone(): Context {
+        console.log('cloning');
+        let clone = this.clone();
+        clone.parent = clone.parent?.deepClone();
+        return clone;
+    }
+
+    /**
+     * This context takes priority
+     * @param {Context} context
+     */
+    mergeWith (context: Context) {
+        this.root.parent = context.deepClone();
     }
 
     log () {

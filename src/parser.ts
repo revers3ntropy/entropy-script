@@ -851,8 +851,20 @@ export class Parser {
             if (res.error) return res;
         }
 
-        body = res.register(this.bracesExp());
-        if (res.error) return res;
+        // @ts-ignore
+        if (this.currentToken.type !== tt.OBRACES) {
+            body = new n.N_return(this.currentToken.startPos, res.register(this.expr()));
+            if (res.error) return res;
+        } else {
+            this.consume(res, tt.OBRACES);
+            if (res.error) return res;
+            if (this.currentToken.type !== tt.CBRACES)
+                body = res.register(this.statements());
+            else
+                body = new n.N_undefined(this.currentToken.startPos);
+            this.consume(res, tt.CBRACES);
+            if (res.error) return res;
+        }
 
         return res.success(new n.N_functionDefinition(startPos, body, args, returnType));
     }

@@ -281,8 +281,16 @@ myFunc();
 `);
 expect(['<Func: myFunc>', 2], `
 var myFunc = func () {
-    yield 0;
-    return 2
+    yield 0; 
+    yield [];
+    return 2;
+};
+myFunc();
+`);
+expect(['<Func: myFunc>', 'hi'], `
+var myFunc = func () {
+    yield 'hi';
+    return 2;
 };
 myFunc();
 `);
@@ -594,7 +602,7 @@ expect('TypeError', `
     let b: myClass = 1;
 `);
 expect('TypeError', `
-    let b: string = func () return 0;
+    let b: string = func () 0;
 `);
 expect('TypeError', `
     let b: number = ['hi'];
@@ -664,6 +672,59 @@ expect('TypeError', `
 expect([1], 'parseNum("1")');
 expect([1.1], 'parseNum("1.1")');
 expect([1.1], 'parseNum(1.1)');
+
+// built in types
+expect(['Number'], 'type(1.1)');
+expect(['Type'], 'type(type)');
+expect(['Type'], 'type(number)');
+expect([undefined], 'type()');
+expect(['Function'], 'type(parseNum)');
+expect(['String'], 'type("hi")');
+expect(['Object'], 'type({a: 3})');
+expect(['Array'], 'type([1, 2, 3])');
+expect([1.2], 'number(1.2)');
+expect([['1.2']], 'array(`1.2`)');
+expect(['5'], 'string(5)');
+
+// More functions
+expect(['<Func: myFunc>', 'hi'], `
+    const myFunc = func () { return 'hi' };
+    myFunc();
+`);
+expect(['<Func: myFunc>', 'hi'], `
+    const myFunc = func () { 'hi' };
+    myFunc();
+`);
+expect(['<Func: myFunc>', 'hi'], `
+    const myFunc = func () 'hi';
+    myFunc();
+`);
+expect(['<Func: myFunc>', 'hi'], `
+    const myFunc = func(n)n;
+    myFunc('hi');
+`);
+
+// Closures
+expect(['<Func: wrapper>', '<Func: (anon)>', 'hiii'], `
+    const wrapper = func (function) {
+        var a = 'hiii';
+        return func () a;
+    };
+    wrapper();
+    wrapper()();
+`);
+
+expect(['<Func: wrapper>', 'hello world'], `
+    const wrapper = func (fn) {
+        let str1 = 'hello';
+        return fn(func () {
+            const str2 = ' world';
+            return func () str1 + str2;
+        });
+    };
+    
+    wrapper(func (v) v()());
+`);
 
 
 // vector library

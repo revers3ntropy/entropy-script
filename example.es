@@ -26,7 +26,7 @@ i; // 9, as i is now defined globally
 let myFunc = func () {
     let output = '';
     for (let arg in args) {
-        output += str(arg);
+        output += arg.str();
     }
     return output;
 }; // note the ;
@@ -34,43 +34,44 @@ let myFunc = func () {
 print(myFunc('hi ', 123, ['hi', 1])); // hi 123[hi, 1];
 
 // callbacks and higher order functions
-var wrapper = func (function_) {
-    return func () {
-        function_('hi');
-    }
+var wrapper = func (f: function) {
+    f('hi');
 };
 
-const func_ = wrapper(func(message) {
+wrapper(func (message) {
     print(message);
-});
-func_(); // hi
+}); // hi
 
 // objects
 let b = 0;
-let object = {
+let obj = {
     b: 1,
     [b]: 2,
     'c': 3
 };
 
-object.b; // 1
-object[b]; // 2
-object['c']; // 3
-object.d = 4;
-object['e'] = 5;
-object.d; // 4
-object.e; // 5
+obj.b; // 1
+obj[b]; // 2
+obj['c']; // 3
+obj.d = 4;
+obj['e'] = 5;
+obj.d; // 4
+obj.e; // 5
 
 // and arrays
-let array = [0, 1, 2, 3];
-array[0]; // 0
-array[0] = 4;
-array[0]; // 4
-contains(array, 4); // false
-contains(array, 2); // true
+let arr = [0, 1, 2, 3];
+arr[0]; // 0
+arr[0] = 4;
+arr[0]; // 4
+arr.add(7);
+arr.contains(4); // false
+arr.contains(2); // true
+arr.contains(7); // true
+arr.add('hi!', 2);
+print(arr); // [0, 1, 'hi!', 2, 3, 7]
 
 // classes
-let MyClass = class {
+const MyClass = class {
     init (a) {
         this.a = a;
     }
@@ -83,13 +84,13 @@ let MyClass = class {
         return a;
     }
 
-    log () {
-        print(this.constructor.name + ': ' + str(this.a));
+    output () {
+        print(this.constructor.name + ': ' + this.a.str());
     }
 };
 let instance = MyClass(1);
-instance.log(); // MyClass: 1
+instance.output(); // MyClass: 1
 instance.setA('hello world');
-instance.log(); // MyClass: hello world
+instance.output(); // MyClass: hello world
 instance.a = 2;
 print(instance); // MyClass: {setA: N_function, getA: N_function, log: N_function, a: 2}

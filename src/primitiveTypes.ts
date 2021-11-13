@@ -1,10 +1,10 @@
+import { global } from "./constants.js";
 import { dict, str } from "./util.js";
 import { ESError, TypeError } from "./errors.js";
 import { Position } from "./position.js";
 import { Node } from "./nodes.js";
 import { runtimeArgument } from "./argument.js";
 import { Context, ESSymbol, generateESFunctionCallContext } from "./context.js";
-import { global, None } from "./constants.js";
 
 export type typeName = 'Undefined' | 'String' | 'Array' | 'Number' | 'Any' | 'Function' | 'Boolean' | 'Type' | 'Object' | string;
 export type Primitive = ESPrimitive<any> | ESString | ESType | ESNumber | ESUndefined | ESBoolean | ESArray | ESObject | ESFunction | ESErrorPrimitive;
@@ -143,7 +143,7 @@ export class ESType extends ESPrimitive<undefined> {
     readonly __name__: typeName;
     readonly __extends__: undefined | ESType;
     readonly __methods__: ESFunction[];
-    readonly __init__: ESFunction;
+    readonly __init__: ESFunction | undefined;
     readonly __instances__: ESObject[] = [];
 
     constructor (
@@ -163,13 +163,7 @@ export class ESType extends ESPrimitive<undefined> {
         if (__init__) {
             __init__.name = name;
             this.__init__ = __init__;
-        } else
-            this.__init__ = new ESFunction((...args: Primitive[]) => {
-                const context = new Context();
-                context.parent = global;
-                return this.__call__(args, context, false);
-            }, [], name, new ESObject(), types.object);
-
+        }
 
         if (!types.type)
             this.__type__ = this;
@@ -260,11 +254,10 @@ export class ESType extends ESPrimitive<undefined> {
                     if (_a instanceof ESError) return _a;
                 }
 
-                const res_ = class_?.__init__?.__call__([], newContext);
+                const res_ = class_?.__init__?.__call__([]);
                 if (res_ instanceof ESPrimitive) return res_;
             }), 'super');
             if (setRes instanceof ESError) return setRes;
-
 
             const res = class_.__call__([], context, false, instance);
             if (res instanceof ESError) return res;
@@ -274,14 +267,14 @@ export class ESType extends ESPrimitive<undefined> {
         }
 
         const newContext = new Context();
-        newContext.parent = context;
+        newContext.parent = this.__init__?.__closure__;
 
-        if (this.__extends__ !== undefined) {
+        if (this.__extends__) {
             let _a = dealWithExtends(newContext, this.__extends__, on);
             if (_a instanceof ESError) return _a;
         }
 
-        on['constructor'] = this.__init__.clone();
+        on['constructor'] = this.__init__?.clone() ?? new ESUndefined();
 
         const instance = new ESObject(on);
 
@@ -294,7 +287,10 @@ export class ESType extends ESPrimitive<undefined> {
         if (runInit && this.__init__) {
             this.__init__.this_ = instance;
 
-            const res = this.__init__.__call__(params, newContext);
+            // newContext, which inherits from the current closure
+            this.__init__.__closure__ = newContext;
+
+            const res = this.__init__.__call__(params);
             // return value of init is ignored
             if (res instanceof ESError) return res;
         }
@@ -473,18 +469,21 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => 
     arguments_: runtimeArgument[];
     this_: ESObject;
     returnType: ESType;
+    __closure__: Context;
     constructor (
         func: Node | ((...args: Primitive[]) => any) = (() => {}),
         arguments_: runtimeArgument[] = [],
         name='(anonymous)',
         this_: ESObject = new ESObject(),
-        returnType: undefined | ESType = types.any
+        returnType: undefined | ESType = types.any,
+        closure?: Context
     ) {
         super(func, types.function);
         this.arguments_ = arguments_;
         this.name = name;
         this.this_ = this_;
         this.returnType = returnType;
+        this.__closure__ = closure ?? new Context();
     }
     clone = (): ESFunction => {
         return new ESFunction(
@@ -492,7 +491,8 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => 
             this.arguments_,
             this.name,
             this.this_,
-            this.returnType
+            this.returnType,
+            this.__closure__
         );
     };
 
@@ -508,8 +508,10 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => 
     };
     __bool__ = () => new ESBoolean(true);
     
-    __call__ = (params: Primitive[] = [], context = global): ESError | Primitive => {
+    __call__ = (params: Primitive[] = []): ESError | Primitive => {
 
+        // generate context
+        const context = this.__closure__;
         const fn = this.__value__;
 
         if (fn instanceof Node) {

@@ -75,7 +75,7 @@ export function initialise (globalContext: Context, printFunc: (...args: any[]) 
             if (cb instanceof ESFunction) {
                 let res = cb.__call__([
                     new ESString(msg)
-                ], global);
+                ]);
                 if (res instanceof ESError)
                     console.log(res.str);
             } else if (typeof cb === 'function')

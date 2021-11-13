@@ -1,0 +1,10 @@
+{
+  "name": "entropy-script",
+  "dependencies": {
+    "sync-mysql": "^3.0.1"
+  },
+  "type": "module",
+  "devDependencies": {
+    "dotenv": "^10.0.0"
+  }
+}

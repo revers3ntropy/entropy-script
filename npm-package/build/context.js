@@ -50,9 +50,8 @@ export class Context {
         }
         else {
             // searches upwards to find the identifier, and if none can be found then it assigns it to the current context
-            while (!context.hasOwn(identifier) && context.parent !== undefined) {
+            while (!context.hasOwn(identifier) && context.parent !== undefined)
                 context = context.parent;
-            }
             if (!context.hasOwn(identifier))
                 context = this;
         }
@@ -99,6 +98,29 @@ export class Context {
         this.symbolTable = {};
         this.initialisedAsGlobal = false;
         initialise(this, ((_a = printFunc.valueOf()) === null || _a === void 0 ? void 0 : _a.func) || console.log, ((_b = inputFunc.valueOf()) === null || _b === void 0 ? void 0 : _b.func) || (() => { }), this.libs);
+    }
+    clone() {
+        const newContext = new Context();
+        newContext.parent = this.parent;
+        newContext.deleted = this.deleted;
+        newContext.initialisedAsGlobal = this.initialisedAsGlobal;
+        newContext.libs = [...this.libs];
+        newContext.symbolTable = Object.assign(Object.assign({}, newContext.symbolTable), this.symbolTable);
+        return newContext;
+    }
+    deepClone() {
+        var _a;
+        console.log('cloning');
+        let clone = this.clone();
+        clone.parent = (_a = clone.parent) === null || _a === void 0 ? void 0 : _a.deepClone();
+        return clone;
+    }
+    /**
+     * This context takes priority
+     * @param {Context} context
+     */
+    mergeWith(context) {
+        this.root.parent = context.deepClone();
     }
     log() {
         console.log('---- CONTEXT ----');
