@@ -1,2 +1,3 @@
-Install with `npm install entropy-script -g`
-Run a .es file with `entropy-script FILENAME.es`
+Install with `npm install entropy-script -g`.
+
+Run file.es file with `entropy-script file.es`.
