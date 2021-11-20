@@ -1,5 +1,4 @@
-import {Context, ESSymbol} from "./context.js";
-import { ESBoolean, ESUndefined, Primitive, types, ESErrorPrimitive } from "./primitiveTypes.js";
+import {Context, ESSymbol} from "./runtime/context.js";
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -42,22 +41,6 @@ export const KEYWORDS = [
     'namespace',
     'export',
 ];
-
-export const globalConstants: {[name: string]: Primitive} = {
-    'false': new ESBoolean(false),
-    'true': new ESBoolean(true),
-    'undefined': new ESUndefined(),
-    'any': types.any,
-    'number': types.number,
-    'string': types.string,
-    'bool': types.bool,
-    'function': types.function,
-    'array': types.array,
-    'object': types.object,
-    'type': types.type,
-    'error': types.error,
-    'maths': ESErrorPrimitive.wrap(Math)
-}
 
 export let now: (() => number) = () => 0;
 export async function refreshPerformanceNow (IS_NODE_INSTANCE: boolean) {

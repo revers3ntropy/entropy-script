@@ -7,64 +7,70 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { builtInFunctions } from "./builtInFunctions.js";
-import { Context } from "./context.js";
+import { builtInFunctions } from "./built-in/builtInFunctions.js";
+import { Context } from "./runtime/context.js";
 import { ESError, ImportError } from "./errors.js";
 import { Position } from "./position.js";
 import { run } from "./index.js";
-import { globalConstants, IS_NODE_INSTANCE, setNone } from "./constants.js";
-import { str } from "./util.js";
-import { ESFunction, ESNamespace, ESString } from "./primitiveTypes.js";
+import { IS_NODE_INSTANCE, setNone } from "./constants.js";
+import { str } from "./util/util.js";
+import { ESFunction, ESNamespace, ESString } from "./runtime/primitiveTypes.js";
+import { globalConstants } from "./built-in/globalConstants.js";
 export function initialise(globalContext, printFunc, inputFunc, libs = []) {
-    builtInFunctions['import'] = (rawUrl, callback) => {
-        if (IS_NODE_INSTANCE)
-            return new ESError(Position.unknown, 'ImportError', 'Is running in node instance but trying to run browser import function');
-        const url = rawUrl.str();
-        try {
-            fetch(str(url))
-                .then(c => c.text())
-                .then((code) => __awaiter(this, void 0, void 0, function* () {
-                const env = new Context();
-                env.parent = globalContext;
-                const res = yield run(code);
-                if (res.error) {
-                    printFunc(new ImportError(Position.unknown, str(url), res.error.str).str);
-                    return;
-                }
-                if (!(callback instanceof ESFunction))
-                    return;
-                callback.__call__([
-                    new ESNamespace(url, env.getSymbolTableAsDict())
-                ]);
-            }));
-        }
-        catch (E) {
-            return new ESError(Position.unknown, 'ImportError', E.toString());
-        }
-    };
-    builtInFunctions['print'] = (...args) => __awaiter(this, void 0, void 0, function* () {
-        let out = ``;
-        for (let arg of args)
-            out += str(arg);
-        printFunc(out);
-    });
-    builtInFunctions['input'] = (msg, cbRaw) => __awaiter(this, void 0, void 0, function* () {
-        inputFunc(msg.valueOf(), (msg) => {
-            let cb = cbRaw === null || cbRaw === void 0 ? void 0 : cbRaw.valueOf();
-            if (cb instanceof ESFunction) {
-                let res = cb.__call__([
-                    new ESString(msg)
-                ]);
-                if (res instanceof ESError)
-                    console.log(res.str);
+    builtInFunctions['import'] = [(rawUrl, callback) => {
+            if (IS_NODE_INSTANCE)
+                return new ESError(Position.unknown, 'ImportError', 'Is running in node instance but trying to run browser import function');
+            const url = rawUrl.str();
+            try {
+                fetch(str(url))
+                    .then(c => c.text())
+                    .then((code) => __awaiter(this, void 0, void 0, function* () {
+                    const env = new Context();
+                    env.parent = globalContext;
+                    const res = yield run(code);
+                    if (res.error) {
+                        printFunc(new ImportError(Position.unknown, str(url), res.error.str).str);
+                        return;
+                    }
+                    if (!(callback instanceof ESFunction))
+                        return;
+                    callback.__call__([
+                        new ESNamespace(url, env.getSymbolTableAsDict())
+                    ]);
+                }));
             }
-            else if (typeof cb === 'function')
-                cb(msg);
-            return new ESString('\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.');
-        });
-    });
+            catch (E) {
+                return new ESError(Position.unknown, 'ImportError', E.toString());
+            }
+        }, {}];
+    builtInFunctions['print'] = [(...args) => __awaiter(this, void 0, void 0, function* () {
+            let out = ``;
+            for (let arg of args)
+                out += str(arg);
+            printFunc(out);
+        }), {}];
+    builtInFunctions['input'] = [(msg, cbRaw) => __awaiter(this, void 0, void 0, function* () {
+            inputFunc(msg.valueOf(), (msg) => {
+                let cb = cbRaw === null || cbRaw === void 0 ? void 0 : cbRaw.valueOf();
+                if (cb instanceof ESFunction) {
+                    let res = cb.__call__([
+                        new ESString(msg)
+                    ]);
+                    if (res instanceof ESError)
+                        console.log(res.str);
+                }
+                else if (typeof cb === 'function')
+                    cb(msg);
+                return new ESString('\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.');
+            });
+        }), {}];
     for (let builtIn in builtInFunctions) {
-        globalContext.set(builtIn, new ESFunction(builtInFunctions[builtIn], [], builtIn), {
+        const fn = new ESFunction(builtInFunctions[builtIn][0], [], builtIn);
+        fn.info = builtInFunctions[builtIn][1];
+        fn.info.name = builtIn;
+        fn.info.isBuiltIn = true;
+        fn.info.file = 'built-in';
+        globalContext.set(builtIn, fn, {
             global: true,
             isConstant: true
         });

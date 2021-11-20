@@ -1,5 +1,5 @@
 import {Position} from "./position.js";
-import {str} from "./util.js";
+import {str} from "./util/util.js";
 
 export class ESError {
     name: string;

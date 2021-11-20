@@ -1,15 +1,21 @@
-import { builtInFunctions } from "./builtInFunctions.js";
-import { Context } from "./context.js";
+import { builtInFunctions } from "./built-in/builtInFunctions.js";
+import { Context } from "./runtime/context.js";
 import { ESError, ImportError } from "./errors.js";
 import { Position } from "./position.js";
 import { run } from "./index.js";
-import {globalConstants, IS_NODE_INSTANCE, setNone} from "./constants.js";
-import { str } from "./util.js";
-import {ESFunction, ESNamespace, ESString} from "./primitiveTypes.js";
-import {interpretResult} from "./nodes";
+import {IS_NODE_INSTANCE, setNone} from "./constants.js";
+import { str } from "./util/util.js";
+import {ESFunction, ESNamespace, ESString} from "./runtime/primitiveTypes.js";
+import {interpretResult} from "./runtime/nodes.js";
+import {globalConstants} from "./built-in/globalConstants.js";
 
-export function initialise (globalContext: Context, printFunc: (...args: string[]) => void, inputFunc: (msg: string, cb: (...arg: any[]) => any) => void, libs: string[] = []) {
-    builtInFunctions['import'] = (rawUrl, callback) => {
+export function initialise (
+    globalContext: Context,
+    printFunc: (...args: string[]) => void,
+    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void,
+    libs: string[] = []
+) {
+    builtInFunctions['import'] = [(rawUrl, callback) => {
         if (IS_NODE_INSTANCE)
             return new ESError(Position.unknown, 'ImportError', 'Is running in node instance but trying to run browser import function');
         const url: ESString = rawUrl.str();
@@ -36,16 +42,16 @@ export function initialise (globalContext: Context, printFunc: (...args: string[
         } catch (E) {
             return new ESError(Position.unknown, 'ImportError', E.toString());
         }
-    };
+    }, {}];
 
-    builtInFunctions['print'] = async (...args) => {
+    builtInFunctions['print'] = [async (...args) => {
         let out = ``;
         for (let arg of args)
             out += str(arg);
         printFunc(out);
-    };
+    }, {}];
 
-    builtInFunctions['input'] = async (msg, cbRaw) => {
+    builtInFunctions['input'] = [async (msg, cbRaw) => {
         inputFunc(msg.valueOf(), (msg) => {
             let cb = cbRaw?.valueOf();
             if (cb instanceof ESFunction) {
@@ -58,16 +64,21 @@ export function initialise (globalContext: Context, printFunc: (...args: string[
                 cb(msg);
 
             return new ESString('\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.');
-        });
-    };
+        })
+    }, {}];
 
     for (let builtIn in builtInFunctions) {
-        globalContext.set(builtIn,
-            new ESFunction(builtInFunctions[builtIn], [], builtIn),
-            {
-                global: true,
-                isConstant: true
-            });
+        const fn = new ESFunction(builtInFunctions[builtIn][0], [], builtIn);
+
+        fn.info = builtInFunctions[builtIn][1];
+        fn.info.name = builtIn;
+        fn.info.isBuiltIn = true;
+        fn.info.file = 'built-in';
+
+        globalContext.set(builtIn, fn, {
+            global: true,
+            isConstant: true
+        });
     }
 
     for (let constant in globalConstants) {

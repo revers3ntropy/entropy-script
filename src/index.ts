@@ -1,14 +1,14 @@
-import './colourString.js';
+import './util/colourString.js';
 
-import { Lexer } from "./lexer.js";
-import { Parser } from "./parser.js";
+import { Lexer } from "./tokenise/lexer.js";
+import { Parser } from "./parse/parser.js";
 import { global, now } from "./constants.js";
 import { initialise } from "./init.js";
 import { ESError } from "./errors.js";
 import { Position } from "./position.js";
-import { interpretResult, Node } from "./nodes.js";
-import { ESArray } from "./primitiveTypes.js";
-import { timeData } from "./util";
+import { interpretResult, Node } from "./runtime/nodes.js";
+import { ESArray } from "./runtime/primitiveTypes.js";
+import { timeData } from "./util/util";
 
 export function init (
     printFunc: (...args: any) => void = console.log,
