@@ -4,11 +4,14 @@ import { ESError, ImportError } from "../errors.js";
 import { ESFunction, ESNamespace, ESObject, ESPrimitive, ESString, types } from "../runtime/primitiveTypes.js";
 import { str } from "../util/util.js";
 import { run } from "../index.js";
+import { getModule, moduleExist } from './builtInModules.js';
 function addNodeLibs(https, http, fs, mysql, context, print) {
     context.setOwn('nodeHTTPS', ESPrimitive.wrap(https));
     context.setOwn('nodeHTTP', ESPrimitive.wrap(http));
     context.set('import', new ESFunction((rawPath) => {
         const path = str(rawPath);
+        if (moduleExist(path))
+            return getModule(path);
         try {
             const code = fs.readFileSync(path, 'utf-8');
             const env = new Context();

@@ -39,6 +39,9 @@ export class ESPrimitive {
     static wrap(thing = undefined) {
         if (thing instanceof ESPrimitive)
             return thing;
+        // catch 'null' which is of type 'object'
+        if (thing == undefined)
+            return new ESUndefined();
         if (thing instanceof ESError)
             return new ESErrorPrimitive(thing);
         if (thing instanceof ESSymbol)
@@ -53,8 +56,14 @@ export class ESPrimitive {
             return new ESBoolean(thing);
         if (typeof thing === 'object') {
             if (Array.isArray(thing))
-                return new ESArray(thing);
-            return new ESObject(thing);
+                return new ESArray(thing.map(s => ESPrimitive.wrap(s)));
+            let newObj = {};
+            if (thing === Math)
+                console.log();
+            Object.getOwnPropertyNames(thing).forEach(key => {
+                newObj[key] = ESPrimitive.wrap(thing[key]);
+            });
+            return new ESObject(newObj);
         }
         if (typeof thing === 'bigint')
             return new ESNumber(Number(thing));
@@ -208,7 +217,7 @@ export class ESType extends ESPrimitive {
         this.str = () => new ESString(`<Type: ${this.__name__}>`);
         this.__isPrimitive__ = isPrimitive;
         this.__name__ = name;
-        this.__name__ = name;
+        this.info.name = name;
         this.__extends__ = __extends__;
         this.__methods__ = __methods__;
         if (__init__) {
@@ -340,6 +349,13 @@ export class ESUndefined extends ESPrimitive {
         this.__eq__ = (n) => new ESBoolean(n instanceof ESUndefined || typeof n === 'undefined' || typeof n.valueOf() === 'undefined');
         this.__bool__ = () => new ESBoolean(false);
         this.clone = () => new ESUndefined();
+        // define the same info for every instance
+        this.info = {
+            name: 'undefined',
+            description: 'Not defined, not a value.',
+            file: 'built-in',
+            isBuiltIn: true
+        };
     }
 }
 export class ESErrorPrimitive extends ESPrimitive {
@@ -352,7 +368,7 @@ export class ESErrorPrimitive extends ESPrimitive {
     }
 }
 export class ESFunction extends ESPrimitive {
-    constructor(func = (() => { }), arguments_ = [], name = '(anonymous)', this_ = new ESObject(), returnType = types.any, closure) {
+    constructor(func = (() => { }), arguments_ = [], name = '(anonymous)', this_ = new ESObject(), returnType = types.any, closure = global) {
         super(func, types.function);
         this.clone = () => {
             return new ESFunction(this.__value__, this.arguments_, this.name, this.this_, this.returnType, this.__closure__);
@@ -406,15 +422,30 @@ export class ESFunction extends ESPrimitive {
                 return new TypeError(Position.unknown, 'function', typeof fn);
         };
         this.arguments_ = arguments_;
-        this.name = name;
+        this.info.name = name;
         this.this_ = this_;
         this.returnType = returnType;
         this.__closure__ = closure !== null && closure !== void 0 ? closure : new Context();
+        this.info.returnType = str(returnType);
+        this.info.args = arguments_.map(arg => ({
+            name: arg.name,
+            defaultValue: str(arg.defaultValue),
+            type: arg.type.info.name,
+            required: true
+        }));
+        // TODO: info.helpLink
+    }
+    get name() {
+        var _b;
+        return (_b = this.info.name) !== null && _b !== void 0 ? _b : '(anonymous)';
+    }
+    set name(v) {
+        this.info.name = v;
     }
 }
 export class ESBoolean extends ESPrimitive {
     constructor(val = false) {
-        super(val, types.bool);
+        super(!!val, types.bool);
         this.__eq__ = (n) => {
             if (!(n instanceof ESBoolean))
                 return new TypeError(Position.unknown, 'Boolean', n.typeOf().str().valueOf(), n.valueOf());
@@ -429,12 +460,25 @@ export class ESBoolean extends ESPrimitive {
         };
         this.str = () => new ESString(this.valueOf() ? 'true' : 'false');
         this.clone = () => new ESBoolean(this.valueOf());
+        this.info = {
+            name: str(val),
+            description: `Boolean global constant which evaluates to ${str(val)}, the opposite of ${str(!val)}`,
+            file: 'built-in',
+            isBuiltIn: true,
+            helpLink: 'https://en.wikipedia.org/wiki/Boolean_expression'
+        };
     }
 }
 export class ESObject extends ESPrimitive {
     constructor(val = {}) {
         super(val, types.object);
-        this.str = () => new ESString(`<ESObject: ${str(this.valueOf())}>`);
+        this.str = () => {
+            let val = str(this.valueOf());
+            // remove trailing new line
+            if (val[val.length - 1] === '\n')
+                val = val.substr(0, val.length - 1);
+            return new ESString(`<ESObject ${val}>`);
+        };
         this.__eq__ = (n) => {
             if (!(n instanceof ESObject))
                 return new ESBoolean();
@@ -547,7 +591,8 @@ export class ESNamespace extends ESPrimitive {
             return new ESNamespace(this.name, obj);
         };
         this.str = () => {
-            return new ESString(`<Namespace ${str(this.name)}: ${Object.keys(this.valueOf())}>`);
+            const keys = Object.keys(this.valueOf());
+            return new ESString(`<Namespace ${str(this.name)}: ${keys.slice(0, 5)}${keys.length >= 5 ? '...' : ''}>`);
         };
         this.__eq__ = (n) => {
             return new ESBoolean(this === n);
@@ -564,8 +609,14 @@ export class ESNamespace extends ESPrimitive {
                 return ESPrimitive.wrap(self[key.valueOf()]);
             return new ESUndefined();
         };
-        this.name = name;
+        this.info.name = name.valueOf();
         this.mutable = mutable;
+    }
+    get name() {
+        return new ESString(this.info.name);
+    }
+    set name(v) {
+        this.info.name = v.valueOf();
     }
     __setProperty__(key, value) {
         if (!(key instanceof ESString))
@@ -596,3 +647,58 @@ types['function'] = new ESType(true, 'Function');
 types['bool'] = new ESType(true, 'Boolean');
 types['object'] = new ESType(true, 'Object');
 types['error'] = new ESType(true, 'Error');
+// Documentation for types
+types.any.info = {
+    name: 'any',
+    description: 'Matches any other type',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.number.info = {
+    name: 'any',
+    description: 'The ES Number type. Is a a double-precision 64-bit binary format IEEE 754 value, like double in Java and c#',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.string.info = {
+    name: 'string',
+    description: 'The ES String type. Holds an array of characters, and can be defined with any of \', " and `. Can be indexed like an array.',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.bool.info = {
+    name: 'bool',
+    description: 'The ES Bool type. Exactly two instances exist, true and false.',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.function.info = {
+    name: 'function',
+    description: 'The ES Function type. Is a block of code which executes when called and takes in 0+ parameters.',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.array.info = {
+    name: 'array',
+    description: 'The ES Array type. Defines a set of items of any type which can be accessed by an index with [].',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.object.info = {
+    name: 'object',
+    description: 'The ES Object type. Similar to JS objects or python dictionaries.',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.error.info = {
+    name: 'error',
+    description: 'The ES Error type. Call to throw an error.',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.type.info = {
+    name: 'type',
+    description: 'The ES Type type. Call to get the type of a value at a string.',
+    file: 'built-in',
+    isBuiltIn: true
+};

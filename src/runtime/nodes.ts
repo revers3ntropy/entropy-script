@@ -64,6 +64,8 @@ export abstract class Node {
         if (res.error && res.error.startPos.isUnknown)
             res.error.startPos = this.startPos;
 
+        res.val.info.file ||= this.startPos.file;
+
         Node.interprets++;
         let time = now() - start;
         Node.totalTime += time;
@@ -334,6 +336,10 @@ export class N_varAssign extends Node {
             if (setRes instanceof ESError) return setRes;
             res.val = newVal;
         }
+
+        if (res.val.info.name === '(anonymous)' || !res.val.info.name)
+            res.val.info.name = this.varNameTok.value;
+
         return res;
     }
 }
@@ -843,9 +849,9 @@ export class N_class extends Node {
 }
 
 export class N_namespace extends Node {
-    name: string;
-    statements: Node;
-    mutable: boolean;
+    public name: string;
+    private statements: Node;
+    public mutable: boolean;
     constructor(startPos: Position, statements: Node, name = '(anon)', mutable=false) {
         super(startPos);
         this.name = name;

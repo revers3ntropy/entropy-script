@@ -1,11 +1,11 @@
-import {ESNamespace, ESObject, ESString} from "../runtime/primitiveTypes.js";
+import {ESNamespace, ESObject, ESPrimitive, ESString} from '../runtime/primitiveTypes.js';
 import {ESSymbol} from "../runtime/context.js";
 
 // All modules
 // make this only import required modules in the future
 import jsmaths from './built-in-modules/jsmaths.js';
 
-const modules: {[s: string]: ESObject} = {
+const modules: {[s: string]: any} = {
     jsmaths,
 };
 
@@ -31,7 +31,12 @@ export function getModule (name: string): ESNamespace | undefined {
     if (name in processedModules)
         return processedModules[name];
     if (name in modules) {
-        const processed = processRawModule(modules[name], name);
+        const res = ESPrimitive.wrap(modules[name]);
+        if (!(res instanceof ESObject)) {
+            console.log('Error: module ' + name + 'is not of type object'.red);
+            return;
+        }
+        const processed = processRawModule(res, name);
         processedModules[name] = processed;
         return processed
     }

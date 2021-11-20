@@ -67,7 +67,9 @@ export async function init () {
  * @param {string} path
  */
 export function runScript (path) {
-	let res = es.run(fs.readFileSync(path, 'utf-8'));
+	let res = es.run(fs.readFileSync(path, 'utf-8'), {
+		fileName: path
+	});
 	if (res.error)
 		console.log(res.error.str);
 }

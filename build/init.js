@@ -8,19 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { builtInFunctions } from "./built-in/builtInFunctions.js";
+import { getModule, moduleExist } from './built-in/builtInModules.js';
 import { Context } from "./runtime/context.js";
 import { ESError, ImportError } from "./errors.js";
 import { Position } from "./position.js";
 import { run } from "./index.js";
 import { IS_NODE_INSTANCE, setNone } from "./constants.js";
 import { str } from "./util/util.js";
-import { ESFunction, ESNamespace, ESString } from "./runtime/primitiveTypes.js";
+import { ESFunction, ESNamespace, ESString } from './runtime/primitiveTypes.js';
 import { globalConstants } from "./built-in/globalConstants.js";
 export function initialise(globalContext, printFunc, inputFunc, libs = []) {
     builtInFunctions['import'] = [(rawUrl, callback) => {
             if (IS_NODE_INSTANCE)
                 return new ESError(Position.unknown, 'ImportError', 'Is running in node instance but trying to run browser import function');
             const url = rawUrl.str();
+            if (moduleExist(str(url)))
+                return getModule(str(url));
             try {
                 fetch(str(url))
                     .then(c => c.text())

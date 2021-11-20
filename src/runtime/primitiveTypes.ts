@@ -24,6 +24,7 @@ export interface argInfo {
     type?: string;
     description?: string;
     required?: boolean;
+    defaultValue?: string;
 }
 
 export interface FunctionInfo extends PrimitiveInfo {
@@ -63,8 +64,8 @@ export interface ESPrimitive <T> {
 
 export abstract class ESPrimitive <T> {
     protected __value__: T;
-    __type__: ESType;
-    info: Info = {};
+    public __type__: ESType;
+    public info: Info = {};
 
     /**
      * @param value
@@ -118,6 +119,10 @@ export abstract class ESPrimitive <T> {
         if (thing instanceof ESPrimitive)
             return thing;
 
+        // catch 'null' which is of type 'object'
+        if (thing == undefined)
+            return new ESUndefined();
+
         if (thing instanceof ESError)
             return new ESErrorPrimitive(thing);
         if (thing instanceof ESSymbol)
@@ -133,8 +138,14 @@ export abstract class ESPrimitive <T> {
             return new ESBoolean(thing);
         if (typeof thing === 'object') {
             if (Array.isArray(thing))
-                return new ESArray(thing);
-            return new ESObject(thing);
+                return new ESArray(thing.map(s => ESPrimitive.wrap(s)));
+
+            let newObj: {[s: string]: Primitive} = {};
+            if (thing === Math) console.log();
+            Object.getOwnPropertyNames(thing).forEach(key => {
+                newObj[key] = ESPrimitive.wrap(thing[key]);
+            });
+            return new ESObject(newObj);
         }
         if (typeof thing === 'bigint')
             return new ESNumber(Number(thing));
@@ -190,7 +201,7 @@ export class ESType extends ESPrimitive<undefined> {
 
         this.__isPrimitive__ = isPrimitive;
         this.__name__ = name;
-        this.__name__ = name;
+        this.info.name = name;
         this.__extends__ = __extends__;
         this.__methods__ = __methods__;
         if (__init__) {
@@ -475,6 +486,14 @@ export class ESString extends ESPrimitive <string> {
 export class ESUndefined extends ESPrimitive <any> {
     constructor () {
         super(undefined, types.undefined);
+
+        // define the same info for every instance
+        this.info = {
+            name: 'undefined',
+            description: 'Not defined, not a value.',
+            file: 'built-in',
+            isBuiltIn: true
+        };
     }
 
     str = () => new ESString('<Undefined>');
@@ -497,7 +516,6 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
 }
 
 export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => any))> {
-    name: string;
     arguments_: runtimeArgument[];
     this_: ESObject;
     returnType: ESType;
@@ -507,16 +525,34 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => 
         arguments_: runtimeArgument[] = [],
         name='(anonymous)',
         this_: ESObject = new ESObject(),
-        returnType: undefined | ESType = types.any,
-        closure?: Context
+        returnType = types.any,
+        closure = global
     ) {
         super(func, types.function);
         this.arguments_ = arguments_;
-        this.name = name;
+        this.info.name = name;
         this.this_ = this_;
         this.returnType = returnType;
         this.__closure__ = closure ?? new Context();
+
+        this.info.returnType = str(returnType);
+        this.info.args = arguments_.map(arg => ({
+            name: arg.name,
+            defaultValue: str(arg.defaultValue),
+            type: arg.type.info.name,
+            required: true
+        }));
+        // TODO: info.helpLink
     }
+
+    get name () {
+        return this.info.name ?? '(anonymous)';
+    }
+
+    set name (v: string) {
+        this.info.name = v;
+    }
+
     clone = (): ESFunction => {
         return new ESFunction(
             this.__value__,
@@ -600,7 +636,15 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => 
 
 export class ESBoolean extends ESPrimitive <boolean> {
     constructor (val: boolean = false) {
-        super(val, types.bool);
+        super(!!val, types.bool);
+
+        this.info = {
+            name: str(val),
+            description: `Boolean global constant which evaluates to ${str(val)}, the opposite of ${str(!val)}`,
+            file: 'built-in',
+            isBuiltIn: true,
+            helpLink: 'https://en.wikipedia.org/wiki/Boolean_expression'
+        };
     }
 
     __eq__ = (n: Primitive) => {
@@ -627,7 +671,13 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         super(val, types.object);
     }
 
-    str = () => new ESString(`<ESObject: ${str(this.valueOf())}>`);
+    str = () => {
+        let val = str(this.valueOf());
+        // remove trailing new line
+        if (val[val.length-1] === '\n')
+            val = val.substr(0, val.length-1);
+        return new ESString(`<ESObject ${val}>`);
+    }
 
     __eq__ = (n: Primitive) => {
         if (!(n instanceof ESObject))
@@ -748,12 +798,19 @@ export class ESArray extends ESPrimitive <Primitive[]> {
 }
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
-    name: ESString;
-    mutable: boolean;
+    public mutable: boolean;
     constructor(name: ESString, value: dict<ESSymbol>, mutable=false) {
         super(value, types.object);
-        this.name = name;
+        this.info.name = name.valueOf();
         this.mutable = mutable;
+    }
+
+    get name () {
+        return new ESString(this.info.name);
+    }
+
+    set name (v: ESString) {
+        this.info.name = v.valueOf();
     }
 
     clone = (): Primitive => {
@@ -770,7 +827,8 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     }
 
     str = (): ESString => {
-        return new ESString(`<Namespace ${str(this.name)}: ${Object.keys(this.valueOf())}>`);
+        const keys = Object.keys(this.valueOf());
+        return new ESString(`<Namespace ${str(this.name)}: ${keys.slice(0, 5)}${keys.length >= 5 ? '...' : ''}>`);
     }
 
     __eq__ = (n: Primitive): ESBoolean => {
@@ -818,6 +876,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
 }
 
 export let types: {[key: string] : ESType} = {};
+
 types['type'] = new ESType(true, 'Type');
 types['undefined'] = new ESType(true, 'Undefined');
 types['string'] = new ESType(true, 'String');
@@ -828,3 +887,59 @@ types['function'] = new ESType(true, 'Function');
 types['bool'] = new ESType(true, 'Boolean');
 types['object'] = new ESType(true, 'Object');
 types['error'] = new ESType(true, 'Error');
+
+// Documentation for types
+types.any.info = {
+    name: 'any',
+    description: 'Matches any other type',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.number.info = {
+    name: 'any',
+    description: 'The ES Number type. Is a a double-precision 64-bit binary format IEEE 754 value, like double in Java and c#',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.string.info = {
+    name: 'string',
+    description: 'The ES String type. Holds an array of characters, and can be defined with any of \', " and `. Can be indexed like an array.',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.bool.info = {
+    name: 'bool',
+    description: 'The ES Bool type. Exactly two instances exist, true and false.',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.function.info = {
+    name: 'function',
+    description: 'The ES Function type. Is a block of code which executes when called and takes in 0+ parameters.',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.array.info = {
+    name: 'array',
+    description: 'The ES Array type. Defines a set of items of any type which can be accessed by an index with [].',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.object.info = {
+    name: 'object',
+    description: 'The ES Object type. Similar to JS objects or python dictionaries.',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.error.info = {
+    name: 'error',
+    description: 'The ES Error type. Call to throw an error.',
+    file: 'built-in',
+    isBuiltIn: true
+};
+types.type.info = {
+    name: 'type',
+    description: 'The ES Type type. Call to get the type of a value at a string.',
+    file: 'built-in',
+    isBuiltIn: true
+};

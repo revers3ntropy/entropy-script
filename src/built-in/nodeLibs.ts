@@ -5,6 +5,7 @@ import {ESFunction, ESNamespace, ESObject, ESPrimitive, ESString, Primitive, typ
 import {str} from "../util/util.js";
 import {interpretResult} from "../runtime/nodes.js";
 import {run} from "../index.js";
+import {getModule, moduleExist} from './builtInModules.js';
 
 type serverOptions = {
     key?: string,
@@ -22,6 +23,10 @@ function addNodeLibs (https: any, http: any, fs: any, mysql: any, context: Conte
 
     context.set('import', new ESFunction((rawPath) => {
         const path: string = str(rawPath);
+
+        if (moduleExist(path))
+            return getModule(path);
+
         try {
             const code = fs.readFileSync(path, 'utf-8');
             const env = new Context();

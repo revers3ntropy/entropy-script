@@ -1,7 +1,7 @@
 import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
-import { ESArray, ESNumber, ESString } from "../runtime/primitiveTypes.js";
-import { str } from "../util/util.js";
+import { ESArray, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, } from '../runtime/primitiveTypes.js';
+import { indent, sleep, str } from '../util/util.js';
 export const builtInFunctions = {
     'range': [(num) => {
             if (!(num instanceof ESNumber))
@@ -50,6 +50,62 @@ export const builtInFunctions = {
             description: `Converts a string of digits into a number. Works with decimals and integers. Calls .str() on value before using native JS 'parseFloat' function. Returns TypeError if the string can't be converted into a number.`,
             returnType: 'number | TypeError'
         }],
+    'help': [(...things) => {
+            // I am truly disgusted by this function.
+            // But I am not going to make it look better.
+            var _a;
+            if (!things.length)
+                return new ESString(`
+Visit https://entropygames.io/entropy-script for help with Entropy Script!
+Try 'help(object)' for help about a particular object.
+`);
+            let out = '';
+            for (const thing of things) {
+                const info = thing.info;
+                out += `${`Help on '${info.name || '(anonymous)'.yellow}'`.yellow}:
+    
+    ${'Value'.yellow}: ${indent(indent(str(thing)))}
+    ${'Type'.yellow}: '${str(thing.typeOf())}'
+    ${'Location'.yellow}: ${info.file || '(unknown)'.yellow}
+    
+        ${((_a = info.description) === null || _a === void 0 ? void 0 : _a.green) || `No description.`}
+        
+    ${info.helpLink ? (info.helpLink + '\n\n').cyan : ''}
+`;
+                if (info.args && thing instanceof ESFunction) {
+                    const total = info.args.length;
+                    const required = info.args.filter(a => a.required).length;
+                    if (total == required)
+                        out += `    Arguments (${total}): \n`.yellow;
+                    else
+                        out += `    Arguments (${required}-${total}): \n`.yellow;
+                    for (const [idx, arg] of info.args.entries()) {
+                        if (typeof arg !== 'object')
+                            out += `        ${idx + 1}. INVALID ARG INFO`;
+                        else
+                            out += `        ${idx + 1}. ${arg.name}${arg.required ? ' ' : ' (optional) '.yellow}{${arg.type}} ${arg.description || ''}\n`;
+                    }
+                    out += `\n\n`;
+                    if (info.returns)
+                        out += `    Returns: ${info.returns}\n\n`;
+                    if (info.returnType)
+                        out += `    Return Type: ${info.returnType}\n\n`;
+                }
+                if (info.contents && (thing instanceof ESObject || thing instanceof ESNamespace)) {
+                    out += '    Properties: \n      ';
+                    for (let contents of info.contents)
+                        out += contents.name + '\n      ';
+                }
+            }
+            return new ESString(out);
+        }, {
+            args: [{
+                    name: 'value',
+                    type: 'any'
+                }],
+            description: 'Gives info on value',
+            returnType: 'string'
+        }],
     'describe': [(thing, description) => {
             thing.info.description = str(description);
             return thing;
@@ -65,55 +121,45 @@ export const builtInFunctions = {
             returns: 'the value passed in',
             returnType: 'any'
         }],
-    'help': [(...things) => {
-            if (!things.length)
-                return new ESString(`
-Visit https://entropygames.io/entropy-script for help with Entropy Script!
-Try 'help(object)' for help about a particular object.
-`);
-            let out = '';
-            for (const thing of things) {
-                const info = thing.info;
-                out += `Help on '${info.name || '(unnamed value)'}':
-        
-    Type: '${str(thing.typeOf())}'
-    Location: ${info.file || '(unknown)'}
-    
-        ${info.description || `No description provided. Add one with 'describe'`}
-        
-    ${info.helpLink ? info.helpLink + '\n\n' : ''}
-`;
-                if (info.args) {
-                    const total = info.args.length;
-                    const required = info.args.filter(a => a.required).length;
-                    if (total == required)
-                        out += `    Arguments (${total}): \n`;
-                    else
-                        out += `    Arguments (${required}-${total}): \n`;
-                    for (const [idx, arg] of info.args.entries())
-                        out += `        ${idx + 1}. ${arg.name}${arg.required ? ' ' : ' (optional) '}{${arg.type}} ${arg.description || ''}`;
-                    out += `\n\n`;
-                    if (info.returns)
-                        out += `    Returns: ${info.returns}\n\n`;
-                    if (info.returnType)
-                        out += `    Return Type: ${info.returnType}\n\n`;
-                }
-                if (info.contents) {
-                    out += '    Properties: \n      ';
-                    for (let contents of info.contents)
-                        out += contents.name + '\n      ';
-                }
-                out += '\n\n';
-            }
-            return new ESString(out);
+    'detail': [(thing, info) => {
+            if (!(info instanceof ESObject))
+                return new TypeError(Position.unknown, 'object', str(info.typeOf()), str(info));
+            if (thing.info.isBuiltIn)
+                return new ESError(Position.unknown, 'TypeError', `Can't edit info for built-in value ${thing.info.name} with 'detail'`);
+            thing.info = ESPrimitive.strip(info);
+            thing.info.isBuiltIn = false;
+            return thing;
         }, {
             args: [{
                     name: 'value',
                     type: 'any'
-                }],
-            description: 'Gives info on value',
-            returnType: 'string'
+                }, {
+                    name: 'info',
+                    type: `   Info {
+        name?: string,
+        description?: string,
+        file?: string,
+        helpLink?: string,
+        args?: {
+            name?: string,
+            type?: string,
+            description?: string,
+            required?: boolean
+        }[],
+        returns?: string,
+        returnType?: string,
+        contents?: Info[]
+    }`
+                }]
         }],
     'cast': [() => {
+        }, {}],
+    'sleep': [(time, cb) => {
+            if (!(time instanceof ESNumber))
+                return new TypeError(Position.unknown, 'number', str(time.typeOf()), str(time));
+            if (!(cb instanceof ESFunction))
+                return new TypeError(Position.unknown, 'function', str(cb.typeOf()), str(cb));
+            sleep(time.valueOf())
+                .then(() => void cb.__call__());
         }, {}],
 };

@@ -1,3 +1,2 @@
-import { ESPrimitive } from "../../runtime/primitiveTypes";
-const module = ESPrimitive.wrap(Math);
+const module = Math;
 export default module;

@@ -1,12 +1,8 @@
-import {ESBoolean, ESUndefined, Primitive, types} from "../runtime/primitiveTypes.js";
-
-export const ESTrue = new ESBoolean(true);
-export const ESFalse = new ESBoolean(false);
-
+import {ESBoolean, ESUndefined, Primitive, types} from '../runtime/primitiveTypes.js';
 
 export const globalConstants: {[name: string]: Primitive} = {
-    'false': ESFalse,
-    'true': ESTrue,
+    'false': new ESBoolean(false),
+    'true': new ESBoolean(true),
     'undefined': new ESUndefined(),
 
     'any': types.any,

@@ -1,4 +1,4 @@
-import { ESBoolean, ESUndefined, types } from "../runtime/primitiveTypes.js";
+import { ESBoolean, ESUndefined, types } from '../runtime/primitiveTypes.js';
 export const globalConstants = {
     'false': new ESBoolean(false),
     'true': new ESBoolean(true),

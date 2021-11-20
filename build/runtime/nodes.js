@@ -18,6 +18,7 @@ export class Node {
         this.isTerminal = isTerminal;
     }
     interpret(context) {
+        var _a;
         const start = now();
         const res = new interpretResult();
         const val = this.interpret_(context);
@@ -34,6 +35,7 @@ export class Node {
             res.val = val;
         if (res.error && res.error.startPos.isUnknown)
             res.error.startPos = this.startPos;
+        (_a = res.val.info).file || (_a.file = this.startPos.file);
         Node.interprets++;
         let time = now() - start;
         Node.totalTime += time;
@@ -246,6 +248,8 @@ export class N_varAssign extends Node {
                 return setRes;
             res.val = newVal;
         }
+        if (res.val.info.name === '(anonymous)' || !res.val.info.name)
+            res.val.info.name = this.varNameTok.value;
         return res;
     }
 }
@@ -618,7 +622,7 @@ export class N_class extends Node {
                 return new TypeError(this.startPos, 'Function', ((_a = res.val) === null || _a === void 0 ? void 0 : _a.typeOf().valueOf()) || 'undefined', 'method on ' + this.name);
             methods.push(res.val);
         }
-        let extends_ = undefined;
+        let extends_;
         if (this.extends_) {
             const extendsRes = this.extends_.interpret(context);
             if (extendsRes.error)
@@ -627,7 +631,7 @@ export class N_class extends Node {
                 return new TypeError(this.startPos, 'Function', ((_b = extendsRes.val) === null || _b === void 0 ? void 0 : _b.typeOf().valueOf()) || 'undefined', 'method on ' + this.name);
             extends_ = extendsRes.val;
         }
-        let init = undefined;
+        let init;
         if (this.init) {
             const initRes = this.init.interpret(context);
             if (initRes.error)
