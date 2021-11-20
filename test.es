@@ -1,7 +1,5 @@
-var myFunc = func () {
-	a = 'message';
-    return func () {
-    	print(a);
-    };
+global mutable MyLib = namespace {
+    mutable a: number = 0;
 };
-print(myFunc()());
+MyLib.a += 9;
+log(MyLib.a);

@@ -1,6 +1,7 @@
 import { ESError, TypeError } from "./errors.js";
 import { Position } from "./position.js";
 import { ESArray, ESNumber } from "./primitiveTypes.js";
+import { str } from "./util.js";
 export const builtInFunctions = {
     'range': (num) => {
         if (!(num instanceof ESNumber))
@@ -14,7 +15,7 @@ export const builtInFunctions = {
         }
     },
     'log': (...msgs) => {
-        console.log(...msgs.map(m => m.str().valueOf()));
+        console.log(...msgs.map(m => str(m)));
     },
     'parseNum': (str) => {
         try {

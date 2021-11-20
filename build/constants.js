@@ -20,8 +20,10 @@ export let IS_NODE_INSTANCE = false;
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 export const KEYWORDS = [
     'var',
-    'global',
     'let',
+    'global',
+    'local',
+    'mutable',
     'const',
     'if',
     'else',
@@ -35,6 +37,8 @@ export const KEYWORDS = [
     'yield',
     'class',
     'extends',
+    'namespace',
+    'export',
 ];
 export const globalConstants = {
     'false': new ESBoolean(false),

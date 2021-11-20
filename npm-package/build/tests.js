@@ -27,7 +27,7 @@ expect([true, false], '2==2; 2==5');
 expect(['a', 'bc', 'defg'], '"a"; `bc`; \'defg\'');
 expect([`h'h`], `'h\\'h'`);
 // variables
-expect([1, 2, 1], 'var a = 1; a = 2; var a = 1;');
+expect('InvalidSyntaxError', 'var a = 1; a = 2; var a = 1;');
 expect('ReferenceError', 'a');
 expect([1], 'global a = 1');
 expect([1], 'a = 1');
@@ -37,7 +37,7 @@ expect('ReferenceError', 'var a = a + 1;');
 expect([undefined, true], 'var a; a == undefined;');
 expect([1, 2], `let n = 1; n = 2;`);
 expect('TypeError', `const n = 1; n = 2;`);
-expect('TypeError', `const n = 1; const n = 2;`);
+expect('InvalidSyntaxError', `const n = 1; const n = 2;`);
 expect(['aa', 'bb', true, undefined, false], `
 let a = 'aa';
 let b = 'bb';
@@ -106,6 +106,29 @@ expect([0, undefined, 10], `
     while (i < 10)
         i = i + 1;
     i;
+`);
+// assignment
+expect(['hi'], `
+    let global const a = 'hi';
+`);
+expect('TypeError', `
+    var global const a = 'hi';
+    a = 1;
+`);
+expect('TypeError', `
+    var local const a = 'hi';
+    a = 1;
+`);
+expect('InvalidSyntaxError', `
+    var local mutable a = 'hi';
+    let a = 1;
+`);
+expect(['hi', 1], `
+    var local mutable a = 'hi';
+    a = 1;
+`);
+expect('InvalidSyntaxError', `
+    let a += 1;
 `);
 // arrays
 expect([[0, 1, 2]], `
@@ -678,27 +701,26 @@ expect(['<Func: wrapper>', 'hello world'], `
     wrapper(func (v) v()());
 `);
 // vector library
-expect(['<Type: v2>', '<Type: v2>', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
-    let v2 = class {};
+expect(['<Type: v2>', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
     const v2 = class {
         init (x: number, y: number) {
             this.x = x;
             this.y = y;
         }
         
-        add (v: v2): v2 {
+        add (v: any): any {
             this.x += v.x;
             this.y += v.y;
             return this;
         }
         
-        scale (n: number): v2 {
+        scale (n: number): any {
             this.x *= n;
             this.y *= n;
             return this;
         }
        
-        clone (): v2 {
+        clone (): any {
             return v2(this.x, this.y);
         }
         
@@ -716,4 +738,46 @@ expect(['<Type: v2>', '<Type: v2>', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v
     var clone = pos.clone().add(v2(1, 1));
     pos.str();
     clone.str();
+`);
+// Namespaces / modules
+expect([{}], `
+    global const MyLib = namespace {};
+`);
+expect([{ a: '<Symbol: a>' }, 'hi'], `
+    global const MyLib = namespace {
+        const a = 'hi';
+    };
+   MyLib.a;
+`);
+expect('TypeError', `
+    global const MyLib = namespace {
+        const a: number = 0;
+    };
+   MyLib.a = 1;
+`);
+expect([{ a: '<Symbol: a>' }, 1], `
+    global MyLib = namespace {
+        mutable a: number = 0;
+    };
+   MyLib.a = 1;
+`);
+expect([{ myClass: '<Symbol: myClass>', myFunc: '<Symbol: myFunc>', a: '<Symbol: a>' }, '<Type: myClass>', 'myClass', 123, 'Hello world!'], `
+    global const MyLib = namespace {
+        const myClass = class {
+            init () {
+                this.thing = 123;
+            }
+        };
+    
+        const myFunc = func (obj: myClass) {
+            return obj.thing;
+        };
+    
+        const a = 'Hello world!';
+    };
+    
+    let myType = MyLib.myClass;
+    let const instance: myType = MyLib.myClass();
+    MyLib.myFunc(instance);
+    MyLib.a;
 `);

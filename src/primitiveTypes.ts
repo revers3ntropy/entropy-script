@@ -205,7 +205,7 @@ export class ESType extends ESPrimitive<undefined> {
                 return new ESUndefined();
 
             switch (this.__name__) {
-                case 'UndefinedType':
+                case 'Undefined':
                 case 'Type':
                     if (params.length < 1)
                         return new ESType();
@@ -243,10 +243,10 @@ export class ESType extends ESPrimitive<undefined> {
                     class_
                 );
 
-            let setRes = context_.setOwn( new ESFunction(() => {
+            let setRes = context_.setOwn('super', new ESFunction(() => {
                 const newContext = new Context();
                 newContext.parent = context;
-                let setRes = newContext.setOwn(new ESObject(instance), 'this');
+                let setRes = newContext.setOwn('this', new ESObject(instance));
                 if (setRes instanceof ESError) return setRes;
 
                 if (class_.__extends__ !== undefined) {
@@ -256,7 +256,7 @@ export class ESType extends ESPrimitive<undefined> {
 
                 const res_ = class_?.__init__?.__call__([]);
                 if (res_ instanceof ESPrimitive) return res_;
-            }), 'super');
+            }));
             if (setRes instanceof ESError) return setRes;
 
             const res = class_.__call__([], context, false, instance);
@@ -713,6 +713,76 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     };
 
     clone = (): ESArray => new ESArray(this.valueOf().map(v => v.clone()));
+}
+
+export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
+    name: ESString;
+    mutable: boolean;
+    constructor(name: ESString, value: dict<ESSymbol>, mutable=false) {
+        super(value, types.object);
+        this.name = name;
+        this.mutable = mutable;
+    }
+
+    clone = (): Primitive => {
+        let obj: dict<ESSymbol> = {};
+        let toClone = this.valueOf();
+        for (let key in toClone) {
+            try {
+                obj[key] = toClone[key].clone();
+            } catch (e) {
+                throw Error('Couldn\'t clone ' + str(toClone[key]));
+            }
+        }
+        return new ESNamespace(this.name, obj);
+    }
+
+    str = (): ESString => {
+        return new ESString(`<Namespace ${str(this.name)}: ${Object.keys(this.valueOf())}>`);
+    }
+
+    __eq__ = (n: Primitive): ESBoolean => {
+        return new ESBoolean(this === n);
+    };
+    __bool__ = () => new ESBoolean(true);
+
+    __getProperty__ = (key: Primitive): Primitive => {
+        const self: any = this;
+
+        if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf())) {
+            const symbol = this.valueOf()[key.valueOf()];
+            if (symbol.isAccessible)
+                return symbol.value;
+        }
+
+        if (self.hasOwnProperty(key.valueOf()))
+            return ESPrimitive.wrap(self[key.valueOf()]);
+
+        return new ESUndefined();
+    };
+
+    __setProperty__(key: Primitive, value: Primitive): void | ESError {
+        if (!(key instanceof ESString))
+            return;
+
+        let idx = str(key);
+
+        if (!this.mutable)
+            return new TypeError(Position.unknown, 'mutable', 'immutable', `${str(this.name)}.${idx}`);
+
+        if (!(value instanceof ESPrimitive))
+            value = ESPrimitive.wrap(value);
+
+        const symbol = this.__value__[idx];
+        if (!symbol)
+            return new ESError(Position.unknown, 'SymbolError', `Symbol ${idx} is not declared in namespace ${str(this.name)}.`);
+        if (symbol.isConstant)
+            return new TypeError(Position.unknown, 'mutable', 'immutable', `${str(this.name)}.${idx}`);
+        if (!symbol.isAccessible)
+            return new TypeError(Position.unknown, 'accessible', 'inaccessible', `${str(this.name)}.${idx}`);
+
+        symbol.value = value;
+    }
 }
 
 export let types: {[key: string] : ESType} = {};

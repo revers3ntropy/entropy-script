@@ -3,9 +3,9 @@ import { digits, identifierChars, KEYWORDS, singleLineComment, stringSurrounds, 
 import { IllegalCharError } from "./errors.js";
 import { doubleCharTokens, singleCharTokens, Token, tripleCharTokens, tt } from "./tokens.js";
 export class Lexer {
-    constructor(program) {
+    constructor(program, fileName) {
         this.text = program;
-        this.position = new Position(-1, 0, -1);
+        this.position = new Position(-1, 0, -1, fileName);
         this.advance();
     }
     advance() {

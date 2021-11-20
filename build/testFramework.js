@@ -1,6 +1,6 @@
 import { ESError, TestFailed } from "./errors.js";
 import { run } from "./index.js";
-import { Context } from "./context.js";
+import { Context, ESSymbol } from "./context.js";
 import { global, now } from "./constants.js";
 import { str } from "./util.js";
 import { ESFunction, ESPrimitive, ESType } from "./primitiveTypes.js";
@@ -67,9 +67,9 @@ export class Test {
 }
 Test.tests = [];
 function objectsSame(primary, secondary) {
-    if (primary instanceof ESFunction || primary instanceof ESType)
+    if (primary instanceof ESFunction || primary instanceof ESType || primary instanceof ESSymbol)
         return secondary === primary.str().valueOf();
-    if (secondary instanceof ESFunction || secondary instanceof ESType)
+    if (secondary instanceof ESFunction || secondary instanceof ESType || secondary instanceof ESSymbol)
         return primary === secondary.str().valueOf();
     if (typeof primary !== 'object' || typeof secondary !== 'object')
         return false;
@@ -81,7 +81,7 @@ function objectsSame(primary, secondary) {
         if (Array.isArray(pValue))
             return arraysSame(pValue, sValue);
         if (typeof pValue === 'object' || typeof sValue === 'object')
-            return objectsSame(pValue, sValue) && objectsSame(sValue, pValue);
+            return objectsSame(pValue, sValue) || objectsSame(sValue, pValue);
         if (pValue !== sValue)
             return false;
     }
@@ -100,7 +100,7 @@ function arraysSame(arr1, arr2) {
         if (arr1[i] instanceof ESFunction || arr1[i] instanceof ESType)
             return arr2[i] === arr1[i].str().valueOf();
         if (typeof arr1[i] === 'object' || typeof arr2[i] === 'object')
-            return objectsSame(arr1[i], arr2[i]) && objectsSame(arr2[i], arr1[i]);
+            return objectsSame(arr1[i], arr2[i]) || objectsSame(arr2[i], arr1[i]);
         if (arr1[i] !== arr2[i])
             return false;
     }
@@ -134,7 +134,7 @@ with code
                 return ((_c = (_b = (_a = result === null || result === void 0 ? void 0 : result.error) === null || _a === void 0 ? void 0 : _a.constructor) === null || _b === void 0 ? void 0 : _b.name) !== null && _c !== void 0 ? _c : 'Error') === expected;
             }
             if (!arraysSame(expected, ESPrimitive.strip(result.val)))
-                console.log(expected, str(ESPrimitive.strip(result.val)));
+                console.log('%%', expected, str(ESPrimitive.strip(result.val)), '@@');
             return arraysSame(expected, ESPrimitive.strip(result.val));
         }
         const res = test();

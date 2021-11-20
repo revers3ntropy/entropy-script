@@ -14,9 +14,9 @@ export class Lexer {
     private currentChar: string | undefined;
     private readonly position: Position;
 
-    constructor (program: string) {
+    constructor (program: string, fileName: string) {
         this.text = program;
-        this.position = new Position(-1, 0, -1);
+        this.position = new Position(-1, 0, -1, fileName);
         this.advance();
     }
 

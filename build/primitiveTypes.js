@@ -118,7 +118,7 @@ export class ESType extends ESPrimitive {
                 if (params.length < 1)
                     return new ESUndefined();
                 switch (this.__name__) {
-                    case 'UndefinedType':
+                    case 'Undefined':
                     case 'Type':
                         if (params.length < 1)
                             return new ESType();
@@ -149,11 +149,11 @@ export class ESType extends ESPrimitive {
                     return;
                 if (!(class_ instanceof ESType))
                     return new TypeError(Position.unknown, 'Type', typeof class_, class_);
-                let setRes = context_.setOwn(new ESFunction(() => {
+                let setRes = context_.setOwn('super', new ESFunction(() => {
                     var _b;
                     const newContext = new Context();
                     newContext.parent = context;
-                    let setRes = newContext.setOwn(new ESObject(instance), 'this');
+                    let setRes = newContext.setOwn('this', new ESObject(instance));
                     if (setRes instanceof ESError)
                         return setRes;
                     if (class_.__extends__ !== undefined) {
@@ -164,7 +164,7 @@ export class ESType extends ESPrimitive {
                     const res_ = (_b = class_ === null || class_ === void 0 ? void 0 : class_.__init__) === null || _b === void 0 ? void 0 : _b.__call__([]);
                     if (res_ instanceof ESPrimitive)
                         return res_;
-                }), 'super');
+                }));
                 if (setRes instanceof ESError)
                     return setRes;
                 const res = class_.__call__([], context, false, instance);
@@ -523,6 +523,61 @@ export class ESArray extends ESPrimitive {
         while (idx < 0)
             idx = this.valueOf().length + idx;
         this.__value__[idx] = value;
+    }
+}
+export class ESNamespace extends ESPrimitive {
+    constructor(name, value, mutable = false) {
+        super(value, types.object);
+        this.clone = () => {
+            let obj = {};
+            let toClone = this.valueOf();
+            for (let key in toClone) {
+                try {
+                    obj[key] = toClone[key].clone();
+                }
+                catch (e) {
+                    throw Error('Couldn\'t clone ' + str(toClone[key]));
+                }
+            }
+            return new ESNamespace(this.name, obj);
+        };
+        this.str = () => {
+            return new ESString(`<Namespace ${str(this.name)}: ${Object.keys(this.valueOf())}>`);
+        };
+        this.__eq__ = (n) => {
+            return new ESBoolean(this === n);
+        };
+        this.__bool__ = () => new ESBoolean(true);
+        this.__getProperty__ = (key) => {
+            const self = this;
+            if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf())) {
+                const symbol = this.valueOf()[key.valueOf()];
+                if (symbol.isAccessible)
+                    return symbol.value;
+            }
+            if (self.hasOwnProperty(key.valueOf()))
+                return ESPrimitive.wrap(self[key.valueOf()]);
+            return new ESUndefined();
+        };
+        this.name = name;
+        this.mutable = mutable;
+    }
+    __setProperty__(key, value) {
+        if (!(key instanceof ESString))
+            return;
+        let idx = str(key);
+        if (!this.mutable)
+            return new TypeError(Position.unknown, 'mutable', 'immutable', `${str(this.name)}.${idx}`);
+        if (!(value instanceof ESPrimitive))
+            value = ESPrimitive.wrap(value);
+        const symbol = this.__value__[idx];
+        if (!symbol)
+            return new ESError(Position.unknown, 'SymbolError', `Symbol ${idx} is not declared in namespace ${str(this.name)}.`);
+        if (symbol.isConstant)
+            return new TypeError(Position.unknown, 'mutable', 'immutable', `${str(this.name)}.${idx}`);
+        if (!symbol.isAccessible)
+            return new TypeError(Position.unknown, 'accessible', 'inaccessible', `${str(this.name)}.${idx}`);
+        symbol.value = value;
     }
 }
 export let types = {};

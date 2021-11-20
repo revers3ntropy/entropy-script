@@ -1,6 +1,7 @@
 import {ESError, TypeError} from "./errors.js";
 import {Position} from "./position.js";
 import { ESArray, ESNumber, Primitive } from "./primitiveTypes.js";
+import {str} from "./util.js";
 
 export const builtInFunctions: {[name: string]: (...args: Primitive[]) => any} = {
     'range': (num: Primitive) => {
@@ -17,7 +18,7 @@ export const builtInFunctions: {[name: string]: (...args: Primitive[]) => any} =
     },
 
     'log': (...msgs: Primitive[]) => {
-        console.log(...msgs.map(m => m.str().valueOf()));
+        console.log(...msgs.map(m => str(m)));
     },
 
     'parseNum': (str: Primitive) => {

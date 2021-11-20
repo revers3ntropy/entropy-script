@@ -1,8 +1,10 @@
 import {Position} from "./position.js";
-import {global} from "./constants.js";
 import {Context} from "./context.js";
-import { ESError, TypeError } from "./errors.js";
-import { ESFunction, ESObject, ESPrimitive, ESString, Primitive, types } from "./primitiveTypes.js";
+import {ESError, ImportError} from "./errors.js";
+import {ESFunction, ESNamespace, ESObject, ESPrimitive, ESString, Primitive, types} from "./primitiveTypes.js";
+import {str} from "./util.js";
+import {interpretResult} from "./nodes.js";
+import {run} from "./index.js";
 
 type serverOptions = {
     key?: string,
@@ -14,11 +16,34 @@ type serverOptions = {
     corsOrigin?: string,
 };
 
-function addNodeLibs (https: any, http: any, fs: any, mysql: any) {
-    global.set('nodeHTTPS', https);
-    global.set('nodeHTTP', http);
+function addNodeLibs (https: any, http: any, fs: any, mysql: any, context: Context, print: (...args: string[]) => void) {
+    context.setOwn('nodeHTTPS', ESPrimitive.wrap(https));
+    context.setOwn('nodeHTTP', ESPrimitive.wrap(http));
 
-    global.set('https', new ESObject({
+    context.set('import', new ESFunction((rawPath) => {
+        const path: string = str(rawPath);
+        try {
+            const code = fs.readFileSync(path, 'utf-8');
+            const env = new Context();
+            env.parent = context;
+            const res: interpretResult = run(code, {
+                env,
+                fileName: path
+            });
+
+            if (res.error)
+                return new ImportError(Position.unknown, str(path), res.error.str).str;
+
+            return new ESNamespace(new ESString(path), env.getSymbolTableAsDict());
+        } catch (E) {
+            return new ESError(Position.unknown, 'ImportError', E.toString());
+        }
+    }, [{name: 'path', type: types.string}], 'import', undefined, types.object), {
+        forceThroughConst: true,
+        isConstant: true
+    });
+
+    context.setOwn('https', new ESObject({
         createServer: new ESFunction((options_: Primitive, handlers_: Primitive) => {
             let options: serverOptions = ESPrimitive.strip(options_);
             let handlers: {[path: string]: ESFunction} = ESPrimitive.strip(handlers_);
@@ -56,13 +81,13 @@ function addNodeLibs (https: any, http: any, fs: any, mysql: any) {
                         try {
                             body = JSON.parse(data ?? '{}');
                         } catch (E) {
-                            console.log(`Error parsing JSON data from URL ${req.url} with JSON ${data}: ${E}`)
+                            print(`Error parsing JSON data from URL ${req.url} with JSON ${data}: ${E}`)
                             return;
                         }
 
                         const fn = handlers[url];
                         if (!fn) {
-                            console.error(`Not handler found for url '${url}'`)
+                            print(`Not handler found for url '${url}'`)
                             return;
                         }
 
@@ -73,7 +98,7 @@ function addNodeLibs (https: any, http: any, fs: any, mysql: any) {
                         const esRes = fn.__call__([]);
 
                         if (esRes instanceof ESError) {
-                            console.log(esRes.str);
+                            print(esRes.str);
                             res.writeHead(500);
                             res.end(`{}`);
                             return;
@@ -89,16 +114,16 @@ function addNodeLibs (https: any, http: any, fs: any, mysql: any) {
                                 return;
                             }
                         } catch (e) {
-                            console.log(`Incorrect return value for handler of ${url}. Must be JSONifyable.`)
+                            print(`Incorrect return value for handler of ${url}. Must be JSONifyable.`)
                             if (options.debug)
-                                console.log(`Detail: Expected type (object|undefined) but got value ${esRes.valueOf()} of type ${esRes.typeOf()}`);
+                                print(`Detail: Expected type (object|undefined) but got value ${esRes.valueOf()} of type ${esRes.typeOf()}`);
                             res.writeHead(500);
                             res.end(`{}`);
                             return;
                         }
 
                         if (options.debug)
-                            console.log(`Response: ${response}`);
+                            print(`Response: ${response}`);
 
                         res.end(response);
                     });
@@ -117,23 +142,23 @@ function addNodeLibs (https: any, http: any, fs: any, mysql: any) {
 
                 if (options.hostname)
                     server.listen(options.port, options.hostname, () => {
-                        console.log(`Server running at https://${options.hostname}:${options.port}`);
+                        print(`Server running at https://${options.hostname}:${options.port}`);
                     });
                 else
                     server.listen(options.port, () => {
-                        console.log(`Server running on port ${options.port}`);
+                        print(`Server running on port ${options.port}`);
                     });
 
 
             } else
                 http.createServer(handler)
                     .listen(options.port, options.hostname, () => {
-                        console.log(`Server running at http://${options.hostname}:${options.port}`);
+                        print(`Server running at http://${options.hostname}:${options.port}`);
                     });
         })
     }));
 
-    global.set('open', new ESFunction((path_, encoding_) => {
+    context.setOwn('open', new ESFunction((path_, encoding_) => {
         const path = <string>path_.valueOf();
         const encoding = (<string>encoding_?.valueOf()) || 'utf-8';
         return new ESObject({
@@ -141,15 +166,15 @@ function addNodeLibs (https: any, http: any, fs: any, mysql: any) {
                 return new ESString(fs.readFileSync(path, encoding));
             }, [], 'str', undefined, types.string),
             write: new ESFunction((data: Primitive) => {
-                fs.writeFileSync(path, data.str().valueOf());
+                fs.writeFileSync(path, str(data));
             }),
             append: new ESFunction((data: Primitive) => {
-                fs.appendFileSync(path, data.str().valueOf());
+                fs.appendFileSync(path, str(data));
             }),
         });
     }));
 
-    global.set('mysql', new ESFunction(options_ => {
+    context.setOwn('mysql', new ESFunction(options_ => {
         const options: {
             host: string,
                 user: string,

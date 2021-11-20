@@ -10,7 +10,7 @@ import { ESArray } from "./primitiveTypes.js";
 export function init(printFunc = console.log, inputFunc, libs) {
     initialise(global, printFunc, inputFunc, libs);
 }
-export function run(msg, { env = global, measurePerformance = false } = {}) {
+export function run(msg, { env = global, measurePerformance = false, fileName = '(unknown)' } = {}) {
     Node.maxTime = 0;
     Node.totalTime = 0;
     Node.interprets = 0;
@@ -30,7 +30,7 @@ export function run(msg, { env = global, measurePerformance = false } = {}) {
         res.error = new ESError(Position.unknown, 'Uninitialised', 'Global context has not been initialised with global values');
         return res;
     }
-    const lexer = new Lexer(msg);
+    const lexer = new Lexer(msg, fileName);
     const [tokens, error] = lexer.generate();
     if (error) {
         const res_ = new interpretResult();

@@ -19,7 +19,8 @@ export function init (
 
 export function run (msg: string, {
     env = global,
-    measurePerformance = false
+    measurePerformance = false,
+    fileName = '(unknown)'
 }={}): interpretResult | ({ timeData: timeData } & interpretResult) {
 
     Node.maxTime = 0;
@@ -49,7 +50,7 @@ export function run (msg: string, {
         return res;
     }
 
-    const lexer = new Lexer(msg);
+    const lexer = new Lexer(msg, fileName);
     const [tokens, error] = lexer.generate();
     if (error) {
         const res_ = new interpretResult();

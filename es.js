@@ -25,11 +25,11 @@ await refreshPerformanceNow(true);
 
 import * as es from './build/index.js';
 import {Test} from "./build/testFramework.js";
-import './build/tests.js';
 import {str} from "./build/util.js";
-import {builtInFunctions} from "./build/builtInFunctions.js";
 import addNodeLibs from "./build/nodeLibs.js";
-import {ESString} from "./build/primitiveTypes.js";
+import {global} from "./build/constants.js";
+
+import './build/tests.js';
 
 /**
  * Syntax: String(await askQuestion(query).
@@ -42,7 +42,6 @@ function askQuestion(query) {
 		input: process.stdin,
 		output: process.stdout,
 	});
-
 	return new Promise(resolve => rl.question(query, ans => {
 		rl.close();
 		resolve(ans);
@@ -60,7 +59,7 @@ export async function init () {
 		[]
 	);
 
-	addNodeLibs(https, http, fs, sql);
+	addNodeLibs(https, http, fs, sql, global, console.log);
 }
 
 /**
@@ -68,14 +67,9 @@ export async function init () {
  * @param {string} path
  */
 export function runScript (path) {
-	builtInFunctions['import'](new ESString(path));
-}
-
-/**
- * @param {any} r
- */
-function handlePromiseError (r) {
-	console.log(`Error in promise: \n${r}`);
+	let res = es.run(fs.readFileSync(path, 'utf-8'));
+	if (res.error)
+		console.log(res.error.str);
 }
 
 /**
@@ -84,12 +78,12 @@ function handlePromiseError (r) {
  */
 export async function runTerminal () {
 	const input = String(await askQuestion('>>> '));
-	if (input === 'exit') return;
 
+	if (input === 'exit') return;
 	else if (input === 'test') {
 		const res = await Test.testAll();
 		console.log(res.str());
-		runTerminal().catch(handlePromiseError);
+		runTerminal();
 		return;
 
 	} else if (/run [\w_\/.]+\.es/.test(input)) {
@@ -102,7 +96,7 @@ export async function runTerminal () {
 		return;
 	}
 
-	let res = es.run(input);
+	let res = es.run(input, 'JSES-REPL');
 
 	let out = res.val?.valueOf();
 
@@ -118,7 +112,7 @@ export async function runTerminal () {
 }
 
 export async function main () {
-	await init().catch(handlePromiseError);
+	await init();
 
 	if (process.argv.length === 2)
 		runTerminal();

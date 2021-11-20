@@ -1,11 +1,18 @@
 {
     "name": "entropy-script",
-    "version": "2.1.0",
+    "version": "2.2.0",
+    "description": "JS interpreter for EntropyScript. See https://entropgames.io/entropy-script",
+    "author": {
+        "name": "EntropyGames",
+        "url": "entropygames.io"
+    },
     "dependencies": {
-        "sync-mysql": "^3.0.1"
+        "sync-mysql": "^3.0.1",
+        "dotenv": "^10.0.0"
     },
     "type": "module",
-    "devDependencies": {
-        "dotenv": "^10.0.0"
-    }
+    "bin": {
+        "entropy-script": "./bin/index.js"
+    },
+    "preferGlobal": true
 }

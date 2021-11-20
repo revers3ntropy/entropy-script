@@ -17,8 +17,10 @@ export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 
 export const KEYWORDS = [
     'var',
-    'global',
     'let',
+    'global',
+    'local',
+    'mutable',
     'const',
 
     'if',
@@ -36,6 +38,9 @@ export const KEYWORDS = [
 
     'class',
     'extends',
+
+    'namespace',
+    'export',
 ];
 
 export const globalConstants: {[name: string]: Primitive} = {

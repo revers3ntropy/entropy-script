@@ -1,6 +1,6 @@
 import {ESError, TestFailed} from "./errors.js";
 import {run} from "./index.js";
-import {Context} from "./context.js";
+import {Context, ESSymbol} from "./context.js";
 import {global, now} from "./constants.js";
 import {str, timeData } from "./util.js";
 import { ESFunction, ESPrimitive, ESType } from "./primitiveTypes.js";
@@ -93,9 +93,9 @@ export class Test {
 }
 
 function objectsSame(primary: any, secondary: any): boolean {
-    if (primary instanceof ESFunction || primary instanceof ESType)
+    if (primary instanceof ESFunction || primary instanceof ESType || primary instanceof ESSymbol)
         return secondary === primary.str().valueOf();
-    if (secondary instanceof ESFunction || secondary instanceof ESType)
+    if (secondary instanceof ESFunction || secondary instanceof ESType || secondary instanceof ESSymbol)
         return primary === secondary.str().valueOf();
 
     if (typeof primary !== 'object' || typeof secondary !== 'object')
@@ -111,7 +111,7 @@ function objectsSame(primary: any, secondary: any): boolean {
         if (Array.isArray(pValue))
             return arraysSame(pValue, sValue);
         if (typeof pValue === 'object' || typeof sValue === 'object')
-            return objectsSame(pValue, sValue) && objectsSame(sValue, pValue);
+            return objectsSame(pValue, sValue) || objectsSame(sValue, pValue);
 
         if (pValue !== sValue)
             return false;
@@ -133,7 +133,7 @@ function arraysSame(arr1: any[], arr2: any[]): boolean {
             return arr2[i] === arr1[i].str().valueOf();
 
         if (typeof arr1[i] === 'object' || typeof arr2[i] === 'object')
-            return objectsSame(arr1[i], arr2[i]) && objectsSame(arr2[i], arr1[i]);
+            return objectsSame(arr1[i], arr2[i]) || objectsSame(arr2[i], arr1[i]);
 
         if (arr1[i] !== arr2[i])
             return false;
@@ -171,7 +171,7 @@ with code
             }
 
             if (!arraysSame(expected, ESPrimitive.strip(result.val)))
-                console.log(expected, str(ESPrimitive.strip(result.val)));
+                console.log('%%', expected, str(ESPrimitive.strip(result.val)), '@@');
 
             return arraysSame(expected, ESPrimitive.strip(result.val));
         }

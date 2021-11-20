@@ -4,9 +4,10 @@ import { Context } from "./context.js";
 import { Position } from "./position.js";
 import { None, now } from "./constants.js";
 import { interpretArgument } from "./argument.js";
-import { ESArray, ESBoolean, ESFunction, ESNumber, ESObject, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
+import { ESArray, ESBoolean, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
 export class interpretResult {
     constructor() {
+        this.val = new ESUndefined();
         this.shouldBreak = false;
         this.shouldContinue = false;
     }
@@ -147,13 +148,15 @@ export class N_unaryOp extends Node {
     }
 }
 export class N_varAssign extends Node {
-    constructor(startPos, varNameTok, value, assignType = '=', isGlobal = false, isConstant = false, type = types.any) {
+    constructor(startPos, varNameTok, value, assignType = '=', isGlobal = false, isLocal = false, isConstant = false, isDeclaration = false, type = types.any) {
         super(startPos);
         this.value = value;
         this.varNameTok = varNameTok;
         this.isGlobal = isGlobal;
         this.assignType = assignType;
         this.isConstant = isConstant;
+        this.isDeclaration = isDeclaration;
+        this.isLocal = isLocal;
         if (type instanceof ESType) {
             // wrap raw ESType in node
             this.type = new N_any(type);
@@ -162,7 +165,9 @@ export class N_varAssign extends Node {
             this.type = type;
     }
     interpret_(context) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+        var _a, _b, _c, _d, _e, _f, _g;
+        if (this.isDeclaration && context.hasOwn(this.varNameTok.value))
+            return new InvalidSyntaxError(this.startPos, `Symbol '${this.varNameTok.value}' already exists, and cannot be redeclared`);
         const res = this.value.interpret(context);
         const typeRes = this.type.interpret(context);
         if (res.error)
@@ -175,6 +180,15 @@ export class N_varAssign extends Node {
             return new TypeError(this.varNameTok.startPos, '~undefined', 'undefined', 'N_varAssign.interpret_');
         if (!typeRes.val.includesType(res.val.__type__))
             return new TypeError(this.varNameTok.startPos, (_d = typeRes.val.str().valueOf()) !== null && _d !== void 0 ? _d : 'unknown type', (_f = (_e = res.val) === null || _e === void 0 ? void 0 : _e.typeOf().valueOf()) !== null && _f !== void 0 ? _f : 'undefined__', (_g = res.val) === null || _g === void 0 ? void 0 : _g.str());
+        if (this.isDeclaration) {
+            if (this.assignType !== '=')
+                return new InvalidSyntaxError(this.startPos, `Cannot declare variable with operator '${this.assignType}'`);
+            context.setOwn(this.varNameTok.value, res.val, {
+                global: false,
+                isConstant: this.isConstant
+            });
+            return res.val;
+        }
         if (this.assignType === '=') {
             // simple assign
             let value = res.val;
@@ -188,35 +202,49 @@ export class N_varAssign extends Node {
                 return setRes;
         }
         else {
+            if (this.isDeclaration)
+                return new InvalidSyntaxError(this.startPos, `Cannot declare variable with operator '${this.assignType}'`);
             // assign with modifier like *= or -=
-            const currentVal = (_h = context.get(this.varNameTok.value)) === null || _h === void 0 ? void 0 : _h.valueOf();
+            const currentVal = context.get(this.varNameTok.value);
             if (currentVal instanceof ESError)
                 return currentVal;
+            if (currentVal == undefined)
+                return new InvalidSyntaxError(this.startPos, `Cannot declare variable with operator '${this.assignType}'`);
             let newVal;
-            let assignVal = (_j = res.val) === null || _j === void 0 ? void 0 : _j.valueOf();
+            let assignVal = res.val;
             switch (this.assignType[0]) {
                 case '*':
-                    newVal = currentVal * assignVal;
+                    if (!(currentVal === null || currentVal === void 0 ? void 0 : currentVal.__multiply__))
+                        return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(), currentVal === null || currentVal === void 0 ? void 0 : currentVal.valueOf(), `Unsupported operand for '*'`);
+                    newVal = currentVal.__multiply__(assignVal);
                     break;
                 case '/':
-                    newVal = currentVal / assignVal;
+                    if (!(currentVal === null || currentVal === void 0 ? void 0 : currentVal.__divide__))
+                        return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(), currentVal === null || currentVal === void 0 ? void 0 : currentVal.valueOf(), `Unsupported operand for '/'`);
+                    newVal = currentVal.__divide__(assignVal);
                     break;
                 case '+':
-                    newVal = currentVal + assignVal;
+                    if (!(currentVal === null || currentVal === void 0 ? void 0 : currentVal.__add__))
+                        return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(), currentVal === null || currentVal === void 0 ? void 0 : currentVal.valueOf(), `Unsupported operand for '+'`);
+                    newVal = currentVal.__add__(assignVal);
                     break;
                 case '-':
-                    newVal = currentVal - assignVal;
+                    if (!(currentVal === null || currentVal === void 0 ? void 0 : currentVal.__subtract__))
+                        return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(), currentVal === null || currentVal === void 0 ? void 0 : currentVal.valueOf(), `Unsupported operand for '-'`);
+                    newVal = currentVal.__subtract__(assignVal);
                     break;
                 default:
                     return new ESError(this.startPos, 'AssignError', `Cannot find assignType of ${this.assignType[0]}`);
             }
+            if (newVal instanceof ESError)
+                return newVal;
             let setRes = context.set(this.varNameTok.value, newVal, {
                 global: this.isGlobal,
                 isConstant: this.isConstant
             });
             if (setRes instanceof ESError)
                 return setRes;
-            res.val = ESPrimitive.wrap(newVal);
+            res.val = newVal;
         }
         return res;
     }
@@ -608,6 +636,22 @@ export class N_class extends Node {
             init = initRes.val;
         }
         return new ESType(false, this.name, methods, extends_, init);
+    }
+}
+export class N_namespace extends Node {
+    constructor(startPos, statements, name = '(anon)', mutable = false) {
+        super(startPos);
+        this.name = name;
+        this.statements = statements;
+        this.mutable = mutable;
+    }
+    interpret_(context) {
+        const newContext = new Context();
+        newContext.parent = context;
+        const res = this.statements.interpret(newContext);
+        if (res.error)
+            return res;
+        return new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
     }
 }
 // --- TERMINAL NODES ---

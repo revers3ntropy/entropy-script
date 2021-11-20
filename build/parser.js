@@ -1,6 +1,6 @@
 import { Token } from "./tokens.js";
 import * as n from './nodes.js';
-import { N_functionDefinition, N_undefined, N_variable } from './nodes.js';
+import { N_functionDefinition, N_namespace, N_undefined, N_variable } from './nodes.js';
 import { ESError, InvalidSyntaxError } from "./errors.js";
 import { tokenType, tokenTypeString, tt } from "./tokens.js";
 import { types } from "./primitiveTypes.js";
@@ -282,53 +282,27 @@ export class Parser {
     expr() {
         const res = new ParseResults();
         this.clearEndStatements(res);
-        if (this.currentToken.type === tt.KEYWORD && ['var', 'let'].includes(this.currentToken.value)) {
-            const exp = res.register(this.initiateVar(res, false, false));
-            if (res.error)
-                return res;
-            return res.success(exp);
-        }
-        else if (this.currentToken.matches(tokenType.KEYWORD, 'global')) {
-            const exp = res.register(this.initiateVar(res, true, false));
-            if (res.error)
-                return res;
-            return res.success(exp);
-        }
-        else if (this.currentToken.matches(tokenType.KEYWORD, 'const')) {
-            const exp = res.register(this.initiateVar(res, false, true));
-            if (res.error)
-                return res;
-            return res.success(exp);
+        if (this.currentToken.type === tt.KEYWORD &&
+            ['var', 'let', 'global', 'mutable', 'const', 'local'].includes(this.currentToken.value)) {
+            return this.initiateVar(res);
         }
         else if (this.currentToken.matches(tokenType.KEYWORD, 'if')) {
-            const exp = res.register(this.ifExpr());
-            if (res.error)
-                return res;
-            return res.success(exp);
+            return this.ifExpr();
         }
         else if (this.currentToken.matches(tokenType.KEYWORD, 'while')) {
-            const exp = res.register(this.whileExpr());
-            if (res.error)
-                return res;
-            return res.success(exp);
+            return this.whileExpr();
         }
         else if (this.currentToken.matches(tokenType.KEYWORD, 'for')) {
-            const exp = res.register(this.forExpr());
-            if (res.error)
-                return res;
-            return res.success(exp);
+            return this.forExpr();
         }
         else if (this.currentToken.matches(tokenType.KEYWORD, 'func')) {
-            const exp = res.register(this.funcExpr());
-            if (res.error)
-                return res;
-            return res.success(exp);
+            return this.funcExpr();
         }
         else if (this.currentToken.matches(tokenType.KEYWORD, 'class')) {
-            const exp = res.register(this.classExpr());
-            if (res.error)
-                return res;
-            return res.success(exp);
+            return this.classExpr();
+        }
+        else if (this.currentToken.matches(tokenType.KEYWORD, 'namespace')) {
+            return this.namespace();
         }
         let node = res.register(this.binOp(() => this.comparisonExpr(), [tt.AND, tt.OR]));
         if (res.error)
@@ -410,42 +384,72 @@ export class Parser {
         this.advance(res);
         return res.success(new n.N_indexed(startPos, base, index));
     }
-    initiateVar(res, isGlobal, isConstant) {
+    initiateVar(res) {
         let startPos = this.currentToken.startPos;
-        if (this.currentToken.type === tt.KEYWORD) {
-            if (!['global', 'var', 'let', 'const'].includes(this.currentToken.value))
-                return res.failure(new InvalidSyntaxError(this.currentToken.startPos, `Expected Identifier 'var', 'let', 'const' or 'global', not ${this.currentToken.value}`));
+        let isConst = false;
+        let isLocal = false;
+        let isGlobal = false;
+        let isDeclaration = false;
+        if (this.currentToken.type === tt.KEYWORD && ['var', 'let'].includes(this.currentToken.value)) {
+            isDeclaration = true;
+            isLocal = true;
             this.advance(res);
+            if (res.error)
+                return res;
+        }
+        if (this.currentToken.type === tt.KEYWORD && ['global', 'local'].includes(this.currentToken.value)) {
+            isDeclaration = true;
+            if (this.currentToken.value === 'global')
+                isGlobal = true;
+            else
+                isLocal = true;
+            this.advance(res);
+            if (res.error)
+                return res;
+        }
+        if (this.currentToken.type === tt.KEYWORD && ['const', 'mutable'].includes(this.currentToken.value)) {
+            isDeclaration = true;
+            if (this.currentToken.value === 'const')
+                isConst = true;
+            this.advance(res);
+            if (res.error)
+                return res;
+        }
+        if (this.currentToken.type === tt.KEYWORD) {
+            return res.failure(new InvalidSyntaxError(this.currentToken.startPos, `Expected Identifier 'var', 'let', 'const', 'mutable', 'local', or 'global', not ${this.currentToken.value}`));
         }
         if (this.currentToken.type !== tokenType.IDENTIFIER) {
-            return res.failure(new InvalidSyntaxError(this.currentToken.startPos, `Expected Identifier`));
+            return res.failure(new InvalidSyntaxError(this.currentToken.startPos, `Expected Identifier or Keyword`));
         }
         const varName = this.currentToken;
         this.advance(res);
         let type = types.any;
         // @ts-ignore
         if (this.currentToken.type === tt.COLON) {
+            isDeclaration = true;
             this.consume(res, tt.COLON);
             type = res.register(this.typeExpr());
         }
         // @ts-ignore doesn't like two different comparisons after each other with different values
         if (this.currentToken.type !== tt.ASSIGN) {
-            if (isConstant)
+            if (isConst)
                 return res.failure(new InvalidSyntaxError(startPos, 'Cannot initialise constant to undefined'));
-            return res.success(new n.N_varAssign(startPos, varName, new n.N_undefined(this.currentToken.startPos), '=', isGlobal, 
+            return res.success(new n.N_varAssign(startPos, varName, new n.N_undefined(this.currentToken.startPos), '=', isGlobal, isLocal, 
             // must be false ^
-            isConstant, type));
+            isConst, isDeclaration, type));
         }
         let assignType = this.currentToken.value;
         this.advance(res);
         const expr = res.register(this.expr());
         if (res.error)
             return res;
-        if (expr instanceof n.N_class)
+        if (expr instanceof n.N_class || expr instanceof n.N_functionDefinition)
             expr.name = varName.value;
-        else if (expr instanceof n.N_functionDefinition)
+        if (expr instanceof N_namespace) {
             expr.name = varName.value;
-        return res.success(new n.N_varAssign(startPos, varName, expr, assignType, isGlobal, isConstant, type));
+            expr.mutable = !isConst;
+        }
+        return res.success(new n.N_varAssign(startPos, varName, expr, assignType, isGlobal, isLocal, isConst, isDeclaration, type));
     }
     bracesExp() {
         const res = new ParseResults();
@@ -807,5 +811,26 @@ export class Parser {
             return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected identifier, ',' or '}'"));
         this.advance(res);
         return res.success(new n.N_objectLiteral(startPos, properties));
+    }
+    namespace() {
+        const res = new ParseResults();
+        const startPos = this.currentToken.startPos;
+        this.consume(res, tt.KEYWORD);
+        if (res.error)
+            return res;
+        this.consume(res, tt.OBRACES);
+        if (res.error)
+            return res;
+        if (this.currentToken.type === tt.CBRACES) {
+            this.advance(res);
+            return res.success(new n.N_namespace(startPos, new n.N_undefined()));
+        }
+        const statements = res.register(this.statements());
+        if (res.error)
+            return res;
+        this.consume(res, tt.CBRACES);
+        if (res.error)
+            return res;
+        return res.success(new n.N_namespace(startPos, statements));
     }
 }

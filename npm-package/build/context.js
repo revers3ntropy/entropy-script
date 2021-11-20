@@ -1,11 +1,18 @@
 import { initialise } from "./init.js";
 import { ESError, TypeError } from "./errors.js";
 import { Position } from "./position.js";
-import { ESArray, ESPrimitive, ESType, ESUndefined, types } from "./primitiveTypes.js";
+import { ESArray, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
 import { str } from "./util.js";
 export class ESSymbol {
     constructor(value, identifier, options = {}) {
         var _a, _b;
+        this.clone = () => {
+            return new ESSymbol(this.value.clone(), this.identifier, {
+                isConstant: this.isConstant,
+                isAccessible: this.isAccessible
+            });
+        };
+        this.str = () => new ESString(`<Symbol: ${this.identifier}>`);
         this.value = value;
         this.identifier = identifier;
         this.isConstant = (_a = options.isConstant) !== null && _a !== void 0 ? _a : false;
@@ -19,6 +26,16 @@ export class Context {
         this.deleted = false;
         this.symbolTable = {};
     }
+    get parent() {
+        return this.parent_;
+    }
+    set parent(val) {
+        if (val == this) {
+            console.log('Setting context parent to self'.red);
+            return;
+        }
+        this.parent_ = val;
+    }
     has(identifier) {
         return this.get(identifier) !== undefined;
     }
@@ -30,6 +47,18 @@ export class Context {
         if (symbol instanceof ESError || symbol == undefined)
             return symbol;
         return symbol.value;
+    }
+    getRawSymbolTableAsDict() {
+        const symbols = {};
+        for (let key in this.symbolTable)
+            symbols[key] = this.symbolTable[key].value;
+        return symbols;
+    }
+    getSymbolTableAsDict() {
+        const symbols = {};
+        for (let key in this.symbolTable)
+            symbols[key] = this.symbolTable[key];
+        return symbols;
     }
     getSymbol(identifier) {
         let symbol = this.symbolTable[identifier];
@@ -55,9 +84,9 @@ export class Context {
             if (!context.hasOwn(identifier))
                 context = this;
         }
-        return context.setOwn(value, identifier, options);
+        return context.setOwn(identifier, value, options);
     }
-    setOwn(value, identifier, options = {}) {
+    setOwn(identifier, value, options = {}) {
         if (!(value instanceof ESPrimitive))
             value = ESPrimitive.wrap(value);
         // is not global
@@ -157,11 +186,11 @@ export function generateESFunctionCallContext(params, self, parent) {
         }
         if (!arg.type.includesType(type))
             return new TypeError(Position.unknown, arg.type.__name__, type.__name__);
-        newContext.setOwn(value, arg.name, {
+        newContext.setOwn(arg.name, value, {
             forceThroughConst: true
         });
     }
-    let setRes = newContext.setOwn(new ESArray(params), 'args');
+    let setRes = newContext.setOwn('args', new ESArray(params));
     if (setRes instanceof ESError)
         return setRes;
     return newContext;
