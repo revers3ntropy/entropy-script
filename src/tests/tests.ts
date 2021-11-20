@@ -267,14 +267,14 @@ expect([1], '// hiii \n 1');
 // functions
 expect(['<Func: myFunc>', 1], `
 var myFunc = func () {
-    return 1; 
+    return 1;
 };
 myFunc();
 `);
 // callbacks
 expect(['<Func: myFunc>', 1], `
 var myFunc = func (cb) {
-    return cb(); 
+    return cb();
 };
 myFunc(func () {
     return 1;
@@ -292,7 +292,7 @@ myFunc(10);
 // yield
 expect(['<Func: myFunc>', 1], `
 var myFunc = func () {
-    yield 1; 
+    yield 1;
 };
 myFunc();
 `);
@@ -304,7 +304,7 @@ myFunc();
 `);
 expect(['<Func: myFunc>', 2], `
 var myFunc = func () {
-    yield 0; 
+    yield 0;
     yield [];
     return 2;
 };
@@ -333,8 +333,8 @@ var myFunc = func (n, cb) {
     }
     return n;
 };
-myFunc(20, func (n) { 
-    return n < 5; 
+myFunc(20, func (n) {
+    return n < 5;
 });
 `);
 expect(['<Func: myFunc>', '<Func: myOtherFunc>', 1], `
@@ -366,7 +366,7 @@ var myFunc = func (arr, cb) {
         }
     }
 };
-myFunc([0, 1, 2, 3], func (n) { 
+myFunc([0, 1, 2, 3], func (n) {
     return n == 3;
 });
 `);
