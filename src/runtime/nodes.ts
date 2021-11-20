@@ -809,7 +809,7 @@ export class N_class extends Node {
                 );
             methods.push(res.val);
         }
-        let extends_ = undefined;
+        let extends_;
         if (this.extends_) {
             const extendsRes = this.extends_.interpret(context);
             if (extendsRes.error)
@@ -823,7 +823,7 @@ export class N_class extends Node {
                 );
                 extends_ = extendsRes.val;
         }
-        let init = undefined;
+        let init;
         if (this.init) {
             const initRes = this.init.interpret(context);
             if (initRes.error)
