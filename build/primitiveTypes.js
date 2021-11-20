@@ -567,7 +567,7 @@ export class ESNamespace extends ESPrimitive {
             return;
         let idx = str(key);
         if (!this.mutable)
-            return new TypeError(Position.unknown, 'mutable', 'immutable', `${str(this.name)}.${idx}`);
+            return new TypeError(Position.unknown, 'mutable', 'immutable', `${str(this.name)}`);
         if (!(value instanceof ESPrimitive))
             value = ESPrimitive.wrap(value);
         const symbol = this.__value__[idx];
