@@ -18,16 +18,16 @@ type serverOptions = {
 };
 
 function addNodeLibs (https: any, http: any, fs: any, mysql: any, context: Context, print: (...args: string[]) => void) {
-    context.setOwn('nodeHTTPS', ESPrimitive.wrap(https));
-    context.setOwn('nodeHTTP', ESPrimitive.wrap(http));
 
-    context.set('import', new ESFunction((rawPath) => {
+    context.set('import', new ESFunction(({context}, rawPath) => {
         const path: string = str(rawPath);
 
         if (moduleExist(path))
             return getModule(path);
 
         try {
+            if (!fs.existsSync(path))
+                return new ESError(Position.unknown, 'ImportError', `Can't find file '${path}' to import.`)
             const code = fs.readFileSync(path, 'utf-8');
             const env = new Context();
             env.parent = context;
@@ -37,19 +37,21 @@ function addNodeLibs (https: any, http: any, fs: any, mysql: any, context: Conte
             });
 
             if (res.error)
-                return new ImportError(Position.unknown, str(path), res.error.str).str;
+                return print(new ImportError(Position.unknown, str(path), res.error.str).str);
 
             return new ESNamespace(new ESString(path), env.getSymbolTableAsDict());
         } catch (E) {
             return new ESError(Position.unknown, 'ImportError', E.toString());
         }
-    }, [{name: 'path', type: types.string}], 'import', undefined, types.object), {
+    }, [{name: 'path', type: types.string}],
+        'import', undefined, types.object),
+    {
         forceThroughConst: true,
         isConstant: true
     });
 
     context.setOwn('https', new ESObject({
-        createServer: new ESFunction((options_: Primitive, handlers_: Primitive) => {
+        createServer: new ESFunction(({context}, options_, handlers_) => {
             let options: serverOptions = ESPrimitive.strip(options_);
             let handlers: {[path: string]: ESFunction} = ESPrimitive.strip(handlers_);
 
@@ -170,24 +172,24 @@ function addNodeLibs (https: any, http: any, fs: any, mysql: any, context: Conte
             str: new ESFunction(() => {
                 return new ESString(fs.readFileSync(path, encoding));
             }, [], 'str', undefined, types.string),
-            write: new ESFunction((data: Primitive) => {
+            write: new ESFunction(({context}, data: Primitive) => {
                 fs.writeFileSync(path, str(data));
             }),
-            append: new ESFunction((data: Primitive) => {
+            append: new ESFunction(({context}, data: Primitive) => {
                 fs.appendFileSync(path, str(data));
             }),
         });
     }));
 
-    context.setOwn('mysql', new ESFunction(options_ => {
+    context.setOwn('mysql', new ESFunction(({context}, options_) => {
         const options: {
             host: string,
-                user: string,
-                password: string,
-                database: string
+            user: string,
+            password: string,
+            database: string
         } = options_.valueOf();
         const connection: any = new mysql(options);
-        return new ESFunction((query: Primitive) => connection.query(query.valueOf()), [], 'queryMySQL');
+        return new ESFunction(({context}, query: Primitive) => connection.query(query.valueOf()), [], 'queryMySQL');
     }));
 }
 

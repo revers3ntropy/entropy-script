@@ -1,6 +1,6 @@
 import { ESPrimitive, ESType } from "./primitiveTypes.js";
-import { TypeError } from "./errors.js";
-import { Position } from "./position.js";
+import { TypeError } from "../errors.js";
+import { Position } from "../position.js";
 /**
  * Converts uninterpretedArgument -> runtimeArgument
  * @param {uninterpretedArgument} arg

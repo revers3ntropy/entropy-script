@@ -1,9 +1,9 @@
-import { ESError, TestFailed } from "./errors.js";
-import { run } from "./index.js";
-import { Context, ESSymbol } from "./context.js";
-import { global, now } from "./constants.js";
-import { str } from "./util.js";
-import { ESFunction, ESPrimitive, ESType } from "./primitiveTypes.js";
+import { ESError, TestFailed } from "../errors.js";
+import { run } from "../index.js";
+import { Context, ESSymbol } from "../runtime/context.js";
+import { global, now } from "../constants.js";
+import { str } from "../util/util.js";
+import { ESFunction, ESPrimitive, ESType } from "../runtime/primitiveTypes.js";
 export class TestResult {
     constructor() {
         this.time = 0;

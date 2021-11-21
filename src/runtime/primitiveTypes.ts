@@ -1,5 +1,5 @@
 import { global } from "../constants.js";
-import { dict, str } from "../util/util.js";
+import {BuiltInFunction, dict, str} from '../util/util.js';
 import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
 import { Node } from "./nodes.js";
@@ -515,13 +515,13 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
     clone = (): ESErrorPrimitive => new ESErrorPrimitive(this.valueOf());
 }
 
-export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => any))> {
+export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     arguments_: runtimeArgument[];
     this_: ESObject;
     returnType: ESType;
     __closure__: Context;
     constructor (
-        func: Node | ((...args: Primitive[]) => any) = (() => {}),
+        func: Node | BuiltInFunction = (() => {}),
         arguments_: runtimeArgument[] = [],
         name='(anonymous)',
         this_: ESObject = new ESObject(),
@@ -626,7 +626,10 @@ export class ESFunction extends ESPrimitive <(Node | ((...args: Primitive[]) => 
         } else if (typeof fn === 'function') {
             for (let i = params.length; i < fn.length; i++)
                 params.push(new ESUndefined());
-            const res = fn(...params);
+            const res = fn({
+                context
+            }, ...params);
+            if (res instanceof ESError) return res;
             return ESPrimitive.wrap(res);
 
         } else

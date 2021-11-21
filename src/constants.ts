@@ -39,7 +39,7 @@ export const KEYWORDS = [
     'extends',
 
     'namespace',
-    'export',
+    'export'
 ];
 
 export let now: (() => number) = () => 0;

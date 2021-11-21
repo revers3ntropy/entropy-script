@@ -1,5 +1,5 @@
 import { Node } from "../runtime/nodes.js";
-import { ESPrimitive } from "../runtime/primitiveTypes.js";
+import { ESPrimitive } from '../runtime/primitiveTypes.js';
 // @ts-ignore
 Array.prototype.includes = function (element) {
     return this.indexOf(element) !== -1;
@@ -102,6 +102,8 @@ export function str(val, depth = 0) {
             result = `<NativeFunction ${val.name}>`;
             break;
     }
+    for (let i = 0; i < depth; i++)
+        result = indent(result);
     return result;
 }
 /**

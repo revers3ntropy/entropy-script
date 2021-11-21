@@ -1,8 +1,8 @@
-import { tokenTypeString, tt } from "./tokens.js";
-import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "./errors.js";
+import { tokenTypeString, tt } from "../parse/tokens.js";
+import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors.js";
 import { Context } from "./context.js";
-import { Position } from "./position.js";
-import { None, now } from "./constants.js";
+import { Position } from "../position.js";
+import { None, now } from "../constants.js";
 import { interpretArgument } from "./argument.js";
 import { ESArray, ESBoolean, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
 export class interpretResult {
@@ -18,6 +18,7 @@ export class Node {
         this.isTerminal = isTerminal;
     }
     interpret(context) {
+        var _a;
         const start = now();
         const res = new interpretResult();
         const val = this.interpret_(context);
@@ -34,6 +35,7 @@ export class Node {
             res.val = val;
         if (res.error && res.error.startPos.isUnknown)
             res.error.startPos = this.startPos;
+        (_a = res.val.info).file || (_a.file = this.startPos.file);
         Node.interprets++;
         let time = now() - start;
         Node.totalTime += time;
@@ -246,6 +248,8 @@ export class N_varAssign extends Node {
                 return setRes;
             res.val = newVal;
         }
+        if (res.val.info.name === '(anonymous)' || !res.val.info.name)
+            res.val.info.name = this.varNameTok.value;
         return res;
     }
 }
@@ -470,13 +474,14 @@ export class N_functionCall extends Node {
     }
 }
 export class N_functionDefinition extends Node {
-    constructor(startPos, body, argNames, returnType, name = '(anon)', this_ = new ESObject()) {
+    constructor(startPos, body, argNames, returnType, name = '(anon)', this_ = new ESObject(), description = '') {
         super(startPos);
         this.arguments = argNames;
         this.body = body;
         this.name = name;
         this.this_ = this_;
         this.returnType = returnType;
+        this.description = description;
     }
     interpret_(context) {
         var _a, _b, _c;
@@ -617,7 +622,7 @@ export class N_class extends Node {
                 return new TypeError(this.startPos, 'Function', ((_a = res.val) === null || _a === void 0 ? void 0 : _a.typeOf().valueOf()) || 'undefined', 'method on ' + this.name);
             methods.push(res.val);
         }
-        let extends_ = undefined;
+        let extends_;
         if (this.extends_) {
             const extendsRes = this.extends_.interpret(context);
             if (extendsRes.error)
@@ -626,7 +631,7 @@ export class N_class extends Node {
                 return new TypeError(this.startPos, 'Function', ((_b = extendsRes.val) === null || _b === void 0 ? void 0 : _b.typeOf().valueOf()) || 'undefined', 'method on ' + this.name);
             extends_ = extendsRes.val;
         }
-        let init = undefined;
+        let init;
         if (this.init) {
             const initRes = this.init.interpret(context);
             if (initRes.error)

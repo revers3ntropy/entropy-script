@@ -1,5 +1,5 @@
-import { Node } from "./nodes.js";
-import { ESPrimitive } from "./primitiveTypes.js";
+import { Node } from "../runtime/nodes.js";
+import { ESPrimitive } from "../runtime/primitiveTypes.js";
 // @ts-ignore
 Array.prototype.includes = function (element) {
     return this.indexOf(element) !== -1;
@@ -108,4 +108,7 @@ export function str(val, depth = 0) {
  * Returns a promise which is resolved after a set number of ms.
  * @param {number} ms
  */
-export const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+export const sleep = (ms) => new Promise(resolve => setTimeout(() => resolve(), ms));
+export function indent(str) {
+    return str.replace(/\n/g, '\n    ');
+}

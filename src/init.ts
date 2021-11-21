@@ -17,7 +17,7 @@ export function initialise (
     libs: string[] = []
 ) {
 
-    builtInFunctions['import'] = [(rawUrl, callback) => {
+    builtInFunctions['import'] = [({context}, rawUrl, callback) => {
         if (IS_NODE_INSTANCE)
             return new ESError(Position.unknown, 'ImportError', 'Is running in node instance but trying to run browser import function');
         const url: ESString = rawUrl.str();
@@ -49,14 +49,14 @@ export function initialise (
         }
     }, {}];
 
-    builtInFunctions['print'] = [async (...args) => {
+    builtInFunctions['print'] = [async ({context}, ...args) => {
         let out = ``;
         for (let arg of args)
             out += str(arg);
         printFunc(out);
     }, {}];
 
-    builtInFunctions['input'] = [async (msg, cbRaw) => {
+    builtInFunctions['input'] = [async ({context}, msg, cbRaw) => {
         inputFunc(msg.valueOf(), (msg) => {
             let cb = cbRaw?.valueOf();
             if (cb instanceof ESFunction) {
@@ -99,7 +99,7 @@ export function initialise (
 
     for (let lib of libs) {
         // @ts-ignore
-        builtInFunctions['import'](lib);
+        //builtInFunctions['import'](lib);
     }
 
     globalContext.libs = libs;

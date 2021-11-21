@@ -5,14 +5,14 @@ import {
     ESNumber,
     ESObject,
     ESPrimitive,
-    ESString,
+    ESString, ESUndefined,
     FunctionInfo,
     Primitive,
 } from '../runtime/primitiveTypes.js';
-import {indent, sleep, str} from '../util/util.js';
+import {BuiltInFunction, indent, sleep, str} from '../util/util.js';
 
-export const builtInFunctions: {[n: string]: [(...args: Primitive[]) => Primitive | ESError | Promise<void> | void, FunctionInfo]} = {
-    'range': [(num) => {
+export const builtInFunctions: {[n: string]: [BuiltInFunction, FunctionInfo]} = {
+    'range': [({context}, num) => {
         if (!(num instanceof ESNumber))
             return new TypeError(Position.unknown, 'Number', num.typeOf().valueOf(), num.valueOf());
 
@@ -33,7 +33,7 @@ export const builtInFunctions: {[n: string]: [(...args: Primitive[]) => Primitiv
         returnType: 'number[] | RangeError'
     }],
 
-    'log': [(...msgs) => {
+    'log': [({context}, ...msgs) => {
         console.log(...msgs.map(m => str(m)));
     }, {
         args: [{
@@ -44,7 +44,7 @@ export const builtInFunctions: {[n: string]: [(...args: Primitive[]) => Primitiv
         returnType: 'void'
     }],
 
-    'parseNum': [(num) => {
+    'parseNum': [({context}, num) => {
         try {
             const val: number = parseFloat(str(num));
             if (isNaN(val))
@@ -62,7 +62,7 @@ export const builtInFunctions: {[n: string]: [(...args: Primitive[]) => Primitiv
         returnType: 'number | TypeError'
     }],
 
-    'help': [(...things) => {
+    'help': [({context}, ...things) => {
         // I am truly disgusted by this function.
         // But I am not going to make it look better.
 
@@ -113,17 +113,21 @@ Try 'help(object)' for help about a particular object.
             }
         }
 
-        return new ESString(out);
+        console.log(out);
+        if (things.length > 1)
+            return new ESArray(things);
+        if (things)
+            return things[0];
     }, {
         args: [{
             name: 'value',
              type: 'any'
         }],
-        description: 'Gives info on value',
-        returnType: 'string'
+        description: 'logs info on value',
+        returns: 'value passed in'
     }],
 
-    'describe': [(thing, description) => {
+    'describe': [({context}, thing, description) => {
         thing.info.description = str(description);
         return thing;
     }, {
@@ -139,7 +143,7 @@ Try 'help(object)' for help about a particular object.
         returnType: 'any'
     }],
 
-    'detail': [(thing, info) => {
+    'detail': [({context}, thing, info) => {
         if (!(info instanceof ESObject))
             return new TypeError(Position.unknown, 'object', str(info.typeOf()), str(info));
 
@@ -172,23 +176,45 @@ Try 'help(object)' for help about a particular object.
         returnType?: string,
         contents?: Info[]
     }`
-        }]
+        }],
+        returns: 'the value passed',
+
     }],
 
-    'cast': [() => {
+    'cast': [({context}, thing) => {
 
     }, {
 
     }],
 
-    'sleep': [(time, cb) => {
+    'using': [({context}, module) => {
+        if (!(module instanceof ESNamespace))
+            return new TypeError(Position.unknown, 'Namespace', str(module.typeOf()));
+
+        const values = module.valueOf();
+        for (const key in values) {
+            context.setOwn(key, values[key].value, {
+                isConstant: values[key].isConstant,
+                isAccessible: values[key].isAccessible,
+                forceThroughConst: true
+            });
+        }
+    }, {
+
+    }],
+
+    'sleep': [({context}, time, cb) => {
         if (!(time instanceof ESNumber))
             return new TypeError(Position.unknown, 'number', str(time.typeOf()), str(time));
         if (!(cb instanceof ESFunction))
             return new TypeError(Position.unknown, 'function', str(cb.typeOf()), str(cb));
 
         sleep(time.valueOf())
-            .then(() => void cb.__call__());
+            .then(() => {
+                const res = cb.__call__([]);
+                if (res instanceof ESError)
+                    console.log(res.str);
+            });
     }, {
 
     }],

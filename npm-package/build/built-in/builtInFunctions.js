@@ -3,7 +3,7 @@ import { Position } from "../position.js";
 import { ESArray, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, } from '../runtime/primitiveTypes.js';
 import { indent, sleep, str } from '../util/util.js';
 export const builtInFunctions = {
-    'range': [({ context }, num) => {
+    'range': [(num) => {
             if (!(num instanceof ESNumber))
                 return new TypeError(Position.unknown, 'Number', num.typeOf().valueOf(), num.valueOf());
             const n = num.valueOf();
@@ -22,7 +22,7 @@ export const builtInFunctions = {
             returns: 'array of numbers from 0 to N-1',
             returnType: 'number[] | RangeError'
         }],
-    'log': [({ context }, ...msgs) => {
+    'log': [(...msgs) => {
             console.log(...msgs.map(m => str(m)));
         }, {
             args: [{
@@ -32,7 +32,7 @@ export const builtInFunctions = {
             description: 'Uses console.log to log all values',
             returnType: 'void'
         }],
-    'parseNum': [({ context }, num) => {
+    'parseNum': [(num) => {
             try {
                 const val = parseFloat(str(num));
                 if (isNaN(val))
@@ -50,7 +50,7 @@ export const builtInFunctions = {
             description: `Converts a string of digits into a number. Works with decimals and integers. Calls .str() on value before using native JS 'parseFloat' function. Returns TypeError if the string can't be converted into a number.`,
             returnType: 'number | TypeError'
         }],
-    'help': [({ context }, ...things) => {
+    'help': [(...things) => {
             // I am truly disgusted by this function.
             // But I am not going to make it look better.
             var _a;
@@ -97,20 +97,16 @@ Try 'help(object)' for help about a particular object.
                         out += contents.name + '\n      ';
                 }
             }
-            console.log(out);
-            if (things.length > 1)
-                return new ESArray(things);
-            if (things)
-                return things[0];
+            return new ESString(out);
         }, {
             args: [{
                     name: 'value',
                     type: 'any'
                 }],
-            description: 'logs info on value',
-            returns: 'value passed in'
+            description: 'Gives info on value',
+            returnType: 'string'
         }],
-    'describe': [({ context }, thing, description) => {
+    'describe': [(thing, description) => {
             thing.info.description = str(description);
             return thing;
         }, {
@@ -125,7 +121,7 @@ Try 'help(object)' for help about a particular object.
             returns: 'the value passed in',
             returnType: 'any'
         }],
-    'detail': [({ context }, thing, info) => {
+    'detail': [(thing, info) => {
             if (!(info instanceof ESObject))
                 return new TypeError(Position.unknown, 'object', str(info.typeOf()), str(info));
             if (thing.info.isBuiltIn)
@@ -154,33 +150,16 @@ Try 'help(object)' for help about a particular object.
         returnType?: string,
         contents?: Info[]
     }`
-                }],
-            returns: 'the value passed',
+                }]
         }],
-    'cast': [({ context }, thing) => {
+    'cast': [() => {
         }, {}],
-    'using': [({ context }, module) => {
-            if (!(module instanceof ESNamespace))
-                return new TypeError(Position.unknown, 'Namespace', str(module.typeOf()));
-            const values = module.valueOf();
-            for (const key in values) {
-                context.setOwn(key, values[key].value, {
-                    isConstant: values[key].isConstant,
-                    isAccessible: values[key].isAccessible,
-                    forceThroughConst: true
-                });
-            }
-        }, {}],
-    'sleep': [({ context }, time, cb) => {
+    'sleep': [(time, cb) => {
             if (!(time instanceof ESNumber))
                 return new TypeError(Position.unknown, 'number', str(time.typeOf()), str(time));
             if (!(cb instanceof ESFunction))
                 return new TypeError(Position.unknown, 'function', str(cb.typeOf()), str(cb));
             sleep(time.valueOf())
-                .then(() => {
-                const res = cb.__call__([]);
-                if (res instanceof ESError)
-                    console.log(res.str);
-            });
+                .then(() => void cb.__call__());
         }, {}],
 };

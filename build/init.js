@@ -18,7 +18,7 @@ import { str } from "./util/util.js";
 import { ESFunction, ESNamespace, ESString } from './runtime/primitiveTypes.js';
 import { globalConstants } from "./built-in/globalConstants.js";
 export function initialise(globalContext, printFunc, inputFunc, libs = []) {
-    builtInFunctions['import'] = [(rawUrl, callback) => {
+    builtInFunctions['import'] = [({ context }, rawUrl, callback) => {
             if (IS_NODE_INSTANCE)
                 return new ESError(Position.unknown, 'ImportError', 'Is running in node instance but trying to run browser import function');
             const url = rawUrl.str();
@@ -46,13 +46,13 @@ export function initialise(globalContext, printFunc, inputFunc, libs = []) {
                 return new ESError(Position.unknown, 'ImportError', E.toString());
             }
         }, {}];
-    builtInFunctions['print'] = [(...args) => __awaiter(this, void 0, void 0, function* () {
+    builtInFunctions['print'] = [({ context }, ...args) => __awaiter(this, void 0, void 0, function* () {
             let out = ``;
             for (let arg of args)
                 out += str(arg);
             printFunc(out);
         }), {}];
-    builtInFunctions['input'] = [(msg, cbRaw) => __awaiter(this, void 0, void 0, function* () {
+    builtInFunctions['input'] = [({ context }, msg, cbRaw) => __awaiter(this, void 0, void 0, function* () {
             inputFunc(msg.valueOf(), (msg) => {
                 let cb = cbRaw === null || cbRaw === void 0 ? void 0 : cbRaw.valueOf();
                 if (cb instanceof ESFunction) {
@@ -89,7 +89,7 @@ export function initialise(globalContext, printFunc, inputFunc, libs = []) {
     }
     for (let lib of libs) {
         // @ts-ignore
-        builtInFunctions['import'](lib);
+        //builtInFunctions['import'](lib);
     }
     globalContext.libs = libs;
     globalContext.initialisedAsGlobal = true;

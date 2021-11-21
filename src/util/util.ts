@@ -1,5 +1,8 @@
+import {ESError} from '../errors.js';
+import {Position} from '../position.js';
+import {Context} from '../runtime/context.js';
 import {Node} from "../runtime/nodes.js";
-import { ESPrimitive } from "../runtime/primitiveTypes.js";
+import {ESPrimitive, Primitive} from '../runtime/primitiveTypes.js';
 
 export type enumDict<T extends number, U> = { [k in T]: U };
 export type dict<T> = { [key in (string | number)]: T; };
@@ -13,6 +16,10 @@ export interface timeData {
     nodeTotal: number,
     interprets: number,
 }
+
+export type BuiltInFunction = (config: {
+    context: Context,
+}, ...args: Primitive[]) => void | ESError | Primitive | Promise<void>;
 
 // @ts-ignore
 Array.prototype.includes = function (element: any) {
@@ -121,6 +128,8 @@ export function str (val: any, depth = 0): string {
             break;
 
     }
+    for (let i = 0; i < depth; i++)
+        result = indent(result);
     return result;
 }
 

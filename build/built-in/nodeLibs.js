@@ -6,13 +6,13 @@ import { str } from "../util/util.js";
 import { run } from "../index.js";
 import { getModule, moduleExist } from './builtInModules.js';
 function addNodeLibs(https, http, fs, mysql, context, print) {
-    context.setOwn('nodeHTTPS', ESPrimitive.wrap(https));
-    context.setOwn('nodeHTTP', ESPrimitive.wrap(http));
-    context.set('import', new ESFunction((rawPath) => {
+    context.set('import', new ESFunction(({ context }, rawPath) => {
         const path = str(rawPath);
         if (moduleExist(path))
             return getModule(path);
         try {
+            if (!fs.existsSync(path))
+                return new ESError(Position.unknown, 'ImportError', `Can't find file '${path}' to import.`);
             const code = fs.readFileSync(path, 'utf-8');
             const env = new Context();
             env.parent = context;
@@ -21,7 +21,7 @@ function addNodeLibs(https, http, fs, mysql, context, print) {
                 fileName: path
             });
             if (res.error)
-                return new ImportError(Position.unknown, str(path), res.error.str).str;
+                return print(new ImportError(Position.unknown, str(path), res.error.str).str);
             return new ESNamespace(new ESString(path), env.getSymbolTableAsDict());
         }
         catch (E) {
@@ -32,7 +32,7 @@ function addNodeLibs(https, http, fs, mysql, context, print) {
         isConstant: true
     });
     context.setOwn('https', new ESObject({
-        createServer: new ESFunction((options_, handlers_) => {
+        createServer: new ESFunction(({ context }, options_, handlers_) => {
             let options = ESPrimitive.strip(options_);
             let handlers = ESPrimitive.strip(handlers_);
             options = Object.assign({ port: 3000, secure: false, debug: false }, options);
@@ -132,18 +132,18 @@ function addNodeLibs(https, http, fs, mysql, context, print) {
             str: new ESFunction(() => {
                 return new ESString(fs.readFileSync(path, encoding));
             }, [], 'str', undefined, types.string),
-            write: new ESFunction((data) => {
+            write: new ESFunction(({ context }, data) => {
                 fs.writeFileSync(path, str(data));
             }),
-            append: new ESFunction((data) => {
+            append: new ESFunction(({ context }, data) => {
                 fs.appendFileSync(path, str(data));
             }),
         });
     }));
-    context.setOwn('mysql', new ESFunction(options_ => {
+    context.setOwn('mysql', new ESFunction(({ context }, options_) => {
         const options = options_.valueOf();
         const connection = new mysql(options);
-        return new ESFunction((query) => connection.query(query.valueOf()), [], 'queryMySQL');
+        return new ESFunction(({ context }, query) => connection.query(query.valueOf()), [], 'queryMySQL');
     }));
 }
 export default addNodeLibs;

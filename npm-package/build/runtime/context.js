@@ -1,8 +1,8 @@
-import { initialise } from "./init.js";
-import { ESError, TypeError } from "./errors.js";
-import { Position } from "./position.js";
+import { initialise } from "../init.js";
+import { ESError, TypeError } from "../errors.js";
+import { Position } from "../position.js";
 import { ESArray, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
-import { str } from "./util.js";
+import { str } from "../util/util.js";
 export class ESSymbol {
     constructor(value, identifier, options = {}) {
         var _a, _b;

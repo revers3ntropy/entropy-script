@@ -24,12 +24,12 @@ runningInNode();
 await refreshPerformanceNow(true);
 
 import * as es from './build/index.js';
-import {Test} from "./build/testFramework.js";
-import {str} from "./build/util.js";
-import addNodeLibs from "./build/nodeLibs.js";
+import {Test} from "./build/tests/testFramework.js";
+import {str} from "./build/util/util.js";
+import addNodeLibs from "./build/built-in/nodeLibs.js";
 import {global} from "./build/constants.js";
 
-import './build/tests.js';
+import './build/tests/tests.js';
 
 /**
  * Syntax: String(await askQuestion(query).
@@ -67,7 +67,9 @@ export async function init () {
  * @param {string} path
  */
 export function runScript (path) {
-	let res = es.run(fs.readFileSync(path, 'utf-8'));
+	let res = es.run(fs.readFileSync(path, 'utf-8'), {
+		fileName: path
+	});
 	if (res.error)
 		console.log(res.error.str);
 }
