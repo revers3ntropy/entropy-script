@@ -1,5 +1,5 @@
 import { global } from "../constants.js";
-import { str } from "../util/util.js";
+import { str } from '../util/util.js';
 import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
 import { Node } from "./nodes.js";
@@ -415,7 +415,11 @@ export class ESFunction extends ESPrimitive {
             else if (typeof fn === 'function') {
                 for (let i = params.length; i < fn.length; i++)
                     params.push(new ESUndefined());
-                const res = fn(...params);
+                const res = fn({
+                    context
+                }, ...params);
+                if (res instanceof ESError)
+                    return res;
                 return ESPrimitive.wrap(res);
             }
             else

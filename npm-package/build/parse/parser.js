@@ -190,7 +190,7 @@ export class Parser {
         let node = new n.N_variable(tok);
         let prevNode = new n.N_undefined(startPos);
         let functionCall = false;
-        while ([tt.OPAREN, tt.OSQUARE, tt.DOT].includes(this.currentToken.type)) {
+        while ([tt.OPAREN, tt.OSQUARE, tt.DOT].indexOf(this.currentToken.type) !== -1) {
             switch (this.currentToken.type) {
                 case tt.OPAREN:
                     functionCall = true;
@@ -283,7 +283,7 @@ export class Parser {
         const res = new ParseResults();
         this.clearEndStatements(res);
         if (this.currentToken.type === tt.KEYWORD &&
-            ['var', 'let', 'global', 'mutable', 'const', 'local'].includes(this.currentToken.value)) {
+            ['var', 'let', 'global', 'mutable', 'const', 'local'].indexOf(this.currentToken.value) !== -1) {
             return this.initiateVar(res);
         }
         else if (this.currentToken.matches(tokenType.KEYWORD, 'if')) {
@@ -390,14 +390,14 @@ export class Parser {
         let isLocal = false;
         let isGlobal = false;
         let isDeclaration = false;
-        if (this.currentToken.type === tt.KEYWORD && ['var', 'let'].includes(this.currentToken.value)) {
+        if (this.currentToken.type === tt.KEYWORD && ['var', 'let'].indexOf(this.currentToken.value) !== -1) {
             isDeclaration = true;
             isLocal = true;
             this.advance(res);
             if (res.error)
                 return res;
         }
-        if (this.currentToken.type === tt.KEYWORD && ['global', 'local'].includes(this.currentToken.value)) {
+        if (this.currentToken.type === tt.KEYWORD && ['global', 'local'].indexOf(this.currentToken.value) !== -1) {
             isDeclaration = true;
             if (this.currentToken.value === 'global')
                 isGlobal = true;
@@ -407,7 +407,7 @@ export class Parser {
             if (res.error)
                 return res;
         }
-        if (this.currentToken.type === tt.KEYWORD && ['const', 'mutable'].includes(this.currentToken.value)) {
+        if (this.currentToken.type === tt.KEYWORD && ['const', 'mutable'].indexOf(this.currentToken.value) !== -1) {
             isDeclaration = true;
             if (this.currentToken.value === 'const')
                 isConst = true;

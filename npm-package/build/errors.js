@@ -2,12 +2,20 @@ import { Position } from "./position.js";
 import { str } from "./util/util.js";
 export class ESError {
     constructor(startPos, name, details) {
+        this.traceback = [];
         this.startPos = startPos;
         this.name = name;
         this.details = details;
     }
     get str() {
-        return `${this.name.red}: ${this.details} \n at ${this.startPos.str.cyan}`;
+        let out = '';
+        if (this.traceback.length) {
+            out = 'Error Traceback (most recent call last):\n'.yellow;
+            for (let pos of [...this.traceback].reverse())
+                out += `    ${pos.position.str.cyan}:\n        ${pos.line}\n`;
+        }
+        out += `${this.name.red}: ${this.details} \n at ${this.startPos.str.cyan}`;
+        return out;
     }
     get uncolouredStr() {
         return `${this.name}: ${this.details} \n at ${this.startPos.str}`;

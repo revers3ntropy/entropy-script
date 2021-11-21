@@ -37,7 +37,7 @@ export const KEYWORDS = [
     'class',
     'extends',
     'namespace',
-    'export',
+    'export'
 ];
 export let now = () => 0;
 export function refreshPerformanceNow(IS_NODE_INSTANCE) {

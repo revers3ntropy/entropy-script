@@ -31,7 +31,7 @@ export class Lexer {
             else if (identifierChars.includes(this.currentChar)) {
                 tokens.push(this.makeIdentifier());
             }
-            else if (stringSurrounds.includes(this.currentChar)) {
+            else if (stringSurrounds.indexOf(this.currentChar) !== -1) {
                 tokens.push(this.makeString());
             }
             else {
@@ -103,7 +103,7 @@ export class Lexer {
             this.advance();
         }
         let tokType = tt.IDENTIFIER;
-        if (KEYWORDS.includes(idStr))
+        if (KEYWORDS.indexOf(idStr) !== -1)
             tokType = tt.KEYWORD;
         return new Token(posStart, tokType, idStr);
     }

@@ -5,6 +5,7 @@ import { Position } from "../position.js";
 import { None, now } from "../constants.js";
 import { interpretArgument } from "./argument.js";
 import { ESArray, ESBoolean, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
+import { str } from '../util/util.js';
 export class interpretResult {
     constructor() {
         this.val = new ESUndefined();
@@ -327,7 +328,7 @@ export class N_for extends Node {
         const array = this.array.interpret(context);
         if (array.error)
             return array;
-        if (!['Array', 'Number', 'Object', 'String', 'Any'].includes(((_a = array.val) === null || _a === void 0 ? void 0 : _a.typeOf().valueOf()) || ''))
+        if (['Array', 'Number', 'Object', 'String', 'Any'].indexOf(((_a = array.val) === null || _a === void 0 ? void 0 : _a.typeOf().valueOf()) || '') === -1)
             return new TypeError(this.identifier.startPos, 'Array | Number | Object | String', typeof array.val + ' | ' + ((_b = array.val) === null || _b === void 0 ? void 0 : _b.typeOf()));
         function iteration(body, id, element, isGlobal, isConstant) {
             newContext.set(id, element, {
@@ -470,7 +471,13 @@ export class N_functionCall extends Node {
             if (res.val)
                 params.push(res.val);
         }
-        return val.__call__(params, context);
+        const res = val.__call__(params, context);
+        if (res instanceof ESError)
+            res.traceback.push({
+                position: this.startPos,
+                line: `${val.info.name}(${params.map(str).join(', ')})`
+            });
+        return res;
     }
 }
 export class N_functionDefinition extends Node {

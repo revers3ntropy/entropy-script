@@ -1,9 +1,5 @@
 import { Node } from "../runtime/nodes.js";
-import { ESPrimitive } from "../runtime/primitiveTypes.js";
-// @ts-ignore
-Array.prototype.includes = function (element) {
-    return this.indexOf(element) !== -1;
-};
+import { ESPrimitive } from '../runtime/primitiveTypes.js';
 /**
  * @desc opens a modal window to display a message
  * @return bool - success or failure
@@ -78,9 +74,7 @@ export function str(val, depth = 0) {
                         continue;
                     if (!val.hasOwnProperty(item))
                         continue;
-                    if (!['this', 'this_', 'constructor', 'self'].includes(item)) {
-                        result += `  ${item}: ${str(val[item], depth + 1) || ''}, \n`;
-                    }
+                    result += `  ${item}: ${str(val[item], depth + 1) || ''}, \n`;
                 }
                 if (i > 0)
                     result = result.substring(0, result.length - 3);
@@ -102,6 +96,8 @@ export function str(val, depth = 0) {
             result = `<NativeFunction ${val.name}>`;
             break;
     }
+    for (let i = 0; i < depth; i++)
+        result = indent(result);
     return result;
 }
 /**
