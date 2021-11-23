@@ -157,9 +157,9 @@ export function expect(expected: any[] | string, from: string) {
 
         if (result.error && Array.isArray(expected))
             return new TestFailed(
-            `Unexpected error encountered when running test. Expected '${expected}' but got error: 
+            `Unexpected error encountered when running test. Expected '${expected}' but got error:
 ${result.error.str}
-with code 
+with code
 '${from}'\n`
         );
 
