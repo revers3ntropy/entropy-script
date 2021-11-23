@@ -96,7 +96,7 @@ Try 'help(object)' for help about a particular object.
 
                 for (const [idx, arg] of info.args.entries()) {
                     if (typeof arg !== 'object') out += `        ${idx + 1}. INVALID ARG INFO`;
-                    else out += `        ${idx + 1}. ${arg.name}${arg.required ? ' ' : ' (optional) '.yellow}{${arg.type}} ${arg.description || ''}\n`;
+                    else out += `        ${idx + 1}. ${arg.name}${arg.required === false ? ' (optional) ' : ' '.yellow}{${arg.type}} ${arg.description || ''}\n`;
                 }
 
                 out += `\n\n`;

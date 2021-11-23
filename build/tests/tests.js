@@ -74,7 +74,7 @@ expect([undefined], `
 expect([false, undefined, undefined, true], `
     var result = false;
     var output;
-    if (result)
+    if result
         output = false;
     else
         output = !result;
@@ -82,7 +82,7 @@ expect([false, undefined, undefined, true], `
 `);
 expect([undefined, undefined, false], `
     var output;
-    if (true) {
+    if true {
         output = true;
         output = false;
     } else {
@@ -95,7 +95,7 @@ expect([undefined, undefined, false], `
 expect([undefined, 0, undefined, 9, 10], `
     var output;
     var i = 0;
-    while (i < 10) {
+    while i < 10 {
         output = i;
         i = i + 1;
     }
@@ -166,32 +166,32 @@ expect('TypeError', `
 // for
 expect([undefined, undefined, 2], `
     var output;
-    for (var i in [0, 1, 2]) {
+    for var i in [0, 1, 2] {
         output = i;
     }
     output;
 `);
 expect([undefined, 2], `
-    for (global i in [0, 1, 2]) {}
+    for global i in [0, 1, 2] {}
     i;
 `);
 expect([undefined, undefined, 2], `
     var output;
-    for (i in [0, 1, 2]) {
+    for i in [0, 1, 2] {
         output = i;
     }
     output;
 `);
 expect([0, undefined, 3], `
     var sum = 0;
-    for (i in [0, 1, 2]) {
+    for i in [0, 1, 2] {
         sum = sum + i;
     }
     sum;
 `);
 expect([undefined, undefined, 2], `
     var output;
-    for (i in 3) {
+    for i in 3 {
         output = i;
     }
     output;
@@ -200,8 +200,8 @@ expect([undefined, undefined, 2], `
 expect([undefined, 0, undefined, 0, 1], `
     var output;
     var i_ = 0;
-    for (i in range(3)) {
-        if (i == 1) break;
+    for i in range(3) {
+        if i == 1 break;
         output = i;
         i_ = i_ + 1;
     }
@@ -211,7 +211,7 @@ expect([undefined, 0, undefined, 0, 1], `
 expect([undefined, 0, undefined, 2, 2], `
     var output;
     var i_ = 0;
-    for (i in range(3)) {
+    for i in range(3) {
         if (i == 1) continue;
         output = i;
         i_ = i_ + 1;
@@ -226,7 +226,7 @@ expect([undefined], `
 // range
 expect([[0, 1, 2]], 'range(3)');
 expect([undefined, 2], `
-    for (global i in range(3)) {}
+    for global i in range(3) {}
     i;
 `);
 // comments
@@ -296,7 +296,7 @@ myFunc();
 // nesting
 expect(['<Func: myFunc>', 4], `
 var myFunc = func (n, cb) {
-    while (!cb(n)) {
+    while !cb(n) {
         n = n - 1;
     }
     return n;
@@ -320,7 +320,7 @@ myOtherFunc();
 `);
 expect(['<Func: myFunc>', 0], `
 var myFunc = func (arr) {
-    for (var n in arr) {
+    for var n in arr {
         return n;
     }
 };
@@ -328,7 +328,7 @@ myFunc([0, 1, 2, 3]);
 `);
 expect(['<Func: myFunc>', 3], `
 var myFunc = func (arr, cb) {
-    for (var n in arr) {
+    for var n in arr {
         if (cb(n)) {
             return n;
         }

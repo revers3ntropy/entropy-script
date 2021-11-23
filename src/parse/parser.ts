@@ -706,25 +706,9 @@ export class Parser {
 
         this.advance(res);
 
-        if (this.currentToken.type !== tt.OPAREN)
-            return res.failure(new InvalidSyntaxError(
-                this.currentToken.startPos,
-                "Expected '(' after 'if'"
-            ));
-
-        this.advance(res);
-
         condition = res.register(this.expr());
         if (res.error) return res;
 
-        // @ts-ignore - comparison again
-        if (this.currentToken.type !== tt.CPAREN)
-            return res.failure(new InvalidSyntaxError(
-                this.currentToken.startPos,
-                "Expected ')' after 'if (condition'"
-            ));
-
-        this.advance(res);
 
         ifTrue = res.register(this.bracesExp());
         if (res.error) return res;
@@ -757,25 +741,8 @@ export class Parser {
 
         this.advance(res);
 
-        if (this.currentToken.type !== tt.OPAREN)
-            return res.failure(new InvalidSyntaxError(
-                this.currentToken.startPos,
-                "Expected '(' after 'while'"
-            ));
-
-        this.advance(res);
-
         condition = res.register(this.expr());
         if (res.error) return res;
-
-        // @ts-ignore - comparison again
-        if (this.currentToken.type !== tt.CPAREN)
-            return res.failure(new InvalidSyntaxError(
-                this.currentToken.startPos,
-                "Expected ')' after 'while (condition'"
-            ));
-
-        this.advance(res);
 
        loop = res.register(this.bracesExp());
        if (res.error) return res;
@@ -793,7 +760,7 @@ export class Parser {
      */
     private parameter (res: ParseResults): uninterpretedArgument | ESError {
         let name: string;
-        let type: Node = new n.N_any(types.any);
+        let type: Node = new n.N_primWrapper(types.any);
 
         if (this.currentToken.type !== tt.IDENTIFIER)
             return new InvalidSyntaxError(
@@ -826,7 +793,7 @@ export class Parser {
         const startPos = this.currentToken.startPos;
         let body: n.Node,
             args: uninterpretedArgument[] = [],
-            returnType: Node = new n.N_any(types.any);
+            returnType: Node = new n.N_primWrapper(types.any);
 
         this.consume(res, tt.OPAREN);
 
@@ -985,8 +952,6 @@ export class Parser {
 
         this.advance(res);
 
-        this.consume(res, tt.OPAREN);
-
         if (this.currentToken.matches(tt.KEYWORD, 'global')) {
             isGlobalIdentifier = true;
             this.advance(res);
@@ -1019,15 +984,6 @@ export class Parser {
 
         array = res.register(this.expr());
         if (res.error) return res;
-
-        // @ts-ignore - comparison again
-        if (this.currentToken.type !== tt.CPAREN)
-            return res.failure(new InvalidSyntaxError(
-                this.currentToken.startPos,
-                "Expected ')'"
-            ));
-
-        this.advance(res);
 
         body = res.register(this.bracesExp());
         if (res.error) return res;

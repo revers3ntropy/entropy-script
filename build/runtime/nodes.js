@@ -1,8 +1,8 @@
 import { tokenTypeString, tt } from "../parse/tokens.js";
 import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors.js";
-import { Context } from "./context.js";
+import { Context } from './context.js';
 import { Position } from "../position.js";
-import { None, now } from "../constants.js";
+import { now } from "../constants.js";
 import { interpretArgument } from "./argument.js";
 import { ESArray, ESBoolean, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
 import { str } from '../util/util.js';
@@ -36,6 +36,10 @@ export class Node {
             res.val = val;
         if (res.error && res.error.startPos.isUnknown)
             res.error.startPos = this.startPos;
+        if (!(res.val instanceof ESPrimitive)) {
+            res.error = new TypeError(Position.unknown, 'Primitive', 'Native JS value', str(res.val));
+            res.val = new ESUndefined();
+        }
         (_a = res.val.info).file || (_a.file = this.startPos.file);
         Node.interprets++;
         let time = now() - start;
@@ -70,10 +74,15 @@ export class N_binOp extends Node {
         if (typeof r === 'undefined')
             return new TypeError(this.opTok.startPos, '~undefined', 'undefined', r, 'N_binOp.interpret_');
         function declaredBinOp(l, r, fnName, opTokPos) {
-            if (!(l instanceof ESPrimitive) || !(r instanceof ESPrimitive) || !l.hasProperty(new ESString(fnName)))
+            if (!(l instanceof ESPrimitive) || !(r instanceof ESPrimitive) || !l.hasProperty({ context }, new ESString(fnName)))
                 return new TypeError(opTokPos, 'unknown', l === null || l === void 0 ? void 0 : l.typeOf().valueOf(), l === null || l === void 0 ? void 0 : l.valueOf(), `Unsupported operand for ${fnName}`);
-            // @ts-ignore
-            return l[fnName](r);
+            const prop = l.__getProperty__({ context }, new ESString(fnName));
+            if (!(prop instanceof ESFunction))
+                return new ESError(opTokPos, 'TypeError', `_Unsupported operand ${fnName} on type ${l.typeOf().valueOf()} | .${fnName}=${str(prop)}`);
+            const res = prop.__call__({ context }, r);
+            if (!(res instanceof ESPrimitive))
+                return new ESError(opTokPos, 'TypeError', `__Unsupported operand ${fnName} on type ${l.typeOf().valueOf()}`);
+            return res;
         }
         switch (this.opTok.type) {
             case tt.LTE: {
@@ -162,13 +171,13 @@ export class N_varAssign extends Node {
         this.isLocal = isLocal;
         if (type instanceof ESType) {
             // wrap raw ESType in node
-            this.type = new N_any(type);
+            this.type = new N_primWrapper(type);
         }
         else
             this.type = type;
     }
     interpret_(context) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d;
         if (this.isDeclaration && context.hasOwn(this.varNameTok.value))
             return new InvalidSyntaxError(this.startPos, `Symbol '${this.varNameTok.value}' already exists, and cannot be redeclared`);
         const res = this.value.interpret(context);
@@ -181,8 +190,8 @@ export class N_varAssign extends Node {
             return new TypeError(this.varNameTok.startPos, 'Type', (_b = (_a = typeRes.val) === null || _a === void 0 ? void 0 : _a.typeOf().valueOf()) !== null && _b !== void 0 ? _b : 'undefined', (_c = typeRes.val) === null || _c === void 0 ? void 0 : _c.str(), `@ !typeRes.val || !(typeRes.val instanceof ESType)`);
         if (!res.val)
             return new TypeError(this.varNameTok.startPos, '~undefined', 'undefined', 'N_varAssign.interpret_');
-        if (!typeRes.val.includesType(res.val.__type__))
-            return new TypeError(this.varNameTok.startPos, (_d = typeRes.val.str().valueOf()) !== null && _d !== void 0 ? _d : 'unknown type', (_f = (_e = res.val) === null || _e === void 0 ? void 0 : _e.typeOf().valueOf()) !== null && _f !== void 0 ? _f : 'undefined__', (_g = res.val) === null || _g === void 0 ? void 0 : _g.str());
+        if (typeRes.val.includesType({ context }, res.val.__type__).valueOf() === false)
+            return new TypeError(this.varNameTok.startPos, str(typeRes.val), str((_d = res.val) === null || _d === void 0 ? void 0 : _d.typeOf()), str(res.val));
         if (this.isDeclaration) {
             if (this.assignType !== '=')
                 return new InvalidSyntaxError(this.startPos, `Cannot declare variable with operator '${this.assignType}'`);
@@ -219,22 +228,22 @@ export class N_varAssign extends Node {
                 case '*':
                     if (!(currentVal === null || currentVal === void 0 ? void 0 : currentVal.__multiply__))
                         return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(), currentVal === null || currentVal === void 0 ? void 0 : currentVal.valueOf(), `Unsupported operand for '*'`);
-                    newVal = currentVal.__multiply__(assignVal);
+                    newVal = currentVal.__multiply__({ context }, assignVal);
                     break;
                 case '/':
                     if (!(currentVal === null || currentVal === void 0 ? void 0 : currentVal.__divide__))
                         return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(), currentVal === null || currentVal === void 0 ? void 0 : currentVal.valueOf(), `Unsupported operand for '/'`);
-                    newVal = currentVal.__divide__(assignVal);
+                    newVal = currentVal.__divide__({ context }, assignVal);
                     break;
                 case '+':
                     if (!(currentVal === null || currentVal === void 0 ? void 0 : currentVal.__add__))
                         return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(), currentVal === null || currentVal === void 0 ? void 0 : currentVal.valueOf(), `Unsupported operand for '+'`);
-                    newVal = currentVal.__add__(assignVal);
+                    newVal = currentVal.__add__({ context }, assignVal);
                     break;
                 case '-':
                     if (!(currentVal === null || currentVal === void 0 ? void 0 : currentVal.__subtract__))
                         return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(), currentVal === null || currentVal === void 0 ? void 0 : currentVal.valueOf(), `Unsupported operand for '-'`);
-                    newVal = currentVal.__subtract__(assignVal);
+                    newVal = currentVal.__subtract__({ context }, assignVal);
                     break;
                 default:
                     return new ESError(this.startPos, 'AssignError', `Cannot find assignType of ${this.assignType[0]}`);
@@ -324,7 +333,6 @@ export class N_for extends Node {
         var _a, _b, _c, _d, _e, _f, _g, _h;
         let newContext = new Context();
         newContext.parent = context;
-        let res = None;
         const array = this.array.interpret(context);
         if (array.error)
             return array;
@@ -335,7 +343,7 @@ export class N_for extends Node {
                 global: isGlobal,
                 isConstant
             });
-            res = body.interpret(newContext);
+            const res = body.interpret(newContext);
             if (res.error || (res.funcReturn !== undefined))
                 return res;
             if (res.shouldBreak) {
@@ -461,7 +469,7 @@ export class N_functionCall extends Node {
             return error;
         if (!val)
             return new TypeError(this.startPos, 'any', 'undefined', undefined, 'On function call');
-        if (!val.__call__)
+        if (!val.hasProperty({ context }, new ESString('__call__')))
             return new TypeError(this.startPos, 'unknown', (val === null || val === void 0 ? void 0 : val.typeOf().valueOf()) || 'unknown', val === null || val === void 0 ? void 0 : val.valueOf(), 'Can only () on something with __call__ property');
         let params = [];
         for (let arg of this.arguments) {
@@ -471,12 +479,23 @@ export class N_functionCall extends Node {
             if (res.val)
                 params.push(res.val);
         }
-        const res = val.__call__(params, context);
-        if (res instanceof ESError)
+        const __call__ = val.__getProperty__({ context }, new ESString('__call__'));
+        if (!(__call__ instanceof ESFunction))
+            return new TypeError(this.startPos, 'function', str(val === null || val === void 0 ? void 0 : val.typeOf()), str(val), '__call__ property must be function');
+        if (typeof __call__.__value__ !== 'function')
+            return new TypeError(Position.unknown, 'native function', 'es function');
+        const res = __call__.__value__({ context }, ...params);
+        if (res instanceof ESError) {
             res.traceback.push({
                 position: this.startPos,
+                // do the best we can to recreate line,
+                // giving some extra info as well as it is the interpreted arguments so variables values not names
                 line: `${val.info.name}(${params.map(str).join(', ')})`
             });
+            return res;
+        }
+        if (!(res instanceof ESPrimitive))
+            return new ESUndefined();
         return res;
     }
 }
@@ -551,11 +570,16 @@ export class N_indexed extends Node {
         this.base = base;
         this.index = index;
     }
-    declaredBinOp(l, r, fnName, opTokPos) {
-        if (!l.hasProperty(new ESString(fnName)))
+    declaredBinOp(l, r, fnName, opTokPos, context) {
+        if (!l.hasProperty({ context }, new ESString(fnName)))
             return new ESError(opTokPos, 'TypeError', `Unsupported operand ${fnName} on type ${l.typeOf().valueOf()}`);
-        // @ts-ignore
-        return l[fnName](r);
+        const prop = l.__getProperty__({ context }, new ESString(fnName));
+        if (!(prop instanceof ESFunction))
+            return new ESError(opTokPos, 'TypeError', `_Unsupported operand ${fnName} on type ${l.typeOf().valueOf()} | .${fnName}=${str(prop)}`);
+        const res = prop.__call__({ context }, r);
+        if (!(res instanceof ESPrimitive))
+            return new ESError(opTokPos, 'TypeError', `__Unsupported operand ${fnName} on type ${l.typeOf().valueOf()}`);
+        return res;
     }
     interpret_(context) {
         var _a;
@@ -573,7 +597,7 @@ export class N_indexed extends Node {
             let valRes = this.value.interpret(context);
             if (valRes.error)
                 return valRes;
-            const currentVal = ESPrimitive.wrap(base.__getProperty__(index));
+            const currentVal = ESPrimitive.wrap(base.__getProperty__({ context }, index));
             let newVal;
             let assignVal = valRes.val;
             (_a = this.assignType) !== null && _a !== void 0 ? _a : (this.assignType = '=');
@@ -581,16 +605,16 @@ export class N_indexed extends Node {
                 return new TypeError(this.startPos, '~undefined', 'undefined', 'undefined', 'N_indexed.interpret_');
             switch (this.assignType[0]) {
                 case '*':
-                    newVal = this.declaredBinOp(currentVal, assignVal, '__multiply__', this.startPos);
+                    newVal = this.declaredBinOp(currentVal, assignVal, '__multiply__', this.startPos, context);
                     break;
                 case '/':
-                    newVal = this.declaredBinOp(currentVal, assignVal, '__divide__', this.startPos);
+                    newVal = this.declaredBinOp(currentVal, assignVal, '__divide__', this.startPos, context);
                     break;
                 case '+':
-                    newVal = this.declaredBinOp(currentVal, assignVal, '__add__', this.startPos);
+                    newVal = this.declaredBinOp(currentVal, assignVal, '__add__', this.startPos, context);
                     break;
                 case '-':
-                    newVal = this.declaredBinOp(currentVal, assignVal, '__subtract__', this.startPos);
+                    newVal = this.declaredBinOp(currentVal, assignVal, '__subtract__', this.startPos, context);
                     break;
                 case '=':
                     newVal = assignVal;
@@ -602,11 +626,11 @@ export class N_indexed extends Node {
                 return newVal;
             if (!base.__setProperty__)
                 return new TypeError(this.startPos, 'mutable', 'immutable', base.valueOf());
-            const res = base.__setProperty__(index, newVal !== null && newVal !== void 0 ? newVal : new ESUndefined());
+            const res = base.__setProperty__({ context }, index, newVal !== null && newVal !== void 0 ? newVal : new ESUndefined());
             if (res instanceof ESError)
                 return res;
         }
-        return ESPrimitive.wrap(base.__getProperty__(index));
+        return base.__getProperty__({ context }, index);
     }
 }
 export class N_class extends Node {
@@ -743,14 +767,12 @@ export class N_continue extends Node {
         return res;
     }
 }
-export class N_any extends Node {
-    constructor(value, startPos = Position.unknown) {
-        super(startPos, true);
-        this.val = value;
+export class N_primWrapper extends Node {
+    constructor(val, pos = Position.unknown) {
+        super(pos, true);
+        this.value = val;
     }
     interpret_(context) {
-        if (this.val instanceof ESPrimitive)
-            return this.val;
-        return ESPrimitive.wrap(this.val);
+        return this.value;
     }
 }

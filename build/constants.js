@@ -12,8 +12,6 @@ export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const singleLineComment = '//';
 export const global = new Context();
-export let None;
-export const setNone = (v) => void (None = v);
 export const stringSurrounds = ['\'', '`', '"'];
 export let IS_NODE_INSTANCE = false;
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);

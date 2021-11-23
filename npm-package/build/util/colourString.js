@@ -1,16 +1,1 @@
-import { IS_NODE_INSTANCE } from "../constants.js";
-function addProperty(name, colour) {
-    Object.defineProperty(String.prototype, name, {
-        get: function () {
-            if (IS_NODE_INSTANCE)
-                return `\x1b[${colour}m` + this + '\x1b[0m';
-            return `<span style="color: ${name}">${this}</span>`;
-        }
-    });
-}
-addProperty('red', '31');
-addProperty('yellow', '33');
-addProperty('green', '32');
-addProperty('cyan', '36');
-addProperty('blue', '34');
-addProperty('grey', '2');
+import{IS_NODE_INSTANCE}from"../constants.js";function addProperty(r,t){Object.defineProperty(String.prototype,r,{get:function(){return IS_NODE_INSTANCE?`[${t}m`+this+"[0m":`<span style="color: ${r}">${this}</span>`}})}addProperty("red","31"),addProperty("yellow","33"),addProperty("green","32"),addProperty("cyan","36"),addProperty("blue","34"),addProperty("grey","2");

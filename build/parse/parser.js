@@ -491,16 +491,9 @@ export class Parser {
         if (!this.currentToken.matches(tt.KEYWORD, 'if'))
             return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected 'if'"));
         this.advance(res);
-        if (this.currentToken.type !== tt.OPAREN)
-            return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected '(' after 'if'"));
-        this.advance(res);
         condition = res.register(this.expr());
         if (res.error)
             return res;
-        // @ts-ignore - comparison again
-        if (this.currentToken.type !== tt.CPAREN)
-            return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected ')' after 'if (condition'"));
-        this.advance(res);
         ifTrue = res.register(this.bracesExp());
         if (res.error)
             return res;
@@ -522,16 +515,9 @@ export class Parser {
         if (!this.currentToken.matches(tt.KEYWORD, 'while'))
             return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected 'while'"));
         this.advance(res);
-        if (this.currentToken.type !== tt.OPAREN)
-            return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected '(' after 'while'"));
-        this.advance(res);
         condition = res.register(this.expr());
         if (res.error)
             return res;
-        // @ts-ignore - comparison again
-        if (this.currentToken.type !== tt.CPAREN)
-            return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected ')' after 'while (condition'"));
-        this.advance(res);
         loop = res.register(this.bracesExp());
         if (res.error)
             return res;
@@ -546,7 +532,7 @@ export class Parser {
      */
     parameter(res) {
         let name;
-        let type = new n.N_any(types.any);
+        let type = new n.N_primWrapper(types.any);
         if (this.currentToken.type !== tt.IDENTIFIER)
             return new InvalidSyntaxError(this.currentToken.startPos, "Expected identifier");
         name = this.currentToken.value;
@@ -569,7 +555,7 @@ export class Parser {
     funcCore() {
         const res = new ParseResults();
         const startPos = this.currentToken.startPos;
-        let body, args = [], returnType = new n.N_any(types.any);
+        let body, args = [], returnType = new n.N_primWrapper(types.any);
         this.consume(res, tt.OPAREN);
         // @ts-ignore
         if (this.currentToken.type === tt.CPAREN) {
@@ -678,7 +664,6 @@ export class Parser {
         if (!this.currentToken.matches(tt.KEYWORD, 'for'))
             return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected 'for'"));
         this.advance(res);
-        this.consume(res, tt.OPAREN);
         if (this.currentToken.matches(tt.KEYWORD, 'global')) {
             isGlobalIdentifier = true;
             this.advance(res);
@@ -701,10 +686,6 @@ export class Parser {
         array = res.register(this.expr());
         if (res.error)
             return res;
-        // @ts-ignore - comparison again
-        if (this.currentToken.type !== tt.CPAREN)
-            return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected ')'"));
-        this.advance(res);
         body = res.register(this.bracesExp());
         if (res.error)
             return res;

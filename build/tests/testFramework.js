@@ -112,7 +112,8 @@ export function expect(expected, from) {
         let result;
         try {
             result = run(from, {
-                env
+                env,
+                fileName: 'TEST_ENV'
             });
         }
         catch (e) {

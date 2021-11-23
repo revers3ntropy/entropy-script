@@ -1,13 +1,10 @@
-import {Context, ESSymbol} from "./runtime/context.js";
+import {Context} from "./runtime/context.js";
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const singleLineComment = '//';
 
 export const global = new Context();
-
-export let None: ESSymbol | undefined;
-export const setNone = (v: ESSymbol) => void (None = v);
 
 export const stringSurrounds = ['\'', '`', '"'];
 

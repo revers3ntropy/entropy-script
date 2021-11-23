@@ -1,5 +1,5 @@
 import { initialise } from "../init.js";
-import { ESError, TypeError } from "../errors.js";
+import { ESError, TypeError, ReferenceError } from "../errors.js";
 import { Position } from "../position.js";
 import { ESArray, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
 import { str } from "../util/util.js";
@@ -21,17 +21,17 @@ export class ESSymbol {
 }
 export class Context {
     constructor() {
-        this.initialisedAsGlobal = false;
-        this.libs = [];
-        this.deleted = false;
         this.symbolTable = {};
+        this.initialisedAsGlobal = false;
+        this.deleted = false;
+        this.importPaths = [];
     }
     get parent() {
         return this.parent_;
     }
     set parent(val) {
         if (val == this) {
-            console.log('Setting context parent to self'.red);
+            console.log(`Setting context parent to 'this'`.red);
             return;
         }
         this.parent_ = val;
@@ -68,6 +68,8 @@ export class Context {
             let res = this.parent.getSymbol(identifier);
             if (res instanceof ESError)
                 return res;
+            if (!res)
+                return new ReferenceError(Position.unknown, identifier);
             symbol = res;
         }
         return symbol;
@@ -126,20 +128,18 @@ export class Context {
         }
         this.symbolTable = {};
         this.initialisedAsGlobal = false;
-        initialise(this, ((_a = printFunc.valueOf()) === null || _a === void 0 ? void 0 : _a.func) || console.log, ((_b = inputFunc.valueOf()) === null || _b === void 0 ? void 0 : _b.func) || (() => { }), this.libs);
+        initialise(this, ((_a = printFunc.valueOf()) === null || _a === void 0 ? void 0 : _a.func) || console.log, ((_b = inputFunc.valueOf()) === null || _b === void 0 ? void 0 : _b.func) || (() => { }));
     }
     clone() {
         const newContext = new Context();
         newContext.parent = this.parent;
         newContext.deleted = this.deleted;
         newContext.initialisedAsGlobal = this.initialisedAsGlobal;
-        newContext.libs = [...this.libs];
         newContext.symbolTable = Object.assign(Object.assign({}, newContext.symbolTable), this.symbolTable);
         return newContext;
     }
     deepClone() {
         var _a;
-        console.log('cloning');
         let clone = this.clone();
         clone.parent = (_a = clone.parent) === null || _a === void 0 ? void 0 : _a.deepClone();
         return clone;
@@ -174,9 +174,9 @@ export function generateESFunctionCallContext(params, self, parent) {
     for (let i = 0; i < max; i++) {
         let value = new ESUndefined();
         let type = types.any;
-        if (self.arguments_[i] == undefined)
+        if (!self.arguments_[i])
             continue;
-        // __type__ checking
+        // type checking
         const arg = self.arguments_[i];
         if (!(arg.type instanceof ESType))
             return new TypeError(Position.unknown, 'Type', typeof arg.type, arg.type);
@@ -184,13 +184,15 @@ export function generateESFunctionCallContext(params, self, parent) {
             type = params[i].__type__;
             value = params[i];
         }
-        if (!arg.type.includesType(type))
-            return new TypeError(Position.unknown, arg.type.__name__, type.__name__);
+        if (arg.type.includesType({ context: parent }, type).valueOf() === false)
+            return new TypeError(Position.unknown, arg.type.__name__, type.__name__, str(value));
         newContext.setOwn(arg.name, value, {
             forceThroughConst: true
         });
     }
-    let setRes = newContext.setOwn('args', new ESArray(params));
+    let setRes = newContext.setOwn('args', new ESArray(params), {
+        forceThroughConst: true
+    });
     if (setRes instanceof ESError)
         return setRes;
     return newContext;

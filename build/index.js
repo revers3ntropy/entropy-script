@@ -7,10 +7,11 @@ import { ESError } from "./errors.js";
 import { Position } from "./position.js";
 import { interpretResult, Node } from "./runtime/nodes.js";
 import { ESArray } from "./runtime/primitiveTypes.js";
-export function init(printFunc = console.log, inputFunc, libs) {
-    initialise(global, printFunc, inputFunc, libs);
+export function init(printFunc = console.log, inputFunc) {
+    initialise(global, printFunc, inputFunc);
 }
-export function run(msg, { env = global, measurePerformance = false, fileName = '(unknown)' } = {}) {
+export function run(msg, { env = global, measurePerformance = false, fileName = '(unknown)', currentDir = './' } = {}) {
+    env.importPaths.push(currentDir);
     Node.maxTime = 0;
     Node.totalTime = 0;
     Node.interprets = 0;

@@ -18,7 +18,7 @@ export const builtInFunctions = {
                     name: 'N',
                     type: 'Number',
                 }],
-            description: 'Generates an array of integers given N. Starts at 0 and goes to N-1. Can be used like for (i in range(10)) ..., similarly to python.',
+            description: 'Generates an array of integers given N. Starts at 0 and goes to N-1. Can be used like for i in range(10) ..., similarly to python.',
             returns: 'array of numbers from 0 to N-1',
             returnType: 'number[] | RangeError'
         }],
@@ -83,7 +83,7 @@ Try 'help(object)' for help about a particular object.
                         if (typeof arg !== 'object')
                             out += `        ${idx + 1}. INVALID ARG INFO`;
                         else
-                            out += `        ${idx + 1}. ${arg.name}${arg.required ? ' ' : ' (optional) '.yellow}{${arg.type}} ${arg.description || ''}\n`;
+                            out += `        ${idx + 1}. ${arg.name}${arg.required === false ? ' (optional) ' : ' '.yellow}{${arg.type}} ${arg.description || ''}\n`;
                     }
                     out += `\n\n`;
                     if (info.returns)
@@ -178,7 +178,7 @@ Try 'help(object)' for help about a particular object.
                 return new TypeError(Position.unknown, 'function', str(cb.typeOf()), str(cb));
             sleep(time.valueOf())
                 .then(() => {
-                const res = cb.__call__([]);
+                const res = cb.__call__({ context });
                 if (res instanceof ESError)
                     console.log(res.str);
             });

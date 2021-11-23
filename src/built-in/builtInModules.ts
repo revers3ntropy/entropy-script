@@ -1,18 +1,20 @@
 import {ESNamespace, ESObject, ESPrimitive, ESString} from '../runtime/primitiveTypes.js';
 import {ESSymbol} from "../runtime/context.js";
+import http from './built-in-modules/http.js';
 
 // All modules
 // make this only import required modules in the future
 import jsmaths from './built-in-modules/jsmaths.js';
 
+
 const modules: {[s: string]: any} = {
-    jsmaths,
+    jsmaths
 };
 
 // memoize the modules for faster access
 const processedModules: {[s: string]: ESNamespace} = {};
 
-function processRawModule (module: ESObject, name: string): ESNamespace {
+export function processRawModule (module: ESObject, name: string): ESNamespace {
     const moduleDict: {[s: string]: ESSymbol} = {};
 
     const moduleRaw = module.valueOf();
@@ -25,6 +27,15 @@ function processRawModule (module: ESObject, name: string): ESNamespace {
 
 export function moduleExist (name: string) {
     return name in modules;
+}
+
+export function addModule (name: string, body: ESNamespace) {
+    modules[name] = {};
+    processedModules[name] = body;
+}
+
+export function addModuleFromObj (name: string, raw: {[s: string]: any}) {
+    addModule(name, processRawModule(<ESObject>ESPrimitive.wrap(raw), name));
 }
 
 export function getModule (name: string): ESNamespace | undefined {

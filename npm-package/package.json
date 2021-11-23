@@ -12,7 +12,9 @@
     },
     "type": "module",
     "bin": {
-        "entropy-script": "./bin/index.js"
+        "entropy-script": "./bin/index.js",
+        "jses": "./bin/index.js",
+        "espm": "./bin/espm.js"
     },
     "preferGlobal": true
 }

@@ -4,11 +4,11 @@ import { ESSymbol } from "../runtime/context.js";
 // make this only import required modules in the future
 import jsmaths from './built-in-modules/jsmaths.js';
 const modules = {
-    jsmaths,
+    jsmaths
 };
 // memoize the modules for faster access
 const processedModules = {};
-function processRawModule(module, name) {
+export function processRawModule(module, name) {
     const moduleDict = {};
     const moduleRaw = module.valueOf();
     for (const key in moduleRaw)
@@ -17,6 +17,13 @@ function processRawModule(module, name) {
 }
 export function moduleExist(name) {
     return name in modules;
+}
+export function addModule(name, body) {
+    modules[name] = {};
+    processedModules[name] = body;
+}
+export function addModuleFromObj(name, raw) {
+    addModule(name, processRawModule(ESPrimitive.wrap(raw), name));
 }
 export function getModule(name) {
     if (name in processedModules)

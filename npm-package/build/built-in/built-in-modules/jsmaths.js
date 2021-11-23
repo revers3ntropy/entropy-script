@@ -1,2 +1,1 @@
-const module = Math;
-export default module;
+const module=Math;export default module;
