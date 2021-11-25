@@ -12,16 +12,19 @@ import { timeData } from "./util/util";
 
 export function init (
     printFunc: (...args: any) => void = console.log,
-    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void, libs: string[]
+    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
 ) {
-    initialise(global, printFunc, inputFunc, libs);
+    initialise(global, printFunc, inputFunc);
 }
 
 export function run (msg: string, {
     env = global,
     measurePerformance = false,
-    fileName = '(unknown)'
+    fileName = '(unknown)',
+    currentDir='./'
 }={}): interpretResult | ({ timeData: timeData } & interpretResult) {
+
+    env.importPaths.push(currentDir);
 
     Node.maxTime = 0;
     Node.totalTime = 0;
@@ -76,6 +79,7 @@ export function run (msg: string, {
         res.val = new ESArray([]);
         return res;
     }
+
     const finalRes = res.node.interpret(env);
     timeData.interpretTotal = now() - start;
     timeData.total = now() - start;

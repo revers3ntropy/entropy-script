@@ -650,14 +650,8 @@ export class Parser {
     private bracesExp (): ParseResults {
         const res = new ParseResults();
 
-        if (this.currentToken.type !== tt.OBRACES) {
-            const expr = res.register(this.statement());
-            if (res.error) return res;
-            this.clearEndStatements(res);
-            return res.success(expr);
-        }
-        // clear brace
-        this.advance(res);
+        this.consume(res, tt.OBRACES);
+        if (res.error) return res;
 
         this.clearEndStatements(res);
 
@@ -669,14 +663,8 @@ export class Parser {
         const expr = res.register(this.statements());
         if (res.error) return res;
 
-        // @ts-ignore
-        if (this.currentToken.type !== tt.CBRACES)
-            return res.failure(new InvalidSyntaxError(
-                this.currentToken.startPos,
-                "Expected '}'"
-            ));
-
-        this.advance(res);
+        this.consume(res, tt.CBRACES);
+        if (res.error) return res;
 
         return res.success(expr);
     }
@@ -718,8 +706,13 @@ export class Parser {
         if (this.currentToken.matches(tt.KEYWORD, 'else')) {
             this.advance(res);
 
-            ifFalse = res.register(this.bracesExp());
-            if (res.error) return res;
+            if (this.currentToken.type == tt.OBRACES) {
+                ifFalse = res.register(this.bracesExp());
+                if (res.error) return res;
+            } else {
+                ifFalse = res.register(this.statement());
+                if (res.error) return res;
+            }
         }
 
         this.addEndStatement(res);
@@ -961,7 +954,6 @@ export class Parser {
         } else if (this.currentToken.matches(tt.KEYWORD, 'var') || this.currentToken.matches(tt.KEYWORD, 'let')) {
             this.advance(res);
         }
-
 
         // @ts-ignore - comparison again
         if (this.currentToken.type !== tt.IDENTIFIER)

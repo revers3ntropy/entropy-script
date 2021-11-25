@@ -121,9 +121,9 @@ export function expect(expected, from) {
         }
         let resVal = (_a = result.val) === null || _a === void 0 ? void 0 : _a.valueOf();
         if (result.error && Array.isArray(expected))
-            return new TestFailed(`Unexpected error encountered when running test. Expected '${expected}' but got error: 
+            return new TestFailed(`Unexpected error encountered when running test. Expected '${expected}' but got error:
 ${result.error.str}
-with code 
+with code
 '${from}'\n`);
         function test() {
             var _a, _b, _c;

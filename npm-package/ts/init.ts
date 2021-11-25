@@ -4,7 +4,7 @@ import { Context } from "./runtime/context.js";
 import { ESError, ImportError } from "./errors.js";
 import { Position } from "./position.js";
 import { run } from "./index.js";
-import {IS_NODE_INSTANCE, setNone} from "./constants.js";
+import {IS_NODE_INSTANCE} from "./constants.js";
 import { str } from "./util/util.js";
 import {ESFunction, ESNamespace, ESString, ESType, types} from './runtime/primitiveTypes.js';
 import {interpretResult} from "./runtime/nodes.js";
@@ -13,8 +13,7 @@ import {globalConstants} from "./built-in/globalConstants.js";
 export function initialise (
     globalContext: Context,
     printFunc: (...args: string[]) => void,
-    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void,
-    libs: string[] = []
+    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
 ) {
 
     builtInFunctions['import'] = [({context}, rawUrl, callback) => {
@@ -40,29 +39,29 @@ export function initialise (
 
                     if (!(callback instanceof ESFunction)) return;
 
-                    callback.__call__([
+                    callback.__call__({context},
                         new ESNamespace(url, env.getSymbolTableAsDict())
-                    ]);
+                    );
                 });
         } catch (E) {
             return new ESError(Position.unknown, 'ImportError', E.toString());
         }
     }, {}];
 
-    builtInFunctions['print'] = [async ({context}, ...args) => {
+    builtInFunctions['print'] = [({context}, ...args) => {
         let out = ``;
         for (let arg of args)
             out += str(arg);
         printFunc(out);
     }, {}];
 
-    builtInFunctions['input'] = [async ({context}, msg, cbRaw) => {
+    builtInFunctions['input'] = [({context}, msg, cbRaw) => {
         inputFunc(msg.valueOf(), (msg) => {
             let cb = cbRaw?.valueOf();
             if (cb instanceof ESFunction) {
-                let res = cb.__call__([
+                let res = cb.__call__({context},
                     new ESString(msg)
-                ]);
+                );
                 if (res instanceof ESError)
                     console.log(res.str);
             } else if (typeof cb === 'function')
@@ -92,16 +91,7 @@ export function initialise (
             global: true,
             isConstant: true
         });
-
-        if (constant === 'undefined')
-            setNone(value.valueOf());
     }
 
-    for (let lib of libs) {
-        // @ts-ignore
-        //builtInFunctions['import'](lib);
-    }
-
-    globalContext.libs = libs;
     globalContext.initialisedAsGlobal = true;
 }

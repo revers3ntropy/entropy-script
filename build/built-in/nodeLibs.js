@@ -34,9 +34,11 @@ function addNodeLibs(https_lib, http_lib, fs, mysql, context, print) {
         forceThroughConst: true,
         isConstant: true
     });
-    context.setOwn('open', new ESFunction((path_, encoding_) => {
-        const path = path_.valueOf();
-        const encoding = (encoding_ === null || encoding_ === void 0 ? void 0 : encoding_.valueOf()) || 'utf-8';
+    context.setOwn('open', new ESFunction(({ context }, path_, encoding_) => {
+        const path = str(path_);
+        const encoding = str(encoding_) || 'utf-8';
+        if (!fs.existsSync(path))
+            return new ImportError(Position.unknown, path);
         return new ESObject({
             str: new ESFunction(({ context }) => {
                 return new ESString(fs.readFileSync(path, encoding));

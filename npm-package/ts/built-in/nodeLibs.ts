@@ -49,7 +49,7 @@ function addNodeLibs (https_lib: any, http_lib: any, fs: any, mysql: any, contex
         const path = <string>path_.valueOf();
         const encoding = (<string>encoding_?.valueOf()) || 'utf-8';
         return new ESObject({
-            str: new ESFunction(() => {
+            str: new ESFunction(({context}) => {
                 return new ESString(fs.readFileSync(path, encoding));
             }, [], 'str', undefined, types.string),
             write: new ESFunction(({context}, data: Primitive) => {

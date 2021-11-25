@@ -20,10 +20,12 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 import {refreshPerformanceNow, runningInNode} from "./build/constants.js";
+import {ImportError} from './build/errors.js';
 runningInNode();
 await refreshPerformanceNow(true);
 
 import * as es from './build/index.js';
+import {Position} from './build/position.js';
 import {Test} from "./build/tests/testFramework.js";
 import {str} from "./build/util/util.js";
 import addNodeLibs from "./build/built-in/nodeLibs.js";
@@ -55,8 +57,7 @@ function askQuestion(query) {
 export async function init () {
 	es.init(
 		console.log,
-		async (msg, cb) => cb(await askQuestion(msg).catch(console.log)),
-		[]
+		async (msg, cb) => cb(await askQuestion(msg).catch(console.log))
 	);
 
 	addNodeLibs(https, http, fs, sql, global, console.log);
@@ -67,6 +68,10 @@ export async function init () {
  * @param {string} path
  */
 export function runScript (path) {
+	if (!fs.existsSync(path)) {
+		console.log(new ImportError(new Position(0, 0, 0, 'JSES-CLI'), path, `Can't find file`).str);
+		return;
+	}
 	let res = es.run(fs.readFileSync(path, 'utf-8'), {
 		fileName: path
 	});
@@ -102,7 +107,7 @@ export async function runTerminal () {
 
 	let out = res.val?.valueOf();
 
-	if (res.val === undefined) out = '--undefined--';
+	if (out === undefined) out = '--undefined--';
 	else if (out.length === 0) out = '';
 	else if (out.length === 1) out = out[0];
 	if (res.error)             out = res.error.str;

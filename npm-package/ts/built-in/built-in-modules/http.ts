@@ -65,7 +65,7 @@ export default function (https: any, http: any, fs: any, mysql: any, context: Co
                         context.parent = fn.__closure__;
                         context.set('body', new ESObject(body));
                         fn.__closure__ = context;
-                        const esRes = fn.__call__([]);
+                        const esRes = fn.__call__({context});
 
                         if (esRes instanceof ESError) {
                             print(esRes.str);

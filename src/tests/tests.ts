@@ -54,8 +54,9 @@ expect(['aa', 'bb', true, undefined, false], `
 let a = 'aa';
 let b = 'bb';
 let res = true;
-if (a == 'aa' && b != 'cc')
-    res = false;
+if a == 'aa' && b != 'cc' {    
+    res = false; 
+}
 res;
 `);
 
@@ -81,19 +82,30 @@ expect(['hello', 'hello world'], `
 
 // if
 expect([undefined], `
-    if (!true && 1 || 7 + 2) {
-        
-    } else {
-        
-    }
+    if !true && 1 || 7 + 2 {} else {}
+`);
+expect(['00', undefined], `
+    const current_char = '00';
+    if current_char == '>' {}
 `);
 expect([false, undefined, undefined, true], `
     var result = false;
     var output;
-    if result
+    if result {
         output = false;
-    else
+    } else {
         output = !result;
+    }
+    output;
+`);
+expect([false, undefined, undefined, true], `
+    var result = false;
+    var output;
+    if result {
+        output = false;
+    } else if false {
+        output = !result;
+    }
     output;
 `);
 expect([undefined, undefined, false], `
@@ -121,8 +133,9 @@ expect([undefined, 0, undefined, 9, 10], `
 `);
 expect([0, undefined, 10], `
     var i = 0;
-    while (i < 10)
+    while i < 10 {
         i = i + 1;
+    }
     i;
 `);
 
@@ -179,8 +192,6 @@ expect([{a:1}, 2], `
     n = {a: 1};
     n.a += 1;
 `);
-
-
 expect('TypeError', `
     n = 0;
     n.n = 1;
@@ -283,8 +294,7 @@ myFunc(func () {
 // recursion
 expect(['<Func: myFunc>', 3], `
 var myFunc = func (n) {
-    if (n < 4)
-        return n;
+    if n < 4 { return n }
     return myFunc(n-1);
 };
 myFunc(10);
@@ -831,4 +841,23 @@ expect([{myClass: '<Symbol: myClass>', myFunc: '<Symbol: myFunc>', a: '<Symbol: 
     let const instance: myType = MyLib.myClass();
     MyLib.myFunc(instance);
     MyLib.a;
+`);
+
+expect([undefined, 1], `
+    using(namespace {
+        mutable a: number = 1;
+    });
+    a;
+`);
+
+expect ('InvalidSyntaxError', `
+    for (let i in 3)
+        let output = i;
+`);
+expect ('InvalidSyntaxError', `
+    for (let i in 3) {}
+`);
+expect ('InvalidSyntaxError', `
+    while (1)
+        output = i;
 `);

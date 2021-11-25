@@ -232,7 +232,7 @@ export class Parser {
                 node.assignType = assignType;
             }
             else {
-                return res.failure(new InvalidSyntaxError(startPos, `Cannot have node of type ${this.currentToken.constructor.name}. 
+                return res.failure(new InvalidSyntaxError(startPos, `Cannot have node of type ${this.currentToken.constructor.name}.
                             Expected either index or variable node.`));
             }
             if (res.error)
@@ -453,15 +453,9 @@ export class Parser {
     }
     bracesExp() {
         const res = new ParseResults();
-        if (this.currentToken.type !== tt.OBRACES) {
-            const expr = res.register(this.statement());
-            if (res.error)
-                return res;
-            this.clearEndStatements(res);
-            return res.success(expr);
-        }
-        // clear brace
-        this.advance(res);
+        this.consume(res, tt.OBRACES);
+        if (res.error)
+            return res;
         this.clearEndStatements(res);
         // @ts-ignore
         if (this.currentToken.type === tt.CBRACES) {
@@ -471,10 +465,9 @@ export class Parser {
         const expr = res.register(this.statements());
         if (res.error)
             return res;
-        // @ts-ignore
-        if (this.currentToken.type !== tt.CBRACES)
-            return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected '}'"));
-        this.advance(res);
+        this.consume(res, tt.CBRACES);
+        if (res.error)
+            return res;
         return res.success(expr);
     }
     addEndStatement(res) {
@@ -500,9 +493,16 @@ export class Parser {
         this.clearEndStatements(res);
         if (this.currentToken.matches(tt.KEYWORD, 'else')) {
             this.advance(res);
-            ifFalse = res.register(this.bracesExp());
-            if (res.error)
-                return res;
+            if (this.currentToken.type == tt.OBRACES) {
+                ifFalse = res.register(this.bracesExp());
+                if (res.error)
+                    return res;
+            }
+            else {
+                ifFalse = res.register(this.statement());
+                if (res.error)
+                    return res;
+            }
         }
         this.addEndStatement(res);
         return res.success(new n.N_if(startPos, condition, ifTrue, ifFalse));
@@ -620,7 +620,7 @@ export class Parser {
         const res = new ParseResults();
         const startPos = this.currentToken.startPos;
         const methods = [];
-        let init = undefined;
+        let init;
         let extends_;
         if (!this.currentToken.matches(tt.KEYWORD, 'class'))
             return res.failure(new InvalidSyntaxError(this.currentToken.startPos, "Expected 'class'"));

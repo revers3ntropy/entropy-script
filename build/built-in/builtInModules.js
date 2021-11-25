@@ -3,8 +3,9 @@ import { ESSymbol } from "../runtime/context.js";
 // All modules
 // make this only import required modules in the future
 import jsmaths from './built-in-modules/jsmaths.js';
+import ascii from './built-in-modules/ascii.js';
 const modules = {
-    jsmaths
+    jsmaths, ascii
 };
 // memoize the modules for faster access
 const processedModules = {};

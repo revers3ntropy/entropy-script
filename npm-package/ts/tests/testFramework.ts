@@ -146,7 +146,8 @@ export function expect(expected: any[] | string, from: string) {
         let result: interpretResult | ({ timeData: timeData; } & interpretResult);
         try {
             result = run(from, {
-                env
+                env,
+                fileName: 'TEST_ENV'
             });
         } catch (e) {
             return new TestFailed(`Tried to run, but got error: ${e}. With code: ${from}`);

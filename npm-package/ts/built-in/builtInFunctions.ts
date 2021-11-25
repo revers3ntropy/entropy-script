@@ -5,9 +5,8 @@ import {
     ESNumber,
     ESObject,
     ESPrimitive,
-    ESString, ESUndefined,
+    ESString,
     FunctionInfo,
-    Primitive,
 } from '../runtime/primitiveTypes.js';
 import {BuiltInFunction, indent, sleep, str} from '../util/util.js';
 
@@ -28,7 +27,7 @@ export const builtInFunctions: {[n: string]: [BuiltInFunction, FunctionInfo]} = 
            name: 'N',
            type: 'Number',
        }],
-        description: 'Generates an array of integers given N. Starts at 0 and goes to N-1. Can be used like for (i in range(10)) ..., similarly to python.',
+        description: 'Generates an array of integers given N. Starts at 0 and goes to N-1. Can be used like for i in range(10) ..., similarly to python.',
         returns: 'array of numbers from 0 to N-1',
         returnType: 'number[] | RangeError'
     }],
@@ -211,7 +210,7 @@ Try 'help(object)' for help about a particular object.
 
         sleep(time.valueOf())
             .then(() => {
-                const res = cb.__call__([]);
+                const res = cb.__call__({context});
                 if (res instanceof ESError)
                     console.log(res.str);
             });

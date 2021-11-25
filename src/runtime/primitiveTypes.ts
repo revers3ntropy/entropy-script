@@ -10,7 +10,6 @@ export type typeName = 'Undefined' | 'String' | 'Array' | 'Number' | 'Any' | 'Fu
 export type Primitive = ESPrimitive<any> | ESString | ESType | ESNumber | ESUndefined | ESBoolean | ESArray | ESObject | ESFunction | ESErrorPrimitive;
 
 export type Info = PrimitiveInfo & FunctionInfo & ObjectInfo;
-
 export interface PrimitiveInfo {
     name?: string;
     description?: string;
@@ -18,7 +17,6 @@ export interface PrimitiveInfo {
     helpLink?: string;
     isBuiltIn?: boolean;
 }
-
 export interface argInfo {
     name?: string;
     type?: string;
@@ -26,13 +24,11 @@ export interface argInfo {
     required?: boolean;
     defaultValue?: string;
 }
-
 export interface FunctionInfo extends PrimitiveInfo {
     args?: argInfo[];
     returns?: string;
     returnType?: string;
 }
-
 export interface ObjectInfo extends PrimitiveInfo {
     contents?: Info[];
 }
