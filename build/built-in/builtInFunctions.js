@@ -1,6 +1,6 @@
 import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
-import { ESArray, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, } from '../runtime/primitiveTypes.js';
+import { ESArray, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString } from '../runtime/primitiveTypes.js';
 import { indent, sleep, str } from '../util/util.js';
 export const builtInFunctions = {
     'range': [({ context }, num) => {
@@ -61,6 +61,10 @@ Try 'help(object)' for help about a particular object.
 `);
             let out = '';
             for (const thing of things) {
+                if (!(thing instanceof ESPrimitive)) {
+                    console.log('Invalid arg not primitive: ' + str(thing));
+                    return;
+                }
                 const info = thing.info;
                 out += `${`Help on '${info.name || '(anonymous)'.yellow}'`.yellow}:
     

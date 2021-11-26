@@ -47,7 +47,12 @@ export class ESPrimitive {
         if (thing instanceof ESSymbol)
             return thing.value;
         if (typeof thing == 'function')
-            return new ESFunction(thing);
+            return new ESFunction((p, ...args) => {
+                const res = thing(p, ...args);
+                if (res instanceof ESError || res instanceof ESPrimitive)
+                    return res;
+                ESPrimitive.wrap(res);
+            });
         if (typeof thing === 'number')
             return new ESNumber(thing);
         if (typeof thing === 'string')
@@ -418,9 +423,9 @@ export class ESFunction extends ESPrimitive {
                 const res = fn({
                     context
                 }, ...params);
-                if (res instanceof ESError)
+                if (res instanceof ESError || res instanceof ESPrimitive)
                     return res;
-                return ESPrimitive.wrap(res);
+                return new ESUndefined();
             }
             else
                 return new TypeError(Position.unknown, 'function', typeof fn);

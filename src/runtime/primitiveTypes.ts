@@ -125,7 +125,14 @@ export abstract class ESPrimitive <T> {
             return thing.value;
 
         if (typeof thing == 'function')
-            return new ESFunction(thing);
+            return new ESFunction(
+                (p, ...args: Primitive[]) => {
+                    const res = thing(p, ...args);
+                    if (res instanceof ESError || res instanceof ESPrimitive)
+                        return res;
+                    ESPrimitive.wrap(res);
+                }
+            );
         if (typeof thing === 'number')
             return new ESNumber(thing);
         if (typeof thing === 'string')
@@ -637,8 +644,8 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             const res = fn({
                 context
             }, ...params);
-            if (res instanceof ESError) return res;
-            return ESPrimitive.wrap(res);
+            if (res instanceof ESError || res instanceof ESPrimitive) return res;
+            return new ESUndefined();
 
         } else
             return new TypeError(Position.unknown,'function', typeof fn);

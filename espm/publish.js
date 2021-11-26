@@ -1,7 +1,10 @@
-import {readConfig, __dirname, deleteRecursively} from './util.js';
+import {readConfig, deleteRecursively} from './util.js';
 import * as fs from 'fs';
 import ncp from 'ncp';
 import archiver from 'archiver';
+import request from 'request';
+
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 
 export default async function () {
     const config = readConfig();
@@ -33,7 +36,7 @@ export default async function () {
             if (new RegExp(`${process.cwd()}\/${TEMP_PATH}`).test(name))
                 return false;
             if (!exclude) return true;
-            return new RegExp(exclude).test(name);
+            return !((new RegExp(exclude)).test(name));
         }
     }, async (err) => {
         if (err) {
@@ -41,7 +44,7 @@ export default async function () {
             fs.rmdirSync(TEMP_PATH, {recursive: true});
             return;
         }
-        console.log('...');
+        console.log('Compressing...');
 
         // zipping
 
@@ -52,11 +55,34 @@ export default async function () {
 
         output.on('close',  () => {
             console.log('Particle has been compressed.');
-            console.log(`Particle compressed size: ${archive.pointer()/1_000_000}MB`);
+            const mb = archive.pointer()/1_000_000;
+            console.log(`Particle compressed size: ${mb.toFixed(2)}MB`);
 
             if (!deleteRecursively(TEMP_PATH)) {
                 console.log('Error removing temp folder, may have to delete manually');
             }
+
+            console.log('Uploading....');
+            // upload file to server
+
+            request.post(
+                {
+                    url: 'https://entropygames.io/entropy-script/pm/publish.php',
+                    headers: {'Content-Type':'multipart/form-data'},
+                    formData: {
+                        particleToUpload: fs.createReadStream(config.name+'.zip'),
+                    }
+                }, (err, httpResponse, body) => {
+                    fs.rmSync(config.name+'.zip');
+                    if (err) {
+                        console.log(`Error uploading particle: ${err}`);
+                    } else {
+                        if (body == '1')
+                            console.log('Uploaded Successfully!');
+                        else
+                            console.log(`Error uploading particle: ${body}`);
+                    }
+                });
         });
 
         archive.on('error', err => {
@@ -69,7 +95,6 @@ export default async function () {
         archive.directory(TEMP_PATH, false);
 
         archive.finalize();
+
     });
-
-
 }

@@ -87,7 +87,7 @@ expect([false, undefined, undefined, true], `
     var output;
     if result {
         output = false;
-    } else if false {
+    } else if 1 != 6 {
         output = !result;
     }
     output;
@@ -214,7 +214,7 @@ expect([undefined, 0, undefined, 0, 1], `
     var output;
     var i_ = 0;
     for i in range(3) {
-        if i == 1 break;
+        if i == 1 { break }
         output = i;
         i_ = i_ + 1;
     }
@@ -225,16 +225,12 @@ expect([undefined, 0, undefined, 2, 2], `
     var output;
     var i_ = 0;
     for i in range(3) {
-        if (i == 1) continue;
+        if i == 1 { continue }
         output = i;
         i_ = i_ + 1;
     }
     output;
     i_;
-`);
-// run built in functions
-expect([undefined], `
-    log('testing logging function');
 `);
 // range
 expect([[0, 1, 2]], 'range(3)');

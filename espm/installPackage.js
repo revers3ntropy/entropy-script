@@ -55,12 +55,10 @@ export default async function (packageName) {
 
     // unzip the file
 
-    if (fs.existsSync(PACKAGE_DIR_NAME + '/' + packageName)) {
-        fs.rmSync(PACKAGE_DIR_NAME + '/' + packageName);
-    }
-
     const zip = new admZip(localTempPath);
-    zip.extractAllTo(PACKAGE_DIR_NAME, true);
+    if (!fs.existsSync(PACKAGE_DIR_NAME + '/' + packageName))
+        fs.mkdirSync(PACKAGE_DIR_NAME + '/' + packageName);
+    zip.extractAllTo(PACKAGE_DIR_NAME + '/' + packageName, true);
 
     console.log(`Particle '${packageName}' unzipped`);
 

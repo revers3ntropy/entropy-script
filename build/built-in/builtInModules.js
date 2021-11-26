@@ -2,10 +2,10 @@ import { ESNamespace, ESObject, ESPrimitive, ESString } from '../runtime/primiti
 import { ESSymbol } from "../runtime/context.js";
 // All modules
 // make this only import required modules in the future
-import jsmaths from './built-in-modules/jsmaths.js';
+import maths from './built-in-modules/maths.js';
 import ascii from './built-in-modules/ascii.js';
 const modules = {
-    jsmaths, ascii
+    maths, ascii
 };
 // memoize the modules for faster access
 const processedModules = {};
