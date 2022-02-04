@@ -1,6 +1,9 @@
 import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+
+// CONSTANTS
+
+export const PACKAGE_DIR_NAME = 'particles';
+export const CONFIG_FILE_NAME = 'particle.json';
 
 /**
  * Matches version numbers like 1.0.0 and 2.17.8
@@ -30,7 +33,12 @@ export function deleteRecursively (path) {
     return true;
 }
 
-export function readConfig () {
+/**
+ *
+ * @param {string} dir=''
+ * @returns config
+ */
+export function readConfig (dir='') {
     // defaults
     let config = {
         name: "",
@@ -38,36 +46,30 @@ export function readConfig () {
         exclude: "",
     };
 
-    if (!fs.existsSync(CONFIG_FILE_NAME)) {
-        fs.appendFileSync(CONFIG_FILE_NAME, '{}');
+    dir += CONFIG_FILE_NAME
+
+    if (!fs.existsSync(dir)) {
+        fs.appendFileSync(dir, '{}');
     }
 
     try {
         config = {
             ...config,
-            ...JSON.parse(fs.readFileSync(CONFIG_FILE_NAME))
+            ...JSON.parse(fs.readFileSync(dir))
         };
     } catch (e) {
-        console.log(`Cannot parse ${CONFIG_FILE_NAME}: ${e}`);
+        console.log(`Cannot parse ${dir}: ${e}`);
     }
 
     return config;
 }
 
 /**
- *
+ * @param {string} dir=''
  * @param {CallableFunction} callback - takes and returns object of config value
  */
-export function editConfig (callback) {
-    const value = callback(readConfig());
+export function editConfig (callback, dir='') {
+    const value = callback(readConfig(dir));
     if (!value) return;
     fs.writeFileSync(CONFIG_FILE_NAME, JSON.stringify(value, null, 2));
 }
-
-// CONSTANTS
-
-export const PACKAGE_DIR_NAME = 'particles';
-export const CONFIG_FILE_NAME = 'particle.json';
-
-export const __filename = fileURLToPath(import.meta.url);
-export const __dirname = dirname(__filename);

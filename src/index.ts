@@ -2,18 +2,20 @@ import './util/colourString.js';
 
 import { Lexer } from "./tokenise/lexer.js";
 import { Parser } from "./parse/parser.js";
-import { global, now } from "./constants.js";
+import { global, now, setGlobalContext } from "./constants.js";
 import { initialise } from "./init.js";
 import { ESError } from "./errors.js";
 import { Position } from "./position.js";
 import { interpretResult, Node } from "./runtime/nodes.js";
 import { ESArray } from "./runtime/primitiveTypes.js";
-import { timeData } from "./util/util";
+import { timeData } from "./util/util.js";
+import { Context } from "./runtime/context.js";
 
 export function init (
     printFunc: (...args: any) => void = console.log,
     inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
 ) {
+    setGlobalContext(new Context());
     initialise(global, printFunc, inputFunc);
 }
 
@@ -22,7 +24,7 @@ export function run (msg: string, {
     measurePerformance = false,
     fileName = '(unknown)',
     currentDir='./'
-}={}): interpretResult | ({ timeData: timeData } & interpretResult) {
+} = {}): interpretResult | ({ timeData: timeData } & interpretResult) {
 
     env.importPaths.push(currentDir);
 
@@ -89,8 +91,9 @@ export function run (msg: string, {
     timeData.nodeAvg = Node.totalTime / Node.interprets;
     timeData.interprets = Node.interprets;
 
-    if (measurePerformance)
+    if (measurePerformance) {
         console.log(timeData);
+    }
 
     return {...finalRes, timeData};
 }

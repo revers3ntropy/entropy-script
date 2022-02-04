@@ -7,11 +7,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { Context } from "./runtime/context.js";
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const singleLineComment = '//';
-export const global = new Context();
+export let global;
+export const setGlobalContext = (c) => void (global = c);
 export const stringSurrounds = ['\'', '`', '"'];
 export let IS_NODE_INSTANCE = false;
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);

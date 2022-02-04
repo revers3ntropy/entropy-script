@@ -7,16 +7,27 @@ import { run } from "../index.js";
 import { addModuleFromObj, getModule, moduleExist } from './builtInModules.js';
 // node only built in modules
 import http from './built-in-modules/http.js';
-function addNodeLibs(https_lib, http_lib, fs, mysql, context, print) {
-    addModuleFromObj('http', http(https_lib, http_lib, fs, mysql, context, print));
+import MySQL from './built-in-modules/mysql.js';
+/**
+ * Adds node functionality like access to files, https and more.
+ * @param {JSModuleParams} options
+ */
+function addNodeLibs(options) {
+    addModuleFromObj('http', http(options));
+    addModuleFromObj('mysql', MySQL(options));
+    const { context, fs } = options;
     context.set('import', new ESFunction(({ context }, rawPath) => {
         let path = str(rawPath);
         if (moduleExist(path))
             return getModule(path);
         try {
             if (!fs.existsSync(path)) {
-                if (fs.existsSync('./particles/' + path))
-                    path = 'particles/' + path + '/main.es';
+                if (fs.existsSync('./particles/' + path)) {
+                    if (fs.existsSync('particles/' + path + '/main.es'))
+                        path = 'particles/' + path + '/main.es';
+                    else
+                        return new ESError(Position.unknown, 'ImportError', `Module '${path}' has no entry point. Requires 'main.es'.`);
+                }
                 else
                     return new ESError(Position.unknown, 'ImportError', `Can't find file '${path}' to import.`);
             }

@@ -2,8 +2,9 @@ import {TypeError} from '../../errors.js';
 import {Position} from '../../position.js';
 import { ESNumber, ESString, Primitive} from '../../runtime/primitiveTypes.js';
 import {str} from '../../util/util.js';
+import type {JSModule} from './module.js';
 
-const module = {
+const module: JSModule = {
     asciiToChar:({}, number: Primitive) => {
         if (!(number instanceof ESNumber))
             return new TypeError(Position.unknown, 'number', str(number.typeOf()), str(number));

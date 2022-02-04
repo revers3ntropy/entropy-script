@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import request from 'request';
 import urlExist from 'url-exist';
 import admZip from 'adm-zip';
+import {installListOfDeps} from './install.js';
 import {editConfig, PACKAGE_DIR_NAME} from './util.js';
 
 /**
@@ -33,12 +34,15 @@ export function addPackageToConfig (packageName) {
 
 /**
  * Downloads package. Assumed that the package exists at the url:
- *  http://entropygames.io/entropy-script/pm/particles/${packageName}.zip
+ *  http://entropygames.io/entropy-script/pm/particles/{packageName}.zip
  * and that the particles root dir exists
  * @param {string} packageName
  * @returns {Promise<boolean>} success
  */
 export default async function (packageName) {
+    if (fs.existsSync(PACKAGE_DIR_NAME + '/' + packageName))
+        return true;
+
     const url = `http://entropygames.io/entropy-script/pm/particles/${packageName}.zip`;
     const localTempPath = `tmp-${packageName}.zip`;
 
@@ -64,5 +68,38 @@ export default async function (packageName) {
 
     fs.rmSync(localTempPath);
 
-    return true;
+    // install dependencies for newly installed particle
+    if (!fs.existsSync(PACKAGE_DIR_NAME + '/' + packageName + '/particle.json')) {
+        console.log(`Error installing dependencies for particle '${packageName}': particle.json not found.`);
+        return false;
+    }
+
+    return await new Promise(async resolve => {
+        editConfig(async config => {
+
+            let packages = config['bonds'];
+
+            if (!Array.isArray(packages)) {
+                config['bonds'] = [];
+                packages = [];
+            }
+
+            if (!packages.length) {
+                resolve();
+                return config;
+            }
+
+            const idx = packages.indexOf(config.name);
+            if (idx !== -1) {
+                packages.splice(idx, 1);
+            }
+
+            console.log(`Installing dependencies of ${packageName}...`);
+
+            await installListOfDeps(packages);
+
+            resolve();
+            return config;
+        }, PACKAGE_DIR_NAME + '/' + packageName + '/');
+    });
 }

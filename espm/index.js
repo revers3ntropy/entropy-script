@@ -5,7 +5,7 @@ import {existsSync, mkdirSync} from 'fs';
 
 function logWelcome () {
     console.log(`
-Welcome to the Entropy Script Package Manager.
+Welcome to the Entropy Script Particle Manager.
 See https://entropygames.io/entropy-script/pm for more information.
     
     Start by typing 'espm init' or 'espm install'

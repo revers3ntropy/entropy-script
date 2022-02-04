@@ -107,6 +107,12 @@ export class ESType extends ESPrimitive {
             var _b;
             return new ESType(this.__isPrimitive__, this.__name__, this.__methods__.map(f => f.clone()), this.__extends__, (_b = this.__init__) === null || _b === void 0 ? void 0 : _b.clone());
         };
+        this.isa = ({}, type) => {
+            return new ESBoolean(type === types.type);
+        };
+        this.cast = ({}, type) => {
+            return this;
+        };
         this.includesType = ({ context }, t) => {
             var _b, _c, _d, _e, _f, _g;
             if (this.equals({ context }, types.any).valueOf() === true ||
@@ -236,6 +242,21 @@ export class ESType extends ESPrimitive {
 export class ESNumber extends ESPrimitive {
     constructor(value = 0) {
         super(value, types.number);
+        this.isa = ({}, type) => {
+            return new ESBoolean(type === types.number);
+        };
+        this.cast = ({}, type) => {
+            switch (type) {
+                case types.number:
+                    return this;
+                case types.string:
+                    return this.str();
+                case types.array:
+                    return new ESArray(new Array(this.valueOf()));
+                default:
+                    return new ESError(Position.unknown, 'TypeError', `Cannot cast to type '${str(type.typeOf())}'`);
+            }
+        };
         this.str = () => new ESString(this.valueOf().toString());
         this.__add__ = ({}, n) => {
             if (!(n instanceof ESNumber))
@@ -287,6 +308,24 @@ export class ESString extends ESPrimitive {
     constructor(value = '') {
         super(value, types.string);
         this.str = () => this;
+        this.isa = ({}, type) => {
+            return new ESBoolean(type === types.string);
+        };
+        this.cast = ({}, type) => {
+            switch (type) {
+                case types.number:
+                    const num = parseFloat(this.valueOf());
+                    if (isNaN(num))
+                        return new ESError(Position.unknown, 'TypeError', `This string is not a valid number`);
+                    return new ESNumber(num);
+                case types.string:
+                    return this;
+                case types.array:
+                    return new ESArray(this.valueOf().split('').map(s => new ESString(s)));
+                default:
+                    return new ESError(Position.unknown, 'TypeError', `Cannot cast to type '${str(type.typeOf())}'`);
+            }
+        };
         this.__add__ = ({}, n) => {
             if (!(n instanceof ESString))
                 return new TypeError(Position.unknown, 'String', n.typeOf().valueOf(), n.valueOf());
@@ -350,6 +389,36 @@ export class ESString extends ESPrimitive {
 export class ESUndefined extends ESPrimitive {
     constructor() {
         super(undefined, types.undefined);
+        this.isa = ({}, type) => {
+            return new ESBoolean(type === types.string);
+        };
+        this.cast = ({ context }, type) => {
+            switch (type) {
+                case types.number:
+                    return new ESNumber();
+                case types.string:
+                    return new ESString();
+                case types.array:
+                    return new ESArray();
+                case types.undefined:
+                    return new ESUndefined();
+                case types.type:
+                    return new ESType();
+                case types.error:
+                    return new ESErrorPrimitive();
+                case types.object:
+                case types.any:
+                    return new ESObject();
+                case types.function:
+                    return new ESFunction(() => { });
+                case types.boolean:
+                    return new ESBoolean();
+                default:
+                    if (!(type instanceof ESType))
+                        return new ESError(Position.unknown, 'TypeError', `Cannot cast to type '${str(type.typeOf())}'`);
+                    return type.__call__({ context });
+            }
+        };
         this.str = () => new ESString('<Undefined>');
         this.__eq__ = ({}, n) => new ESBoolean(n instanceof ESUndefined || typeof n === 'undefined' || typeof n.valueOf() === 'undefined');
         this.__bool__ = () => new ESBoolean(false);
@@ -366,6 +435,12 @@ export class ESUndefined extends ESPrimitive {
 export class ESErrorPrimitive extends ESPrimitive {
     constructor(error = new ESError(Position.unknown, 'Unknown', 'error type not specified')) {
         super(error, types.error);
+        this.isa = ({}, type) => {
+            return new ESBoolean(type === types.error);
+        };
+        this.cast = ({}) => {
+            return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'error'`);
+        };
         this.str = () => new ESString(`<Error: ${this.valueOf().str}>`);
         this.__eq__ = ({}, n) => new ESBoolean(n instanceof ESErrorPrimitive && this.valueOf().constructor === n.valueOf().constructor);
         this.__bool__ = () => new ESBoolean(true);
@@ -375,6 +450,12 @@ export class ESErrorPrimitive extends ESPrimitive {
 export class ESFunction extends ESPrimitive {
     constructor(func = (() => { }), arguments_ = [], name = '(anonymous)', this_ = new ESObject(), returnType = types.any, closure = global) {
         super(func, types.function);
+        this.isa = ({}, type) => {
+            return new ESBoolean(type === types.function);
+        };
+        this.cast = ({}, type) => {
+            return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'function'`);
+        };
         this.clone = () => {
             return new ESFunction(this.__value__, this.arguments_, this.name, this.this_, this.returnType, this.__closure__);
         };
@@ -455,6 +536,17 @@ export class ESFunction extends ESPrimitive {
 export class ESBoolean extends ESPrimitive {
     constructor(val = false) {
         super(!!val, types.bool);
+        this.isa = ({}, type) => {
+            return new ESBoolean(type === types.string);
+        };
+        this.cast = ({}, type) => {
+            switch (type) {
+                case types.number:
+                    return new ESNumber(this.valueOf() ? 1 : 0);
+                default:
+                    return new ESError(Position.unknown, 'TypeError', `Cannot cast boolean to type '${str(type.typeOf())}'`);
+            }
+        };
         this.__eq__ = ({}, n) => {
             if (!(n instanceof ESBoolean))
                 return new TypeError(Position.unknown, 'Boolean', n.typeOf().str().valueOf(), n.valueOf());
@@ -481,6 +573,21 @@ export class ESBoolean extends ESPrimitive {
 export class ESObject extends ESPrimitive {
     constructor(val = {}) {
         super(val, types.object);
+        this.isa = ({ context }, type) => {
+            if (type === types.object)
+                return new ESBoolean(true);
+            if (!(type instanceof ESType))
+                return new TypeError(Position.unknown, 'TypeError', 'type', str(type.typeOf()), str(type));
+            return this.__type__.includesType({ context }, type);
+        };
+        this.cast = ({}, type) => {
+            switch (type) {
+                case types.number:
+                    return new ESNumber(this.valueOf() ? 1 : 0);
+                default:
+                    return new ESError(Position.unknown, 'TypeError', `Cannot cast boolean to type '${str(type.typeOf())}'`);
+            }
+        };
         this.str = () => {
             let val = str(this.valueOf());
             // remove trailing new line
@@ -527,6 +634,19 @@ export class ESObject extends ESPrimitive {
 export class ESArray extends ESPrimitive {
     constructor(values = []) {
         super(values, types.array);
+        this.isa = ({}, type) => {
+            return new ESBoolean(type === types.array);
+        };
+        this.cast = ({}, type) => {
+            switch (type) {
+                case types.number:
+                    return new ESNumber(this.len);
+                case types.boolean:
+                    return this.bool();
+                default:
+                    return new ESError(Position.unknown, 'TypeError', `Cannot cast boolean to type '${str(type.typeOf())}'`);
+            }
+        };
         this.str = () => new ESString(str(this.valueOf()));
         this.__eq__ = ({}, n) => {
             if (!(n instanceof ESArray))
@@ -587,6 +707,12 @@ export class ESArray extends ESPrimitive {
 export class ESNamespace extends ESPrimitive {
     constructor(name, value, mutable = false) {
         super(value, types.object);
+        this.isa = ({}, type) => {
+            return new ESBoolean(type === types.object);
+        };
+        this.cast = ({}) => {
+            return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'namespace'`);
+        };
         this.clone = () => {
             let obj = {};
             let toClone = this.valueOf();
@@ -666,7 +792,7 @@ types.any.info = {
 };
 types.number.info = {
     name: 'any',
-    description: 'The ES Number type. Is a a double-precision 64-bit binary format IEEE 754 value, like double in Java and c#',
+    description: 'The ES Number type. Is a a double-precision 64-bit binary format IEEE 754 value, like double in Java and C#',
     file: 'built-in',
     isBuiltIn: true
 };

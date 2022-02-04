@@ -6,9 +6,9 @@ import { Position } from "./position.js";
 import { run } from "./index.js";
 import {IS_NODE_INSTANCE} from "./constants.js";
 import { str } from "./util/util.js";
-import {ESFunction, ESNamespace, ESString, ESType, types} from './runtime/primitiveTypes.js';
+import {ESFunction, ESNamespace, ESString} from './runtime/primitiveTypes.js';
 import {interpretResult} from "./runtime/nodes.js";
-import {globalConstants} from "./built-in/globalConstants.js";
+import loadGlobalConstants from "./built-in/globalConstants.js";
 
 export function initialise (
     globalContext: Context,
@@ -43,7 +43,7 @@ export function initialise (
                         new ESNamespace(url, env.getSymbolTableAsDict())
                     );
                 });
-        } catch (E) {
+        } catch (E: any) {
             return new ESError(Position.unknown, 'ImportError', E.toString());
         }
     }, {}];
@@ -85,13 +85,7 @@ export function initialise (
         });
     }
 
-    for (let constant in globalConstants) {
-        const value = globalConstants[constant];
-        globalContext.set(constant, value, {
-            global: true,
-            isConstant: true
-        });
-    }
+    loadGlobalConstants(globalContext);
 
     globalContext.initialisedAsGlobal = true;
 }

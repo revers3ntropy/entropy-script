@@ -1,10 +1,10 @@
-import Module from 'module.js';
+import type {JSModule} from 'module.js';
 import {Position} from '../../position.js';
 import {ESNumber} from '../../runtime/primitiveTypes.js';
 import {TypeError} from '../../errors.js';
 import {str} from '../../util/util.js';
 
-const module: Module = {
+const module: JSModule = {
     E: Math.E,
     LN10: Math.LN10,
     LN2: Math.LN2,

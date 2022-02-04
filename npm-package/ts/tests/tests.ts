@@ -54,8 +54,9 @@ expect(['aa', 'bb', true, undefined, false], `
 let a = 'aa';
 let b = 'bb';
 let res = true;
-if (a == 'aa' && b != 'cc')
-    res = false;
+if a == 'aa' && b != 'cc' {    
+    res = false; 
+}
 res;
 `);
 
@@ -81,19 +82,30 @@ expect(['hello', 'hello world'], `
 
 // if
 expect([undefined], `
-    if (!true && 1 || 7 + 2) {
-        
-    } else {
-        
-    }
+    if !true && 1 || 7 + 2 {} else {}
+`);
+expect(['00', undefined], `
+    const current_char = '00';
+    if current_char == '>' {}
 `);
 expect([false, undefined, undefined, true], `
     var result = false;
     var output;
-    if result
+    if result {
         output = false;
-    else
+    } else {
         output = !result;
+    }
+    output;
+`);
+expect([false, undefined, undefined, true], `
+    var result = false;
+    var output;
+    if result {
+        output = false;
+    } else if 1 != 6 {
+        output = !result;
+    }
     output;
 `);
 expect([undefined, undefined, false], `
@@ -121,8 +133,9 @@ expect([undefined, 0, undefined, 9, 10], `
 `);
 expect([0, undefined, 10], `
     var i = 0;
-    while (i < 10)
+    while i < 10 {
         i = i + 1;
+    }
     i;
 `);
 
@@ -179,8 +192,6 @@ expect([{a:1}, 2], `
     n = {a: 1};
     n.a += 1;
 `);
-
-
 expect('TypeError', `
     n = 0;
     n.n = 1;
@@ -220,21 +231,13 @@ expect ([undefined, undefined, 2], `
     }
     output;
 `);
-expect ('InvalidSyntaxError', `
-    for (i in 3)
-        output = i;
-`);
-expect ('InvalidSyntaxError', `
-    while (1)
-        output = i;
-`);
 
 // break & continue
 expect ([undefined, 0, undefined, 0, 1], `
     var output;
     var i_ = 0;
     for i in range(3) {
-        if i == 1 break;
+        if i == 1 { break }
         output = i;
         i_ = i_ + 1;
     }
@@ -245,18 +248,12 @@ expect ([undefined, 0,  undefined, 2, 2], `
     var output;
     var i_ = 0;
     for i in range(3) {
-        if (i == 1) continue;
+        if i == 1 { continue }
         output = i;
         i_ = i_ + 1;
     }
     output;
     i_;
-`);
-
-
-// run built in functions
-expect ([undefined], `
-    log('testing logging function');
 `);
 
 // range
@@ -291,8 +288,7 @@ myFunc(func () {
 // recursion
 expect(['<Func: myFunc>', 3], `
 var myFunc = func (n) {
-    if (n < 4)
-        return n;
+    if n < 4 { return n }
     return myFunc(n-1);
 };
 myFunc(10);
@@ -369,7 +365,7 @@ myFunc([0, 1, 2, 3]);
 expect(['<Func: myFunc>', 3], `
 var myFunc = func (arr, cb) {
     for var n in arr {
-        if cb(n) {
+        if (cb(n)) {
             return n;
         }
     }
@@ -843,7 +839,19 @@ expect([{myClass: '<Symbol: myClass>', myFunc: '<Symbol: myFunc>', a: '<Symbol: 
 
 expect([undefined, 1], `
     using(namespace {
-        mutable a: number = 0;
+        mutable a: number = 1;
     });
     a;
+`);
+
+expect ('InvalidSyntaxError', `
+    for (let i in 3)
+        let output = i;
+`);
+expect ('InvalidSyntaxError', `
+    for (let i in 3) {}
+`);
+expect ('InvalidSyntaxError', `
+    while (1)
+        output = i;
 `);

@@ -29,6 +29,46 @@ export default function (argv) {
 }
 
 /**
+ * @param {string[]} deps
+ * @returns {Promise<boolean>} success
+ */
+export function installListOfDeps (deps) {
+    return new Promise(resolve => {
+        let numPackages = deps.length;
+
+        let installed = 0;
+        for (let particle of deps) {
+            if (typeof particle !== 'string') {
+                console.error(`Invalid particle name '${particle}'. Must be of type string.`);
+                numPackages--;
+                continue;
+            }
+
+            (async () => {
+                // run each install async-ly and separately
+
+                if (!(await canInstallPackage(particle))) {
+                    console.error(`Can't install particle '${particle}'.`);
+                    numPackages--;
+                    return;
+                }
+
+                await installPackage(particle);
+
+                installed++;
+
+                if (installed >= numPackages) {
+                    console.log('Finished installing particles');
+                    resolve();
+                }
+            })();
+        }
+
+    })
+
+}
+
+/**
  * Runs 'espm install'
  * - return in no config file found
  * - make sure particle folder exists
@@ -40,7 +80,7 @@ export default function (argv) {
  */
 function emptyInstall () {
     return new Promise((resolve) => {
-        editConfig(config => {
+        editConfig(async config => {
 
             let packages = config['bonds'];
 
@@ -49,36 +89,14 @@ function emptyInstall () {
                 packages = [];
             }
 
-            let numPackages = packages.length;
-
-            let installed = 0;
-
-            for (let particle of packages) {
-                if (typeof particle !== 'string') {
-                    console.error(`Invalid particle name ${particle}. Must be of type string.`);
-                    numPackages--;
-                    continue;
-                }
-
-                (async () => {
-                    // run each install async-ly and separately
-
-                    if (!(await canInstallPackage(particle))) {
-                        console.error(`Can't install particle ${particle}.`);
-                        numPackages--;
-                        return;
-                    }
-
-                    await installPackage(particle);
-
-                    installed++;
-
-                    if (installed >= numPackages) {
-                        console.log('Finished installing particles');
-                        resolve();
-                    }
-                })();
+            const idx = packages.indexOf(config.name);
+            if (idx !== -1) {
+                packages.splice(idx, 1);
             }
+
+            await installListOfDeps(packages);
+
+            resolve();
             return config;
         });
     });

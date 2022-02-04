@@ -116,6 +116,7 @@ export class N_binOp extends Node {
             if (!(prop instanceof ESFunction))
                 return new ESError(opTokPos, 'TypeError', `_Unsupported operand ${fnName} on type ${l.typeOf().valueOf()} | .${fnName}=${str(prop)}`);
             const res = prop.__call__({context}, r);
+            if (res instanceof ESError) return res;
             if (!(res instanceof ESPrimitive))
                 return new ESError(opTokPos, 'TypeError', `__Unsupported operand ${fnName} on type ${l.typeOf().valueOf()}`);
             return res;

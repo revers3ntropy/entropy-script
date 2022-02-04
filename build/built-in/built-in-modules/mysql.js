@@ -1,6 +1,6 @@
 import { ESFunction } from '../../runtime/primitiveTypes.js';
 import { str } from '../../util/util.js';
-export default function (mysql, print) {
+const module = function ({ mysql, print }) {
     const connect = new ESFunction(({ context }, options_) => {
         const options = options_.valueOf() || {};
         const connection = new mysql(options);
@@ -23,4 +23,5 @@ export default function (mysql, print) {
     return {
         connect
     };
-}
+};
+export default module;

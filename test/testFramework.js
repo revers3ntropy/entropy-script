@@ -1,32 +1,27 @@
-import {ESError, TestFailed} from "../errors.js";
-import {run} from "../index.js";
-import {Context, ESSymbol} from "../runtime/context.js";
-import {global, now} from "../constants.js";
-import {str, timeData } from "../util/util.js";
-import { ESFunction, ESPrimitive, ESType } from "../runtime/primitiveTypes.js";
-import { interpretResult } from "../runtime/nodes.js";
+import { ESError, TestFailed } from "../build/errors.js";
+import { run } from "../build/index.js";
+import { Context, ESSymbol } from "../build/runtime/context.js";
+import { global, now } from "../build/constants.js";
+import { str } from "../build/util/util.js";
+import { ESFunction, ESPrimitive, ESType } from "../build/runtime/primitiveTypes.js";
+import { interpretResult } from "../build/runtime/nodes.js";
 
 export class TestResult {
-
-    failed: number;
-    passed: number;
-
-    fails: ESError[];
-
+    failed = 0;
+    passed = 0;
+    fails = [];
     time = 0;
 
-    constructor() {
-        this.failed = 0;
-        this.passed = 0;
-        this.fails = [];
-    }
-
-    register(res: TestResult | boolean | ESError) {
+    /**
+     * @param { ESError | boolean | TestResult } res
+     */
+    register (res) {
         if (typeof res === 'boolean') {
-            if (res)
+            if (res) {
                 this.passed++;
-            else
+            } else {
                 this.failed++;
+            }
             return;
         }
 
@@ -40,7 +35,7 @@ export class TestResult {
         this.passed += res.passed;
     }
 
-    str() {
+    str () {
         return `
             ---   TEST REPORT   ---
                 ${(this.failed.toString())[this.failed < 1 ? 'green' : 'red']} tests failed
@@ -56,25 +51,40 @@ export class TestResult {
 }
 
 export class Test {
-    test: (env: Context) => boolean | ESError;
-    id: string | number;
+    test;
+    id;
 
-    constructor(test: (env: Context) => boolean | ESError, id: string | number = 'test') {
+    /**
+     * @param {(env: Context) => boolean | ESError} test
+     * @param {string | number} id
+     */
+    constructor(test, id = 'test') {
         this.id = id;
         this.test = test;
     }
 
-    run(env: Context): boolean | ESError {
+    /**
+     * @param {Context} env
+     * @returns {boolean | ESError}
+     */
+    run (env) {
         return this.test(env);
     }
 
-    static tests: Test[] = [];
+    /** @type {Test[]} */
+    static tests = [];
 
-    static test(test: (env: Context) => boolean | ESError) {
+    /**
+     * @param {(env: Context) => (boolean | ESError)} test
+     */
+    static test (test) {
         Test.tests.push(new Test(test, Test.tests.length));
     }
 
-    static testAll(): TestResult {
+    /**
+     * @returns {TestResult}
+     */
+    static testAll () {
         const res = new TestResult();
 
         let time = now();
@@ -92,7 +102,7 @@ export class Test {
     }
 }
 
-function objectsSame(primary: any, secondary: any): boolean {
+function objectsSame(primary, secondary) {
     if (primary instanceof ESFunction || primary instanceof ESType || primary instanceof ESSymbol)
         return secondary === primary.str().valueOf();
     if (secondary instanceof ESFunction || secondary instanceof ESType || secondary instanceof ESSymbol)
@@ -119,7 +129,12 @@ function objectsSame(primary: any, secondary: any): boolean {
     return true;
 }
 
-function arraysSame(arr1: any[], arr2: any[]): boolean {
+/**
+ * @param {any[]} arr1
+ * @param {any[]} arr2
+ * @returns {boolean}
+ */
+function arraysSame (arr1, arr2) {
     if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
     if (arr1.length !== arr2.length) return false;
 
@@ -141,9 +156,14 @@ function arraysSame(arr1: any[], arr2: any[]): boolean {
     return true;
 }
 
-export function expect(expected: any[] | string, from: string) {
+/**
+ * @param {any[] | string}expected
+ * @param {string} from
+ */
+export function expect(expected, from) {
     Test.test(env => {
-        let result: interpretResult | ({ timeData: timeData; } & interpretResult);
+        /** @type {interpretResult | ({ timeData: timeData; } & interpretResult)} */
+        let result;
         try {
             result = run(from, {
                 env,

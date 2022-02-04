@@ -60,7 +60,15 @@ export async function init () {
 		async (msg, cb) => cb(await askQuestion(msg).catch(console.log))
 	);
 
-	addNodeLibs(https, http, fs, sql, global, console.log);
+	addNodeLibs({
+		https,
+		http,
+		fs,
+		mysql: sql,
+		context: global,
+		print: console.log,
+		fetch: {}
+	});
 }
 
 /**
@@ -75,8 +83,9 @@ export function runScript (path) {
 	let res = es.run(fs.readFileSync(path, 'utf-8'), {
 		fileName: path
 	});
-	if (res.error)
+	if (res.error) {
 		console.log(res.error.str);
+	}
 }
 
 /**

@@ -76,9 +76,15 @@ export abstract class ESPrimitive <T> {
 
     // casting
     /**
+     * cast to string
      * @returns {ESString} this cast to string
      */
     public abstract str: () => ESString;
+    /**
+     * Casts to a type
+     * @type {(config: {context: Context}, type: Primitive) => Primitive}
+     */
+    public abstract cast: (config: {context: Context}, type: Primitive) => Primitive | ESError;
 
 
     /**
@@ -86,6 +92,11 @@ export abstract class ESPrimitive <T> {
      */
     // @ts-ignore
     public abstract clone: () => Primitive;
+
+    /**
+     * Returns if this type is a subset of the type passed
+     */
+    public abstract isa: (config: {context: Context}, type: Primitive) => ESBoolean | ESError;
 
     /**
      * @returns {boolean} this cast to a boolean. Uses __bool__ if method exists.
@@ -222,6 +233,14 @@ export class ESType extends ESPrimitive<undefined> {
             this.__extends__,
             this.__init__?.clone()
         )
+    }
+
+    isa = ({}, type: Primitive) => {
+        return new ESBoolean(type === types.type);
+    }
+
+    cast = ({}, type: Primitive) => {
+        return this;
     }
 
     includesType = ({context}: {context: Context}, t: ESType): ESBoolean => {
@@ -369,6 +388,23 @@ export class ESNumber extends ESPrimitive <number> {
         super(value, types.number);
     }
 
+    isa = ({}, type: Primitive) => {
+        return new ESBoolean(type === types.number);
+    }
+
+    cast = ({}, type: Primitive) => {
+        switch (type) {
+            case types.number:
+                return this;
+            case types.string:
+                return this.str();
+            case types.array:
+                return new ESArray(new Array(this.valueOf()));
+            default:
+                return new ESError(Position.unknown, 'TypeError', `Cannot cast to type '${str(type.typeOf())}'`);
+        }
+    }
+
     str = () => new ESString(this.valueOf().toString());
 
     __add__ = ({}: {context: Context}, n: Primitive) => {
@@ -423,6 +459,26 @@ export class ESString extends ESPrimitive <string> {
     }
 
     str = () => this;
+
+    isa = ({}, type: Primitive) => {
+        return new ESBoolean(type === types.string);
+    }
+
+    cast = ({}, type: Primitive) => {
+        switch (type) {
+            case types.number:
+                const num = parseFloat(this.valueOf());
+                if (isNaN(num))
+                    return new ESError(Position.unknown, 'TypeError', `This string is not a valid number`);
+                return new ESNumber(num);
+            case types.string:
+                return this;
+            case types.array:
+                return new ESArray(this.valueOf().split('').map(s => new ESString(s)));
+            default:
+                return new ESError(Position.unknown, 'TypeError', `Cannot cast to type '${str(type.typeOf())}'`);
+        }
+    }
 
     __add__ = ({}: {context: Context}, n: Primitive) => {
         if (!(n instanceof ESString))
@@ -511,6 +567,38 @@ export class ESUndefined extends ESPrimitive <any> {
         };
     }
 
+    isa = ({}, type: Primitive) => {
+        return new ESBoolean(type === types.string);
+    }
+
+    cast = ({context}: {context: Context}, type: Primitive) => {
+        switch (type) {
+            case types.number:
+                return new ESNumber();
+            case types.string:
+                return new ESString();
+            case types.array:
+                return new ESArray();
+            case types.undefined:
+                return new ESUndefined();
+            case types.type:
+                return new ESType();
+            case types.error:
+                return new ESErrorPrimitive();
+            case types.object:
+            case types.any:
+                return new ESObject();
+            case types.function:
+                return new ESFunction(() => {});
+            case types.boolean:
+                return new ESBoolean();
+            default:
+                if (!(type instanceof ESType))
+                    return new ESError(Position.unknown, 'TypeError', `Cannot cast to type '${str(type.typeOf())}'`);
+                return type.__call__({context});
+        }
+    }
+
     str = () => new ESString('<Undefined>');
 
     __eq__ = ({}: {context: Context}, n: Primitive) => new ESBoolean(n instanceof ESUndefined || typeof n === 'undefined' || typeof n.valueOf() === 'undefined');
@@ -521,6 +609,14 @@ export class ESUndefined extends ESPrimitive <any> {
 export class ESErrorPrimitive extends ESPrimitive <ESError> {
     constructor (error: ESError = new ESError(Position.unknown, 'Unknown', 'error type not specified')) {
         super(error, types.error);
+    }
+
+    isa = ({}, type: Primitive) => {
+        return new ESBoolean(type === types.error);
+    }
+
+    cast = ({}) => {
+        return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'error'`);
     }
 
     str = () => new ESString(`<Error: ${this.valueOf().str}>`);
@@ -558,6 +654,14 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             required: true
         }));
         // TODO: info.helpLink
+    }
+
+    isa = ({}, type: Primitive) => {
+        return new ESBoolean(type === types.function);
+    }
+
+    cast = ({}, type: Primitive) => {
+        return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'function'`)
     }
 
     get name () {
@@ -665,6 +769,19 @@ export class ESBoolean extends ESPrimitive <boolean> {
         };
     }
 
+    isa = ({}, type: Primitive) => {
+        return new ESBoolean(type === types.string);
+    }
+
+    cast = ({}, type: Primitive) => {
+        switch (type) {
+            case types.number:
+                return new ESNumber(this.valueOf() ? 1 : 0);
+            default:
+                return new ESError(Position.unknown, 'TypeError', `Cannot cast boolean to type '${str(type.typeOf())}'`);
+        }
+    }
+
     __eq__ = ({}: {context: Context}, n: Primitive) => {
         if (!(n instanceof ESBoolean))
             return new TypeError(Position.unknown, 'Boolean', n.typeOf().str().valueOf(), n.valueOf())
@@ -687,6 +804,23 @@ export class ESBoolean extends ESPrimitive <boolean> {
 export class ESObject extends ESPrimitive <dict<Primitive>> {
     constructor (val: dict<Primitive> = {}) {
         super(val, types.object);
+    }
+
+    isa = ({context}: {context: Context}, type: Primitive) => {
+        if (type === types.object)
+            return new ESBoolean(true);
+        if (!(type instanceof ESType))
+            return new TypeError(Position.unknown, 'TypeError', 'type', str(type.typeOf()), str(type));
+        return this.__type__.includesType({context}, type);
+    }
+
+    cast = ({}, type: Primitive) => {
+        switch (type) {
+            case types.number:
+                return new ESNumber(this.valueOf() ? 1 : 0);
+            default:
+                return new ESError(Position.unknown, 'TypeError', `Cannot cast boolean to type '${str(type.typeOf())}'`);
+        }
     }
 
     str = () => {
@@ -744,6 +878,21 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     constructor(values: Primitive[] = []) {
         super(values, types.array);
         this.len = values.length;
+    }
+
+    isa = ({}, type: Primitive) => {
+        return new ESBoolean(type === types.array);
+    }
+
+    cast = ({}, type: Primitive) => {
+        switch (type) {
+            case types.number:
+                return new ESNumber(this.len);
+            case types.boolean:
+                return this.bool();
+            default:
+                return new ESError(Position.unknown, 'TypeError', `Cannot cast boolean to type '${str(type.typeOf())}'`);
+        }
     }
 
     str = () => new ESString(str(this.valueOf()));
@@ -823,6 +972,14 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         super(value, types.object);
         this.info.name = name.valueOf();
         this.mutable = mutable;
+    }
+
+    isa = ({}, type: Primitive) => {
+        return new ESBoolean(type === types.object);
+    }
+
+    cast = ({}) => {
+        return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'namespace'`);
     }
 
     get name () {
@@ -917,7 +1074,7 @@ types.any.info = {
 };
 types.number.info = {
     name: 'any',
-    description: 'The ES Number type. Is a a double-precision 64-bit binary format IEEE 754 value, like double in Java and c#',
+    description: 'The ES Number type. Is a a double-precision 64-bit binary format IEEE 754 value, like double in Java and C#',
     file: 'built-in',
     isBuiltIn: true
 };

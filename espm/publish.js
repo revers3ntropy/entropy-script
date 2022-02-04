@@ -9,7 +9,7 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 export default async function () {
     const config = readConfig();
 
-    if (!/^[A-Za-z\-0-9]+$/.test(config.name)) {
+    if (!/^(?:@[a-z0-9-*~][a-z0-9-*._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(config.name)) {
         console.log('Error: invalid project name. Project names must have only digits, dashes and letters in.');
         return;
     }

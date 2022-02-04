@@ -268,6 +268,7 @@ expect ([undefined, 2], `
 expect([], '');
 expect([], '// hiii');
 expect([1], '// hiii \n 1');
+expect([2], '1 + // hiii \n 1');
 
 // functions
 expect(['<Func: myFunc>', 1], `

@@ -5,14 +5,23 @@ import {ESFunction, ESNamespace, ESObject, ESString, Primitive, types} from '../
 import {str} from "../util/util.js";
 import {interpretResult} from "../runtime/nodes.js";
 import {run} from "../index.js";
+import {JSModuleParams} from './built-in-modules/module.js';
 import {addModuleFromObj, getModule, moduleExist} from './builtInModules.js';
 
 // node only built in modules
 import http from './built-in-modules/http.js';
+import MySQL from './built-in-modules/mysql.js'
 
-function addNodeLibs (https_lib: any, http_lib: any, fs: any, mysql: any, context: Context, print: (...args: string[]) => void) {
+/**
+ * Adds node functionality like access to files, https and more.
+ * @param {JSModuleParams} options
+ */
+function addNodeLibs (options: JSModuleParams) {
 
-    addModuleFromObj('http', http(https_lib, http_lib, fs, mysql, context, print));
+    addModuleFromObj('http', http(options));
+    addModuleFromObj('mysql', MySQL(options));
+
+    const {context, fs} = options;
 
     context.set('import', new ESFunction(({context}, rawPath) => {
         let path: string = str(rawPath);
@@ -22,8 +31,11 @@ function addNodeLibs (https_lib: any, http_lib: any, fs: any, mysql: any, contex
 
         try {
             if (!fs.existsSync(path)) {
-                if (fs.existsSync('./particles/' + path))
-                    path = 'particles/' + path + '/main.es';
+                if (fs.existsSync('./particles/' + path)) {
+                    if (fs.existsSync('particles/' + path + '/main.es'))
+                        path = 'particles/' + path + '/main.es';
+                    else return new ESError(Position.unknown, 'ImportError', `Module '${path}' has no entry point. Requires 'main.es'.`)
+                }
                 else
                     return new ESError(Position.unknown, 'ImportError', `Can't find file '${path}' to import.`)
             }
@@ -39,7 +51,7 @@ function addNodeLibs (https_lib: any, http_lib: any, fs: any, mysql: any, contex
                 return new ImportError(Position.unknown, str(path), res.error.str);
 
             return new ESNamespace(new ESString(path), env.getSymbolTableAsDict());
-        } catch (E) {
+        } catch (E: any) {
             return new ESError(Position.unknown, 'ImportError', E.toString());
         }
     }, [{name: 'path', type: types.string}],

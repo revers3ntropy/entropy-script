@@ -16,7 +16,7 @@ import { run } from "./index.js";
 import { IS_NODE_INSTANCE } from "./constants.js";
 import { str } from "./util/util.js";
 import { ESFunction, ESNamespace, ESString } from './runtime/primitiveTypes.js';
-import { globalConstants } from "./built-in/globalConstants.js";
+import loadGlobalConstants from "./built-in/globalConstants.js";
 export function initialise(globalContext, printFunc, inputFunc) {
     builtInFunctions['import'] = [({ context }, rawUrl, callback) => {
             if (IS_NODE_INSTANCE)
@@ -74,12 +74,6 @@ export function initialise(globalContext, printFunc, inputFunc) {
             isConstant: true
         });
     }
-    for (let constant in globalConstants) {
-        const value = globalConstants[constant];
-        globalContext.set(constant, value, {
-            global: true,
-            isConstant: true
-        });
-    }
+    loadGlobalConstants(globalContext);
     globalContext.initialisedAsGlobal = true;
 }
