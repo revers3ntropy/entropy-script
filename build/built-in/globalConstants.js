@@ -3,7 +3,7 @@ export default function load(context) {
     const globalConstants = {
         'false': new ESBoolean(false),
         'true': new ESBoolean(true),
-        'undefined': new ESUndefined(),
+        'nil': new ESUndefined(),
         'any': types.any,
         'number': types.number,
         'string': types.string,

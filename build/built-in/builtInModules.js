@@ -28,8 +28,9 @@ export function addModuleFromObj(name, raw) {
     addModule(name, processRawModule(ESPrimitive.wrap(raw), name));
 }
 export function getModule(name) {
-    if (name in processedModules)
+    if (name in processedModules) {
         return processedModules[name];
+    }
     if (name in modules) {
         const res = ESPrimitive.wrap(modules[name]);
         if (!(res instanceof ESObject)) {
@@ -40,5 +41,4 @@ export function getModule(name) {
         processedModules[name] = processed;
         return processed;
     }
-    return undefined;
 }

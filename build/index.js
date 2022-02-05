@@ -1,19 +1,54 @@
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 import './util/colourString.js';
 import { Lexer } from "./tokenise/lexer.js";
 import { Parser } from "./parse/parser.js";
-import { global, now, setGlobalContext } from "./constants.js";
+import { global, now, refreshPerformanceNow, runningInNode, setGlobalContext } from "./constants.js";
 import { initialise } from "./init.js";
 import { ESError } from "./errors.js";
 import { Position } from "./position.js";
 import { interpretResult, Node } from "./runtime/nodes.js";
 import { ESArray } from "./runtime/primitiveTypes.js";
 import { Context } from "./runtime/context.js";
-export function init(printFunc = console.log, inputFunc) {
-    setGlobalContext(new Context());
-    initialise(global, printFunc, inputFunc);
+import addNodeLibs from "./built-in/nodeLibs.js";
+/**
+ * @param {(...args: any) => void} printFunc
+ * @param {(msg: string, cb: (...arg: any[]) => any) => void} inputFunc
+ * @param {boolean} node
+ * @param nodeLibs
+ * @param {Context} context
+ * @returns {Promise<void>}
+ */
+export function init(printFunc = console.log, inputFunc, node = true, nodeLibs = {}, context = new Context()) {
+    var _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        setGlobalContext(context);
+        initialise(context, printFunc, inputFunc);
+        (_a = nodeLibs['context']) !== null && _a !== void 0 ? _a : (nodeLibs['context'] = context);
+        if (node) {
+            runningInNode();
+            yield refreshPerformanceNow(true);
+            addNodeLibs(nodeLibs, context);
+        }
+    });
 }
+/**
+ * @param {string} msg
+ * @param {Context} env
+ * @param {boolean} measurePerformance
+ * @param {string} fileName
+ * @param {string} currentDir
+ * @returns {interpretResult | ({timeData: timeData} & interpretResult)}
+ */
 export function run(msg, { env = global, measurePerformance = false, fileName = '(unknown)', currentDir = './' } = {}) {
-    env.importPaths.push(currentDir);
+    env.path = currentDir;
     Node.maxTime = 0;
     Node.totalTime = 0;
     Node.interprets = 0;

@@ -24,14 +24,23 @@ export class Context {
         this.symbolTable = {};
         this.initialisedAsGlobal = false;
         this.deleted = false;
-        this.importPaths = [];
+        this.path_ = '';
+    }
+    get path() {
+        if (this.path_ || !this.parent) {
+            return this.path_;
+        }
+        return this.parent.path;
+    }
+    set path(val) {
+        this.path_ = val;
     }
     get parent() {
         return this.parent_;
     }
     set parent(val) {
         if (val == this) {
-            console.log(`Setting context parent to 'this'`.red);
+            console.error(`Setting context parent to self`.red);
             return;
         }
         this.parent_ = val;

@@ -41,20 +41,29 @@ export class Context {
     public initialisedAsGlobal = false;
     public deleted = false;
 
-    public importPaths: string[] = [];
+    public path_ = '';
 
-    constructor () {}
+    get path() {
+        if (this.path_ || !this.parent) {
+            return this.path_;
+        }
+        return this.parent.path;
+    }
+    set path (val: string) {
+        this.path_ = val;
+    }
 
     get parent () {
         return this.parent_;
     }
     set parent (val: Context | undefined) {
         if (val == this) {
-            console.log(`Setting context parent to 'this'`.red);
+            console.error(`Setting context parent to self`.red);
             return;
         }
         this.parent_ = val;
     }
+
     has (identifier: string): boolean {
         return this.get(identifier) !== undefined;
     }

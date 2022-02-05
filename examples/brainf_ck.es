@@ -12,8 +12,10 @@ const interpret = func (code: string) {
 
         if current_char == '>' {
             pointer += 1;
+
         } else if current_char == '<' {
             pointer -= 1;
+
         } else if current_char == '+' {
             if cells[pointer] == undefined {
                 cells[pointer] = 1;
@@ -23,20 +25,24 @@ const interpret = func (code: string) {
                     cells[pointer] = 0;
                 }
             }
+
         } else if current_char == '-' {
              if cells[pointer] == undefined || cells[pointer] < 1 {
                  cells[pointer] = 255;
              } else {
                  cells[pointer] += 1;
              }
+
         } else if current_char == ',' {
             input('', func (char: string) {
                 cells[pointer] = ascii.charToAscii(char);
                 sleep(0, step);
             });
             return;
+
         } else if current_char == '.' {
             print(ascii.asciiToChar(cells[pointer]));
+
         } else if current_char == '[' {
             if cells[pointer] == undefined || cells[pointer] == 0 {
                 print('skip to end');
@@ -49,6 +55,7 @@ const interpret = func (code: string) {
                     else if current_char == ']' { opens -= 1 }
                 }
             }
+
         } else if current_char == ']' {
             let opens = 0;
             while opens > 0 || current_char != '[' {

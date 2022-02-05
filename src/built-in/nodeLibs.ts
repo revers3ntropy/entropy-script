@@ -7,6 +7,7 @@ import {interpretResult} from "../runtime/nodes.js";
 import {run} from "../index.js";
 import {JSModuleParams} from './built-in-modules/module.js';
 import {addModuleFromObj, getModule, moduleExist} from './builtInModules.js';
+import {global} from "../constants.js";
 
 // node only built in modules
 import http from './built-in-modules/http.js';
@@ -15,19 +16,21 @@ import MySQL from './built-in-modules/mysql.js'
 /**
  * Adds node functionality like access to files, https and more.
  * @param {JSModuleParams} options
+ * @param {Context} context
  */
-function addNodeLibs (options: JSModuleParams) {
+function addNodeLibs (options: JSModuleParams, context: Context) {
 
     addModuleFromObj('http', http(options));
     addModuleFromObj('mysql', MySQL(options));
 
-    const {context, fs} = options;
+    const { fs } = options;
 
     context.set('import', new ESFunction(({context}, rawPath) => {
         let path: string = str(rawPath);
 
-        if (moduleExist(path))
+        if (moduleExist(path)) {
             return getModule(path);
+        }
 
         try {
             if (!fs.existsSync(path)) {
@@ -41,14 +44,17 @@ function addNodeLibs (options: JSModuleParams) {
             }
             const code = fs.readFileSync(path, 'utf-8');
             const env = new Context();
-            env.parent = context;
+            env.parent = global;
             const res: interpretResult = run(code, {
                 env,
-                fileName: path
+                measurePerformance: false,
+                fileName: path,
+                currentDir: path,
             });
 
-            if (res.error)
+            if (res.error) {
                 return new ImportError(Position.unknown, str(path), res.error.str);
+            }
 
             return new ESNamespace(new ESString(path), env.getSymbolTableAsDict());
         } catch (E: any) {

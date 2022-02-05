@@ -40,8 +40,9 @@ export function addModuleFromObj (name: string, raw: {[s: string]: any}) {
 }
 
 export function getModule (name: string): ESNamespace | undefined {
-    if (name in processedModules)
+    if (name in processedModules) {
         return processedModules[name];
+    }
     if (name in modules) {
         const res = ESPrimitive.wrap(modules[name]);
         if (!(res instanceof ESObject)) {
@@ -52,5 +53,4 @@ export function getModule (name: string): ESNamespace | undefined {
         processedModules[name] = processed;
         return processed
     }
-    return undefined;
 }

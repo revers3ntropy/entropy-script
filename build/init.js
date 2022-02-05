@@ -19,11 +19,13 @@ import { ESFunction, ESNamespace, ESString } from './runtime/primitiveTypes.js';
 import loadGlobalConstants from "./built-in/globalConstants.js";
 export function initialise(globalContext, printFunc, inputFunc) {
     builtInFunctions['import'] = [({ context }, rawUrl, callback) => {
-            if (IS_NODE_INSTANCE)
+            if (IS_NODE_INSTANCE) {
                 return new ESError(Position.unknown, 'ImportError', 'Is running in node instance but trying to run browser import function');
+            }
             const url = rawUrl.str();
-            if (moduleExist(str(url)))
+            if (moduleExist(str(url))) {
                 return getModule(str(url));
+            }
             try {
                 fetch(str(url))
                     .then(c => c.text())

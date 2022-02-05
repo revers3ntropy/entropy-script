@@ -5,7 +5,7 @@ export default function load (context: Context) {
     const globalConstants: {[k: string]: Primitive} = {
         'false': new ESBoolean(false),
         'true': new ESBoolean(true),
-        'undefined': new ESUndefined(),
+        'nil': new ESUndefined(),
         'any': types.any,
         'number': types.number,
         'string': types.string,

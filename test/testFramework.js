@@ -1,10 +1,11 @@
-import { ESError, TestFailed } from "../build/errors.js";
 import { run } from "../build/index.js";
+import { ESError, TestFailed } from "../build/errors.js";
 import { Context, ESSymbol } from "../build/runtime/context.js";
 import { global, now } from "../build/constants.js";
 import { str } from "../build/util/util.js";
 import { ESFunction, ESPrimitive, ESType } from "../build/runtime/primitiveTypes.js";
 import { interpretResult } from "../build/runtime/nodes.js";
+
 
 export class TestResult {
     failed = 0;
@@ -90,7 +91,6 @@ export class Test {
         let time = now();
 
         for (let test of Test.tests) {
-            global.resetAsGlobal();
             const testEnv = new Context();
             testEnv.parent = global;
             res.register(test.run(testEnv));

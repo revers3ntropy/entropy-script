@@ -12,7 +12,7 @@ expect([19], '3 + 4 ^ 2');
 // global constants
 expect([true], 'true');
 expect([false], 'false');
-expect([undefined], 'undefined');
+expect([undefined], 'nil');
 
 
 // boolean logic
@@ -45,7 +45,7 @@ expect([1], 'a = 1');
 expect([undefined], 'var a;');
 expect([1, 2], 'var a = 1; a = a + 1;');
 expect('ReferenceError', 'var a = a + 1;');
-expect([undefined, true], 'var a; a == undefined;');
+expect([undefined, true], 'var a; a == nil;');
 expect([1, 2], `let n = 1; n = 2;`);
 expect('TypeError', `const n = 1; n = 2;`);
 expect('InvalidSyntaxError', `const n = 1; const n = 2;`);
@@ -636,7 +636,7 @@ expect('TypeError', `
     let b: number = ['hi'];
 `);
 expect('TypeError', `
-    let b: string = undefined;
+    let b: string = nil;
 `);
 
 // functions
@@ -797,7 +797,7 @@ expect(['<Type: v2>', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '
 
 // Namespaces / modules
 expect([{}], `
-    global const MyLib = namespace {};
+    const MyLib = namespace {};
 `);
 expect([{a: '<Symbol: a>'}, 'hi'], `
     global const MyLib = namespace {
@@ -811,11 +811,12 @@ expect('TypeError', `
     };
    MyLib.a = 1;
 `);
-expect([{a: '<Symbol: a>'}, 1], `
+expect([{a: '<Symbol: a>'}, 1, 1], `
     global MyLib = namespace {
         mutable a: number = 0;
     };
    MyLib.a = 1;
+   MyLib['a'];
 `);
 expect([{myClass: '<Symbol: myClass>', myFunc: '<Symbol: myFunc>', a: '<Symbol: a>'}, '<Type: myClass>', 'myClass', 123, 'Hello world!'], `
     global const MyLib = namespace {
@@ -854,5 +855,15 @@ expect ('InvalidSyntaxError', `
 `);
 expect ('InvalidSyntaxError', `
     while (1)
-        output = i;
+    	output = i;
+`);
+
+expect([], `
+	const lib = import('./imports/lib/main.es');
+	
+	const main = func () {
+		return lib.goThing();
+	};
+	
+	main();
 `);
