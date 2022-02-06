@@ -4,7 +4,9 @@ import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
 import { Node } from "./nodes.js";
 import { runtimeArgument } from "./argument.js";
-import { Context, ESSymbol, generateESFunctionCallContext } from "./context.js";
+import { Context, ESSymbol } from "./context.js";
+import { createInstance } from "./instantiator.js";
+import { call } from "./functionCaller.js";
 
 export type typeName = 'Undefined' | 'String' | 'Array' | 'Number' | 'Any' | 'Function' | 'Boolean' | 'Type' | 'Object' | string;
 export type Primitive = ESPrimitive<any> | ESString | ESType | ESNumber | ESUndefined | ESBoolean | ESArray | ESObject | ESFunction | ESErrorPrimitive;
@@ -61,6 +63,7 @@ export abstract class ESPrimitive <T> {
     public __value__: T;
     public __type__: ESType;
     public info: Info;
+    protected self: any = this;
 
     /**
      * @param value
@@ -116,9 +119,8 @@ export abstract class ESPrimitive <T> {
     // Object stuff
     public hasProperty = ({}: {context: Context}, key: ESString): boolean => this.hasOwnProperty(key.valueOf());
     public __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
-        const self: any = this;
-        if (self.hasOwnProperty(key.valueOf()))
-            return ESPrimitive.wrap(self[key.valueOf()]);
+        if (this.self.hasOwnProperty(key.valueOf()))
+            return ESPrimitive.wrap(this.self[key.valueOf()]);
         return ESPrimitive.wrap(new ESUndefined());
     };
 
@@ -270,114 +272,8 @@ export class ESType extends ESPrimitive<undefined> {
         );
     }
 
-    createInstance ({context}: {context: Context}, params: Primitive[], runInit=true, on: any = {}) {
-        const callContext = context;
-
-        if (this.__isPrimitive__) {
-            // make sure we have at least one arg
-            if (params.length < 1)
-                return new ESUndefined();
-
-            switch (this.__name__) {
-                case 'Undefined':
-                case 'Type':
-                    if (params.length < 1)
-                        return new ESType();
-                    else
-                        return params[0].typeOf();
-                case 'String':
-                    return new ESString(params[0].str().valueOf());
-                case 'Array':
-                    return new ESArray(params);
-                case 'Number':
-                    return new ESNumber(params[0].valueOf());
-                case 'Function':
-                    return new ESFunction(params[0].valueOf());
-                case 'Boolean':
-                    return new ESBoolean(params[0].bool().valueOf());
-                case 'Object':
-                    return new ESObject(<dict<any>>params[0]);
-                case 'Error':
-                    return new ESError(Position.unknown, 'UserError', params[0].str().valueOf());
-                default:
-                    return ESPrimitive.wrap(params[0]);
-            }
-        }
-
-        // old code from N_class.genInstance - create instance of class
-
-        function dealWithExtends(context_: Context, class_: ESType, instance: dict<Primitive>): ESError | void {
-            const constructor = instance.constructor;
-            if (!class_) return;
-            if (!(class_ instanceof ESType))
-                return new TypeError(
-                    Position.unknown,
-                    'Type',
-                    typeof class_,
-                    class_
-                );
-
-            let setRes = context_.setOwn('super', new ESFunction(({context}) => {
-                const newContext = new Context();
-                newContext.parent = context;
-                let setRes = newContext.setOwn('this', new ESObject(instance));
-                if (setRes instanceof ESError) return setRes;
-
-                if (class_.__extends__ !== undefined) {
-                    let _a = dealWithExtends(newContext, class_.__extends__, instance);
-                    if (_a instanceof ESError) return _a;
-                }
-
-                const res_ = class_?.__init__?.__call__({context: callContext});
-                if (res_ instanceof ESPrimitive) return res_;
-            }));
-            if (setRes instanceof ESError) return setRes;
-
-            const res = class_.createInstance({context: callContext}, [], false, instance);
-            if (res instanceof ESError) return res;
-            instance = res.valueOf();
-
-            instance.constructor = constructor;
-        }
-
-        const newContext = new Context();
-        newContext.parent = this.__init__?.__closure__;
-
-        if (this.__extends__) {
-            let _a = dealWithExtends(newContext, this.__extends__, on);
-            if (_a instanceof ESError) return _a;
-        }
-
-        on['constructor'] = this.__init__?.clone() ?? new ESUndefined();
-
-        const instance = new ESObject(on);
-
-        for (let method of this.__methods__) {
-            const methodClone = method.clone();
-            methodClone.this_ = instance;
-            on[method.name] = methodClone;
-        }
-
-        if (runInit && this.__init__) {
-            this.__init__.this_ = instance;
-
-            // newContext, which inherits from the current closure
-            this.__init__.__closure__ = newContext;
-
-            const res = this.__init__.__call__({context: callContext}, ...params);
-            // return value of init is ignored
-            if (res instanceof ESError) return res;
-        }
-
-        instance.__type__ = this;
-
-        this.__instances__.push(instance);
-
-        return instance;
-    }
-
     __call__ = ({ context }: {context: Context}, ...params: Primitive[]): ESError | Primitive => {
-        return this.createInstance({context}, params || []);
+        return createInstance(this, {context}, params || []);
     }
 
     str = () => new ESString(`<Type: ${this.__name__}>`);
@@ -392,7 +288,7 @@ export class ESNumber extends ESPrimitive <number> {
         return new ESBoolean(type === types.number);
     }
 
-    cast = ({}, type: Primitive) => {
+    cast = ({}, type: Primitive): Primitive | ESError => {
         switch (type) {
             case types.number:
                 return this;
@@ -464,7 +360,7 @@ export class ESString extends ESPrimitive <string> {
         return new ESBoolean(type === types.string);
     }
 
-    cast = ({}, type: Primitive) => {
+    cast = ({}, type: Primitive): Primitive | ESError => {
         switch (type) {
             case types.number:
                 const num = parseFloat(this.valueOf());
@@ -515,9 +411,8 @@ export class ESString extends ESPrimitive <string> {
     clone = (): ESString => new ESString(this.valueOf());
 
     __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
-        const self: any = this;
-        if (key instanceof ESString && self.hasOwnProperty(str(key)))
-            return ESPrimitive.wrap(self[str(key)]);
+        if (key instanceof ESString && this.self.hasOwnProperty(str(key)))
+            return ESPrimitive.wrap(this.self[str(key)]);
 
         if (!(key instanceof ESNumber))
             return new ESString();
@@ -696,72 +591,13 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     __bool__ = () => new ESBoolean(true);
     
     __call__ = ({context}: {context: Context}, ...params: Primitive[]): ESError | Primitive => {
-
-        // generate context
-        let callContext = context;
-        context = this.__closure__;
-        context.path = callContext.path;
-        const fn = this.__value__;
-
-        if (fn instanceof Node) {
-            // fn is the function root node
-
-            const newContext = generateESFunctionCallContext(params, this, context);
-            if (newContext instanceof ESError) return newContext;
-
-            let this_ = this.this_ ?? new ESObject();
-
-            if (!(this_ instanceof ESObject))
-                return new TypeError(
-                    Position.unknown,
-                    'object',
-                    typeof this_,
-                    this_,
-                    '\'this\' must be an object'
-                );
-
-            let setRes = newContext.set('this', this_);
-            if (setRes instanceof ESError) return setRes;
-
-            const res = fn.interpret(newContext);
-
-            if (res.error) return res.error;
-            if (res.funcReturn !== undefined) {
-                res.val = res.funcReturn;
-                res.funcReturn = undefined;
-            }
-
-            if (this.returnType.includesType({context}, res.val?.__type__ ?? types.any).valueOf() === false)
-                return new TypeError(
-                    Position.unknown,
-                    this.returnType.__name__,
-                    res.val?.typeOf().valueOf() || 'undefined',
-                    res.val?.str().valueOf(),
-                    '(from function return)');
-
-            if (res.val) {
-                return res.val;
-            } else {
-                return new ESUndefined();
-            }
-
-        } else if (typeof fn === 'function') {
-            for (let i = params.length; i < fn.length; i++)
-                params.push(new ESUndefined());
-            const res = fn({
-                context
-            }, ...params);
-            if (res instanceof ESError || res instanceof ESPrimitive) return res;
-            return new ESUndefined();
-
-        } else
-            return new TypeError(Position.unknown,'function', typeof fn);
+        return call(context, this, params);
     }
 }
 
 export class ESBoolean extends ESPrimitive <boolean> {
     constructor (val: boolean = false) {
-        super(!!val, types.bool);
+        super(Boolean(val), types.bool);
 
         this.info = {
             name: str(val),
@@ -842,13 +678,11 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
     __bool__ = () => new ESBoolean(true);
 
     __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
-        const self: any = this;
-
         if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf()))
             return this.valueOf()[key.valueOf()];
 
-        if (self.hasOwnProperty(key.valueOf()))
-            return ESPrimitive.wrap(self[key.valueOf()]);
+        if (this.self.hasOwnProperty(key.valueOf()))
+            return ESPrimitive.wrap(this.self[key.valueOf()]);
 
         return new ESUndefined();
     };
@@ -908,9 +742,8 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     __bool__ = () => new ESBoolean(this.valueOf().length > 0);
 
     __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
-        const self: any = this;
-        if (key instanceof ESString && self.hasOwnProperty(<string>key.valueOf()))
-            return ESPrimitive.wrap(self[key.valueOf()]);
+        if (key instanceof ESString && this.self.hasOwnProperty(<string>key.valueOf()))
+            return ESPrimitive.wrap(this.self[key.valueOf()]);
 
         if (!(key instanceof ESNumber))
             return new ESUndefined();
@@ -1017,16 +850,14 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     __bool__ = () => new ESBoolean(true);
 
     __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
-        const self: any = this;
-
         if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf())) {
             const symbol = this.valueOf()[key.valueOf()];
             if (symbol.isAccessible)
                 return symbol.value;
         }
 
-        if (self.hasOwnProperty(key.valueOf()))
-            return ESPrimitive.wrap(self[key.valueOf()]);
+        if (this.self.hasOwnProperty(key.valueOf()))
+            return ESPrimitive.wrap(this.self[key.valueOf()]);
 
         return new ESUndefined();
     };
