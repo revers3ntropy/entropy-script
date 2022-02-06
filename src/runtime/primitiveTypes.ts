@@ -91,10 +91,10 @@ export abstract class ESPrimitive <T> {
 
 
     /**
+     * @param {Primitive[]} chain for solving circular objects. First element is object originally cloned
      * @returns {Primitive} deep clone of this
      */
-    // @ts-ignore
-    public abstract clone: () => Primitive;
+    public abstract clone: (chain: Primitive[]) => Primitive;
 
     /**
      * Returns if this type is a subset of the type passed
@@ -128,8 +128,7 @@ export abstract class ESPrimitive <T> {
         if (thing instanceof ESPrimitive)
             return thing;
 
-        // catch 'null' which is of type 'object'
-        if (thing == undefined)
+        if (thing === undefined || thing === null)
             return new ESUndefined();
 
         if (thing instanceof ESError)
@@ -227,13 +226,13 @@ export class ESType extends ESPrimitive<undefined> {
             this.__type__ = this;
     }
 
-    clone = () => {
+    clone = (chain: Primitive[]) => {
         return new ESType(
             this.__isPrimitive__,
             this.__name__,
-            this.__methods__.map(f => f.clone()),
+            this.__methods__.map(f => f.clone(chain)),
             this.__extends__,
-            this.__init__?.clone()
+            this.__init__?.clone(chain)
         )
     }
 
@@ -346,7 +345,7 @@ export class ESNumber extends ESPrimitive <number> {
     __bool__ = () => {
         return new ESBoolean(this.valueOf() > 0);
     }
-    clone = (): ESNumber => new ESNumber(this.valueOf());
+    clone = (chain: Primitive[]): ESNumber => new ESNumber(this.valueOf());
 }
 
 export class ESString extends ESPrimitive <string> {
@@ -408,7 +407,7 @@ export class ESString extends ESPrimitive <string> {
     len = () => {
         return new ESNumber(this.valueOf().length);
     }
-    clone = (): ESString => new ESString(this.valueOf());
+    clone = (chain: Primitive[]): ESString => new ESString(this.valueOf());
 
     __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
         if (key instanceof ESString && this.self.hasOwnProperty(str(key)))
@@ -449,7 +448,7 @@ export class ESString extends ESPrimitive <string> {
     }
 }
 
-export class ESUndefined extends ESPrimitive <any> {
+export class ESUndefined extends ESPrimitive <undefined> {
     constructor () {
         super(undefined, types.undefined);
 
@@ -498,7 +497,7 @@ export class ESUndefined extends ESPrimitive <any> {
 
     __eq__ = ({}: {context: Context}, n: Primitive) => new ESBoolean(n instanceof ESUndefined || typeof n === 'undefined' || typeof n.valueOf() === 'undefined');
     __bool__ = () => new ESBoolean(false);
-    clone = (): ESUndefined => new ESUndefined();
+    clone = (chain: Primitive[]): ESUndefined => new ESUndefined();
 }
 
 export class ESErrorPrimitive extends ESPrimitive <ESError> {
@@ -518,7 +517,7 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
 
     __eq__ = ({}: {context: Context}, n: Primitive) => new ESBoolean(n instanceof ESErrorPrimitive && this.valueOf().constructor === n.valueOf().constructor);
     __bool__ = () => new ESBoolean(true);
-    clone = (): ESErrorPrimitive => new ESErrorPrimitive(this.valueOf());
+    clone = (chain: Primitive[]): ESErrorPrimitive => new ESErrorPrimitive(this.valueOf());
 }
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
@@ -567,7 +566,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         this.info.name = v;
     }
 
-    clone = (): ESFunction => {
+    clone = (chain: Primitive[]): ESFunction => {
         return new ESFunction(
             this.__value__,
             this.arguments_,
@@ -637,7 +636,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
     };
 
     str = () => new ESString(this.valueOf() ? 'true' : 'false');
-    clone = (): ESBoolean => new ESBoolean(this.valueOf());
+    clone = (chain: Primitive[]): ESBoolean => new ESBoolean(this.valueOf());
 }
 
 export class ESObject extends ESPrimitive <dict<Primitive>> {
@@ -695,14 +694,14 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         this.__value__[key.valueOf()] = value;
     }
 
-    clone = (): ESObject => {
+    clone = (chain: Primitive[]): ESObject => {
         let obj: dict<Primitive> = {};
         let toClone = this.valueOf();
         for (let key in toClone) {
             try {
-                obj[key] = toClone[key].clone();
+                obj[key] = toClone[key].clone(chain);
             } catch (e) {
-                throw Error('Couldn\'t clone ' + str(toClone[key]));
+                throw Error(`Couldn't clone ${str(toClone[key])} from ${this.info}`);
             }
         }
         return new ESObject(obj);
@@ -799,14 +798,21 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return false;
     };
 
-    clone = (): ESArray => new ESArray(this.valueOf().map(v => v.clone()));
+    clone = (chain: Primitive[]): ESArray => {
+        const newArr = [];
+        for (let element of this.valueOf()) {
+            newArr.push(element.clone(chain));
+        }
+        return new ESArray(newArr);
+    }
 }
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     public mutable: boolean;
-    constructor(name: ESString, value: dict<ESSymbol>, mutable=false) {
+
+    constructor (name: ESString, value: dict<ESSymbol>, mutable=false) {
         super(value, types.object);
-        this.info.name = name.valueOf();
+        this.info.name = str(name);
         this.mutable = mutable;
     }
 
@@ -826,15 +832,11 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         this.info.name = v.valueOf();
     }
 
-    clone = (): Primitive => {
+    clone = (chain: Primitive[]): Primitive => {
         let obj: dict<ESSymbol> = {};
         let toClone = this.valueOf();
         for (let key in toClone) {
-            try {
-                obj[key] = toClone[key].clone();
-            } catch (e) {
-                throw Error('Couldn\'t clone ' + str(toClone[key]));
-            }
+            obj[key] = toClone[key].clone();
         }
         return new ESNamespace(this.name, obj);
     }

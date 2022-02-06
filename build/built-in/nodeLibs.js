@@ -5,7 +5,7 @@ import { ESFunction, ESNamespace, ESObject, ESString, types } from '../runtime/p
 import { str } from "../util/util.js";
 import { run } from "../index.js";
 import { addModuleFromObj, getModule, moduleExist } from './builtInModules.js';
-import { global } from "../constants.js";
+import { global, importCache } from "../constants.js";
 // node only built in modules
 import http from './built-in-modules/http.js';
 import MySQL from './built-in-modules/mysql.js';
@@ -24,6 +24,9 @@ function addNodeLibs(options, context) {
             return getModule(scriptPath);
         }
         scriptPath = path.join(context.path, scriptPath);
+        if (scriptPath in importCache) {
+            return importCache[scriptPath];
+        }
         try {
             if (!fs.existsSync(scriptPath)) {
                 if (fs.existsSync('./particles/' + scriptPath)) {
@@ -41,16 +44,19 @@ function addNodeLibs(options, context) {
             const code = fs.readFileSync(scriptPath, 'utf-8');
             const env = new Context();
             env.parent = global;
+            const n = new ESNamespace(new ESString(scriptPath), {});
+            importCache[scriptPath] = n;
             const res = run(code, {
                 env,
                 measurePerformance: false,
                 fileName: scriptPath,
                 currentDir: path.dirname(scriptPath),
             });
+            n.__value__ = env.getSymbolTableAsDict();
             if (res.error) {
                 return res.error;
             }
-            return new ESNamespace(new ESString(scriptPath), env.getSymbolTableAsDict());
+            return n;
         }
         catch (E) {
             return new ESError(Position.unknown, 'ImportError', E.toString());

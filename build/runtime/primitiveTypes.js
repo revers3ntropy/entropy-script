@@ -40,8 +40,7 @@ export class ESPrimitive {
     static wrap(thing = undefined) {
         if (thing instanceof ESPrimitive)
             return thing;
-        // catch 'null' which is of type 'object'
-        if (thing == undefined)
+        if (thing === undefined || thing === null)
             return new ESUndefined();
         if (thing instanceof ESError)
             return new ESErrorPrimitive(thing);
@@ -104,9 +103,9 @@ export class ESType extends ESPrimitive {
     constructor(isPrimitive = false, name = '(anon)', __methods__ = [], __extends__, __init__) {
         super(undefined, types === null || types === void 0 ? void 0 : types.type);
         this.__instances__ = [];
-        this.clone = () => {
+        this.clone = (chain) => {
             var _a;
-            return new ESType(this.__isPrimitive__, this.__name__, this.__methods__.map(f => f.clone()), this.__extends__, (_a = this.__init__) === null || _a === void 0 ? void 0 : _a.clone());
+            return new ESType(this.__isPrimitive__, this.__name__, this.__methods__.map(f => f.clone(chain)), this.__extends__, (_a = this.__init__) === null || _a === void 0 ? void 0 : _a.clone(chain));
         };
         this.isa = ({}, type) => {
             return new ESBoolean(type === types.type);
@@ -212,7 +211,7 @@ export class ESNumber extends ESPrimitive {
         this.__bool__ = () => {
             return new ESBoolean(this.valueOf() > 0);
         };
-        this.clone = () => new ESNumber(this.valueOf());
+        this.clone = (chain) => new ESNumber(this.valueOf());
     }
 }
 export class ESString extends ESPrimitive {
@@ -268,7 +267,7 @@ export class ESString extends ESPrimitive {
         this.len = () => {
             return new ESNumber(this.valueOf().length);
         };
-        this.clone = () => new ESString(this.valueOf());
+        this.clone = (chain) => new ESString(this.valueOf());
         this.__getProperty__ = ({}, key) => {
             if (key instanceof ESString && this.self.hasOwnProperty(str(key)))
                 return ESPrimitive.wrap(this.self[str(key)]);
@@ -332,7 +331,7 @@ export class ESUndefined extends ESPrimitive {
         this.str = () => new ESString('<Undefined>');
         this.__eq__ = ({}, n) => new ESBoolean(n instanceof ESUndefined || typeof n === 'undefined' || typeof n.valueOf() === 'undefined');
         this.__bool__ = () => new ESBoolean(false);
-        this.clone = () => new ESUndefined();
+        this.clone = (chain) => new ESUndefined();
         // define the same info for every instance
         this.info = {
             name: 'undefined',
@@ -354,7 +353,7 @@ export class ESErrorPrimitive extends ESPrimitive {
         this.str = () => new ESString(`<Error: ${this.valueOf().str}>`);
         this.__eq__ = ({}, n) => new ESBoolean(n instanceof ESErrorPrimitive && this.valueOf().constructor === n.valueOf().constructor);
         this.__bool__ = () => new ESBoolean(true);
-        this.clone = () => new ESErrorPrimitive(this.valueOf());
+        this.clone = (chain) => new ESErrorPrimitive(this.valueOf());
     }
 }
 export class ESFunction extends ESPrimitive {
@@ -366,7 +365,7 @@ export class ESFunction extends ESPrimitive {
         this.cast = ({}, type) => {
             return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'function'`);
         };
-        this.clone = () => {
+        this.clone = (chain) => {
             return new ESFunction(this.__value__, this.arguments_, this.name, this.this_, this.returnType, this.__closure__);
         };
         // @ts-ignore
@@ -430,7 +429,7 @@ export class ESBoolean extends ESPrimitive {
             return new ESBoolean(this.bool().valueOf() || n.bool().valueOf());
         };
         this.str = () => new ESString(this.valueOf() ? 'true' : 'false');
-        this.clone = () => new ESBoolean(this.valueOf());
+        this.clone = (chain) => new ESBoolean(this.valueOf());
         this.info = {
             name: str(val),
             description: `Boolean global constant which evaluates to ${str(val)}, the opposite of ${str(!val)}`,
@@ -478,15 +477,15 @@ export class ESObject extends ESPrimitive {
                 return ESPrimitive.wrap(this.self[key.valueOf()]);
             return new ESUndefined();
         };
-        this.clone = () => {
+        this.clone = (chain) => {
             let obj = {};
             let toClone = this.valueOf();
             for (let key in toClone) {
                 try {
-                    obj[key] = toClone[key].clone();
+                    obj[key] = toClone[key].clone(chain);
                 }
                 catch (e) {
-                    throw Error('Couldn\'t clone ' + str(toClone[key]));
+                    throw Error(`Couldn't clone ${str(toClone[key])} from ${this.info}`);
                 }
             }
             return new ESObject(obj);
@@ -554,11 +553,17 @@ export class ESArray extends ESPrimitive {
          */
         this.contains = ({}, val) => {
             for (let element of this.__value__)
-                if (val.valueOf() == element.valueOf())
+                if (val.valueOf() === element.valueOf())
                     return true;
             return false;
         };
-        this.clone = () => new ESArray(this.valueOf().map(v => v.clone()));
+        this.clone = (chain) => {
+            const newArr = [];
+            for (let element of this.valueOf()) {
+                newArr.push(element.clone(chain));
+            }
+            return new ESArray(newArr);
+        };
         this.len = values.length;
     }
     __setProperty__({}, key, value) {
@@ -581,16 +586,11 @@ export class ESNamespace extends ESPrimitive {
         this.cast = ({}) => {
             return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'namespace'`);
         };
-        this.clone = () => {
+        this.clone = (chain) => {
             let obj = {};
             let toClone = this.valueOf();
             for (let key in toClone) {
-                try {
-                    obj[key] = toClone[key].clone();
-                }
-                catch (e) {
-                    throw Error('Couldn\'t clone ' + str(toClone[key]));
-                }
+                obj[key] = toClone[key].clone();
             }
             return new ESNamespace(this.name, obj);
         };
@@ -612,7 +612,7 @@ export class ESNamespace extends ESPrimitive {
                 return ESPrimitive.wrap(this.self[key.valueOf()]);
             return new ESUndefined();
         };
-        this.info.name = name.valueOf();
+        this.info.name = str(name);
         this.mutable = mutable;
     }
     get name() {

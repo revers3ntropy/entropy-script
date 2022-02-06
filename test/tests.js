@@ -867,3 +867,16 @@ expect([{otherLib: '<Symbol: otherLib>', doThing: '<Symbol: doThing>'}, '<Func: 
 	
 	main();
 `);
+
+/*
+expect([{}], `
+	import('./imports/circular/1.es');
+`);
+
+expect([{b: 1}, false, {b: 1}, true], `
+	const a = {b: 1};
+	a.a == a;
+	a.a = a;
+	a.a == a;
+`);
+ */

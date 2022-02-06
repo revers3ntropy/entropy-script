@@ -1,4 +1,6 @@
 import type { Context } from './runtime/context';
+import { dict } from "./util/util.js";
+import { ESNamespace } from "./runtime/primitiveTypes.js";
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -58,3 +60,5 @@ export async function refreshPerformanceNow (IS_NODE_INSTANCE: boolean) {
     }
 }
 refreshPerformanceNow(IS_NODE_INSTANCE);
+
+export const importCache: dict<ESNamespace> = {};

@@ -2,12 +2,12 @@ import {Position} from "../position.js";
 import {Context} from "../runtime/context.js";
 import {ESError, ImportError} from "../errors.js";
 import {ESFunction, ESNamespace, ESObject, ESString, Primitive, types} from '../runtime/primitiveTypes.js';
-import {str} from "../util/util.js";
+import { str } from "../util/util.js";
 import {interpretResult} from "../runtime/nodes.js";
 import {run} from "../index.js";
 import {JSModuleParams} from './built-in-modules/module.js';
 import {addModuleFromObj, getModule, moduleExist} from './builtInModules.js';
-import {global} from "../constants.js";
+import { global, importCache } from "../constants.js";
 
 // node only built in modules
 import http from './built-in-modules/http.js';
@@ -25,7 +25,7 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
 
     const { fs, path } = options;
 
-    context.set('import', new ESFunction(({context}, rawPath) => {
+    context.set('import', new ESFunction(({context}, rawPath): ESError | ESNamespace | undefined => {
             let scriptPath: string = str(rawPath);
 
             if (moduleExist(scriptPath)) {
@@ -33,6 +33,10 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
             }
 
             scriptPath = path.join(context.path, scriptPath);
+
+            if (scriptPath in importCache) {
+                return importCache[scriptPath];
+            }
 
             try {
                 if (!fs.existsSync(scriptPath)) {
@@ -46,9 +50,15 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
                         return new ESError(Position.unknown, 'ImportError', `Can't find file '${scriptPath}' to import.`)
                     }
                 }
+
+
                 const code = fs.readFileSync(scriptPath, 'utf-8');
                 const env = new Context();
                 env.parent = global;
+
+                const n = new ESNamespace(new ESString(scriptPath), {});
+                importCache[scriptPath] = n;
+
                 const res: interpretResult = run(code, {
                     env,
                     measurePerformance: false,
@@ -56,11 +66,13 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
                     currentDir: path.dirname(scriptPath),
                 });
 
+                n.__value__ = env.getSymbolTableAsDict();
+
                 if (res.error) {
                     return res.error;
                 }
+                return n;
 
-                return new ESNamespace(new ESString(scriptPath), env.getSymbolTableAsDict());
             } catch (E: any) {
                 return new ESError(Position.unknown, 'ImportError', E.toString());
             }

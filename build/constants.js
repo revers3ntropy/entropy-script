@@ -59,3 +59,4 @@ export function refreshPerformanceNow(IS_NODE_INSTANCE) {
     });
 }
 refreshPerformanceNow(IS_NODE_INSTANCE);
+export const importCache = {};

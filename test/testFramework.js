@@ -93,6 +93,7 @@ export class Test {
         for (let test of Test.tests) {
             const testEnv = new Context();
             testEnv.parent = global;
+            testEnv.path = './';
             res.register(test.run(testEnv));
         }
 
