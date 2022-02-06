@@ -5,46 +5,69 @@ import {ESFunction, ESNamespace, ESObject, ESString, Primitive, types} from '../
 import {str} from "../util/util.js";
 import {interpretResult} from "../runtime/nodes.js";
 import {run} from "../index.js";
+import {JSModuleParams} from './built-in-modules/module.js';
 import {addModuleFromObj, getModule, moduleExist} from './builtInModules.js';
+import {global} from "../constants.js";
 
 // node only built in modules
 import http from './built-in-modules/http.js';
+import MySQL from './built-in-modules/mysql.js'
 
-function addNodeLibs (https_lib: any, http_lib: any, fs: any, mysql: any, context: Context, print: (...args: string[]) => void) {
+/**
+ * Adds node functionality like access to files, https and more.
+ * @param {JSModuleParams} options
+ * @param {Context} context
+ */
+function addNodeLibs (options: JSModuleParams, context: Context) {
 
-    addModuleFromObj('http', http(https_lib, http_lib, fs, mysql, context, print));
+    addModuleFromObj('http', http(options));
+    addModuleFromObj('mysql', MySQL(options));
+
+    const { fs, path } = options;
 
     context.set('import', new ESFunction(({context}, rawPath) => {
-        let path: string = str(rawPath);
+            let scriptPath: string = str(rawPath);
 
-        if (moduleExist(path))
-            return getModule(path);
-
-        try {
-            if (!fs.existsSync(path)) {
-                if (fs.existsSync('./particles/' + path))
-                    path = 'particles/' + path + '/main.es';
-                else
-                    return new ESError(Position.unknown, 'ImportError', `Can't find file '${path}' to import.`)
+            if (moduleExist(scriptPath)) {
+                return getModule(scriptPath);
             }
-            const code = fs.readFileSync(path, 'utf-8');
-            const env = new Context();
-            env.parent = context;
-            const res: interpretResult = run(code, {
-                env,
-                fileName: path
-            });
 
-            if (res.error)
-                return new ImportError(Position.unknown, str(path), res.error.str);
+            scriptPath = path.join(context.path, scriptPath);
 
-            return new ESNamespace(new ESString(path), env.getSymbolTableAsDict());
-        } catch (E) {
-            return new ESError(Position.unknown, 'ImportError', E.toString());
-        }
-    }, [{name: 'path', type: types.string}],
-        'import', undefined, types.object),
-    {
+            try {
+                if (!fs.existsSync(scriptPath)) {
+                    if (fs.existsSync('./particles/' + scriptPath)) {
+                        if (fs.existsSync('particles/' + scriptPath + '/main.es')) {
+                            scriptPath = 'particles/' + scriptPath + '/main.es';
+                        } else {
+                            return new ESError(Position.unknown, 'ImportError', `Module '${scriptPath}' has no entry point. Requires 'main.es'.`)
+                        }
+                    } else {
+                        return new ESError(Position.unknown, 'ImportError', `Can't find file '${scriptPath}' to import.`)
+                    }
+                }
+                const code = fs.readFileSync(scriptPath, 'utf-8');
+                const env = new Context();
+                env.parent = global;
+                const res: interpretResult = run(code, {
+                    env,
+                    measurePerformance: false,
+                    fileName: scriptPath,
+                    currentDir: path.dirname(scriptPath),
+                });
+
+                if (res.error) {
+                    return res.error;
+                }
+
+                return new ESNamespace(new ESString(scriptPath), env.getSymbolTableAsDict());
+            } catch (E: any) {
+                return new ESError(Position.unknown, 'ImportError', E.toString());
+            }
+        },
+            [{name: 'path', type: types.string}],
+            'import', undefined, types.object
+    ), {
         forceThroughConst: true,
         isConstant: true
     });
@@ -58,14 +81,14 @@ function addNodeLibs (https_lib: any, http_lib: any, fs: any, mysql: any, contex
 
         return new ESObject({
             str: new ESFunction(({context}) => {
-                return new ESString(fs.readFileSync(path, encoding));
+                return new ESString(fs.readFileSync(context.path + path, encoding));
             }, [], 'str', undefined, types.string),
             write: new ESFunction(({context}, data: Primitive) => {
-                fs.writeFileSync(path, str(data));
-            }),
+                fs.writeFileSync(context.path + path, str(data));
+            }, [{name: 'path', type: types.string}]),
             append: new ESFunction(({context}, data: Primitive) => {
-                fs.appendFileSync(path, str(data));
-            }),
+                fs.appendFileSync(context.path + path, str(data));
+            }, [{name: 'path', type: types.string}]),
         });
     }));
 }

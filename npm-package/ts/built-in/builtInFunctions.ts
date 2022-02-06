@@ -5,8 +5,8 @@ import {
     ESNumber,
     ESObject,
     ESPrimitive,
-    ESString,
-    FunctionInfo
+    ESString, ESUndefined,
+    FunctionInfo, types
 } from '../runtime/primitiveTypes.js';
 import {BuiltInFunction, indent, sleep, str} from '../util/util.js';
 
@@ -190,6 +190,18 @@ Try 'help(object)' for help about a particular object.
 
     }],
 
+    'delete': [({context}, name) => {
+        const id = str(name);
+        if (!context.has(id)) {
+            return new ESError(Position.unknown, 'DeleteError', `Identifier '${id}' not found in the current context`);
+        }
+        context.set(id, new ESUndefined());
+    }, {
+        name: 'delete',
+        args: [{name: 'identifier', type: 'string'}],
+        description: 'Deletes a variable from the current context'
+    }],
+
     'using': [({context}, module) => {
         if (!(module instanceof ESNamespace))
             return new TypeError(Position.unknown, 'Namespace', str(module.typeOf()));
@@ -203,7 +215,9 @@ Try 'help(object)' for help about a particular object.
             });
         }
     }, {
-
+        name: 'using',
+        args: [{name: 'module', type: 'namespace'}],
+        description: 'Adds contents of a namespace to the current context'
     }],
 
     'sleep': [({context}, time, cb) => {
@@ -219,6 +233,8 @@ Try 'help(object)' for help about a particular object.
                     console.log(res.str);
             });
     }, {
-
+        name: 'sleep',
+        args: [{name: 'n', type: 'number'}, {name: 'callback', type: 'function'}],
+        description: 'Waits n milliseconds and then executes the callback'
     }],
 }

@@ -67,7 +67,7 @@ export abstract class Node {
         if (!(res.val instanceof ESPrimitive)) {
             res.error = new TypeError(Position.unknown, 'Primitive', 'Native JS value', str(res.val));
             res.val = new ESUndefined();
-        }
+        }``
 
         res.val.info.file ||= this.startPos.file;
 
@@ -79,7 +79,6 @@ export abstract class Node {
         return res;
     }
 }
-
 
 // --- NON-TERMINAL NODES ---
 
@@ -596,14 +595,16 @@ export class N_functionCall extends Node {
 
     interpret_ (context: Context) {
         let { val, error } = this.to.interpret(context);
-        if (error) return error;
-        if (!val)
+        if (error) {
+            return error;
+        }
+        if (!val) {
             return new TypeError(this.startPos, 'any', 'undefined', undefined, 'On function call');
-        if (!val.hasOwnProperty('__call__')) {
+        }
+        if (!val.hasProperty({context}, new ESString('__call__')))
             return new TypeError(this.startPos, 'unknown',
                 val?.typeOf().valueOf() || 'unknown', val?.valueOf(),
                 'Can only () on something with __call__ property');
-        }
 
         let params: Primitive[] = [];
 
@@ -613,16 +614,12 @@ export class N_functionCall extends Node {
             if (res.val) params.push(res.val);
         }
 
-        const __call__ = val.__getProperty__({context}, new ESString('__call__'));
+        const __call__ = val.__call__;
 
-        if (!(__call__ instanceof ESFunction))
-            return new TypeError(this.startPos, 'function',
-                str(val?.typeOf()), str(val),
-                '__call__ property must be function');
-
-        if (typeof __call__.__value__ !== 'function')
-            return new TypeError(Position.unknown, 'native function', 'es function');
-        const res = __call__.__value__({context}, ...params);
+        if (typeof __call__ !== 'function') {
+            return new TypeError(Position.unknown, 'native function', typeof __call__);
+        }
+        const res = __call__({context}, ...params);
 
         if (res instanceof ESError) {
             res.traceback.push({
@@ -634,8 +631,9 @@ export class N_functionCall extends Node {
             return res;
         }
 
-        if (!(res instanceof ESPrimitive))
+        if (!(res instanceof ESPrimitive)) {
             return new ESUndefined();
+        }
 
         return res;
     }

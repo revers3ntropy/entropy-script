@@ -2,29 +2,63 @@ import './util/colourString.js';
 
 import { Lexer } from "./tokenise/lexer.js";
 import { Parser } from "./parse/parser.js";
-import { global, now } from "./constants.js";
+import { global, now, refreshPerformanceNow, runningInNode, setGlobalContext } from "./constants.js";
 import { initialise } from "./init.js";
 import { ESError } from "./errors.js";
 import { Position } from "./position.js";
 import { interpretResult, Node } from "./runtime/nodes.js";
 import { ESArray } from "./runtime/primitiveTypes.js";
-import { timeData } from "./util/util";
+import { timeData } from "./util/util.js";
+import { Context } from "./runtime/context.js";
+import addNodeLibs from "./built-in/nodeLibs.js";
+import { JSModuleParams } from "./built-in/built-in-modules/module.js";
 
-export function init (
+
+/**
+ * @param {(...args: any) => void} printFunc
+ * @param {(msg: string, cb: (...arg: any[]) => any) => void} inputFunc
+ * @param {boolean} node
+ * @param nodeLibs
+ * @param {Context} context
+ * @returns {Promise<void>}
+ */
+export async function init (
     printFunc: (...args: any) => void = console.log,
-    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
+    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void,
+    node=true,
+    nodeLibs: any = {},
+    context= new Context(),
 ) {
-    initialise(global, printFunc, inputFunc);
+    setGlobalContext(context);
+    initialise(context, printFunc, inputFunc);
+
+    nodeLibs['context'] ??= context;
+
+    if (node) {
+        runningInNode();
+        await refreshPerformanceNow(true);
+        addNodeLibs( <JSModuleParams> nodeLibs, context);
+    }
 }
 
+/**
+ * @param {string} msg
+ * @param {Context} env
+ * @param {boolean} measurePerformance
+ * @param {string} fileName
+ * @param {string} currentDir
+ * @returns {interpretResult | ({timeData: timeData} & interpretResult)}
+ */
 export function run (msg: string, {
     env = global,
     measurePerformance = false,
     fileName = '(unknown)',
-    currentDir='./'
-}={}): interpretResult | ({ timeData: timeData } & interpretResult) {
+    currentDir=''
+} = {}): interpretResult | ({ timeData: timeData } & interpretResult) {
 
-    env.importPaths.push(currentDir);
+    if (currentDir) {
+        env.path = currentDir;
+    }
 
     Node.maxTime = 0;
     Node.totalTime = 0;
@@ -89,8 +123,9 @@ export function run (msg: string, {
     timeData.nodeAvg = Node.totalTime / Node.interprets;
     timeData.interprets = Node.interprets;
 
-    if (measurePerformance)
+    if (measurePerformance) {
         console.log(timeData);
+    }
 
     return {...finalRes, timeData};
 }

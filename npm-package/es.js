@@ -16,22 +16,15 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as sql from 'sync-mysql';
 import readline from 'readline';
+import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import {refreshPerformanceNow, runningInNode} from "./build/constants.js";
 import {ImportError} from './build/errors.js';
-runningInNode();
-await refreshPerformanceNow(true);
 
 import * as es from './build/index.js';
 import {Position} from './build/position.js';
-import {Test} from "./build/tests/testFramework.js";
 import {str} from "./build/util/util.js";
-import addNodeLibs from "./build/built-in/nodeLibs.js";
-import {global} from "./build/constants.js";
-
-import './build/tests/tests.js';
 
 /**
  * Syntax: String(await askQuestion(query).
@@ -51,32 +44,41 @@ function askQuestion(query) {
 }
 
 /**
- * Initialise
  * @return {Promise<void>}
  */
 export async function init () {
-	es.init(
+	await es.init(
 		console.log,
-		async (msg, cb) => cb(await askQuestion(msg).catch(console.log))
+		async (msg, cb) =>
+			cb(await askQuestion(msg).catch(console.log)),
+		true, {
+			https,
+			http,
+			fs,
+			mysql: sql,
+			print: console.log,
+			fetch: {},
+			path
+		}
 	);
-
-	addNodeLibs(https, http, fs, sql, global, console.log);
 }
 
 /**
  * Runs a .es script
- * @param {string} path
+ * @param {string} file
  */
-export function runScript (path) {
-	if (!fs.existsSync(path)) {
-		console.log(new ImportError(new Position(0, 0, 0, 'JSES-CLI'), path, `Can't find file`).str);
+export function runScript (file) {
+	if (!fs.existsSync(file)) {
+		console.log(new ImportError(new Position(0, 0, 0, 'JSES-CLI'), file, `Can't find file`).str);
 		return;
 	}
-	let res = es.run(fs.readFileSync(path, 'utf-8'), {
-		fileName: path
+	let res = es.run(fs.readFileSync(file, 'utf-8'), {
+		fileName: file,
+		currentDir: path.dirname(file),
 	});
-	if (res.error)
+	if (res.error) {
 		console.log(res.error.str);
+	}
 }
 
 /**
@@ -86,13 +88,8 @@ export function runScript (path) {
 export async function runTerminal () {
 	const input = String(await askQuestion('>>> '));
 
-	if (input === 'exit') return;
-	else if (input === 'test') {
-		const res = await Test.testAll();
-		console.log(res.str());
-		runTerminal();
+	if (input === 'exit') {
 		return;
-
 	} else if (/run [\w_\/.]+\.es/.test(input)) {
 		runScript(input.substring(4));
 		// run breaks out of the loop, to allow inputs
@@ -111,9 +108,10 @@ export async function runTerminal () {
 	else if (out.length === 0) out = '';
 	else if (out.length === 1) out = out[0];
 	if (res.error)             out = res.error.str;
-	if (out !== undefined)
+	if (out !== undefined) {
 		// final out
 		console.log(str(out));
+	}
 
 	runTerminal();
 }
@@ -121,10 +119,11 @@ export async function runTerminal () {
 export async function main () {
 	await init();
 
-	if (process.argv.length === 2)
+	if (process.argv.length === 2) {
 		runTerminal();
-	else
+	} else {
 		runScript(process.argv[2]);
+	}
 }
 
 main();

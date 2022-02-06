@@ -1,10 +1,11 @@
-import {Context} from "./runtime/context.js";
+import type { Context } from './runtime/context';
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const singleLineComment = '//';
 
-export const global = new Context();
+export let global: Context;
+export const setGlobalContext = (c: Context) => void (global = c);
 
 export const stringSurrounds = ['\'', '`', '"'];
 

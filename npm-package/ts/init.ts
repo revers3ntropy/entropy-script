@@ -6,9 +6,9 @@ import { Position } from "./position.js";
 import { run } from "./index.js";
 import {IS_NODE_INSTANCE} from "./constants.js";
 import { str } from "./util/util.js";
-import {ESFunction, ESNamespace, ESString, ESType, types} from './runtime/primitiveTypes.js';
+import {ESFunction, ESNamespace, ESString} from './runtime/primitiveTypes.js';
 import {interpretResult} from "./runtime/nodes.js";
-import {globalConstants} from "./built-in/globalConstants.js";
+import loadGlobalConstants from "./built-in/globalConstants.js";
 
 export function initialise (
     globalContext: Context,
@@ -17,12 +17,14 @@ export function initialise (
 ) {
 
     builtInFunctions['import'] = [({context}, rawUrl, callback) => {
-        if (IS_NODE_INSTANCE)
+        if (IS_NODE_INSTANCE) {
             return new ESError(Position.unknown, 'ImportError', 'Is running in node instance but trying to run browser import function');
+        }
         const url: ESString = rawUrl.str();
 
-        if (moduleExist(str(url)))
+        if (moduleExist(str(url))) {
             return getModule(str(url));
+        }
 
         try {
             fetch (str(url))
@@ -43,7 +45,7 @@ export function initialise (
                         new ESNamespace(url, env.getSymbolTableAsDict())
                     );
                 });
-        } catch (E) {
+        } catch (E: any) {
             return new ESError(Position.unknown, 'ImportError', E.toString());
         }
     }, {}];
@@ -62,8 +64,9 @@ export function initialise (
                 let res = cb.__call__({context},
                     new ESString(msg)
                 );
-                if (res instanceof ESError)
+                if (res instanceof ESError) {
                     console.log(res.str);
+                }
             } else if (typeof cb === 'function')
                 cb(msg);
 
@@ -72,7 +75,7 @@ export function initialise (
     }, {}];
 
     for (let builtIn in builtInFunctions) {
-        const fn = new ESFunction(builtInFunctions[builtIn][0], [], builtIn);
+        const fn = new ESFunction(builtInFunctions[builtIn][0], [], builtIn, undefined, undefined, globalContext);
 
         fn.info = builtInFunctions[builtIn][1];
         fn.info.name = builtIn;
@@ -85,13 +88,7 @@ export function initialise (
         });
     }
 
-    for (let constant in globalConstants) {
-        const value = globalConstants[constant];
-        globalContext.set(constant, value, {
-            global: true,
-            isConstant: true
-        });
-    }
+    loadGlobalConstants(globalContext);
 
     globalContext.initialisedAsGlobal = true;
 }
