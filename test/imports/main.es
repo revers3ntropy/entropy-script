@@ -4,4 +4,4 @@ const main = func () {
 	return lib.doThing();
 };
 
-main();
+print(main());

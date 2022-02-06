@@ -6,6 +6,12 @@ import shutil
 
 start = time.time()
 
+os.makedirs('npm-package', exist_ok=True)
+os.makedirs('npm-package/bin', exist_ok=True)
+os.makedirs('npm-package/build', exist_ok=True)
+os.makedirs('npm-package/espm', exist_ok=True)
+os.makedirs('npm-package/ts', exist_ok=True)
+
 # copy ts src
 distutils.dir_util.copy_tree('./src', './npm-package/ts')
 # copy es.js
