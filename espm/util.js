@@ -36,7 +36,7 @@ export function deleteRecursively (path) {
 /**
  *
  * @param {string} dir=''
- * @returns config
+ * @returns {any} config
  */
 export function readConfig (dir='') {
     // defaults
@@ -55,7 +55,7 @@ export function readConfig (dir='') {
     try {
         config = {
             ...config,
-            ...JSON.parse(fs.readFileSync(dir))
+            ...JSON.parse(fs.readFileSync(dir).toString())
         };
     } catch (e) {
         console.log(`Cannot parse ${dir}: ${e}`);

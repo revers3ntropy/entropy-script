@@ -1,6 +1,5 @@
 import installPackage, {addPackageToConfig, canInstallPackage} from './installPackage.js';
-import {existsSync, readFileSync} from 'fs';
-import {CONFIG_FILE_NAME, editConfig} from './util.js';
+import {editConfig} from './util.js';
 
 /**
  * 'install *'
@@ -24,8 +23,9 @@ export default function (argv) {
                     addPackageToConfig(argv[0]);
             });
 
-    } else
+    } else {
         console.log(`Invalid number of arguments. Expected 0 or 1 on command 'install'`);
+    }
 }
 
 /**

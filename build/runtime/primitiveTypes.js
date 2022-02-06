@@ -553,7 +553,7 @@ export class ESArray extends ESPrimitive {
          */
         this.contains = ({}, val) => {
             for (let element of this.__value__)
-                if (val.valueOf() === element.valueOf())
+                if (val.valueOf() == element.valueOf())
                     return true;
             return false;
         };

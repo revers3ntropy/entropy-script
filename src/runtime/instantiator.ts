@@ -114,7 +114,7 @@ export function createInstance (type: ESType, {context}: {context: Context}, par
     const instance = new ESObject(on);
 
     for (let method of type.__methods__) {
-        const methodClone = method.clone();
+        const methodClone = method.clone([]);
         methodClone.this_ = instance;
         on[method.name] = methodClone;
     }

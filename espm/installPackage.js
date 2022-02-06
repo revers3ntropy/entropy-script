@@ -40,8 +40,9 @@ export function addPackageToConfig (packageName) {
  * @returns {Promise<boolean>} success
  */
 export default async function (packageName) {
-    if (fs.existsSync(PACKAGE_DIR_NAME + '/' + packageName))
+    if (fs.existsSync(PACKAGE_DIR_NAME + '/' + packageName)) {
         return true;
+    }
 
     const url = `http://entropygames.io/entropy-script/pm/particles/${packageName}.zip`;
     const localTempPath = `tmp-${packageName}.zip`;

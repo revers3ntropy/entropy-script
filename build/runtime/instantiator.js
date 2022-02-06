@@ -93,7 +93,7 @@ export function createInstance(type, { context }, params, runInit = true, on = {
     on['constructor'] = (_d = (_c = type.__init__) === null || _c === void 0 ? void 0 : _c.clone()) !== null && _d !== void 0 ? _d : new ESUndefined();
     const instance = new ESObject(on);
     for (let method of type.__methods__) {
-        const methodClone = method.clone();
+        const methodClone = method.clone([]);
         methodClone.this_ = instance;
         on[method.name] = methodClone;
     }

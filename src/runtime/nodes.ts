@@ -516,7 +516,7 @@ export class N_array extends Node {
             if (!res.val) continue;
             let val = res.val;
             if (this.shouldClone)
-                val = val.clone();
+                val = val.clone([]);
             interpreted.push(val);
         }
 

@@ -25,7 +25,7 @@ export class ESSymbol {
     }
 
     clone = () => {
-        return new ESSymbol(this.value.clone(), this.identifier, {
+        return new ESSymbol(this.value.clone([]), this.identifier, {
             isConstant: this.isConstant,
             isAccessible: this.isAccessible
         });
