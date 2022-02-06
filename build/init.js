@@ -57,8 +57,9 @@ export function initialise(globalContext, printFunc, inputFunc) {
                 let cb = cbRaw === null || cbRaw === void 0 ? void 0 : cbRaw.valueOf();
                 if (cb instanceof ESFunction) {
                     let res = cb.__call__({ context }, new ESString(msg));
-                    if (res instanceof ESError)
+                    if (res instanceof ESError) {
                         console.log(res.str);
+                    }
                 }
                 else if (typeof cb === 'function')
                     cb(msg);
@@ -66,7 +67,7 @@ export function initialise(globalContext, printFunc, inputFunc) {
             });
         }, {}];
     for (let builtIn in builtInFunctions) {
-        const fn = new ESFunction(builtInFunctions[builtIn][0], [], builtIn);
+        const fn = new ESFunction(builtInFunctions[builtIn][0], [], builtIn, undefined, undefined, globalContext);
         fn.info = builtInFunctions[builtIn][1];
         fn.info.name = builtIn;
         fn.info.isBuiltIn = true;

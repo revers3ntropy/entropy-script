@@ -471,7 +471,9 @@ export class ESFunction extends ESPrimitive {
         this.__call__ = ({ context }, ...params) => {
             var _b, _c, _d, _e, _f;
             // generate context
+            let callContext = context;
             context = this.__closure__;
+            context.path = callContext.path;
             const fn = this.__value__;
             if (fn instanceof Node) {
                 // fn is the function root node
@@ -493,10 +495,12 @@ export class ESFunction extends ESPrimitive {
                 }
                 if (this.returnType.includesType({ context }, (_d = (_c = res.val) === null || _c === void 0 ? void 0 : _c.__type__) !== null && _d !== void 0 ? _d : types.any).valueOf() === false)
                     return new TypeError(Position.unknown, this.returnType.__name__, ((_e = res.val) === null || _e === void 0 ? void 0 : _e.typeOf().valueOf()) || 'undefined', (_f = res.val) === null || _f === void 0 ? void 0 : _f.str().valueOf(), '(from function return)');
-                if (res.val)
+                if (res.val) {
                     return res.val;
-                else
+                }
+                else {
                     return new ESUndefined();
+                }
             }
             else if (typeof fn === 'function') {
                 for (let i = params.length; i < fn.length; i++)

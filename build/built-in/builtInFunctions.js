@@ -1,6 +1,6 @@
 import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
-import { ESArray, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString } from '../runtime/primitiveTypes.js';
+import { ESArray, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, ESUndefined } from '../runtime/primitiveTypes.js';
 import { indent, sleep, str } from '../util/util.js';
 export const builtInFunctions = {
     'range': [({ context }, num) => {
@@ -163,6 +163,17 @@ Try 'help(object)' for help about a particular object.
         }],
     'cast': [({ context }, thing) => {
         }, {}],
+    'delete': [({ context }, name) => {
+            const id = str(name);
+            if (!context.has(id)) {
+                return new ESError(Position.unknown, 'DeleteError', `Identifier '${id}' not found in the current context`);
+            }
+            context.set(id, new ESUndefined());
+        }, {
+            name: 'delete',
+            args: [{ name: 'identifier', type: 'string' }],
+            description: 'Deletes a variable from the current context'
+        }],
     'using': [({ context }, module) => {
             if (!(module instanceof ESNamespace))
                 return new TypeError(Position.unknown, 'Namespace', str(module.typeOf()));
@@ -174,7 +185,11 @@ Try 'help(object)' for help about a particular object.
                     forceThroughConst: true
                 });
             }
-        }, {}],
+        }, {
+            name: 'using',
+            args: [{ name: 'module', type: 'namespace' }],
+            description: 'Adds contents of a namespace to the current context'
+        }],
     'sleep': [({ context }, time, cb) => {
             if (!(time instanceof ESNumber))
                 return new TypeError(Position.unknown, 'number', str(time.typeOf()), str(time));
@@ -186,5 +201,9 @@ Try 'help(object)' for help about a particular object.
                 if (res instanceof ESError)
                     console.log(res.str);
             });
-        }, {}],
+        }, {
+            name: 'sleep',
+            args: [{ name: 'n', type: 'number' }, { name: 'callback', type: 'function' }],
+            description: 'Waits n milliseconds and then executes the callback'
+        }],
 };

@@ -1,4 +1,4 @@
-import { Context } from './runtime/context';
+import type { Context } from './runtime/context';
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

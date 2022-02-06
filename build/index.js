@@ -47,8 +47,10 @@ export function init(printFunc = console.log, inputFunc, node = true, nodeLibs =
  * @param {string} currentDir
  * @returns {interpretResult | ({timeData: timeData} & interpretResult)}
  */
-export function run(msg, { env = global, measurePerformance = false, fileName = '(unknown)', currentDir = './' } = {}) {
-    env.path = currentDir;
+export function run(msg, { env = global, measurePerformance = false, fileName = '(unknown)', currentDir = '' } = {}) {
+    if (currentDir) {
+        env.path = currentDir;
+    }
     Node.maxTime = 0;
     Node.totalTime = 0;
     Node.interprets = 0;

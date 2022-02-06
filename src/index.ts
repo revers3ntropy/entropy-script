@@ -53,10 +53,12 @@ export function run (msg: string, {
     env = global,
     measurePerformance = false,
     fileName = '(unknown)',
-    currentDir='./'
+    currentDir=''
 } = {}): interpretResult | ({ timeData: timeData } & interpretResult) {
 
-    env.path = currentDir;
+    if (currentDir) {
+        env.path = currentDir;
+    }
 
     Node.maxTime = 0;
     Node.totalTime = 0;

@@ -858,11 +858,11 @@ expect ('InvalidSyntaxError', `
     	output = i;
 `);
 
-expect([], `
+expect([{otherLib: '<Symbol: otherLib>', doThing: '<Symbol: doThing>'}, '<Func: main>', 'hello world'], `
 	const lib = import('./imports/lib/main.es');
 	
 	const main = func () {
-		return lib.goThing();
+		return lib.doThing();
 	};
 	
 	main();

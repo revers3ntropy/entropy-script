@@ -599,10 +599,11 @@ export class N_functionCall extends Node {
         if (error) return error;
         if (!val)
             return new TypeError(this.startPos, 'any', 'undefined', undefined, 'On function call');
-        if (!val.hasProperty({context}, new ESString('__call__')))
+        if (!val.hasOwnProperty('__call__')) {
             return new TypeError(this.startPos, 'unknown',
                 val?.typeOf().valueOf() || 'unknown', val?.valueOf(),
                 'Can only () on something with __call__ property');
+        }
 
         let params: Primitive[] = [];
 

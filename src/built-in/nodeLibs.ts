@@ -23,46 +23,51 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
     addModuleFromObj('http', http(options));
     addModuleFromObj('mysql', MySQL(options));
 
-    const { fs } = options;
+    const { fs, path } = options;
 
     context.set('import', new ESFunction(({context}, rawPath) => {
-        let path: string = str(rawPath);
+            let scriptPath: string = str(rawPath);
 
-        if (moduleExist(path)) {
-            return getModule(path);
-        }
+            if (moduleExist(scriptPath)) {
+                return getModule(scriptPath);
+            }
 
-        try {
-            if (!fs.existsSync(path)) {
-                if (fs.existsSync('./particles/' + path)) {
-                    if (fs.existsSync('particles/' + path + '/main.es'))
-                        path = 'particles/' + path + '/main.es';
-                    else return new ESError(Position.unknown, 'ImportError', `Module '${path}' has no entry point. Requires 'main.es'.`)
+            scriptPath = path.join(context.path, scriptPath);
+
+            try {
+                if (!fs.existsSync(scriptPath)) {
+                    if (fs.existsSync('./particles/' + scriptPath)) {
+                        if (fs.existsSync('particles/' + scriptPath + '/main.es')) {
+                            scriptPath = 'particles/' + scriptPath + '/main.es';
+                        } else {
+                            return new ESError(Position.unknown, 'ImportError', `Module '${scriptPath}' has no entry point. Requires 'main.es'.`)
+                        }
+                    } else {
+                        return new ESError(Position.unknown, 'ImportError', `Can't find file '${scriptPath}' to import.`)
+                    }
                 }
-                else
-                    return new ESError(Position.unknown, 'ImportError', `Can't find file '${path}' to import.`)
-            }
-            const code = fs.readFileSync(path, 'utf-8');
-            const env = new Context();
-            env.parent = global;
-            const res: interpretResult = run(code, {
-                env,
-                measurePerformance: false,
-                fileName: path,
-                currentDir: path,
-            });
+                const code = fs.readFileSync(scriptPath, 'utf-8');
+                const env = new Context();
+                env.parent = global;
+                const res: interpretResult = run(code, {
+                    env,
+                    measurePerformance: false,
+                    fileName: scriptPath,
+                    currentDir: path.dirname(scriptPath),
+                });
 
-            if (res.error) {
-                return new ImportError(Position.unknown, str(path), res.error.str);
-            }
+                if (res.error) {
+                    return res.error;
+                }
 
-            return new ESNamespace(new ESString(path), env.getSymbolTableAsDict());
-        } catch (E: any) {
-            return new ESError(Position.unknown, 'ImportError', E.toString());
-        }
-    }, [{name: 'path', type: types.string}],
-        'import', undefined, types.object),
-    {
+                return new ESNamespace(new ESString(scriptPath), env.getSymbolTableAsDict());
+            } catch (E: any) {
+                return new ESError(Position.unknown, 'ImportError', E.toString());
+            }
+        },
+            [{name: 'path', type: types.string}],
+            'import', undefined, types.object
+    ), {
         forceThroughConst: true,
         isConstant: true
     });
@@ -76,14 +81,14 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
 
         return new ESObject({
             str: new ESFunction(({context}) => {
-                return new ESString(fs.readFileSync(path, encoding));
+                return new ESString(fs.readFileSync(context.path + path, encoding));
             }, [], 'str', undefined, types.string),
             write: new ESFunction(({context}, data: Primitive) => {
-                fs.writeFileSync(path, str(data));
-            }),
+                fs.writeFileSync(context.path + path, str(data));
+            }, [{name: 'path', type: types.string}]),
             append: new ESFunction(({context}, data: Primitive) => {
-                fs.appendFileSync(path, str(data));
-            }),
+                fs.appendFileSync(context.path + path, str(data));
+            }, [{name: 'path', type: types.string}]),
         });
     }));
 }

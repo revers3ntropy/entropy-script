@@ -16,6 +16,7 @@ import * as http from 'http';
 import * as fs from 'fs';
 import * as sql from 'sync-mysql';
 import readline from 'readline';
+import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -56,22 +57,24 @@ export async function init () {
 			fs,
 			mysql: sql,
 			print: console.log,
-			fetch: {}
+			fetch: {},
+			path
 		}
 	);
 }
 
 /**
  * Runs a .es script
- * @param {string} path
+ * @param {string} file
  */
-export function runScript (path) {
-	if (!fs.existsSync(path)) {
-		console.log(new ImportError(new Position(0, 0, 0, 'JSES-CLI'), path, `Can't find file`).str);
+export function runScript (file) {
+	if (!fs.existsSync(file)) {
+		console.log(new ImportError(new Position(0, 0, 0, 'JSES-CLI'), file, `Can't find file`).str);
 		return;
 	}
-	let res = es.run(fs.readFileSync(path, 'utf-8'), {
-		fileName: path
+	let res = es.run(fs.readFileSync(file, 'utf-8'), {
+		fileName: file,
+		currentDir: path.dirname(file),
 	});
 	if (res.error) {
 		console.log(res.error.str);

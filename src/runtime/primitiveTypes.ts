@@ -698,7 +698,9 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     __call__ = ({context}: {context: Context}, ...params: Primitive[]): ESError | Primitive => {
 
         // generate context
+        let callContext = context;
         context = this.__closure__;
+        context.path = callContext.path;
         const fn = this.__value__;
 
         if (fn instanceof Node) {
@@ -737,10 +739,11 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
                     res.val?.str().valueOf(),
                     '(from function return)');
 
-            if (res.val)
+            if (res.val) {
                 return res.val;
-            else
+            } else {
                 return new ESUndefined();
+            }
 
         } else if (typeof fn === 'function') {
             for (let i = params.length; i < fn.length; i++)

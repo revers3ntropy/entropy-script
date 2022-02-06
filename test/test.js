@@ -6,6 +6,7 @@ import https from "https";
 import http from "http";
 import fs from "fs";
 import * as sql from "sync-mysql";
+import * as path from 'path';
 import readline from "readline";
 
 /**
@@ -36,7 +37,8 @@ function askQuestion(query) {
 			fs,
 			mysql: sql,
 			print: console.log,
-			fetch: {}
+			fetch: {},
+			path
 		}
 	);
 	console.log(Test.testAll().str());

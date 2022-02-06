@@ -12,6 +12,7 @@ export type JSModuleParams = {
     mysql: any,
     fetch: any,
     context: Context,
-    print: (...args: string[]) => void
+    print: (...args: string[]) => void,
+    path: any
 };
 export type JSModuleFunc = (config: JSModuleParams) => JSModule | ESError;

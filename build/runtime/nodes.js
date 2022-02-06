@@ -40,6 +40,7 @@ export class Node {
             res.error = new TypeError(Position.unknown, 'Primitive', 'Native JS value', str(res.val));
             res.val = new ESUndefined();
         }
+        ``;
         (_a = res.val.info).file || (_a.file = this.startPos.file);
         Node.interprets++;
         let time = now() - start;
@@ -467,10 +468,12 @@ export class N_functionCall extends Node {
     }
     interpret_(context) {
         let { val, error } = this.to.interpret(context);
-        if (error)
+        if (error) {
             return error;
-        if (!val)
+        }
+        if (!val) {
             return new TypeError(this.startPos, 'any', 'undefined', undefined, 'On function call');
+        }
         if (!val.hasProperty({ context }, new ESString('__call__')))
             return new TypeError(this.startPos, 'unknown', (val === null || val === void 0 ? void 0 : val.typeOf().valueOf()) || 'unknown', val === null || val === void 0 ? void 0 : val.valueOf(), 'Can only () on something with __call__ property');
         let params = [];
@@ -481,12 +484,11 @@ export class N_functionCall extends Node {
             if (res.val)
                 params.push(res.val);
         }
-        const __call__ = val.__getProperty__({ context }, new ESString('__call__'));
-        if (!(__call__ instanceof ESFunction))
-            return new TypeError(this.startPos, 'function', str(val === null || val === void 0 ? void 0 : val.typeOf()), str(val), '__call__ property must be function');
-        if (typeof __call__.__value__ !== 'function')
-            return new TypeError(Position.unknown, 'native function', 'es function');
-        const res = __call__.__value__({ context }, ...params);
+        const __call__ = val.__call__;
+        if (typeof __call__ !== 'function') {
+            return new TypeError(Position.unknown, 'native function', typeof __call__);
+        }
+        const res = __call__({ context }, ...params);
         if (res instanceof ESError) {
             res.traceback.push({
                 position: this.startPos,
@@ -496,8 +498,9 @@ export class N_functionCall extends Node {
             });
             return res;
         }
-        if (!(res instanceof ESPrimitive))
+        if (!(res instanceof ESPrimitive)) {
             return new ESUndefined();
+        }
         return res;
     }
 }

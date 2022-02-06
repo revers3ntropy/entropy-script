@@ -64,8 +64,9 @@ export function initialise (
                 let res = cb.__call__({context},
                     new ESString(msg)
                 );
-                if (res instanceof ESError)
+                if (res instanceof ESError) {
                     console.log(res.str);
+                }
             } else if (typeof cb === 'function')
                 cb(msg);
 
@@ -74,7 +75,7 @@ export function initialise (
     }, {}];
 
     for (let builtIn in builtInFunctions) {
-        const fn = new ESFunction(builtInFunctions[builtIn][0], [], builtIn);
+        const fn = new ESFunction(builtInFunctions[builtIn][0], [], builtIn, undefined, undefined, globalContext);
 
         fn.info = builtInFunctions[builtIn][1];
         fn.info.name = builtIn;
