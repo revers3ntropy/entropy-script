@@ -82,7 +82,9 @@ expect('TypeError', `{b: 2} + []`);
 expect('TypeError', `{b: 2} + ''`);
 expect('TypeError', `{b: 2} + nil`);
 expect('TypeError', `{b: 2} + type`);
+expect('TypeError', `{b: 2} + string`);
 expect('TypeError', `{b: 2} + (func () {})`);
+expect('TypeError', `+{b: 2}`);
 
 expect([{}], `{b: 2} - 'b'`);
 expect([{b: 2}], `{b: 2} - 'a'`);
@@ -93,4 +95,6 @@ expect([{b: 2}], `{a: 1, b: 2} - ['a']`);
 expect('TypeError', `{b: 2} - 1`);
 expect('TypeError', `{b: 2} - nil`);
 expect('TypeError', `{b: 2} - type`);
+expect('TypeError', `{b: 2} - string`);
 expect('TypeError', `{b: 2} - (func () {})`);
+expect('TypeError', `-{b: 2}`);

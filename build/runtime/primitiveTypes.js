@@ -618,6 +618,12 @@ export class ESArray extends ESPrimitive {
             }
             return new ESBoolean(true);
         };
+        this.__add__ = ({ context }, n) => {
+            if (!(n instanceof ESArray)) {
+                return new TypeError(Position.unknown, 'array', n.typeOf().valueOf(), n);
+            }
+            return new ESArray([...this.valueOf(), ...n.valueOf()]);
+        };
         this.__bool__ = () => new ESBoolean(this.valueOf().length > 0);
         this.__getProperty__ = ({}, key) => {
             if (key instanceof ESString && this.self.hasOwnProperty(key.valueOf())) {

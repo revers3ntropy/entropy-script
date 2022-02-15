@@ -862,6 +862,14 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return new ESBoolean(true);
     };
 
+    __add__ = ({context}: {context: Context}, n: Primitive) => {
+
+        if (!(n instanceof ESArray)) {
+            return new TypeError(Position.unknown, 'array', n.typeOf().valueOf(), n);
+        }
+        return new ESArray([...this.valueOf(), ...n.valueOf()]);
+    };
+
     __bool__ = () => new ESBoolean(this.valueOf().length > 0);
 
     __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {

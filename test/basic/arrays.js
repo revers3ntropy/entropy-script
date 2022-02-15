@@ -29,3 +29,26 @@ expect([true], `[] == []`);
 expect([true], `[0, 1] == [0, 1]`);
 expect([true], `[0, 1] != [2, 3]`);
 expect([false], `[0, 1, 2] == [2, 3]`);
+
+expect([[]], `[] + []`);
+expect([[0, 1, 0, 1]], `[0, 1] + [0, 1]`);
+expect([[0, 1, '']], `[0, 1] + ['']`);
+expect([[0, 1, '', {}]], `[0, 1, ''] + [{}]`);
+expect('TypeError', `[] + 1`);
+expect('TypeError', `[] + ''`);
+expect('TypeError', `[] + nil`);
+expect('TypeError', `[] + type`);
+expect('TypeError', `[] + string`);
+expect('TypeError', `[] + (func () {})`);
+expect('TypeError', `+[]`);
+
+
+expect('TypeError', `[] - []`);
+expect('TypeError', `[0, 1] - [0, 1]`);
+expect('TypeError', `[] - 1`);
+expect('TypeError', `[] - ''`);
+expect('TypeError', `[] - nil`);
+expect('TypeError', `[] - type`);
+expect('TypeError', `[] - string`);
+expect('TypeError', `[] - (func () {})`);
+expect('TypeError', `-[]`);
