@@ -6,6 +6,10 @@ import { str } from "../build/util/util.js";
 import { ESFunction, ESPrimitive, ESType } from "../build/runtime/primitiveTypes.js";
 import { interpretResult } from "../build/runtime/nodes.js";
 
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export class TestResult {
     failed = 0;
@@ -42,7 +46,7 @@ export class TestResult {
                 ${(this.failed.toString())[this.failed < 1 ? 'green' : 'red']} tests failed
                 ${this.passed.toString().green} tests passed
                 
-            In ${this.time.toString().cyan}ms
+            In ${this.time.toFixed(0).cyan}ms
             
             ${this.failed === 0 ? 'All tests passed!'.green : ''}
             
@@ -93,7 +97,7 @@ export class Test {
         for (let test of Test.tests) {
             const testEnv = new Context();
             testEnv.parent = global;
-            testEnv.path = './';
+            testEnv.path = __dirname;
             res.register(test.run(testEnv));
         }
 
@@ -158,7 +162,7 @@ function arraysSame (arr1, arr2) {
 }
 
 /**
- * @param {any[] | string}expected
+ * @param {any[] | string} expected
  * @param {string} from
  */
 export function expect(expected, from) {
@@ -184,22 +188,29 @@ with code
 '${from}'\n`
         );
 
-        function test () {
+        const res = (() => {
             if (result.error || typeof expected === 'string') {
-                if (!result.error) return false;
-                if (Array.isArray(expected)) return false;
+                if (!result.error || Array.isArray(expected)) {
+                    return false;
+                }
 
-                return (result?.error?.constructor?.name ?? 'Error') === expected;
+                let name = result?.error?.constructor?.name;
+                if (result.error.name) {
+                    name = result.error.name;
+                }
+                return (name || 'Error') === expected;
             }
 
-            if (!arraysSame(expected, ESPrimitive.strip(result.val)))
-                console.log('%%', expected, str(ESPrimitive.strip(result.val)), '@@');
+            if (!arraysSame(expected, ESPrimitive.strip(result.val))) {
+                console.log('\n%%%%%', expected, str(ESPrimitive.strip(result.val)), '@@');
+            }
 
             return arraysSame(expected, ESPrimitive.strip(result.val));
-        }
+        })();
 
-        const res = test();
-        if (res) return true;
+        if (res) {
+            return true;
+        }
 
         const val = result.error || resVal;
 

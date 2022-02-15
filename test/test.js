@@ -1,5 +1,30 @@
 import {Test} from "./testFramework.js";
-import './tests.js';
+
+// import all tests
+import './basic/arrays.js';
+import './basic/assignment.js';
+import './basic/classes.js';
+import './basic/comments.js';
+import './basic/functions.js';
+import './basic/general.js';
+import './basic/if.js';
+import './basic/loops.js';
+import './basic/namespaces.js';
+import './basic/objects.js';
+
+import './typing/assignment.js';
+import './typing/custom.js';
+import './typing/parameters.js';
+import './typing/returns.js';
+
+import './examples/vector.js';
+
+import './std/array.js';
+import './std/import.js';
+import './std/parseNum.js';
+import './std/range.js';
+import './std/string.js';
+import './std/type.js';
 
 import * as es from "../build/index.js";
 import https from "https";
@@ -27,6 +52,7 @@ function askQuestion(query) {
 }
 
 (async () => {
+
 	await es.init(
 		console.log,
 		async (msg, cb) =>
@@ -39,7 +65,7 @@ function askQuestion(query) {
 			print: console.log,
 			fetch: {},
 			path
-		}
+		},
 	);
 	console.log(Test.testAll().str());
-})()
+})();

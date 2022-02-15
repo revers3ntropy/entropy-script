@@ -24,14 +24,18 @@ import addNodeLibs from "./built-in/nodeLibs.js";
  * @param {boolean} node
  * @param nodeLibs
  * @param {Context} context
+ * @param {string} path
  * @returns {Promise<void>}
  */
-export function init(printFunc = console.log, inputFunc, node = true, nodeLibs = {}, context = new Context()) {
+export function init(printFunc = console.log, inputFunc, node = true, nodeLibs = {}, context = new Context(), path = '') {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         setGlobalContext(context);
         initialise(context, printFunc, inputFunc);
         (_a = nodeLibs['context']) !== null && _a !== void 0 ? _a : (nodeLibs['context'] = context);
+        if (path) {
+            context.path = path;
+        }
         if (node) {
             runningInNode();
             yield refreshPerformanceNow(true);

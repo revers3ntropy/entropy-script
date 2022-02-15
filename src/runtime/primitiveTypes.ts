@@ -525,6 +525,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     this_: ESObject;
     returnType: ESType;
     __closure__: Context;
+
     constructor (
         func: Node | BuiltInFunction = (() => {}),
         arguments_: runtimeArgument[] = [],
@@ -621,8 +622,9 @@ export class ESBoolean extends ESPrimitive <boolean> {
     }
 
     __eq__ = ({}: {context: Context}, n: Primitive) => {
-        if (!(n instanceof ESBoolean))
+        if (!(n instanceof ESBoolean)) {
             return new TypeError(Position.unknown, 'Boolean', n.typeOf().str().valueOf(), n.valueOf())
+        }
         return new ESBoolean(this.valueOf() === n.valueOf());
     };
     __bool__ = () => this;
@@ -669,11 +671,49 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESString(`<ESObject ${val}>`);
     }
 
-    __eq__ = ({}: {context: Context}, n: Primitive) => {
-        if (!(n instanceof ESObject))
+    get keys () {
+        return Object.keys(this.valueOf());
+    }
+
+    set keys (val: string[]) {}
+
+    __eq__ = ({context}: {context: Context}, n: Primitive): ESBoolean | ESError => {
+        if (!(n instanceof ESObject)) {
             return new ESBoolean();
-        return new ESBoolean(this.valueOf() === n.valueOf());
+        }
+
+        if (n.keys.length !== this.keys.length) {
+            return new ESBoolean();
+        }
+
+        for (let key in this.valueOf()) {
+            const thisElement = this.valueOf()[key];
+            const nElement = n.valueOf()[key];
+
+            if (!thisElement) {
+                if (nElement) {
+                    // this element is not defined but the other element is
+                    return new ESBoolean();
+                }
+                continue;
+            }
+
+            if (!thisElement.__eq__) {
+                return new ESBoolean();
+            }
+
+            const res = thisElement.__eq__({context}, nElement);
+            if (res instanceof ESError) {
+                return res;
+            }
+            if (!res.valueOf()) {
+                return new ESBoolean();
+            }
+        }
+
+        return new ESBoolean(true);
     };
+
     __bool__ = () => new ESBoolean(true);
 
     __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
@@ -733,42 +773,81 @@ export class ESArray extends ESPrimitive <Primitive[]> {
 
     str = () => new ESString(str(this.valueOf()));
 
-    __eq__ = ({}: {context: Context}, n: Primitive) => {
-        if (!(n instanceof ESArray))
+    __eq__ = ({context}: {context: Context}, n: Primitive): ESBoolean | ESError => {
+        if (!(n instanceof ESArray)) {
             return new ESBoolean();
-        return new ESBoolean(this.valueOf() === n.valueOf());
+        }
+
+        if (n.len !== this.len) {
+            return new ESBoolean();
+        }
+
+        for (let i = 0; i < this.len; i++) {
+            const thisElement = this.valueOf()[i];
+            const nElement = n.valueOf()[i];
+
+            if (!thisElement) {
+                if (nElement) {
+                    // this element is not defined but the other element is
+                    return new ESBoolean();
+                }
+                continue;
+            }
+
+            if (!thisElement.__eq__) {
+                return new ESBoolean();
+            }
+
+            const res = thisElement.__eq__({context}, nElement);
+            if (res instanceof ESError) {
+                return res;
+            }
+            if (!res.valueOf()) {
+                return new ESBoolean();
+            }
+        }
+
+        return new ESBoolean(true);
     };
+
     __bool__ = () => new ESBoolean(this.valueOf().length > 0);
 
     __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
-        if (key instanceof ESString && this.self.hasOwnProperty(<string>key.valueOf()))
+        if (key instanceof ESString && this.self.hasOwnProperty(<string>key.valueOf())) {
             return ESPrimitive.wrap(this.self[key.valueOf()]);
+        }
 
-        if (!(key instanceof ESNumber))
+        if (!(key instanceof ESNumber)) {
             return new ESUndefined();
+        }
 
         let idx = key.valueOf();
 
-        while (idx < 0)
+        while (idx < 0) {
             idx = this.valueOf().length + idx;
+        }
 
-        if (idx < this.valueOf().length)
+        if (idx < this.valueOf().length) {
             return this.valueOf()[idx];
+        }
 
         return new ESUndefined();
     };
 
     __setProperty__({}: {context: Context}, key: Primitive, value: Primitive): void {
-        if (!(key instanceof ESNumber))
+        if (!(key instanceof ESNumber)) {
             return;
+        }
 
-        if (!(value instanceof ESPrimitive))
+        if (!(value instanceof ESPrimitive)) {
             value = ESPrimitive.wrap(value);
+        }
 
         let idx = key.valueOf();
 
-        while (idx < 0)
+        while (idx < 0) {
             idx = this.valueOf().length + idx;
+        }
 
         this.__value__[idx] = value;
     }
@@ -890,16 +969,16 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
 
 export let types: {[key: string] : ESType} = {};
 
-types['type'] = new ESType(true, 'Type');
-types['undefined'] = new ESType(true, 'Undefined');
-types['string'] = new ESType(true, 'String');
-types['array'] = new ESType(true, 'Array');
-types['number'] = new ESType(true, 'Number');
-types['any'] = new ESType(true, 'Any');
-types['function'] = new ESType(true, 'Function');
-types['bool'] = new ESType(true, 'Boolean');
-types['object'] = new ESType(true, 'Object');
-types['error'] = new ESType(true, 'Error');
+types.type      = new ESType(true, 'Type');
+types.undefined = new ESType(true, 'Undefined');
+types.string    = new ESType(true, 'String');
+types.array     = new ESType(true, 'Array');
+types.number    = new ESType(true, 'Number');
+types.any       = new ESType(true, 'Any');
+types.function  = new ESType(true, 'Function');
+types.bool      = new ESType(true, 'Boolean');
+types.object    = new ESType(true, 'Object');
+types.error     = new ESType(true, 'Error');
 
 // Documentation for types
 types.any.info = {

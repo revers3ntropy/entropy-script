@@ -20,6 +20,7 @@ import { JSModuleParams } from "./built-in/built-in-modules/module.js";
  * @param {boolean} node
  * @param nodeLibs
  * @param {Context} context
+ * @param {string} path
  * @returns {Promise<void>}
  */
 export async function init (
@@ -28,11 +29,16 @@ export async function init (
     node=true,
     nodeLibs: any = {},
     context= new Context(),
+    path = '',
 ) {
     setGlobalContext(context);
     initialise(context, printFunc, inputFunc);
 
     nodeLibs['context'] ??= context;
+
+    if (path) {
+        context.path = path;
+    }
 
     if (node) {
         runningInNode();
