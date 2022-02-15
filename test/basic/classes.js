@@ -79,7 +79,7 @@ expect(['<Type: myClass>', 'myClass', 3, 'myClass', true, false, false], `
     this_ == myClass(3);
     myInstance == myClass(3);
 `);
-expect(['<Type: parentClass>', '<Type: childClass>', 'childClass', 2, 3, 'childClass'], `
+expect(['<Type: parentClass>', '<Type: childClass>', 'childClass', 2, 3], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -94,9 +94,8 @@ expect(['<Type: parentClass>', '<Type: childClass>', 'childClass', 2, 3, 'childC
     var instance = childClass(2, 3);
     instance.a;
     instance.b;
-    instance.constructor.name;
 `);
-expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', 'grandChildClass', 2, 3, 4, 'grandChildClass'], `
+expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', 'grandChildClass', 2, 3, 4], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -118,9 +117,8 @@ expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', 
     instance.a;
     instance.b;
     instance.c;
-    instance.constructor.name;
 `);
-expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', '<Type: greatGrandChildClass>', 'greatGrandChildClass', 2, 3, 4, 5, 'greatGrandChildClass'], `
+expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', '<Type: greatGrandChildClass>', 'greatGrandChildClass', 2, 3, 4, 5], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -150,5 +148,4 @@ expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', 
     instance.b;
     instance.c;
     instance.d;
-    instance.constructor.name;
 `);

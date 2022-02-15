@@ -2,8 +2,9 @@ import { run } from "../build/index.js";
 import { ESError, TestFailed } from "../build/errors.js";
 import { Context, ESSymbol } from "../build/runtime/context.js";
 import { global, now } from "../build/constants.js";
+import {strip} from '../build/runtime/primitives/wrapStrip.js';
 import { str } from "../build/util/util.js";
-import { ESFunction, ESPrimitive, ESType } from "../build/runtime/primitiveTypes.js";
+import { ESFunction, ESType } from "../build/runtime/primitiveTypes.js";
 import { interpretResult } from "../build/runtime/nodes.js";
 
 import { dirname } from 'path';
@@ -117,19 +118,22 @@ function objectsSame(primary, secondary) {
         return false;
 
     for (let key in primary) {
-        if (!secondary.hasOwnProperty(key))
+        if (!secondary.hasOwnProperty(key)) {
             return false;
+        }
 
         const pValue = primary[key];
         const sValue = secondary[key];
 
-        if (Array.isArray(pValue))
+        if (Array.isArray(pValue)) {
             return arraysSame(pValue, sValue);
-        if (typeof pValue === 'object' || typeof sValue === 'object')
+        } if (typeof pValue === 'object' || typeof sValue === 'object') {
             return objectsSame(pValue, sValue) || objectsSame(sValue, pValue);
+        }
 
-        if (pValue !== sValue)
+        if (pValue !== sValue) {
             return false;
+        }
     }
     return true;
 }
@@ -140,23 +144,32 @@ function objectsSame(primary, secondary) {
  * @returns {boolean}
  */
 function arraysSame (arr1, arr2) {
-    if (!Array.isArray(arr1) || !Array.isArray(arr2)) return false;
-    if (arr1.length !== arr2.length) return false;
+    if (!Array.isArray(arr1) || !Array.isArray(arr2)) {
+        return false;
+    }
+    if (arr1.length !== arr2.length) {
+        return false;
+    }
 
     for (let i = 0; i < arr1.length; i++) {
-        if (Array.isArray(arr1[i]) || Array.isArray(arr2[i]))
+        if (Array.isArray(arr1[i]) || Array.isArray(arr2[i])) {
             return arraysSame(arr1[i], arr2[i])
+        }
 
-        if (arr2[i] instanceof ESFunction || arr2[i] instanceof ESType)
+        if (arr2[i] instanceof ESFunction || arr2[i] instanceof ESType) {
             return arr1[i] === arr2[i].str().valueOf();
-        if (arr1[i] instanceof ESFunction || arr1[i] instanceof ESType)
+        }
+        if (arr1[i] instanceof ESFunction || arr1[i] instanceof ESType) {
             return arr2[i] === arr1[i].str().valueOf();
+        }
 
-        if (typeof arr1[i] === 'object' || typeof arr2[i] === 'object')
+        if (typeof arr1[i] === 'object' || typeof arr2[i] === 'object') {
             return objectsSame(arr1[i], arr2[i]) || objectsSame(arr2[i], arr1[i]);
+        }
 
-        if (arr1[i] !== arr2[i])
+        if (arr1[i] !== arr2[i]) {
             return false;
+        }
     }
     return true;
 }
@@ -201,11 +214,11 @@ with code
                 return (name || 'Error') === expected;
             }
 
-            if (!arraysSame(expected, ESPrimitive.strip(result.val))) {
-                console.log('\n%%%%%', expected, str(ESPrimitive.strip(result.val)), '@@');
+            if (!arraysSame(expected, strip(result.val))) {
+                console.log('\n%%%%%', expected, str(strip(result.val)), '@@');
             }
 
-            return arraysSame(expected, ESPrimitive.strip(result.val));
+            return arraysSame(expected, strip(result.val));
         })();
 
         if (res) {

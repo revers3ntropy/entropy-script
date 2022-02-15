@@ -25,6 +25,7 @@ import './std/parseNum.js';
 import './std/range.js';
 import './std/string.js';
 import './std/type.js';
+import './std/primitive/isa.js';
 
 import * as es from "../build/index.js";
 import https from "https";

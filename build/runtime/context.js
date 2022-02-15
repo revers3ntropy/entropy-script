@@ -1,6 +1,7 @@
 import { initialise } from "../init.js";
 import { ESError, TypeError, ReferenceError } from "../errors.js";
 import { Position } from "../position.js";
+import { wrap } from './primitives/wrapStrip.js';
 import { ESArray, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
 import { str } from "../util/util.js";
 export class ESSymbol {
@@ -99,7 +100,7 @@ export class Context {
     }
     setOwn(identifier, value, options = {}) {
         if (!(value instanceof ESPrimitive))
-            value = ESPrimitive.wrap(value);
+            value = wrap(value);
         // is not global
         if (options.global && !this.initialisedAsGlobal)
             options.global = false;

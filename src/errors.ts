@@ -1,4 +1,5 @@
 import {Position} from "./position.js";
+import {Primitive} from './runtime/primitives/primitive.js';
 import {str} from "./util/util.js";
 
 export interface TracebackFrame {
@@ -74,6 +75,18 @@ export class ImportError extends ESError {
 export class ReferenceError extends ESError {
     constructor(startPos: Position, ref: string) {
         super(startPos,'ReferenceError', `${ref} is not defined`);
+    }
+}
+
+export class IndexError extends ESError {
+    constructor(pos: Position, ref: string, object: Primitive) {
+        super(pos,'IndexError', `${ref} is not defined on object '${object.info.name}'`);
+    }
+}
+
+export class InvalidOperationError extends ESError {
+    constructor(op: string, value: Primitive, detail: string = '', pos = Position.unknown) {
+        super(pos,'TypeError', `Cannot perform '${op}' on value ${value.info.name || str(value)}: ${detail}`);
     }
 }
 

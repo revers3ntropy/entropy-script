@@ -12,7 +12,8 @@ export default function load(context) {
         'array': types.array,
         'object': types.object,
         'type': types.type,
-        'error': types.error
+        'error': types.error,
+        'undefined': types.undefined
     };
     for (let constant in globalConstants) {
         const value = globalConstants[constant];

@@ -22,7 +22,7 @@ function callNode(self, context, params, fn) {
         res.funcReturn = undefined;
     }
     if (self.returnType.includesType({ context }, (_c = (_b = res.val) === null || _b === void 0 ? void 0 : _b.__type__) !== null && _c !== void 0 ? _c : types.any).valueOf() === false) {
-        return new TypeError(Position.unknown, self.returnType.__name__, ((_d = res.val) === null || _d === void 0 ? void 0 : _d.typeOf().valueOf()) || 'undefined', (_e = res.val) === null || _e === void 0 ? void 0 : _e.str().valueOf(), '(from function return)');
+        return new TypeError(Position.unknown, self.returnType.__name__, ((_d = res.val) === null || _d === void 0 ? void 0 : _d.typeName().valueOf()) || 'undefined', (_e = res.val) === null || _e === void 0 ? void 0 : _e.str().valueOf(), '(from function return)');
     }
     if (res.val) {
         return res.val;

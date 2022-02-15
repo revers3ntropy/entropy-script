@@ -100,14 +100,23 @@ export async function runTerminal () {
 		return;
 	}
 
-	let res = es.run(input, 'JSES-REPL');
+	let res = es.run(input, {
+		fileName: 'JSES-REPL'
+	});
 
 	let out = res.val?.valueOf();
 
-	if (out === undefined) out = '--undefined--';
-	else if (out.length === 0) out = '';
-	else if (out.length === 1) out = out[0];
-	if (res.error)             out = res.error.str;
+	if (out === undefined) {
+		out = '--undefined--';
+	} else if (out.length === 0) {
+		runTerminal();
+		return;
+	} else if (out.length === 1) {
+		out = out[0];
+	}
+	if (res.error) {
+		out = res.error.str;
+	}
 	if (out !== undefined) {
 		// final out
 		console.log(str(out));

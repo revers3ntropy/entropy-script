@@ -1,11 +1,12 @@
 import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
+import { strip } from '../runtime/primitives/wrapStrip.js';
 import { ESArray, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, ESUndefined } from '../runtime/primitiveTypes.js';
 import { indent, sleep, str } from '../util/util.js';
 export const builtInFunctions = {
     'range': [({ context }, num) => {
             if (!(num instanceof ESNumber))
-                return new TypeError(Position.unknown, 'Number', num.typeOf().valueOf(), num.valueOf());
+                return new TypeError(Position.unknown, 'Number', num.typeName().valueOf(), num.valueOf());
             const n = num.valueOf();
             try {
                 return new ESArray([...Array(n).keys()].map(n => new ESNumber(n)));
@@ -40,7 +41,7 @@ export const builtInFunctions = {
                 return new ESNumber(val);
             }
             catch (e) {
-                return new TypeError(Position.unknown, 'String', num.typeOf().valueOf(), num.valueOf(), 'This string is not parse-able as a number');
+                return new TypeError(Position.unknown, 'String', num.typeName().valueOf(), num.valueOf(), 'This string is not parse-able as a number');
             }
         }, {
             args: [{
@@ -69,7 +70,7 @@ Try 'help(object)' for help about a particular object.
                 out += `${`Help on '${info.name || '(anonymous)'.yellow}'`.yellow}:
     
     ${'Value'.yellow}: ${indent(indent(str(thing)))}
-    ${'Type'.yellow}: '${str(thing.typeOf())}'
+    ${'Type'.yellow}: '${str(thing.typeName())}'
     ${'Location'.yellow}: ${info.file || '(unknown)'.yellow}
     
         ${((_a = info.description) === null || _a === void 0 ? void 0 : _a.green) || `No description.`}
@@ -131,10 +132,10 @@ Try 'help(object)' for help about a particular object.
         }],
     'detail': [({ context }, thing, info) => {
             if (!(info instanceof ESObject))
-                return new TypeError(Position.unknown, 'object', str(info.typeOf()), str(info));
+                return new TypeError(Position.unknown, 'object', str(info.typeName()), str(info));
             if (thing.info.isBuiltIn)
                 return new ESError(Position.unknown, 'TypeError', `Can't edit info for built-in value ${thing.info.name} with 'detail'`);
-            thing.info = ESPrimitive.strip(info);
+            thing.info = strip(info);
             thing.info.isBuiltIn = false;
             return thing;
         }, {
@@ -176,7 +177,7 @@ Try 'help(object)' for help about a particular object.
         }],
     'using': [({ context }, module) => {
             if (!(module instanceof ESNamespace))
-                return new TypeError(Position.unknown, 'Namespace', str(module.typeOf()));
+                return new TypeError(Position.unknown, 'Namespace', str(module.typeName()));
             const values = module.valueOf();
             for (const key in values) {
                 context.setOwn(key, values[key].value, {
@@ -192,9 +193,9 @@ Try 'help(object)' for help about a particular object.
         }],
     'sleep': [({ context }, time, cb) => {
             if (!(time instanceof ESNumber))
-                return new TypeError(Position.unknown, 'number', str(time.typeOf()), str(time));
+                return new TypeError(Position.unknown, 'number', str(time.typeName()), str(time));
             if (!(cb instanceof ESFunction))
-                return new TypeError(Position.unknown, 'function', str(cb.typeOf()), str(cb));
+                return new TypeError(Position.unknown, 'function', str(cb.typeName()), str(cb));
             sleep(time.valueOf())
                 .then(() => {
                 const res = cb.__call__({ context });

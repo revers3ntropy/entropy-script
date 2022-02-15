@@ -51,6 +51,16 @@ export class ReferenceError extends ESError {
         super(startPos, 'ReferenceError', `${ref} is not defined`);
     }
 }
+export class IndexError extends ESError {
+    constructor(pos, ref, object) {
+        super(pos, 'IndexError', `${ref} is not defined on object '${object.info.name}'`);
+    }
+}
+export class InvalidOperationError extends ESError {
+    constructor(op, value, detail = '', pos = Position.unknown) {
+        super(pos, 'TypeError', `Cannot perform '${op}' on value ${value.info.name || str(value)}: ${detail}`);
+    }
+}
 export class TestFailed extends ESError {
     constructor(detail) {
         super(Position.unknown, 'TestFailed', detail);

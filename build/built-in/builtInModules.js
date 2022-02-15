@@ -1,4 +1,5 @@
-import { ESNamespace, ESObject, ESPrimitive, ESString } from '../runtime/primitiveTypes.js';
+import { wrap } from '../runtime/primitives/wrapStrip.js';
+import { ESNamespace, ESObject, ESString } from '../runtime/primitiveTypes.js';
 import { ESSymbol } from '../runtime/context.js';
 // All modules
 // make this only import required modules in the future
@@ -25,14 +26,14 @@ export function addModule(name, body) {
     processedModules[name] = body;
 }
 export function addModuleFromObj(name, raw) {
-    addModule(name, processRawModule(ESPrimitive.wrap(raw), name));
+    addModule(name, processRawModule(wrap(raw), name));
 }
 export function getModule(name) {
     if (name in processedModules) {
         return processedModules[name];
     }
     if (name in modules) {
-        const res = ESPrimitive.wrap(modules[name]);
+        const res = wrap(modules[name]);
         if (!(res instanceof ESObject)) {
             console.log('Error: module ' + name + 'is not of type object'.red);
             return;

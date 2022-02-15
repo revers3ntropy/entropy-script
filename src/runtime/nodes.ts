@@ -5,10 +5,12 @@ import {Context} from './context.js';
 import {Position} from "../position.js";
 import {now} from "../constants.js";
 import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument.js";
+import {wrap} from './primitives/wrapStrip.js';
 import {
     ESArray,
     ESBoolean,
-    ESFunction, ESNamespace,
+    ESFunction,
+    ESNamespace,
     ESNumber,
     ESObject,
     ESPrimitive,
@@ -108,59 +110,46 @@ export class N_binOp extends Node {
         if (typeof r === 'undefined')
             return new TypeError(this.opTok.startPos, '~undefined', 'undefined', r, 'N_binOp.interpret_');
 
-        function declaredBinOp (l: Primitive, r: Primitive, fnName: string, opTokPos: Position): ESError | Primitive {
-            if (!(l instanceof ESPrimitive) || !(r instanceof ESPrimitive) || !l.hasProperty({context}, new ESString(fnName)))
-                return new TypeError(opTokPos, 'unknown', l?.typeOf().valueOf(), l?.valueOf(), `Unsupported operand for ${fnName}`);
-            const prop = l.__getProperty__({context}, new ESString(fnName));
-            if (!(prop instanceof ESFunction))
-                return new ESError(opTokPos, 'TypeError', `_Unsupported operand ${fnName} on type ${l.typeOf().valueOf()} | .${fnName}=${str(prop)}`);
-            const res = prop.__call__({context}, r);
-            if (res instanceof ESError) return res;
-            if (!(res instanceof ESPrimitive))
-                return new ESError(opTokPos, 'TypeError', `__Unsupported operand ${fnName} on type ${l.typeOf().valueOf()}`);
-            return res;
-        }
-
         switch (this.opTok.type) {
             case tt.LTE: {
-                const lt = declaredBinOp(l, r, '__lt__', this.opTok.startPos);
-                const eq = declaredBinOp(l, r, '__eq__', this.opTok.startPos);
+                const lt = l.__lt__({context}, r);
+                const eq = l.__eq__({context}, r);
                 if (lt instanceof ESError) return lt;
                 if (eq instanceof ESError) return eq;
-                return declaredBinOp(lt, eq, '__or__', this.opTok.startPos);
+                return lt.__or__({context}, eq);
 
             } case tt.GTE: {
-                const gt = declaredBinOp(l, r, '__gt__', this.opTok.startPos);
-                const eq = declaredBinOp(l, r, '__eq__', this.opTok.startPos);
+                const gt = l.__gt__({context}, r);
+                const eq = l.__eq__({context}, r);
                 if (gt instanceof ESError) return gt;
                 if (eq instanceof ESError) return eq;
-                return declaredBinOp(gt, eq, '__or__', this.opTok.startPos);
+                return gt.__or__({context}, eq);
 
             } case tt.NOTEQUALS: {
-                const res = declaredBinOp(l, r, '__eq__', this.opTok.startPos);
+                const res = l.__eq__({context}, r);
                 if (res instanceof ESError) return res;
                 return new ESBoolean(!res.bool().valueOf());
 
             } case tt.ADD:
-                return declaredBinOp(l, r, '__add__', this.opTok.startPos);
+                return l.__add__({context}, r);
             case tt.SUB:
-                return declaredBinOp(l, r, '__subtract__', this.opTok.startPos);
+                return l.__subtract__({context}, r);
             case tt.MUL:
-                return declaredBinOp(l, r, '__multiply__', this.opTok.startPos);
+                return l.__multiply__({context}, r);
             case tt.DIV:
-                return declaredBinOp(l, r, '__divide__', this.opTok.startPos);
+                return l.__divide__({context}, r);
             case tt.POW:
-                return declaredBinOp(l, r, '__pow__', this.opTok.startPos);
+                return l.__pow__({context}, r);
             case tt.EQUALS:
-                return declaredBinOp(l, r, '__eq__', this.opTok.startPos);
+                return l.__eq__({context}, r);
             case tt.LT:
-                return declaredBinOp(l, r, '__lt__', this.opTok.startPos);
+                return l.__lt__({context}, r);
             case tt.GT:
-                return declaredBinOp(l, r, '__gt__', this.opTok.startPos);
+                return l.__gt__({context}, r);
             case tt.AND:
-                return declaredBinOp(l, r, '__and__', this.opTok.startPos);
+                return l.__and__({context}, r);
             case tt.OR:
-                return declaredBinOp(l, r, '__or__', this.opTok.startPos);
+                return l.__or__({context}, r);
 
             default:
                 return new InvalidSyntaxError(
@@ -189,7 +178,7 @@ export class N_unaryOp extends Node {
             case tt.SUB:
             case tt.ADD:
                 if (!(res.val instanceof ESNumber))
-                    return new TypeError(this.startPos, 'Number', res.val?.typeOf().toString() || 'undefined_', res.val?.valueOf());
+                    return new TypeError(this.startPos, 'Number', res.val?.typeName().toString() || 'undefined_', res.val?.valueOf());
                 const numVal = res.val.valueOf();
                 return new ESNumber(this.opTok.type === tt.SUB ? -numVal : Math.abs(numVal));
             case tt.NOT:
@@ -252,7 +241,7 @@ export class N_varAssign extends Node {
 
         if (!typeRes.val || !(typeRes.val instanceof ESType))
             return new TypeError(this.varNameTok.startPos, 'Type',
-                typeRes.val?.typeOf().valueOf() ?? 'undefined', typeRes.val?.str(), `@ !typeRes.val || !(typeRes.val instanceof ESType)`);
+                typeRes.val?.typeName().valueOf() ?? 'undefined', typeRes.val?.str(), `@ !typeRes.val || !(typeRes.val instanceof ESType)`);
 
         if (!res.val)
             return new TypeError(this.varNameTok.startPos, '~undefined', 'undefined', 'N_varAssign.interpret_');
@@ -260,7 +249,7 @@ export class N_varAssign extends Node {
         if (typeRes.val.includesType({context}, res.val.__type__).valueOf() === false)
             return new TypeError(this.varNameTok.startPos,
                 str(typeRes.val),
-                str(res.val?.typeOf()),
+                str(res.val?.typeName()),
                 str(res.val)
             );
 
@@ -305,29 +294,13 @@ export class N_varAssign extends Node {
 
             switch (this.assignType[0]) {
                 case '*':
-                    if (!currentVal?.__multiply__)
-                        return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(),
-                            currentVal?.valueOf(), `Unsupported operand for '*'`);
-                    newVal = currentVal.__multiply__({context}, assignVal);
-                    break;
+                    newVal = currentVal.__multiply__({context}, assignVal); break;
                 case '/':
-                    if (!currentVal?.__divide__)
-                        return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(),
-                            currentVal?.valueOf(), `Unsupported operand for '/'`);
-                    newVal = currentVal.__divide__({context}, assignVal);
-                    break;
+                    newVal = currentVal.__divide__({context}, assignVal); break;
                 case '+':
-                    if (!currentVal?.__add__)
-                        return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(),
-                            currentVal?.valueOf(), `Unsupported operand for '+'`);
-                    newVal = currentVal.__add__({context}, assignVal);
-                    break;
+                    newVal = currentVal.__add__({context}, assignVal); break;
                 case '-':
-                    if (!currentVal?.__subtract__)
-                        return new TypeError(this.startPos, 'unknown', currentVal.typeOf().valueOf(),
-                            currentVal?.valueOf(), `Unsupported operand for '-'`);
-                    newVal = currentVal.__subtract__({context}, assignVal);
-                    break;
+                    newVal = currentVal.__subtract__({context}, assignVal); break;
 
                 default:
                     return new ESError(
@@ -337,12 +310,15 @@ export class N_varAssign extends Node {
                     );
             }
 
-            if (newVal instanceof ESError) return newVal;
+            if (newVal instanceof ESError) {
+                return newVal;
+            }
 
             let setRes = context.set(this.varNameTok.value, newVal, {
                 global: this.isGlobal,
                 isConstant: this.isConstant
             });
+
             if (setRes instanceof ESError) return setRes;
             res.val = newVal;
         }
@@ -442,11 +418,11 @@ export class N_for extends Node {
         const array = this.array.interpret(context);
         if (array.error) return array;
 
-        if (['Array', 'Number', 'Object', 'String', 'Any'].indexOf(array.val?.typeOf().valueOf() || '') === -1)
+        if (['Array', 'Number', 'Object', 'String', 'Any'].indexOf(array.val?.typeName().valueOf() || '') === -1)
             return new TypeError(
                 this.identifier.startPos,
                 'Array | Number | Object | String',
-                typeof array.val + ' | ' + array.val?.typeOf()
+                typeof array.val + ' | ' + array.val?.typeName()
             );
 
         function iteration (body: Node, id: string, element: Primitive, isGlobal: boolean, isConstant: boolean): 'break' | interpretResult | undefined {
@@ -603,7 +579,7 @@ export class N_functionCall extends Node {
         }
         if (!val.hasProperty({context}, new ESString('__call__')))
             return new TypeError(this.startPos, 'unknown',
-                val?.typeOf().valueOf() || 'unknown', val?.valueOf(),
+                val?.typeName().valueOf() || 'unknown', val?.valueOf(),
                 'Can only () on something with __call__ property');
 
         let params: Primitive[] = [];
@@ -680,7 +656,7 @@ export class N_functionDefinition extends Node {
             return new TypeError(
                 this.returnType.startPos,
                 'Type',
-                returnTypeRes.val?.typeOf().valueOf() ?? '<Undefined>',
+                returnTypeRes.val?.typeName().valueOf() ?? '<Undefined>',
                 returnTypeRes.val?.str().valueOf(),
                 `On func '${this.name }' return type`
             );
@@ -750,18 +726,6 @@ export class N_indexed extends Node {
         this.index = index;
     }
 
-    declaredBinOp (l: Primitive, r: Primitive, fnName: string, opTokPos: Position, context: Context): ESError | Primitive {
-        if (!l.hasProperty({context}, new ESString(fnName)))
-            return new ESError(opTokPos, 'TypeError', `Unsupported operand ${fnName} on type ${l.typeOf().valueOf()}`);
-        const prop = l.__getProperty__({context}, new ESString(fnName));
-        if (!(prop instanceof ESFunction))
-            return new ESError(opTokPos, 'TypeError', `_Unsupported operand ${fnName} on type ${l.typeOf().valueOf()} | .${fnName}=${str(prop)}`);
-        const res = prop.__call__({context}, r);
-        if (!(res instanceof ESPrimitive))
-            return new ESError(opTokPos, 'TypeError', `__Unsupported operand ${fnName} on type ${l.typeOf().valueOf()}`);
-        return res;
-    }
-
     interpret_ (context: Context) {
         let baseRes = this.base.interpret(context);
         if (baseRes.error) return baseRes;
@@ -779,23 +743,24 @@ export class N_indexed extends Node {
             let valRes = this.value.interpret(context);
             if (valRes.error) return valRes;
 
-            const currentVal = ESPrimitive.wrap(base.__getProperty__({context}, index));
+            const currentVal = wrap(base.__getProperty__({context}, index));
             let newVal: Primitive | ESError;
             let assignVal = valRes.val;
             this.assignType ??= '=';
 
-            if (!assignVal)
+            if (!assignVal) {
                 return new TypeError(this.startPos, '~undefined', 'undefined', 'undefined', 'N_indexed.interpret_')
+            }
 
             switch (this.assignType[0]) {
                 case '*':
-                    newVal = this.declaredBinOp(currentVal, assignVal, '__multiply__', this.startPos, context); break;
+                    newVal = currentVal.__multiply__({context}, assignVal); break;
                 case '/':
-                    newVal = this.declaredBinOp(currentVal, assignVal, '__divide__', this.startPos, context); break;
+                    newVal = currentVal.__divide__({context}, assignVal); break;
                 case '+':
-                    newVal = this.declaredBinOp(currentVal, assignVal, '__add__', this.startPos, context); break;
+                    newVal = currentVal.__add__({context}, assignVal); break;
                 case '-':
-                    newVal = this.declaredBinOp(currentVal, assignVal, '__subtract__', this.startPos, context); break;
+                    newVal = currentVal.__subtract__({context}, assignVal); break;
                 case '=':
                     newVal = assignVal; break;
 
@@ -848,7 +813,7 @@ export class N_class extends Node {
                 return new TypeError(
                     this.startPos,
                     'Function',
-                    res.val?.typeOf().valueOf() || 'undefined',
+                    res.val?.typeName().valueOf() || 'undefined',
                     'method on ' + this.name
                 );
             methods.push(res.val);
@@ -862,7 +827,7 @@ export class N_class extends Node {
                 return new TypeError(
                     this.startPos,
                     'Function',
-                    extendsRes.val?.typeOf().valueOf() || 'undefined',
+                    extendsRes.val?.typeName().valueOf() || 'undefined',
                     'method on ' + this.name
                 );
                 extends_ = extendsRes.val;
@@ -876,7 +841,7 @@ export class N_class extends Node {
                 return new TypeError(
                     this.startPos,
                     'Function',
-                    initRes.val?.typeOf().valueOf() || 'undefined',
+                    initRes.val?.typeName().valueOf() || 'undefined',
                     'method on ' + this.name
                 );
             init = initRes.val;

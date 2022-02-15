@@ -1,6 +1,7 @@
 import { initialise } from "../init.js";
 import { ESError, TypeError, ReferenceError } from "../errors.js";
 import { Position } from "../position.js";
+import {wrap} from './primitives/wrapStrip.js';
 import {ESArray, ESFunction, ESPrimitive, ESString, ESType, ESUndefined, Primitive, types} from "./primitiveTypes.js";
 import {dict, str} from "../util/util.js";
 
@@ -138,7 +139,7 @@ export class Context {
     setOwn (identifier: string, value: Primitive, options: symbolOptions = {}): void | ESError {
 
         if (!(value instanceof ESPrimitive))
-            value = ESPrimitive.wrap(value);
+            value = wrap(value);
 
         // is not global
         if (options.global && !this.initialisedAsGlobal)

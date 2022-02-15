@@ -1,6 +1,7 @@
 import {ESError} from '../../errors.js';
 import {Context} from '../../runtime/context.js';
-import {ESFunction, ESObject, ESPrimitive, types} from '../../runtime/primitiveTypes.js';
+import {strip} from '../../runtime/primitives/wrapStrip.js';
+import {ESFunction, ESObject, types} from '../../runtime/primitiveTypes.js';
 import {str} from '../../util/util.js';
 import type {JSModuleFunc, JSModule} from './module.js';
 
@@ -16,15 +17,15 @@ type serverOptions = {
 
 const module: JSModuleFunc = ({https, http, print, fetch}): JSModule => ({
     fetch: new ESFunction(({context}, url, options, callback) => {
-        fetch(str(url), ESPrimitive.strip(options));
+        fetch(str(url), strip(options));
     }, [
         {name: 'uri', type: types.string},
         {name: 'options', type: types.object},
         {name: 'callback', type: types.function}
     ], 'fetch', undefined, types.undefined),
     createServer:({context}, options_, handlers_) => {
-        let options: serverOptions = ESPrimitive.strip(options_);
-        let handlers: {[path: string]: ESFunction} = ESPrimitive.strip(handlers_);
+        let options: serverOptions = strip(options_);
+        let handlers: {[path: string]: ESFunction} = strip(handlers_);
 
         options = {
             port: 3000,
@@ -85,7 +86,7 @@ const module: JSModuleFunc = ({https, http, print, fetch}): JSModule => ({
                     let response = '';
                     try {
                         if (esRes instanceof ESObject) {
-                            response = JSON.stringify(ESPrimitive.strip(esRes));
+                            response = JSON.stringify(strip(esRes));
                         } else {
                             res.writeHead(500);
                             res.end(`{}`);
@@ -94,7 +95,7 @@ const module: JSModuleFunc = ({https, http, print, fetch}): JSModule => ({
                     } catch (e) {
                         print(`Incorrect return value for handler of ${url}. Must be JSONifyable.`)
                         if (options.debug)
-                            print(`Detail: Expected type (object|undefined) but got value ${esRes.valueOf()} of type ${esRes.typeOf()}`);
+                            print(`Detail: Expected type (object|undefined) but got value ${esRes.valueOf()} of type ${esRes.typeName()}`);
                         res.writeHead(500);
                         res.end(`{}`);
                         return;

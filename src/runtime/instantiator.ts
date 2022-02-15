@@ -2,6 +2,7 @@ import { Context } from "./context.js";
 import { dict } from "../util/util.js";
 import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
+import {wrap} from './primitives/wrapStrip.js';
 import {
     ESArray,
     ESBoolean,
@@ -21,38 +22,48 @@ import {
  * @param {Context} callContext
  * @returns {ESError | void}
  */
-function dealWithExtends(context_: Context, class_: ESType, instance: dict<Primitive>, callContext: Context): ESError | void {
-    const constructor = instance.constructor;
-    if (!class_) return;
-    if (!(class_ instanceof ESType))
+function dealWithExtends (context_: Context, class_: ESType, instance: dict<Primitive>, callContext: Context): ESError | void {
+    if (!class_) {
+        return;
+    }
+    if (!(class_ instanceof ESType)) {
         return new TypeError(
             Position.unknown,
             'Type',
             typeof class_,
             class_
         );
+    }
 
     let setRes = context_.setOwn('super', new ESFunction(({context}) => {
         const newContext = new Context();
         newContext.parent = context;
         let setRes = newContext.setOwn('type', new ESObject(instance));
-        if (setRes instanceof ESError) return setRes;
+        if (setRes instanceof ESError) {
+            return setRes;
+        }
 
         if (class_.__extends__ !== undefined) {
             let _a = dealWithExtends(newContext, class_.__extends__, instance, callContext);
-            if (_a instanceof ESError) return _a;
+            if (_a instanceof ESError) {
+                return _a;
+            }
         }
 
         const res_ = class_?.__init__?.__call__({context: callContext});
-        if (res_ instanceof ESPrimitive) return res_;
+        if (res_ instanceof ESPrimitive) {
+            return res_;
+        }
     }));
-    if (setRes instanceof ESError) return setRes;
+    if (setRes instanceof ESError) {
+        return setRes;
+    }
 
     const res = createInstance(class_, {context: callContext}, [], false, instance);
-    if (res instanceof ESError) return res;
+    if (res instanceof ESError) {
+        return res;
+    }
     instance = res.valueOf();
-
-    instance.constructor = constructor;
 }
 
 /**
@@ -65,21 +76,23 @@ function dealWithExtends(context_: Context, class_: ESType, instance: dict<Primi
  * @param {dict<Primitive>} on
  * @returns {ESBoolean | Primitive | ESFunction | ESUndefined | ESString | ESObject | ESError | ESNumber | ESArray | ESType}
  */
-export function createInstance (type: ESType, {context}: {context: Context}, params: Primitive[], runInit=true, on: dict<Primitive> = {}) {
+export function createInstance (type: ESType, {context}: {context: Context}, params: Primitive[], runInit=true, on: dict<Primitive> = {}): ESError | Primitive {
     const callContext = context;
 
     if (type.__isPrimitive__) {
         // make sure we have at least one arg
-        if (params.length < 1)
+        if (params.length < 1) {
             return new ESUndefined();
+        }
 
         switch (type.__name__) {
             case 'Undefined':
             case 'Type':
-                if (params.length < 1)
+                if (params.length < 1) {
                     return new ESType();
-                else
-                    return params[0].typeOf();
+                } else {
+                    return new ESString(params[0].__type__.__name__);
+                }
             case 'String':
                 return new ESString(params[0].str().valueOf());
             case 'Array':
@@ -95,7 +108,7 @@ export function createInstance (type: ESType, {context}: {context: Context}, par
             case 'Error':
                 return new ESError(Position.unknown, 'UserError', params[0].str().valueOf());
             default:
-                return ESPrimitive.wrap(params[0]);
+                return wrap(params[0]);
         }
     }
 
@@ -104,12 +117,11 @@ export function createInstance (type: ESType, {context}: {context: Context}, par
     newContext.parent = type.__init__?.__closure__;
 
     if (type.__extends__) {
-        let _a = dealWithExtends(newContext, type.__extends__, on, callContext);
-        if (_a instanceof ESError) return _a;
+        let res = dealWithExtends(newContext, type.__extends__, on, callContext);
+        if (res instanceof ESError) {
+            return res;
+        }
     }
-
-    // @ts-ignore
-    on['constructor'] = type.__init__?.clone() ?? new ESUndefined();
 
     const instance = new ESObject(on);
 
@@ -127,7 +139,9 @@ export function createInstance (type: ESType, {context}: {context: Context}, par
 
         const res = type.__init__.__call__({context: callContext}, ...params);
         // return value of init is ignored
-        if (res instanceof ESError) return res;
+        if (res instanceof ESError) {
+            return res;
+        }
     }
 
     instance.__type__ = type;

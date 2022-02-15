@@ -35,7 +35,7 @@ function callNode (self: ESFunction, context: Context, params: Primitive[], fn: 
         return new TypeError(
             Position.unknown,
             self.returnType.__name__,
-            res.val?.typeOf().valueOf() || 'undefined',
+            res.val?.typeName().valueOf() || 'undefined',
             res.val?.str().valueOf(),
             '(from function return)');
     }
