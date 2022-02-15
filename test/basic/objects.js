@@ -73,4 +73,24 @@ expect([true], `{a: 1} != {a: 1, b: 1}`);
 
 
 // operations
-//expect([{a: 1, b: 1}], `{a: 1} + {b: 1}`);
+expect([{a: 1, b: 1}], `{a: 1} + {b: 1}`);
+expect([{b: 1}], `{b: 1} + {b: 1}`);
+expect([{b: 2}], `{b: 2} + {b: 1}`);
+expect([{b: 2, a: 1}], `{b: 2} + {b: 1, a: 1}`);
+expect('TypeError', `{b: 2} + 1`);
+expect('TypeError', `{b: 2} + []`);
+expect('TypeError', `{b: 2} + ''`);
+expect('TypeError', `{b: 2} + nil`);
+expect('TypeError', `{b: 2} + type`);
+expect('TypeError', `{b: 2} + (func () {})`);
+
+expect([{}], `{b: 2} - 'b'`);
+expect([{b: 2}], `{b: 2} - 'a'`);
+expect([{b: 2}], `{b: 2} - ''`);
+expect([{b: 2}], `{b: 2} - []`);
+expect([{}], `{a: 1, b: 2} - ['a', 'b']`);
+expect([{b: 2}], `{a: 1, b: 2} - ['a']`);
+expect('TypeError', `{b: 2} - 1`);
+expect('TypeError', `{b: 2} - nil`);
+expect('TypeError', `{b: 2} - type`);
+expect('TypeError', `{b: 2} - (func () {})`);

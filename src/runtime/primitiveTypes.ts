@@ -671,11 +671,11 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESString(`<ESObject ${val}>`);
     }
 
-    get keys () {
-        return Object.keys(this.valueOf());
+    get keys (): ESString[] {
+        return Object.keys(this.valueOf()).map(s => new ESString(s));
     }
 
-    set keys (val: string[]) {}
+    set keys (val: ESString[]) {}
 
     __eq__ = ({context}: {context: Context}, n: Primitive): ESBoolean | ESError => {
         if (!(n instanceof ESObject)) {
@@ -686,7 +686,8 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             return new ESBoolean();
         }
 
-        for (let key in this.valueOf()) {
+        for (let k of this.keys) {
+            const key: string = k.valueOf();
             const thisElement = this.valueOf()[key];
             const nElement = n.valueOf()[key];
 
@@ -715,6 +716,57 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
     };
 
     __bool__ = () => new ESBoolean(true);
+
+    __add__ = ({context}: {context: Context}, n: Primitive) => {
+
+        if (!(n instanceof ESObject)) {
+            return new TypeError(Position.unknown, 'object', n.typeOf().valueOf(), n);
+        }
+
+        let newOb: dict<ESPrimitive<any>> = {};
+
+        for (let k of this.keys) {
+            const key = k.valueOf();
+            newOb[key] = this.__getProperty__({context}, k);
+        }
+
+        for (let k of n.keys) {
+            const key = k.valueOf();
+            if (newOb.hasOwnProperty(key)) {
+                continue;
+            }
+            newOb[key] = n.__getProperty__({context}, k);
+        }
+
+        return new ESObject(newOb);
+    };
+
+    __subtract__ = ({context}: { context: Context }, n: Primitive): Primitive | ESError => {
+
+        let keysToRemove = [];
+        if (n instanceof ESString) {
+            keysToRemove = [str(n)];
+        } else if (n instanceof ESArray) {
+            keysToRemove = ESPrimitive.strip(n);
+        } else {
+            return new TypeError(Position.unknown, 'array | string', n.typeOf().valueOf(), n);
+        }
+
+        if (!Array.isArray(keysToRemove)) {
+            return new TypeError(Position.unknown, 'array | string', n.typeOf().valueOf(), n);
+        }
+
+        let newOb: dict<ESPrimitive<any>> = {};
+
+        for (let k of this.keys) {
+            const key = k.valueOf();
+            if (keysToRemove.indexOf(key) === -1) {
+                newOb[key] = this.__getProperty__({context}, k);
+            }
+        }
+
+        return new ESObject(newOb);
+    }
 
     __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
         if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf()))

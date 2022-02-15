@@ -472,7 +472,8 @@ export class ESObject extends ESPrimitive {
             if (n.keys.length !== this.keys.length) {
                 return new ESBoolean();
             }
-            for (let key in this.valueOf()) {
+            for (let k of this.keys) {
+                const key = k.valueOf();
                 const thisElement = this.valueOf()[key];
                 const nElement = n.valueOf()[key];
                 if (!thisElement) {
@@ -496,6 +497,47 @@ export class ESObject extends ESPrimitive {
             return new ESBoolean(true);
         };
         this.__bool__ = () => new ESBoolean(true);
+        this.__add__ = ({ context }, n) => {
+            if (!(n instanceof ESObject)) {
+                return new TypeError(Position.unknown, 'object', n.typeOf().valueOf(), n);
+            }
+            let newOb = {};
+            for (let k of this.keys) {
+                const key = k.valueOf();
+                newOb[key] = this.__getProperty__({ context }, k);
+            }
+            for (let k of n.keys) {
+                const key = k.valueOf();
+                if (newOb.hasOwnProperty(key)) {
+                    continue;
+                }
+                newOb[key] = n.__getProperty__({ context }, k);
+            }
+            return new ESObject(newOb);
+        };
+        this.__subtract__ = ({ context }, n) => {
+            let keysToRemove = [];
+            if (n instanceof ESString) {
+                keysToRemove = [str(n)];
+            }
+            else if (n instanceof ESArray) {
+                keysToRemove = ESPrimitive.strip(n);
+            }
+            else {
+                return new TypeError(Position.unknown, 'array | string', n.typeOf().valueOf(), n);
+            }
+            if (!Array.isArray(keysToRemove)) {
+                return new TypeError(Position.unknown, 'array | string', n.typeOf().valueOf(), n);
+            }
+            let newOb = {};
+            for (let k of this.keys) {
+                const key = k.valueOf();
+                if (keysToRemove.indexOf(key) === -1) {
+                    newOb[key] = this.__getProperty__({ context }, k);
+                }
+            }
+            return new ESObject(newOb);
+        };
         this.__getProperty__ = ({}, key) => {
             if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf()))
                 return this.valueOf()[key.valueOf()];
@@ -518,7 +560,7 @@ export class ESObject extends ESPrimitive {
         };
     }
     get keys() {
-        return Object.keys(this.valueOf());
+        return Object.keys(this.valueOf()).map(s => new ESString(s));
     }
     set keys(val) { }
     __setProperty__({}, key, value) {
