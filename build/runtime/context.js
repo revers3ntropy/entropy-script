@@ -39,8 +39,9 @@ export class Context {
     }
     get(identifier) {
         let symbol = this.getSymbol(identifier);
-        if (symbol instanceof ESError || symbol == undefined)
+        if (symbol instanceof ESError || symbol == undefined) {
             return symbol;
+        }
         return symbol.value;
     }
     getRawSymbolTableAsDict() {
@@ -84,8 +85,9 @@ export class Context {
         return context.setOwn(identifier, value, options);
     }
     setOwn(identifier, value, options = {}) {
-        if (!(value instanceof ESPrimitive))
+        if (!(value instanceof ESPrimitive)) {
             value = wrap(value);
+        }
         // is not global
         if (options.global && !this.initialisedAsGlobal)
             options.global = false;
@@ -108,8 +110,9 @@ export class Context {
     }
     get root() {
         let parent = this;
-        while (parent.parent)
+        while (parent.parent) {
             parent = parent.parent;
+        }
         return parent;
     }
     resetAsGlobal() {
@@ -163,18 +166,22 @@ export function generateESFunctionCallContext(params, self, parent) {
     for (let i = 0; i < max; i++) {
         let value = new ESUndefined();
         let type = types.any;
-        if (!self.arguments_[i])
+        if (!self.arguments_[i]) {
             continue;
+        }
         // type checking
         const arg = self.arguments_[i];
-        if (!(arg.type instanceof ESType))
+        if (!(arg.type instanceof ESType)) {
             return new TypeError(Position.unknown, 'Type', typeof arg.type, arg.type);
+        }
         if (params[i] instanceof ESPrimitive) {
             type = params[i].__type__;
             value = params[i];
         }
-        if (arg.type.includesType({ context: parent }, type).valueOf() === false)
+        const typeIncludes = arg.type.includesType({ context: parent }, type).bool().valueOf();
+        if (!typeIncludes) {
             return new TypeError(Position.unknown, arg.type.__name__, type.__name__, str(value));
+        }
         newContext.setOwn(arg.name, value, {
             forceThroughConst: true
         });
@@ -182,7 +189,8 @@ export function generateESFunctionCallContext(params, self, parent) {
     let setRes = newContext.setOwn('args', new ESArray(params), {
         forceThroughConst: true
     });
-    if (setRes instanceof ESError)
+    if (setRes instanceof ESError) {
         return setRes;
+    }
     return newContext;
 }

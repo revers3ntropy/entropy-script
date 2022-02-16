@@ -21,8 +21,9 @@ export function processRawModule (module: ESObject, name: string): ESNamespace {
 
     const moduleRaw = module.valueOf();
 
-    for (const key in moduleRaw)
+    for (const key of Object.keys(moduleRaw)) {
         moduleDict[key] = new ESSymbol(moduleRaw[key], key);
+    }
 
     return new ESNamespace(new ESString(name), moduleDict, false);
 }

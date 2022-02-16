@@ -46,7 +46,9 @@ export class Context {
 
     get (identifier: string): Primitive | ESError | undefined {
         let symbol = this.getSymbol(identifier);
-        if (symbol instanceof ESError || symbol == undefined) return symbol;
+        if (symbol instanceof ESError || symbol == undefined) {
+            return symbol;
+        }
         return symbol.value;
     }
 
@@ -109,8 +111,9 @@ export class Context {
 
     setOwn (identifier: string, value: Primitive, options: symbolOptions = {}): void | ESError {
 
-        if (!(value instanceof ESPrimitive))
+        if (!(value instanceof ESPrimitive)) {
             value = wrap(value);
+        }
 
         // is not global
         if (options.global && !this.initialisedAsGlobal)
@@ -146,8 +149,9 @@ export class Context {
     get root () {
         let parent: Context = this;
 
-        while (parent.parent)
+        while (parent.parent) {
             parent = parent.parent;
+        }
 
         return parent;
     }
@@ -217,20 +221,25 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
         let value: Primitive = new ESUndefined();
         let type = types.any;
 
-        if (!self.arguments_[i]) continue;
+        if (!self.arguments_[i]) {
+            continue;
+        }
 
         // type checking
         const arg = self.arguments_[i];
-        if (!(arg.type instanceof ESType))
+        if (!(arg.type instanceof ESType)) {
             return new TypeError(Position.unknown, 'Type', typeof arg.type, arg.type);
+        }
 
         if (params[i] instanceof ESPrimitive) {
             type = params[i].__type__;
             value = params[i];
         }
 
-        if (arg.type.includesType({context: parent}, type).valueOf() === false)
+        const typeIncludes = arg.type.includesType({context: parent}, type).bool().valueOf();
+        if (!typeIncludes) {
             return new TypeError(Position.unknown, arg.type.__name__, type.__name__, str(value));
+        }
 
         newContext.setOwn(arg.name, value, {
             forceThroughConst: true
@@ -241,6 +250,8 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
         forceThroughConst: true
     });
 
-    if (setRes instanceof ESError) return setRes;
+    if (setRes instanceof ESError) {
+        return setRes;
+    }
     return newContext;
 }

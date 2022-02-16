@@ -1,6 +1,7 @@
 import { run } from "../build/index.js";
 import { ESError, TestFailed } from "../build/errors.js";
-import { Context, ESSymbol } from "../build/runtime/context.js";
+import { Context } from "../build/runtime/context.js";
+import {ESSymbol} from '../build/runtime/symbol.js';
 import { global, now } from "../build/constants.js";
 import {strip} from '../build/runtime/primitives/wrapStrip.js';
 import { str } from "../build/util/util.js";

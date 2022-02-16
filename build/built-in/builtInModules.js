@@ -14,8 +14,9 @@ const processedModules = {};
 export function processRawModule(module, name) {
     const moduleDict = {};
     const moduleRaw = module.valueOf();
-    for (const key in moduleRaw)
+    for (const key of Object.keys(moduleRaw)) {
         moduleDict[key] = new ESSymbol(moduleRaw[key], key);
+    }
     return new ESNamespace(new ESString(name), moduleDict, false);
 }
 export function moduleExist(name) {
