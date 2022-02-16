@@ -29,13 +29,15 @@ export class ESType extends ESPrimitive<undefined> {
         this.info.name = name;
         this.__extends__ = __extends__;
         this.__methods__ = __methods__;
+
         if (__init__) {
             __init__.name = name;
             this.__init__ = __init__;
         }
 
-        if (!types.type)
+        if (!types.type) {
             this.__type__ = this;
+        }
     }
 
     clone = (chain: Primitive[]) => {
@@ -52,14 +54,12 @@ export class ESType extends ESPrimitive<undefined> {
         return new ESBoolean(type === types.type);
     }
 
-    cast = ({}, type: Primitive) => {
-        return this;
-    }
+    cast = ({}, type: Primitive) => this;
 
     includesType = ({context}: funcProps, t: ESType): ESBoolean => {
         if (
-            this.equals({context}, types.any).valueOf() === true ||
-            t.equals({context}, types.any).valueOf() === true ||
+            this.equals({context}, types.any).bool().valueOf() ||
+            t.equals({context}, types.any).bool().valueOf() ||
 
             (this.__extends__?.equals({context}, t).valueOf() === true) ||
             (this.__extends__?.equals({context}, types.any).valueOf() === true) ||

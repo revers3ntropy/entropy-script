@@ -61,31 +61,35 @@ const DOMNode = new ESType(
         }, undefined, 'html')
     ],
     undefined,
-    new ESFunction(({context}, domNode): ESError | Primitive | undefined => {
+    new ESFunction(({context}, domNode: any): ESError | Primitive | undefined => {
         const self = getThisFromContext(context);
         if (!(self instanceof ESObject)) {
             return self;
         }
 
-        self.__setProperty__({context}, NODE_KEY, domNode);
+        const res = self.__setProperty__({context}, NODE_KEY, domNode);
+        if (res instanceof ESError) {
+            return res;
+        }
     })
 );
 
 const module: JSModule = {
     DOMNode,
-    ['$']: ({context}, arg) => {
+    $: ({context}, arg): ESError | Primitive => {
         if (!window || !document) {
             return new ESError(Position.unknown, 'RunTimeError',  `Invalid JavaScript runtime for using dom module - must be in browser`);
         }
 
-        const element = document.querySelector(str(arg));
+        const element: any = document.querySelector(str(arg));
 
         if (element == null) {
             return new ReferenceError(Position.unknown, str(arg));
         }
 
-        return DOMNode.__call__({context}, wrap(element));
+        return DOMNode.__call__({context}, element);
     },
+    'test': 1,
 };
 
 export default module;

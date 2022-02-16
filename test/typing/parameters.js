@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('typing/parameters');
 
 expect(['<Func: f>', 'hello world'], `
     const f = func (a: string, b: string) {

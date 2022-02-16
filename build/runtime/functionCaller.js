@@ -4,26 +4,16 @@ import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
 import { ESObject, ESPrimitive, ESUndefined, types } from "./primitiveTypes.js";
 function callNode(self, context, params, fn) {
-    var _a, _b, _c, _d, _e;
-    const newContext = generateESFunctionCallContext(params, self, context);
-    if (newContext instanceof ESError)
-        return newContext;
-    let this_ = (_a = self.this_) !== null && _a !== void 0 ? _a : new ESObject();
-    if (!(this_ instanceof ESObject))
-        return new TypeError(Position.unknown, 'object', typeof this_, this_, '\'this\' must be an object');
-    let setRes = newContext.set('this', this_);
-    if (setRes instanceof ESError) {
-        return setRes;
-    }
-    const res = fn.interpret(newContext);
+    var _a, _b, _c, _d;
+    const res = fn.interpret(context);
     if (res.error)
         return res.error;
     if (res.funcReturn !== undefined) {
         res.val = res.funcReturn;
         res.funcReturn = undefined;
     }
-    if (self.returnType.includesType({ context }, (_c = (_b = res.val) === null || _b === void 0 ? void 0 : _b.__type__) !== null && _c !== void 0 ? _c : types.any).valueOf() === false) {
-        return new TypeError(Position.unknown, self.returnType.__name__, ((_d = res.val) === null || _d === void 0 ? void 0 : _d.typeName().valueOf()) || 'undefined', (_e = res.val) === null || _e === void 0 ? void 0 : _e.str().valueOf(), '(from function return)');
+    if (self.returnType.includesType({ context }, (_b = (_a = res.val) === null || _a === void 0 ? void 0 : _a.__type__) !== null && _b !== void 0 ? _b : types.any).valueOf() === false) {
+        return new TypeError(Position.unknown, self.returnType.__name__, ((_c = res.val) === null || _c === void 0 ? void 0 : _c.typeName().valueOf()) || 'undefined', (_d = res.val) === null || _d === void 0 ? void 0 : _d.str().valueOf(), '(from function return)');
     }
     if (res.val) {
         return res.val;
@@ -51,16 +41,28 @@ function callNative(self, context, params, fn) {
  * @returns {ESUndefined | TypeError | ESError | ESPrimitive<any>}
  */
 export function call(context, self, params) {
+    var _a;
     // generate context
     let callContext = context;
     context = self.__closure__;
     context.path = callContext.path;
     const fn = self.__value__;
+    const newContext = generateESFunctionCallContext(params, self, context);
+    if (newContext instanceof ESError) {
+        return newContext;
+    }
+    let this_ = (_a = self.this_) !== null && _a !== void 0 ? _a : new ESObject();
+    if (!(this_ instanceof ESObject))
+        return new TypeError(Position.unknown, 'object', typeof this_, this_, '\'this\' must be an object');
+    let setRes = newContext.setOwn('this', this_);
+    if (setRes instanceof ESError) {
+        return setRes;
+    }
     if (fn instanceof Node) {
-        return callNode(self, context, params, fn);
+        return callNode(self, newContext, params, fn);
     }
     else if (typeof fn === 'function') {
-        return callNative(self, context, params, fn);
+        return callNative(self, newContext, params, fn);
     }
     else {
         return new TypeError(Position.unknown, 'function', typeof fn);

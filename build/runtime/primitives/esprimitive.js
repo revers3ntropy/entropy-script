@@ -23,7 +23,7 @@ export class ESPrimitive {
         this.valueOf = () => this.__value__;
         this.typeName = () => this.__type__.__name__;
         // Object stuff
-        this.hasProperty = ({}, key) => this.hasOwnProperty(key.valueOf());
+        this.hasProperty = ({}, key) => new ESBoolean(this.hasOwnProperty(str(key)));
         // @ts-ignore
         this.__type__ = type || this;
         this.__value__ = value;

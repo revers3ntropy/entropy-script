@@ -61,6 +61,10 @@ export class TestResult {
             
             ${this.failed === 0 ? 'All tests passed!'.green : ''}
             
+            ${this.fails.map(([test, _]) =>
+                `\n ${test.batteryName} (#${test.batteryID})`
+            )}
+        
             ${this.fails.map(([test, error]) =>
                 `\n----------------- ${test.batteryName} (#${test.batteryID}): \n${error.str}\n`
             )}
@@ -259,7 +263,7 @@ with code
 
             const res = arraysSame(expected, strip(result.val));
 
-            //* extreme debugging
+            /* extreme debugging
             if (!res) {
                 console.log('\n%%%', expected, str(strip(result.val)), '@@');
             }

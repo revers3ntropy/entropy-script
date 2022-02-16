@@ -1,5 +1,3 @@
 using(import('dom'));
 
-const button = $('#myDiv');
-
-print(button);
+$('#myDiv').html('hello world');

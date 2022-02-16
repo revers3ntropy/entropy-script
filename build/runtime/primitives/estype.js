@@ -14,13 +14,11 @@ export class ESType extends ESPrimitive {
         this.isa = ({}, type) => {
             return new ESBoolean(type === types.type);
         };
-        this.cast = ({}, type) => {
-            return this;
-        };
+        this.cast = ({}, type) => this;
         this.includesType = ({ context }, t) => {
             var _a, _b, _c, _d, _e, _f;
-            if (this.equals({ context }, types.any).valueOf() === true ||
-                t.equals({ context }, types.any).valueOf() === true ||
+            if (this.equals({ context }, types.any).bool().valueOf() ||
+                t.equals({ context }, types.any).bool().valueOf() ||
                 (((_a = this.__extends__) === null || _a === void 0 ? void 0 : _a.equals({ context }, t).valueOf()) === true) ||
                 (((_b = this.__extends__) === null || _b === void 0 ? void 0 : _b.equals({ context }, types.any).valueOf()) === true) ||
                 (((_c = this.__extends__) === null || _c === void 0 ? void 0 : _c.includesType({ context }, t).valueOf()) === true) ||
@@ -51,7 +49,8 @@ export class ESType extends ESPrimitive {
             __init__.name = name;
             this.__init__ = __init__;
         }
-        if (!types.type)
+        if (!types.type) {
             this.__type__ = this;
+        }
     }
 }

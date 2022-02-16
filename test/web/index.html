@@ -28,15 +28,18 @@
             }
 
             for (const text of scriptTexts) {
-                es.run(text);
+                const res = es.run(text);
+                if (res.error) {
+                    document.getElementById('error').innerHTML = res.error.str;
+                }
             }
         })();
     </script>
 
     <script type="es" src="main.es"></script>
 </head>
-
 <body>
+    <div id="error"></div>
     <div id="myDiv"></div>
 </body>
 </html>

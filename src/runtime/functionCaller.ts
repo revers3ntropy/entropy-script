@@ -6,26 +6,7 @@ import { ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive, types } from
 
 function callNode (self: ESFunction, context: Context, params: Primitive[], fn: Node) {
 
-    const newContext = generateESFunctionCallContext(params, self, context);
-    if (newContext instanceof ESError) return newContext;
-
-    let this_ = self.this_ ?? new ESObject();
-
-    if (!(this_ instanceof ESObject))
-        return new TypeError(
-            Position.unknown,
-            'object',
-            typeof this_,
-            this_,
-            '\'this\' must be an object'
-        );
-
-    let setRes = newContext.set('this', this_);
-    if (setRes instanceof ESError) {
-        return setRes;
-    }
-
-    const res = fn.interpret(newContext);
+    const res = fn.interpret(context);
 
     if (res.error) return res.error;
     if (res.funcReturn !== undefined) {
@@ -52,12 +33,15 @@ function callNode (self: ESFunction, context: Context, params: Primitive[], fn: 
 function callNative (self: ESFunction, context: Context, params: Primitive[], fn: Function) {
     for (let i = params.length; i < fn.length; i++)
         params.push(new ESUndefined());
+
     const res = fn({
         context
     }, ...params);
+
     if (res instanceof ESError || res instanceof ESPrimitive) {
         return res;
     }
+
     return new ESUndefined();
 }
 
@@ -76,11 +60,32 @@ export function call (context: Context, self: ESFunction, params: Primitive[]) {
     context.path = callContext.path;
     const fn = self.__value__;
 
+    const newContext = generateESFunctionCallContext(params, self, context);
+    if (newContext instanceof ESError) {
+        return newContext;
+    }
+
+    let this_ = self.this_ ?? new ESObject();
+
+    if (!(this_ instanceof ESObject))
+        return new TypeError(
+            Position.unknown,
+            'object',
+            typeof this_,
+            this_,
+            '\'this\' must be an object'
+        );
+
+    let setRes = newContext.setOwn('this', this_);
+    if (setRes instanceof ESError) {
+        return setRes;
+    }
+
     if (fn instanceof Node) {
-        return callNode(self, context, params, fn);
+        return callNode(self, newContext, params, fn);
 
     } else if (typeof fn === 'function') {
-        return callNative(self, context, params, fn);
+        return callNative(self, newContext, params, fn);
 
     } else {
         return new TypeError(Position.unknown, 'function', typeof fn);

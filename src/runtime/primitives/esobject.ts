@@ -9,7 +9,7 @@ import {ESString} from './esstring.js';
 import {ESType} from './estype.js';
 import {ESPrimitive} from './esprimitive.js';
 import {ESUndefined} from './esundefined.js';
-import {Primitive, types} from './primitive.js';
+import {funcProps, Primitive, types} from './primitive.js';
 import {strip, wrap} from './wrapStrip.js';
 
 
@@ -173,12 +173,21 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESUndefined();
     };
 
-    __setProperty__({}: {context: Context}, key: Primitive, value: Primitive): void | ESError {
+    __setProperty__ = ({}: {context: Context}, key: Primitive, value: Primitive): void | ESError => {
         if (!(key instanceof ESString)) {
             return new TypeError(Position.unknown, 'string', key.typeName(), str(key));
         }
         this.__value__[key.valueOf()] = value;
     }
+
+    hasProperty = ({}: funcProps, k: Primitive): ESBoolean => {
+        const key = str(k);
+        if (this.valueOf().hasOwnProperty(str(key))) {
+            return new ESBoolean(true);
+        }
+
+        return new ESBoolean(this.hasOwnProperty(key));
+    };
 
     clone = (chain: Primitive[]): ESObject => {
         let obj: dict<Primitive> = {};
@@ -188,7 +197,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             try {
                 obj[key] = toClone[key].clone(chain);
             } catch (e) {
-                throw Error(`Couldn't clone ${str(toClone[key])} from ${this.info}`);
+                obj[key] = toClone[key];
             }
         }
         return new ESObject(obj);

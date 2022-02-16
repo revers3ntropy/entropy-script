@@ -5,7 +5,7 @@ import {str} from '../../util/util.js';
 import type {JSModule} from '../module.js';
 
 const module: JSModule = {
-    asciiToChar:({}, number: Primitive) => {
+    asciiToChar: ({}, number: Primitive) => {
         if (!(number instanceof ESNumber))
             return new TypeError(Position.unknown, 'number', str(number.typeName()), str(number));
         return new ESString(String.fromCharCode(number.valueOf()));

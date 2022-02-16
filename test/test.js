@@ -26,6 +26,7 @@ import './std/parseNum.js';
 import './std/range.js';
 import './std/string.js';
 import './std/type.js';
+import './std/using.js';
 
 import './std/primitive/bool.js';
 import './std/primitive/cast.js';

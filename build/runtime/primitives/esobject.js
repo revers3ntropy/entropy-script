@@ -136,6 +136,19 @@ export class ESObject extends ESPrimitive {
             }
             return new ESUndefined();
         };
+        this.__setProperty__ = ({}, key, value) => {
+            if (!(key instanceof ESString)) {
+                return new TypeError(Position.unknown, 'string', key.typeName(), str(key));
+            }
+            this.__value__[key.valueOf()] = value;
+        };
+        this.hasProperty = ({}, k) => {
+            const key = str(k);
+            if (this.valueOf().hasOwnProperty(str(key))) {
+                return new ESBoolean(true);
+            }
+            return new ESBoolean(this.hasOwnProperty(key));
+        };
         this.clone = (chain) => {
             let obj = {};
             let toClone = this.valueOf();
@@ -144,7 +157,7 @@ export class ESObject extends ESPrimitive {
                     obj[key] = toClone[key].clone(chain);
                 }
                 catch (e) {
-                    throw Error(`Couldn't clone ${str(toClone[key])} from ${this.info}`);
+                    obj[key] = toClone[key];
                 }
             }
             return new ESObject(obj);
@@ -154,10 +167,4 @@ export class ESObject extends ESPrimitive {
         return Object.keys(this.valueOf()).map(s => new ESString(s));
     }
     set keys(val) { }
-    __setProperty__({}, key, value) {
-        if (!(key instanceof ESString)) {
-            return new TypeError(Position.unknown, 'string', key.typeName(), str(key));
-        }
-        this.__value__[key.valueOf()] = value;
-    }
 }

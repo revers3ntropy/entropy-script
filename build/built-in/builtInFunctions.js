@@ -175,11 +175,24 @@ Try 'help(object)' for help about a particular object.
             args: [{ name: 'identifier', type: 'string' }],
             description: 'Deletes a variable from the current context'
         }],
-    'using': [({ context }, module) => {
-            if (!(module instanceof ESNamespace))
+    'using': [({ context }, module, global_) => {
+            if (!(module instanceof ESNamespace)) {
                 return new TypeError(Position.unknown, 'Namespace', str(module.typeName()));
+            }
+            let global = true;
+            if (global_) {
+                if (!global_.bool().valueOf()) {
+                    global = false;
+                }
+            }
             const values = module.valueOf();
-            for (const key in values) {
+            if (global) {
+                context = context.root;
+            }
+            else if (context.parent) {
+                context = context.parent;
+            }
+            for (const key of Object.keys(values)) {
                 context.setOwn(key, values[key].value, {
                     isConstant: values[key].isConstant,
                     isAccessible: values[key].isAccessible,
@@ -188,8 +201,11 @@ Try 'help(object)' for help about a particular object.
             }
         }, {
             name: 'using',
-            args: [{ name: 'module', type: 'namespace' }],
-            description: 'Adds contents of a namespace to the current context'
+            args: [
+                { name: 'module', type: 'namespace' },
+                { name: 'global', type: 'bool' }
+            ],
+            description: 'Adds contents of a namespace to the global context'
         }],
     'sleep': [({ context }, time, cb) => {
             if (!(time instanceof ESNumber))

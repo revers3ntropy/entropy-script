@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('typing/assignment');
 
 expect([10, 10], `
     let a: number = 10;

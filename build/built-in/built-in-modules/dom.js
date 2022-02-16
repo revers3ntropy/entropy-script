@@ -45,11 +45,14 @@ const DOMNode = new ESType(false, 'DOMNode', [
     if (!(self instanceof ESObject)) {
         return self;
     }
-    self.__setProperty__({ context }, NODE_KEY, domNode);
+    const res = self.__setProperty__({ context }, NODE_KEY, domNode);
+    if (res instanceof ESError) {
+        return res;
+    }
 }));
 const module = {
     DOMNode,
-    ['$']: ({ context }, arg) => {
+    $: ({ context }, arg) => {
         if (!window || !document) {
             return new ESError(Position.unknown, 'RunTimeError', `Invalid JavaScript runtime for using dom module - must be in browser`);
         }
@@ -57,7 +60,8 @@ const module = {
         if (element == null) {
             return new ReferenceError(Position.unknown, str(arg));
         }
-        return DOMNode.__call__({ context }, wrap(element));
+        return DOMNode.__call__({ context }, element);
     },
+    'test': 1,
 };
 export default module;

@@ -114,6 +114,6 @@ export abstract class ESPrimitive <T> {
     public typeName = (): string => this.__type__.__name__;
 
     // Object stuff
-    public hasProperty = ({}: funcProps, key: ESString): boolean =>
-        this.hasOwnProperty(key.valueOf());
+    public hasProperty = ({}: funcProps, key: Primitive): ESBoolean =>
+        new ESBoolean(this.hasOwnProperty(str(key)));
 }

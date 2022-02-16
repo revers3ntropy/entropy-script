@@ -13,3 +13,8 @@ expect([undefined, 0], `
     using(namespace { a = 0; });
     a;
 `);
+
+expect([undefined, '<Func: asciiToChar>'], `
+    using(import('ascii'));
+    asciiToChar;
+`);

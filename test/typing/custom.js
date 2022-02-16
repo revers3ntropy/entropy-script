@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('typing/custom');
 
 expect(['<Type: myType>', {}, {}], `
     const myType = class {};
