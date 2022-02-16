@@ -1,8 +1,8 @@
 export class Token {
-    constructor(startPos, type, value = undefined) {
+    constructor(pos, type, value = undefined) {
         this.type = type;
         this.value = value;
-        this.startPos = startPos;
+        this.pos = pos;
     }
     matches(type, val) {
         return this.type === type && this.value === val;

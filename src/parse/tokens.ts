@@ -4,12 +4,12 @@ import {enumDict} from "../util/util.js";
 export class Token {
     type: tokenType;
     value: any;
-    startPos: Position;
+    pos: Position;
 
-    constructor (startPos: Position, type: tokenType, value: any = undefined) {
+    constructor (pos: Position, type: tokenType, value: any = undefined) {
         this.type = type;
         this.value = value;
-        this.startPos = startPos;
+        this.pos = pos;
     }
 
     public matches(type: tokenType, val: any) {

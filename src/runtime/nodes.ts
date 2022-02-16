@@ -31,15 +31,15 @@ export class interpretResult {
 }
 
 export abstract class Node {
-    startPos: Position;
+    pos: Position;
     isTerminal;
 
     static interprets = 0;
     static totalTime = 0;
     static maxTime = 0;
 
-    protected constructor (startPos: Position, isTerminal=false) {
-        this.startPos = startPos;
+    protected constructor (pos: Position, isTerminal=false) {
+        this.pos = pos;
         this.isTerminal = isTerminal;
     }
 
@@ -63,15 +63,15 @@ export abstract class Node {
         } else
             res.val = val;
 
-        if (res.error && res.error.startPos.isUnknown)
-            res.error.startPos = this.startPos;
+        if (res.error && res.error.pos.isUnknown)
+            res.error.pos = this.pos;
 
         if (!(res.val instanceof ESPrimitive)) {
             res.error = new TypeError(Position.unknown, 'Primitive', 'Native JS value', str(res.val));
             res.val = new ESUndefined();
         }``
 
-        res.val.info.file ||= this.startPos.file;
+        res.val.info.file ||= this.pos.file;
 
         Node.interprets++;
         let time = now() - start;
@@ -89,8 +89,8 @@ export class N_binOp extends Node {
     right: Node;
     opTok: Token;
 
-    constructor (startPos: Position, left: Node, opTok: Token, right: Node) {
-        super(startPos);
+    constructor (pos: Position, left: Node, opTok: Token, right: Node) {
+        super(pos);
         this.left = left;
         this.opTok = opTok;
         this.right = right;
@@ -105,10 +105,10 @@ export class N_binOp extends Node {
         const l = left.val;
         const r = right.val;
         if (typeof l === 'undefined')
-            return new TypeError(this.opTok.startPos, '~undefined', 'undefined', l, 'N_binOp.interpret_');
+            return new TypeError(this.opTok.pos, '~undefined', 'undefined', l, 'N_binOp.interpret_');
 
         if (typeof r === 'undefined')
-            return new TypeError(this.opTok.startPos, '~undefined', 'undefined', r, 'N_binOp.interpret_');
+            return new TypeError(this.opTok.pos, '~undefined', 'undefined', r, 'N_binOp.interpret_');
 
         switch (this.opTok.type) {
             case tt.LTE: {
@@ -153,7 +153,7 @@ export class N_binOp extends Node {
 
             default:
                 return new InvalidSyntaxError(
-                    this.opTok.startPos,
+                    this.opTok.pos,
                     `Invalid binary operator: ${tokenTypeString[this.opTok.type]}`
                 );
         }
@@ -164,8 +164,8 @@ export class N_unaryOp extends Node {
     a: Node;
     opTok: Token;
 
-    constructor (startPos: Position, a: Node, opTok: Token) {
-        super(startPos);
+    constructor (pos: Position, a: Node, opTok: Token) {
+        super(pos);
         this.a = a;
         this.opTok = opTok;
     }
@@ -178,14 +178,14 @@ export class N_unaryOp extends Node {
             case tt.SUB:
             case tt.ADD:
                 if (!(res.val instanceof ESNumber))
-                    return new TypeError(this.startPos, 'Number', res.val?.typeName().toString() || 'undefined_', res.val?.valueOf());
+                    return new TypeError(this.pos, 'Number', res.val?.typeName().toString() || 'undefined_', res.val?.valueOf());
                 const numVal = res.val.valueOf();
                 return new ESNumber(this.opTok.type === tt.SUB ? -numVal : Math.abs(numVal));
             case tt.NOT:
                 return new ESBoolean(!res?.val?.bool().valueOf());
             default:
                 return new InvalidSyntaxError(
-                    this.opTok.startPos,
+                    this.opTok.pos,
                     `Invalid unary operator: ${tokenTypeString[this.opTok.type]}`
                 );
         }
@@ -203,7 +203,7 @@ export class N_varAssign extends Node {
     type: Node;
 
     constructor (
-        startPos: Position,
+        pos: Position,
         varNameTok: Token, value: Node,
         assignType='=',
         isGlobal=false,
@@ -212,7 +212,7 @@ export class N_varAssign extends Node {
         isDeclaration=false,
         type: ESType | Node = types.any
     ) {
-        super(startPos);
+        super(pos);
         this.value = value;
         this.varNameTok = varNameTok;
         this.isGlobal = isGlobal;
@@ -230,7 +230,7 @@ export class N_varAssign extends Node {
     interpret_(context: Context): interpretResult | ESError | Primitive {
 
         if (this.isDeclaration && context.hasOwn(this.varNameTok.value))
-            return new InvalidSyntaxError(this.startPos, `Symbol '${this.varNameTok.value}' already exists, and cannot be redeclared`);
+            return new InvalidSyntaxError(this.pos, `Symbol '${this.varNameTok.value}' already exists, and cannot be redeclared`);
 
 
         const res = this.value.interpret(context);
@@ -240,14 +240,14 @@ export class N_varAssign extends Node {
         if (typeRes.error) return typeRes.error;
 
         if (!typeRes.val || !(typeRes.val instanceof ESType))
-            return new TypeError(this.varNameTok.startPos, 'Type',
+            return new TypeError(this.varNameTok.pos, 'Type',
                 typeRes.val?.typeName().valueOf() ?? 'undefined', typeRes.val?.str(), `@ !typeRes.val || !(typeRes.val instanceof ESType)`);
 
         if (!res.val)
-            return new TypeError(this.varNameTok.startPos, '~undefined', 'undefined', 'N_varAssign.interpret_');
+            return new TypeError(this.varNameTok.pos, '~undefined', 'undefined', 'N_varAssign.interpret_');
 
         if (typeRes.val.includesType({context}, res.val.__type__).valueOf() === false)
-            return new TypeError(this.varNameTok.startPos,
+            return new TypeError(this.varNameTok.pos,
                 str(typeRes.val),
                 str(res.val?.typeName()),
                 str(res.val)
@@ -256,7 +256,7 @@ export class N_varAssign extends Node {
 
         if (this.isDeclaration) {
             if (this.assignType !== '=')
-                return new InvalidSyntaxError(this.startPos, `Cannot declare variable with operator '${this.assignType}'`);
+                return new InvalidSyntaxError(this.pos, `Cannot declare variable with operator '${this.assignType}'`);
             context.setOwn(this.varNameTok.value, res.val, {
                 global: false,
                 isConstant: this.isConstant
@@ -280,14 +280,14 @@ export class N_varAssign extends Node {
         } else {
 
             if (this.isDeclaration)
-                return new InvalidSyntaxError(this.startPos, `Cannot declare variable with operator '${this.assignType}'`);
+                return new InvalidSyntaxError(this.pos, `Cannot declare variable with operator '${this.assignType}'`);
 
             // assign with modifier like *= or -=
             const currentVal = context.get(this.varNameTok.value);
             if (currentVal instanceof ESError) return currentVal;
 
             if (currentVal == undefined)
-                return new InvalidSyntaxError(this.startPos, `Cannot declare variable with operator '${this.assignType}'`);
+                return new InvalidSyntaxError(this.pos, `Cannot declare variable with operator '${this.assignType}'`);
 
             let newVal: Primitive | ESError;
             let assignVal = res.val;
@@ -304,7 +304,7 @@ export class N_varAssign extends Node {
 
                 default:
                     return new ESError(
-                        this.startPos,
+                        this.pos,
                         'AssignError',
                         `Cannot find assignType of ${this.assignType[0]}`
                     );
@@ -335,8 +335,8 @@ export class N_if extends Node {
     ifTrue: Node;
     ifFalse: Node | undefined;
 
-    constructor (startPos: Position, comparison: Node, ifTrue: Node, ifFalse: Node | undefined) {
-        super(startPos);
+    constructor (pos: Position, comparison: Node, ifTrue: Node, ifFalse: Node | undefined) {
+        super(pos);
         this.comparison = comparison;
         this.ifFalse = ifFalse;
         this.ifTrue = ifTrue;
@@ -371,8 +371,8 @@ export class N_while extends Node {
     comparison: Node;
     loop: Node;
 
-    constructor (startPos: Position, comparison: Node, loop: Node) {
-        super(startPos);
+    constructor (pos: Position, comparison: Node, loop: Node) {
+        super(pos);
         this.comparison = comparison;
         this.loop = loop;
     }
@@ -402,8 +402,8 @@ export class N_for extends Node {
     isGlobalId: boolean;
     isConstId: boolean;
 
-    constructor (startPos: Position, body: Node, array: Node, identifier: Token, isGlobalIdentifier: boolean, isConstIdentifier: boolean) {
-        super(startPos);
+    constructor (pos: Position, body: Node, array: Node, identifier: Token, isGlobalIdentifier: boolean, isConstIdentifier: boolean) {
+        super(pos);
         this.body = body;
         this.array = array;
         this.identifier = identifier;
@@ -420,7 +420,7 @@ export class N_for extends Node {
 
         if (['Array', 'Number', 'Object', 'String', 'Any'].indexOf(array.val?.typeName().valueOf() || '') === -1)
             return new TypeError(
-                this.identifier.startPos,
+                this.identifier.pos,
                 'Array | Number | Object | String',
                 typeof array.val + ' | ' + array.val?.typeName()
             );
@@ -464,7 +464,7 @@ export class N_for extends Node {
             }
         } else
             return new TypeError(
-                this.identifier.startPos,
+                this.identifier.pos,
                 'Array | Number | Object | String',
                 typeof array.val
             );
@@ -476,8 +476,8 @@ export class N_for extends Node {
 export class N_array extends Node {
     items: Node[];
     shouldClone: boolean;
-    constructor(startPos: Position, items: Node[], shouldClone=false) {
-        super(startPos);
+    constructor(pos: Position, items: Node[], shouldClone=false) {
+        super(pos);
         this.items = items;
         this.shouldClone = shouldClone
     }
@@ -504,8 +504,8 @@ export class N_array extends Node {
 
 export class N_objectLiteral extends Node {
     properties: [Node, Node][];
-    constructor(startPos: Position, properties: [Node, Node][]) {
-        super(startPos);
+    constructor(pos: Position, properties: [Node, Node][]) {
+        super(pos);
         this.properties = properties;
     }
 
@@ -528,8 +528,8 @@ export class N_objectLiteral extends Node {
 }
 
 export class N_emptyObject extends Node {
-    constructor(startPos: Position) {
-        super(startPos);
+    constructor(pos: Position) {
+        super(pos);
     }
 
     interpret_ (context: Context) {
@@ -539,8 +539,8 @@ export class N_emptyObject extends Node {
 
 export class N_statements extends Node {
     items: Node[];
-    constructor(startPos: Position, items: Node[]) {
-        super(startPos);
+    constructor(pos: Position, items: Node[]) {
+        super(pos);
         this.items = items;
     }
 
@@ -563,8 +563,8 @@ export class N_functionCall extends Node {
     arguments: Node[];
     to: Node;
 
-    constructor(startPos: Position, to: Node, args: Node[]) {
-        super(startPos);
+    constructor(pos: Position, to: Node, args: Node[]) {
+        super(pos);
         this.arguments = args;
         this.to = to;
     }
@@ -575,10 +575,10 @@ export class N_functionCall extends Node {
             return error;
         }
         if (!val) {
-            return new TypeError(this.startPos, 'any', 'undefined', undefined, 'On function call');
+            return new TypeError(this.pos, 'any', 'undefined', undefined, 'On function call');
         }
         if (!val.hasProperty({context}, new ESString('__call__')))
-            return new TypeError(this.startPos, 'unknown',
+            return new TypeError(this.pos, 'unknown',
                 val?.typeName().valueOf() || 'unknown', val?.valueOf(),
                 'Can only () on something with __call__ property');
 
@@ -599,7 +599,7 @@ export class N_functionCall extends Node {
 
         if (res instanceof ESError) {
             res.traceback.push({
-                position: this.startPos,
+                position: this.pos,
                 // do the best we can to recreate line,
                 // giving some extra info as well as it is the interpreted arguments so variables values not names
                 line: `${val.info.name}(${params.map(str).join(', ')})`
@@ -624,7 +624,7 @@ export class N_functionDefinition extends Node {
     description: string;
 
     constructor(
-        startPos: Position,
+        pos: Position,
         body: Node,
         argNames: uninterpretedArgument[],
         returnType: Node,
@@ -632,7 +632,7 @@ export class N_functionDefinition extends Node {
         this_: ESObject = new ESObject(),
         description=''
     ) {
-        super(startPos);
+        super(pos);
         this.arguments = argNames;
         this.body = body;
         this.name = name;
@@ -654,7 +654,7 @@ export class N_functionDefinition extends Node {
         if (returnTypeRes.error) return returnTypeRes.error;
         if (!(returnTypeRes.val instanceof ESType))
             return new TypeError(
-                this.returnType.startPos,
+                this.returnType.pos,
                 'Type',
                 returnTypeRes.val?.typeName().valueOf() ?? '<Undefined>',
                 returnTypeRes.val?.str().valueOf(),
@@ -667,8 +667,8 @@ export class N_functionDefinition extends Node {
 
 export class N_return extends Node {
     value: Node | undefined;
-    constructor(startPos: Position, value: Node | undefined) {
-        super(startPos);
+    constructor(pos: Position, value: Node | undefined) {
+        super(pos);
         this.value = value;
     }
 
@@ -690,8 +690,8 @@ export class N_return extends Node {
 
 export class N_yield extends Node {
     value: Node | undefined;
-    constructor(startPos: Position, value: Node | undefined) {
-        super(startPos);
+    constructor(pos: Position, value: Node | undefined) {
+        super(pos);
         this.value = value;
     }
 
@@ -720,8 +720,8 @@ export class N_indexed extends Node {
     value: Node | undefined;
     assignType: string | undefined;
 
-    constructor(startPos: Position, base: Node, index: Node) {
-        super(startPos);
+    constructor(pos: Position, base: Node, index: Node) {
+        super(pos);
         this.base = base;
         this.index = index;
     }
@@ -749,7 +749,7 @@ export class N_indexed extends Node {
             this.assignType ??= '=';
 
             if (!assignVal) {
-                return new TypeError(this.startPos, '~undefined', 'undefined', 'undefined', 'N_indexed.interpret_')
+                return new TypeError(this.pos, '~undefined', 'undefined', 'undefined', 'N_indexed.interpret_')
             }
 
             switch (this.assignType[0]) {
@@ -766,7 +766,7 @@ export class N_indexed extends Node {
 
                 default:
                     return new ESError(
-                        this.startPos,
+                        this.pos,
                         'AssignError',
                         `Cannot find assignType of ${this.assignType[0]}`
                     );
@@ -776,7 +776,7 @@ export class N_indexed extends Node {
                 return newVal;
 
             if (!base.__setProperty__)
-                return new TypeError(this.startPos, 'mutable', 'immutable', base.valueOf());
+                return new TypeError(this.pos, 'mutable', 'immutable', base.valueOf());
 
             const res = base.__setProperty__({context}, index, newVal ?? new ESUndefined());
             if (res instanceof ESError)
@@ -794,8 +794,8 @@ export class N_class extends Node {
     extends_: Node | undefined;
     instances: ESObject[];
 
-    constructor(startPos: Position, methods: N_functionDefinition[], extends_?: Node, init?: N_functionDefinition, name = '<anon class>') {
-        super(startPos);
+    constructor(pos: Position, methods: N_functionDefinition[], extends_?: Node, init?: N_functionDefinition, name = '<anon class>') {
+        super(pos);
         this.init = init;
         this.methods = methods;
         this.name = name;
@@ -811,7 +811,7 @@ export class N_class extends Node {
                 return res.error;
             if (!(res.val instanceof ESFunction))
                 return new TypeError(
-                    this.startPos,
+                    this.pos,
                     'Function',
                     res.val?.typeName().valueOf() || 'undefined',
                     'method on ' + this.name
@@ -825,7 +825,7 @@ export class N_class extends Node {
                 return extendsRes.error;
             if (!(extendsRes.val instanceof ESType))
                 return new TypeError(
-                    this.startPos,
+                    this.pos,
                     'Function',
                     extendsRes.val?.typeName().valueOf() || 'undefined',
                     'method on ' + this.name
@@ -839,7 +839,7 @@ export class N_class extends Node {
                 return initRes.error;
             if (!(initRes.val instanceof ESFunction))
                 return new TypeError(
-                    this.startPos,
+                    this.pos,
                     'Function',
                     initRes.val?.typeName().valueOf() || 'undefined',
                     'method on ' + this.name
@@ -855,8 +855,8 @@ export class N_namespace extends Node {
     public name: string;
     private statements: Node;
     public mutable: boolean;
-    constructor(startPos: Position, statements: Node, name = '(anon)', mutable=false) {
-        super(startPos);
+    constructor(pos: Position, statements: Node, name = '(anon)', mutable=false) {
+        super(pos);
         this.name = name;
         this.statements = statements;
         this.mutable = mutable;
@@ -876,15 +876,15 @@ export class N_namespace extends Node {
 // --- TERMINAL NODES ---
 export class N_number extends Node {
     a: Token;
-    constructor(startPos: Position, a: Token) {
-        super(startPos, true);
+    constructor(pos: Position, a: Token) {
+        super(pos, true);
         this.a = a;
     }
     interpret_ (context: Context): interpretResult | ESError {
         let val = this.a.value;
 
         if (typeof val !== 'number') return new TypeError(
-            this.startPos,
+            this.pos,
             'number',
             typeof val
         );
@@ -897,15 +897,15 @@ export class N_number extends Node {
 
 export class N_string extends Node {
     a: Token;
-    constructor (startPos: Position, a: Token) {
-        super(startPos, true);
+    constructor (pos: Position, a: Token) {
+        super(pos, true);
         this.a = a;
     }
     interpret_ (context: Context): interpretResult | ESError {
         let val = this.a.value;
 
         if (typeof val !== 'string') return new TypeError(
-            this.startPos,
+            this.pos,
             'string',
             typeof val
         );
@@ -919,13 +919,13 @@ export class N_string extends Node {
 export class N_variable extends Node {
     a: Token;
     constructor(a: Token) {
-        super(a.startPos, true);
+        super(a.pos, true);
         this.a = a;
     }
 
     interpret_ (context: Context) {
         if (!context.has(this.a.value))
-            return new ReferenceError(this.a.startPos, this.a.value);
+            return new ReferenceError(this.a.pos, this.a.value);
 
         let res = new interpretResult();
         let symbol = context.getSymbol(this.a.value);
@@ -943,8 +943,8 @@ export class N_variable extends Node {
 
 export class N_undefined extends Node {
 
-    constructor(startPos = Position.unknown) {
-        super(startPos, true);
+    constructor(pos = Position.unknown) {
+        super(pos, true);
     }
 
     interpret_ (context: Context) {
@@ -955,8 +955,8 @@ export class N_undefined extends Node {
 }
 
 export class N_break extends Node {
-    constructor(startPos: Position) {
-        super(startPos, true);
+    constructor(pos: Position) {
+        super(pos, true);
     }
 
     interpret_ (context: Context) {
@@ -966,8 +966,8 @@ export class N_break extends Node {
     }
 }
 export class N_continue extends Node {
-    constructor(startPos: Position) {
-        super(startPos, true);
+    constructor(pos: Position) {
+        super(pos, true);
     }
 
     interpret_ (context: Context) {

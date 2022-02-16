@@ -63,10 +63,10 @@ export class Lexer {
 
                 else {
                     // unknown char
-                    let startPos = this.position.clone;
+                    let pos = this.position.clone;
                     let char = this.currentChar;
                     this.advance();
-                    return [[], new IllegalCharError(startPos, char)];
+                    return [[], new IllegalCharError(pos, char)];
                 }
 
             }
@@ -78,7 +78,7 @@ export class Lexer {
     }
 
     private makeNumber () {
-        const startPos = this.position.clone;
+        const pos = this.position.clone;
         let numStr = '';
         let dotCount = 0;
 
@@ -97,11 +97,11 @@ export class Lexer {
             this.advance();
         }
 
-        return new Token (startPos, tt.NUMBER, parseFloat(numStr));
+        return new Token (pos, tt.NUMBER, parseFloat(numStr));
     }
 
     private makeString () {
-        const startPos = this.position.clone;
+        const pos = this.position.clone;
         let str = '';
         let strClose = this.currentChar;
         this.advance();
@@ -122,7 +122,7 @@ export class Lexer {
         }
         this.advance();
 
-        return new Token (startPos, tt.STRING, str);
+        return new Token (pos, tt.STRING, str);
     }
 
     private makeIdentifier () {
@@ -149,31 +149,31 @@ export class Lexer {
             if (triple[0] === this.currentChar)
                 if (triple[1] === this.text[this.position.idx + 1])
                     if (triple[2] === this.text[this.position.idx + 2]) {
-                        const startPos = this.position.clone;
+                        const pos = this.position.clone;
                         this.advance();
                         this.advance();
                         this.advance();
 
-                        return new Token(startPos, tripleCharTokens[triple]);
+                        return new Token(pos, tripleCharTokens[triple]);
                     }
         }
 
         for (let double in doubleCharTokens) {
             if (double[0] === this.currentChar)
                 if (double[1] === this.text[this.position.idx + 1]) {
-                        const startPos = this.position.clone;
+                        const pos = this.position.clone;
                         this.advance();
                         this.advance();
 
-                        return new Token(startPos, doubleCharTokens[double]);
+                        return new Token(pos, doubleCharTokens[double]);
                     }
         }
 
         if (singleCharTokens.hasOwnProperty(this.currentChar)) {
-            let startPos = this.position.clone;
+            let pos = this.position.clone;
             let val = singleCharTokens[this.currentChar];
             this.advance();
-            return new Token(startPos, val);
+            return new Token(pos, val);
         }
 
         return undefined;

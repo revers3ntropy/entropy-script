@@ -10,11 +10,11 @@ export interface TracebackFrame {
 export class ESError {
     name: string;
     details: string;
-    startPos: Position;
+    pos: Position;
     traceback: TracebackFrame[] = [];
 
-    constructor (startPos: Position, name: string, details: string) {
-        this.startPos = startPos;
+    constructor (pos: Position, name: string, details: string) {
+        this.pos = pos;
         this.name = name;
         this.details = details;
     }
@@ -27,37 +27,37 @@ export class ESError {
                 out += `    ${pos.position.str.cyan}:\n        ${pos.line}\n`;
         }
 
-        out += `${this.name.red}: ${this.details} \n at ${this.startPos.str.cyan}`;
+        out += `${this.name.red}: ${this.details} \n at ${this.pos.str.cyan}`;
         return out;
     }
 
     get uncolouredStr () {
-        return `${this.name}: ${this.details} \n at ${this.startPos.str}`;
+        return `${this.name}: ${this.details} \n at ${this.pos.str}`;
     }
 }
 
 export class IllegalCharError extends ESError {
-    constructor(startPos: Position, char: string) {
-        super(startPos, 'IllegalCharError', `'${char}'`);
+    constructor(pos: Position, char: string) {
+        super(pos, 'IllegalCharError', `'${char}'`);
     }
 }
 
 export class InvalidSyntaxError extends ESError {
-    constructor(startPos: Position, details: string) {
-        super(startPos,  'InvalidSyntaxError', details);
+    constructor(pos: Position, details: string) {
+        super(pos,  'InvalidSyntaxError', details);
     }
 }
 
 export class ExpectedCharError extends ESError {
-    constructor(startPos: Position, char: string) {
-        super(startPos, 'ExpectedCharError', `'${char}'`);
+    constructor(pos: Position, char: string) {
+        super(pos, 'ExpectedCharError', `'${char}'`);
     }
 }
 
 export class TypeError extends ESError {
-    constructor(startPos: Position, expectedType: string, actualType: string, value: any = '', detail = '') {
+    constructor(pos: Position, expectedType: string, actualType: string, value: any = '', detail = '') {
         super(
-            startPos,
+            pos,
             'TypeError',
             `Expected type '${expectedType}', got type '${actualType}' ${
                 typeof value === 'undefined'? '' : ` on value '${str(value)}'`
@@ -67,14 +67,14 @@ export class TypeError extends ESError {
 }
 
 export class ImportError extends ESError {
-    constructor(startPos: Position, url: string, detail = '') {
-        super(startPos, 'ImportError', `Could not import ${url}: ${detail}`);
+    constructor(pos: Position, url: string, detail = '') {
+        super(pos, 'ImportError', `Could not import ${url}: ${detail}`);
     }
 }
 
 export class ReferenceError extends ESError {
-    constructor(startPos: Position, ref: string) {
-        super(startPos,'ReferenceError', `${ref} is not defined`);
+    constructor(pos: Position, ref: string) {
+        super(pos,'ReferenceError', `${ref} is not defined`);
     }
 }
 
