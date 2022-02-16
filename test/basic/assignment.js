@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('basic/assignment');
 
 expect(['aa', 'bb', true, undefined, false], `
 let a = 'aa';

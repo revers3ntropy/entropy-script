@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('basic/objects');
 
 expect([{a:1}, 2], `
     n = {a: 1};

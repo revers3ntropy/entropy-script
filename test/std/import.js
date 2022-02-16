@@ -1,4 +1,6 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('std/import');
+
 
 expect([{otherLib: '<Symbol: otherLib>', doThing: '<Symbol: doThing>'}, '<Func: main>', 'hello world'], `
 	const lib = import('./examples/imports/lib/main.es');

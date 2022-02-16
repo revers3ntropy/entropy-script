@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('basic/loops');
 
 expect([undefined, 0, undefined, 9, 10], `
     var output;

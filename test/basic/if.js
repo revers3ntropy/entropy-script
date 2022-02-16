@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('basic/if');
 
 expect([undefined], `
     if !true && 1 || 7 + 2 {} else {}

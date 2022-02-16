@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('examples/vector');
 
 expect(['<Type: v2>', 'v2', 'v2', '3, 4', 'v2', '8, 10', false, 'v2', '8, 10', '9, 11'], `
     const v2 = class {

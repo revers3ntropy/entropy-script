@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('basic/classes');
 
 expect(['<Type: myClass>'], `
     var myClass = class {

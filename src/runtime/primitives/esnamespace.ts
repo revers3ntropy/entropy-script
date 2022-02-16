@@ -1,12 +1,12 @@
 import {ESError, IndexError, TypeError} from '../../errors.js';
 import {Position} from '../../position.js';
 import {dict} from '../../util/util.js';
-import {Context, ESSymbol} from '../context.js';
+import {Context} from '../context.js';
+import {ESSymbol} from '../symbol.js';
 import {ESBoolean} from './esboolean.js';
 import {ESString} from './esstring.js';
 import {ESPrimitive} from './esprimitive.js';
 import {str} from '../../util/util.js';
-import {ESUndefined} from './esundefined.js';
 import {Primitive, types} from './primitive.js';
 import {wrap} from './wrapStrip.js';
 

@@ -1,6 +1,6 @@
 import {wrap} from '../runtime/primitives/wrapStrip.js';
 import {ESNamespace, ESObject, ESString} from '../runtime/primitiveTypes.js';
-import {ESSymbol} from '../runtime/context.js';
+import {ESSymbol} from '../runtime/symbol.js';
 import type {JSModule} from './built-in-modules/module.js';
 
 // All modules

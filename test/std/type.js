@@ -1,4 +1,6 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('std/string');
+
 
 expect(['Number'], 'type(1.1)');
 expect(['Type'], 'type(type)');

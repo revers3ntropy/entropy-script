@@ -15,13 +15,15 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export class TestResult {
     failed = 0;
     passed = 0;
+    /** @type {[Test, ESError][]}*/
     fails = [];
     time = 0;
 
     /**
-     * @param { ESError | boolean | TestResult } res
+     * @param {Test} test
+     * @param {ESError | boolean | TestResult} res
      */
-    register (res) {
+    register (test, res) {
         if (typeof res === 'boolean') {
             if (res) {
                 this.passed++;
@@ -33,7 +35,7 @@ export class TestResult {
 
         if (res instanceof ESError) {
             this.failed++;
-            this.fails.push(res);
+            this.fails.push([test, res]);
             return;
         }
 
@@ -51,7 +53,9 @@ export class TestResult {
             
             ${this.failed === 0 ? 'All tests passed!'.green : ''}
             
-            ${this.fails.map(error => `\n-----------------\n${error.str}\n`)}
+            ${this.fails.map(([test, error]) =>
+                `\n----------------- ${test.batteryName} (#${test.id}): \n${error.str}\n`
+            )}
         `;
     }
 }
@@ -59,14 +63,17 @@ export class TestResult {
 export class Test {
     test;
     id;
+    batteryName;
 
     /**
      * @param {(env: Context) => boolean | ESError} test
      * @param {string | number} id
+     * @param {string} batteryName
      */
-    constructor(test, id = 'test') {
+    constructor(test, id = 'test', batteryName='') {
         this.id = id;
         this.test = test;
+        this.batteryName = batteryName;
     }
 
     /**
@@ -81,10 +88,11 @@ export class Test {
     static tests = [];
 
     /**
+     * @param {string} batteryName
      * @param {(env: Context) => (boolean | ESError)} test
      */
-    static test (test) {
-        Test.tests.push(new Test(test, Test.tests.length));
+    static test (batteryName, test) {
+        Test.tests.push(new Test(test, Test.tests.length, batteryName));
     }
 
     /**
@@ -99,7 +107,7 @@ export class Test {
             const testEnv = new Context();
             testEnv.parent = global;
             testEnv.path = __dirname;
-            res.register(test.run(testEnv));
+            res.register(test, test.run(testEnv));
         }
 
         res.time = Math.round(now() - time);
@@ -174,12 +182,17 @@ function arraysSame (arr1, arr2) {
     return true;
 }
 
+let currentFile = '';
+export function file (name) {
+    currentFile = name;
+}
+
 /**
  * @param {any[] | string} expected
  * @param {string} from
  */
-export function expect(expected, from) {
-    Test.test(env => {
+export function expect (expected, from) {
+    Test.test(currentFile, env => {
         /** @type {interpretResult | ({ timeData: timeData; } & interpretResult)} */
         let result;
         try {
@@ -214,9 +227,11 @@ with code
                 return (name || 'Error') === expected;
             }
 
+            /* extreme debugging
             if (!arraysSame(expected, strip(result.val))) {
-                console.log('\n%%%%%', expected, str(strip(result.val)), '@@');
+                console.log('\n%%%', expected, str(strip(result.val)), '@@');
             }
+            //*/
 
             return arraysSame(expected, strip(result.val));
         })();

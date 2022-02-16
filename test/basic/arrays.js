@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('basic/arrays');
 
 expect([[0, 1, 2]], `
     [0, 1, 2];

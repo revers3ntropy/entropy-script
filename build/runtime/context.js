@@ -2,24 +2,9 @@ import { initialise } from "../init.js";
 import { ESError, TypeError, ReferenceError } from "../errors.js";
 import { Position } from "../position.js";
 import { wrap } from './primitives/wrapStrip.js';
-import { ESArray, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";
+import { ESArray, ESPrimitive, ESType, ESUndefined, types } from "./primitiveTypes.js";
 import { str } from "../util/util.js";
-export class ESSymbol {
-    constructor(value, identifier, options = {}) {
-        var _a, _b;
-        this.clone = () => {
-            return new ESSymbol(this.value.clone([]), this.identifier, {
-                isConstant: this.isConstant,
-                isAccessible: this.isAccessible
-            });
-        };
-        this.str = () => new ESString(`<Symbol: ${this.identifier}>`);
-        this.value = value;
-        this.identifier = identifier;
-        this.isConstant = (_a = options.isConstant) !== null && _a !== void 0 ? _a : false;
-        this.isAccessible = (_b = options.isAccessible) !== null && _b !== void 0 ? _b : true;
-    }
-}
+import { ESSymbol } from './symbol.js';
 export class Context {
     constructor() {
         this.symbolTable = {};
@@ -115,8 +100,9 @@ export class Context {
         delete this.symbolTable[identifier];
     }
     clear() {
-        for (let symbol in this.symbolTable)
+        for (let symbol in this.symbolTable) {
             this.remove(symbol);
+        }
         this.parent = undefined;
         this.deleted = true;
     }
@@ -153,13 +139,6 @@ export class Context {
         let clone = this.clone();
         clone.parent = (_a = clone.parent) === null || _a === void 0 ? void 0 : _a.deepClone();
         return clone;
-    }
-    /**
-     * This context takes priority
-     * @param {Context} context
-     */
-    mergeWith(context) {
-        this.root.parent = context.deepClone();
     }
     log() {
         console.log('---- CONTEXT ----');

@@ -1,5 +1,7 @@
-// maths logic
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('basic/general');
+
+expect([], '');
 
 expect([1.99], '1.99');
 expect([2], '1+1');
@@ -7,12 +9,6 @@ expect([2], '1   + 1  ');
 expect([22], '2 + 4 * 5');
 expect([30], '(2+4) * 5');
 expect([19], '3 + 4 ^ 2');
-
-
-// global constants
-expect([true], 'true');
-expect([false], 'false');
-expect([undefined], 'nil');
 
 
 // boolean logic
@@ -29,7 +25,6 @@ expect([true], '"hi" != "hijj"');
 
 // multi-line statements
 expect([true, false], '2==2; 2==5');
-
 
 // strings
 expect(['a', 'bc', 'defg'], '"a"; `bc`; \'defg\'');

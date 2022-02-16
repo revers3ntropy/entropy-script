@@ -1,4 +1,5 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('basic/functions');
 
 expect(['<Func: myFunc>', 1], `
 var myFunc = func () {

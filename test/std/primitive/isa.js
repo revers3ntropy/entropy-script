@@ -1,4 +1,5 @@
-import {expect} from '../../testFramework.js';
+import {expect, file} from '../../testFramework.js';
+file('std/primitive/isa');
 
 expect ([0, true, false, false, false, false, false, false, false, false], `
     const a = 0;
@@ -103,6 +104,21 @@ expect ([{}, false, false, false, false, false, false, false, true, false], `
     a.isa(undefined);
     a.isa(object);
     a.isa(error);
+`);
+
+expect (['<Type: myClass>', {}, false, false, false, false, false, false, false, true, false, true], `
+    const myClass = class {};
+    const a = myClass();
+    a.isa(number);
+    a.isa(string);
+    a.isa(function);
+    a.isa(array);
+    a.isa(bool);
+    a.isa(type);
+    a.isa(undefined);
+    a.isa(object);
+    a.isa(error);
+    a.isa(myClass);
 `);
 
 // error? can't really do...

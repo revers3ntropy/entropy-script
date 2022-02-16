@@ -1,5 +1,5 @@
 import { ESError } from '../../errors.js';
-import { ESSymbol } from '../context.js';
+import { ESSymbol } from '../symbol.js';
 import { ESArray } from './esarray.js';
 import { ESBoolean } from './esboolean.js';
 import { ESErrorPrimitive } from './eserrorprimitive.js';

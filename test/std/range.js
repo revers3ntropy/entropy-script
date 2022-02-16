@@ -1,4 +1,6 @@
-import {expect} from '../testFramework.js';
+import {expect, file} from '../testFramework.js';
+file('std/range');
+
 
 expect([[0, 1, 2]], 'range(3)');
 expect ([undefined, 2], `

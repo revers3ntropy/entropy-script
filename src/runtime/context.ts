@@ -2,38 +2,9 @@ import { initialise } from "../init.js";
 import { ESError, TypeError, ReferenceError } from "../errors.js";
 import { Position } from "../position.js";
 import {wrap} from './primitives/wrapStrip.js';
-import {ESArray, ESFunction, ESPrimitive, ESString, ESType, ESUndefined, Primitive, types} from "./primitiveTypes.js";
+import {ESArray, ESFunction, ESPrimitive, ESType, ESUndefined, Primitive, types} from "./primitiveTypes.js";
 import {dict, str} from "../util/util.js";
-
-export type symbolOptions = {
-    isConstant?: boolean;
-    isAccessible?: boolean;
-    global?: boolean;
-    forceThroughConst?: boolean;
-}
-
-export class ESSymbol {
-    isConstant: boolean;
-    value: Primitive;
-    identifier: string;
-    isAccessible: boolean;
-
-    constructor (value: Primitive, identifier: string, options: symbolOptions = {}) {
-        this.value = value;
-        this.identifier = identifier;
-        this.isConstant = options.isConstant ?? false;
-        this.isAccessible = options.isAccessible ?? true;
-    }
-
-    clone = () => {
-        return new ESSymbol(this.value.clone([]), this.identifier, {
-            isConstant: this.isConstant,
-            isAccessible: this.isAccessible
-        });
-    }
-
-    str = () => new ESString(`<Symbol: ${this.identifier}>`);
-}
+import {ESSymbol, symbolOptions} from './symbol.js';
 
 export class Context {
     private symbolTable: {[identifier: string]: ESSymbol} = {};
@@ -164,8 +135,9 @@ export class Context {
     }
 
     clear () {
-        for (let symbol in this.symbolTable)
+        for (let symbol in this.symbolTable) {
             this.remove(symbol);
+        }
 
         this.parent = undefined;
         this.deleted = true;
@@ -213,14 +185,6 @@ export class Context {
         let clone = this.clone();
         clone.parent = clone.parent?.deepClone();
         return clone;
-    }
-
-    /**
-     * This context takes priority
-     * @param {Context} context
-     */
-    mergeWith (context: Context) {
-        this.root.parent = context.deepClone();
     }
 
     log () {
