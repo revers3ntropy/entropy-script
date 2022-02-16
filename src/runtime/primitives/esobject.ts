@@ -12,6 +12,7 @@ import {ESUndefined} from './esundefined.js';
 import {Primitive, types} from './primitive.js';
 import {strip, wrap} from './wrapStrip.js';
 
+
 export class ESObject extends ESPrimitive <dict<Primitive>> {
     constructor (val: dict<Primitive> = {}) {
         super(val, types.object);
@@ -182,7 +183,8 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
     clone = (chain: Primitive[]): ESObject => {
         let obj: dict<Primitive> = {};
         let toClone = this.valueOf();
-        for (let key in toClone) {
+
+        for (let key of Object.keys(toClone)) {
             try {
                 obj[key] = toClone[key].clone(chain);
             } catch (e) {

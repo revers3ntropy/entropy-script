@@ -3,7 +3,7 @@ import {Context} from '../../runtime/context.js';
 import {strip} from '../../runtime/primitives/wrapStrip.js';
 import {ESFunction, ESObject, types} from '../../runtime/primitiveTypes.js';
 import {str} from '../../util/util.js';
-import type {JSModuleFunc, JSModule} from './module.js';
+import type {JSModuleFunc, JSModule} from '../module.js';
 
 type serverOptions = {
     key?: string,
@@ -41,8 +41,9 @@ const module: JSModuleFunc = ({https, http, print, fetch}): JSModule => ({
 
             const url: string = req.url || '/';
 
-            if (options.debug)
+            if (options.debug) {
                 console.log(`Got request at ${url}`);
+            }
 
             if (handlers.hasOwnProperty(url)) {
                 let data = '';

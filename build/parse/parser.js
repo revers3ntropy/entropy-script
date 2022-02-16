@@ -1,8 +1,8 @@
+import { tokenType, tokenTypeString, tt } from '../constants.js';
 import { Token } from "./tokens.js";
 import * as n from '../runtime/nodes.js';
 import { N_functionDefinition, N_namespace, N_undefined, N_variable } from '../runtime/nodes.js';
 import { ESError, InvalidSyntaxError } from "../errors.js";
-import { tokenType, tokenTypeString, tt } from "./tokens.js";
 import { types } from "../runtime/primitiveTypes.js";
 export class ParseResults {
     constructor() {

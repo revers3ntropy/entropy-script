@@ -1,42 +1,48 @@
+import { primitiveMethods } from '../constants.js';
 import { Context } from "./context.js";
 import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
 import { wrap } from './primitives/wrapStrip.js';
-import { ESArray, ESBoolean, ESFunction, ESNumber, ESObject, ESPrimitive, ESString, ESType, ESUndefined } from "./primitiveTypes.js";
+import { ESArray, ESBoolean, ESFunction, ESNumber, ESObject, ESString, ESType, ESUndefined } from "./primitiveTypes.js";
 /**
  * Adds the properties of a parent class to an instance of a child class
  * @param {Context} context_ the context of the class definition
  * @param {ESType} class_ the class that the object is currently implementing
  * @param {dict<Primitive>} instance the instance to add the properties to
  * @param {Context} callContext
+ * @param {ESObject} this_ the 'super' function's 'this' context
  * @returns {ESError | void}
  */
-function dealWithExtends(context_, class_, instance, callContext) {
-    if (!class_) {
-        return;
-    }
+function dealWithExtends(context_, class_, instance, callContext, this_) {
     if (!(class_ instanceof ESType)) {
         return new TypeError(Position.unknown, 'Type', typeof class_, class_);
     }
-    let setRes = context_.setOwn('super', new ESFunction(({ context }) => {
+    const superFunc = new ESFunction(({ context }, ...args) => {
         var _b;
         const newContext = new Context();
-        newContext.parent = context;
-        let setRes = newContext.setOwn('type', new ESObject(instance));
+        newContext.parent = context_;
+        /*let setRes = newContext.setOwn('type', new ESObject(instance));
         if (setRes instanceof ESError) {
             return setRes;
         }
+         */
         if (class_.__extends__ !== undefined) {
-            let _a = dealWithExtends(newContext, class_.__extends__, instance, callContext);
+            let _a = dealWithExtends(newContext, class_.__extends__, instance, callContext, this_);
             if (_a instanceof ESError) {
                 return _a;
             }
         }
-        const res_ = (_b = class_ === null || class_ === void 0 ? void 0 : class_.__init__) === null || _b === void 0 ? void 0 : _b.__call__({ context: callContext });
-        if (res_ instanceof ESPrimitive) {
+        const initFunc = (_b = class_ === null || class_ === void 0 ? void 0 : class_.__init__) === null || _b === void 0 ? void 0 : _b.clone([]);
+        if (!initFunc) {
+            return;
+        }
+        initFunc.this_ = this_;
+        const res_ = initFunc.__call__({ context: newContext }, ...args);
+        if (res_ instanceof ESError) {
             return res_;
         }
-    }));
+    }, undefined, 'super', this_);
+    let setRes = context_.setOwn('super', superFunc);
     if (setRes instanceof ESError) {
         return setRes;
     }
@@ -85,25 +91,28 @@ export function createInstance(type, { context }, params, runInit = true, on = {
                 return new ESBoolean(params[0].bool().valueOf());
             case 'Object':
                 return new ESObject(params[0]);
-            case 'Error':
-                return new ESError(Position.unknown, 'UserError', params[0].str().valueOf());
             default:
                 return wrap(params[0]);
         }
     }
     const newContext = new Context();
     newContext.parent = (_b = type.__init__) === null || _b === void 0 ? void 0 : _b.__closure__;
+    const instance = new ESObject();
     if (type.__extends__) {
-        let res = dealWithExtends(newContext, type.__extends__, on, callContext);
+        let res = dealWithExtends(newContext, type.__extends__, on, callContext, instance);
         if (res instanceof ESError) {
             return res;
         }
     }
-    const instance = new ESObject(on);
+    instance.__value__ = on;
     for (let method of type.__methods__) {
         const methodClone = method.clone([]);
         methodClone.this_ = instance;
         on[method.name] = methodClone;
+        if (primitiveMethods.indexOf(method.name) !== -1) {
+            const i = instance;
+            i[method.name] = ({ context }, ...args) => methodClone.__call__({ context }, ...args);
+        }
     }
     if (runInit && type.__init__) {
         type.__init__.this_ = instance;

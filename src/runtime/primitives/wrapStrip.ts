@@ -29,9 +29,10 @@ export function wrap (thing: any = undefined): Primitive {
         return new ESFunction(
             (p, ...args: Primitive[]) => {
                 const res = thing(p, ...args);
-                if (res instanceof ESError || res instanceof ESPrimitive)
+                if (res instanceof ESError || res instanceof ESPrimitive) {
                     return res;
-                wrap(res);
+                }
+                return wrap(res);
             }
         );
     } else if (typeof thing === 'number') {
@@ -44,8 +45,9 @@ export function wrap (thing: any = undefined): Primitive {
         return new ESBoolean(thing);
 
     } else if (typeof thing === 'object') {
-        if (Array.isArray(thing))
+        if (Array.isArray(thing)) {
             return new ESArray(thing.map(s => wrap(s)));
+        }
 
         let newObj: {[s: string]: Primitive} = {};
         Object.getOwnPropertyNames(thing).forEach(key => {

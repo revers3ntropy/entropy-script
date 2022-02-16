@@ -5,7 +5,7 @@ import {ESFunction, ESNamespace, ESObject, ESString, Primitive, types} from '../
 import { str } from "../util/util.js";
 import {interpretResult} from "../runtime/nodes.js";
 import {run} from "../index.js";
-import {JSModuleParams} from './built-in-modules/module.js';
+import {JSModuleParams} from './module.js';
 import {addModuleFromObj, getModule, moduleExist} from './builtInModules.js';
 import { global, importCache } from "../constants.js";
 

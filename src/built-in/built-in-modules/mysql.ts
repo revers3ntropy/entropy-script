@@ -1,6 +1,6 @@
 import {ESFunction, Primitive} from '../../runtime/primitiveTypes.js';
 import {str} from '../../util/util.js';
-import {JSModuleFunc, JSModule} from './module.js';
+import {JSModuleFunc, JSModule} from '../module.js';
 
 const module: JSModuleFunc = function ({mysql, print}): JSModule {
 

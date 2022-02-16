@@ -1,4 +1,4 @@
-import type {JSModule} from 'module.js';
+import type {JSModule} from 'src/built-in/module.js';
 import {Position} from '../../position.js';
 import {ESNumber} from '../../runtime/primitiveTypes.js';
 import {TypeError} from '../../errors.js';

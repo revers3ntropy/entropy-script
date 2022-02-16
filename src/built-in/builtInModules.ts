@@ -1,16 +1,17 @@
 import {wrap} from '../runtime/primitives/wrapStrip.js';
 import {ESNamespace, ESObject, ESString} from '../runtime/primitiveTypes.js';
 import {ESSymbol} from '../runtime/symbol.js';
-import type {JSModule} from './built-in-modules/module.js';
+import type {JSModule} from './module.js';
 
 // All modules
 // make this only import required modules in the future
 import maths from './built-in-modules/maths.js';
 import ascii from './built-in-modules/ascii.js';
 import json from './built-in-modules/json.js';
+import dom from './built-in-modules/dom.js';
 
 const modules: {[s: string]: JSModule} = {
-    maths, ascii, json
+    maths, ascii, json, dom
 };
 
 // memoize the modules for faster access

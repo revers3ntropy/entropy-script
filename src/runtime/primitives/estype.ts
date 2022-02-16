@@ -1,12 +1,11 @@
 import {ESError} from '../../errors.js';
-import {Context} from '../context.js';
 import {createInstance} from '../instantiator.js';
 import {ESBoolean} from './esboolean.js';
 import {ESFunction} from './esfunction.js';
 import {ESObject} from './esobject.js';
 import {ESString} from './esstring.js';
 import {ESPrimitive} from './esprimitive.js';
-import {Primitive, types, typeName} from './primitive.js';
+import {Primitive, types, typeName, funcProps} from './primitive.js';
 
 export class ESType extends ESPrimitive<undefined> {
     readonly __isPrimitive__: boolean;
@@ -57,7 +56,7 @@ export class ESType extends ESPrimitive<undefined> {
         return this;
     }
 
-    includesType = ({context}: {context: Context}, t: ESType): ESBoolean => {
+    includesType = ({context}: funcProps, t: ESType): ESBoolean => {
         if (
             this.equals({context}, types.any).valueOf() === true ||
             t.equals({context}, types.any).valueOf() === true ||
@@ -76,7 +75,7 @@ export class ESType extends ESPrimitive<undefined> {
         return this.equals({context}, t);
     }
 
-    equals = ({}: {context: Context}, t: ESType): ESBoolean => {
+    equals = ({}: funcProps, t: ESType): ESBoolean => {
         return new ESBoolean(
             t.__name__ === this.__name__ &&
             t.__isPrimitive__ === this.__isPrimitive__ &&
@@ -84,7 +83,7 @@ export class ESType extends ESPrimitive<undefined> {
         );
     }
 
-    __call__ = ({ context }: {context: Context}, ...params: Primitive[]): ESError | Primitive => {
+    __call__ = ({ context }: funcProps, ...params: Primitive[]): ESError | Primitive => {
         return createInstance(this, {context}, params || []);
     }
 

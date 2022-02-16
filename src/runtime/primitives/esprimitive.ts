@@ -1,13 +1,11 @@
 import {ESError, IndexError, InvalidOperationError} from '../../errors.js';
 import {Position} from '../../position.js';
-import {Context} from '../context.js';
 
-import type {ESBoolean} from './esboolean.js';
+import {ESBoolean} from './esboolean.js';
 import type {ESString} from './esstring.js';
 import type {ESType} from './estype.js';
-import {ESUndefined} from './esundefined.js';
 import type {Info} from './info.js';
-import {Primitive, types} from './primitive.js';
+import {funcProps, Primitive, types} from './primitive.js';
 
 import {str} from '../../util/util.js';
 import {wrap} from './wrapStrip.js';
@@ -39,59 +37,59 @@ export abstract class ESPrimitive <T> {
     public abstract str: () => ESString;
     /**
      * Casts to any type
-     * @type {(config: {context: Context}, type: Primitive) => Primitive}
+     * @type {(config: funcProps, type: Primitive) => Primitive}
      */
-    public abstract cast: (config: {context: Context}, type: Primitive) => Primitive | ESError;
+    public abstract cast: (config: funcProps, type: Primitive) => Primitive | ESError;
 
     // Arithmetic
-    public __add__ (props: {context: Context}, n: Primitive): Primitive | ESError {
+    public __add__ (props: funcProps, n: Primitive): Primitive | ESError {
         return new InvalidOperationError('', this);
     }
-    public __subtract__ (props: {context: Context}, n: Primitive): Primitive | ESError {
+    public __subtract__ (props: funcProps, n: Primitive): Primitive | ESError {
         return new InvalidOperationError('', this);
     }
-    public __multiply__ (props: {context: Context}, n: Primitive): Primitive | ESError {
+    public __multiply__ (props: funcProps, n: Primitive): Primitive | ESError {
         return new InvalidOperationError('', this);
     }
-    public __divide__ (props: {context: Context}, n: Primitive): Primitive | ESError {
+    public __divide__ (props: funcProps, n: Primitive): Primitive | ESError {
         return new InvalidOperationError('', this);
     }
-    public __pow__ (props: {context: Context}, n: Primitive): Primitive | ESError {
+    public __pow__ (props: funcProps, n: Primitive): Primitive | ESError {
         return new InvalidOperationError('__pow__', this);
     }
 
     // Boolean Logic
-    public __eq__ (props: {context: Context}, n: Primitive): ESBoolean | ESError {
+    public __eq__ (props: funcProps, n: Primitive): ESBoolean | ESError {
         return new InvalidOperationError('__eq__', this);
     }
-    public __gt__ (props: {context: Context}, n: Primitive): ESBoolean | ESError {
+    public __gt__ (props: funcProps, n: Primitive): ESBoolean | ESError {
         return new InvalidOperationError('__gt__', this);
     }
-    public __lt__ (props: {context: Context}, n: Primitive): ESBoolean | ESError {
+    public __lt__ (props: funcProps, n: Primitive): ESBoolean | ESError {
         return new InvalidOperationError('__lt__', this);
     }
-    public __and__ (props: {context: Context}, n: Primitive): ESBoolean | ESError {
+    public __and__ (props: funcProps, n: Primitive): ESBoolean | ESError {
         return new InvalidOperationError('__and__', this);
     }
-    public __or__ (props: {context: Context}, n: Primitive): ESBoolean | ESError {
+    public __or__ (props: funcProps, n: Primitive): ESBoolean | ESError {
         return new InvalidOperationError('__or__', this);
     }
-    public __bool__ (props: {context: Context}): ESBoolean | ESError {
+    public __bool__ (props: funcProps): ESBoolean | ESError {
         return new InvalidOperationError('__bool__', this);
     }
 
     // Properties
-    public __setProperty__ (props: {context: Context}, key: Primitive, value: Primitive): void | ESError {
+    public __setProperty__ (props: funcProps, key: Primitive, value: Primitive): void | ESError {
         return new InvalidOperationError('__setProperty__', this, `[${str(key)}] = ${str(value)}`);
     }
-    public __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive | ESError => {
+    public __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
         if (this.self.hasOwnProperty(key.valueOf())) {
             return wrap(this.self[key.valueOf()]);
         }
         return new IndexError(Position.unknown, key.valueOf(), this);
     };
 
-    public __call__ (props: {context: Context}, ...parameters: Primitive[]): ESError | Primitive {
+    public __call__ (props: funcProps, ...parameters: Primitive[]): ESError | Primitive {
         return new InvalidOperationError('__call__', this);
     }
 
@@ -106,13 +104,16 @@ export abstract class ESPrimitive <T> {
     /**
      * @returns if this type is a subset of the type passed
      */
-    public abstract isa: (config: {context: Context}, type: Primitive) => ESBoolean | ESError;
+    public abstract isa: (config: funcProps, type: Primitive) => ESBoolean | ESError;
+
+    public is = ({context}: funcProps, obj: Primitive): ESBoolean =>
+        new ESBoolean(obj === this);
 
     // getters for private props
     public valueOf = (): T => this.__value__;
     public typeName = (): string => this.__type__.__name__;
 
     // Object stuff
-    public hasProperty = ({}: {context: Context}, key: ESString): boolean =>
+    public hasProperty = ({}: funcProps, key: ESString): boolean =>
         this.hasOwnProperty(key.valueOf());
 }

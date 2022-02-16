@@ -6,8 +6,9 @@ import { ESSymbol } from '../runtime/symbol.js';
 import maths from './built-in-modules/maths.js';
 import ascii from './built-in-modules/ascii.js';
 import json from './built-in-modules/json.js';
+import dom from './built-in-modules/dom.js';
 const modules = {
-    maths, ascii, json
+    maths, ascii, json, dom
 };
 // memoize the modules for faster access
 const processedModules = {};

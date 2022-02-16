@@ -1,8 +1,7 @@
-import { tokenTypeString, tt } from "../parse/tokens.js";
 import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors.js";
 import { Context } from './context.js';
 import { Position } from "../position.js";
-import { now } from "../constants.js";
+import { now, tokenTypeString, tt } from "../constants.js";
 import { interpretArgument } from "./argument.js";
 import { wrap } from './primitives/wrapStrip.js';
 import { ESArray, ESBoolean, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, ESType, ESUndefined, types } from "./primitiveTypes.js";

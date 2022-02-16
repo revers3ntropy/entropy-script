@@ -1,7 +1,7 @@
-import type {ESError} from '../../errors.js';
-import type {Context} from '../../runtime/context.js';
-import type {Primitive} from '../../runtime/primitiveTypes.js';
-import {BuiltInFunction} from '../../util/util.js';
+import type {ESError} from '../errors.js';
+import type {Context} from '../runtime/context.js';
+import type {Primitive} from '../runtime/primitiveTypes.js';
+import type {BuiltInFunction} from '../util/util.js';
 
 type moduleValues = number | string | moduleValues[] | Primitive | BuiltInFunction;
 export type JSModule = {[key: string]: moduleValues};

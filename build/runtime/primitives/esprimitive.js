@@ -1,5 +1,6 @@
 import { IndexError, InvalidOperationError } from '../../errors.js';
 import { Position } from '../../position.js';
+import { ESBoolean } from './esboolean.js';
 import { types } from './primitive.js';
 import { str } from '../../util/util.js';
 import { wrap } from './wrapStrip.js';
@@ -17,6 +18,7 @@ export class ESPrimitive {
             }
             return new IndexError(Position.unknown, key.valueOf(), this);
         };
+        this.is = ({ context }, obj) => new ESBoolean(obj === this);
         // getters for private props
         this.valueOf = () => this.__value__;
         this.typeName = () => this.__type__.__name__;

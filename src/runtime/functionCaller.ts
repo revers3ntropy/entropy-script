@@ -21,7 +21,9 @@ function callNode (self: ESFunction, context: Context, params: Primitive[], fn: 
         );
 
     let setRes = newContext.set('this', this_);
-    if (setRes instanceof ESError) return setRes;
+    if (setRes instanceof ESError) {
+        return setRes;
+    }
 
     const res = fn.interpret(newContext);
 
@@ -53,7 +55,9 @@ function callNative (self: ESFunction, context: Context, params: Primitive[], fn
     const res = fn({
         context
     }, ...params);
-    if (res instanceof ESError || res instanceof ESPrimitive) return res;
+    if (res instanceof ESError || res instanceof ESPrimitive) {
+        return res;
+    }
     return new ESUndefined();
 }
 

@@ -1,8 +1,8 @@
+import {tokenType, tokenTypeString, tt} from '../constants.js';
 import {Token} from "./tokens.js";
 import * as n from '../runtime/nodes.js';
 import {N_functionDefinition, N_namespace, N_undefined, N_variable, Node} from '../runtime/nodes.js';
 import { ESError, InvalidSyntaxError } from "../errors.js";
-import {tokenType, tokenTypeString, tt} from "./tokens.js";
 import {Position} from "../position";
 import { ESType, types } from "../runtime/primitiveTypes.js";
 import { uninterpretedArgument } from "../runtime/argument.js";

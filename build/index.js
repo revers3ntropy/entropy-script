@@ -18,6 +18,7 @@ import { interpretResult, Node } from "./runtime/nodes.js";
 import { ESArray } from "./runtime/primitiveTypes.js";
 import { Context } from "./runtime/context.js";
 import addNodeLibs from "./built-in/nodeLibs.js";
+export { Context, };
 /**
  * @param {(...args: any) => void} printFunc
  * @param {(msg: string, cb: (...arg: any[]) => any) => void} inputFunc

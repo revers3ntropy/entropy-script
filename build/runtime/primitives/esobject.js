@@ -139,7 +139,7 @@ export class ESObject extends ESPrimitive {
         this.clone = (chain) => {
             let obj = {};
             let toClone = this.valueOf();
-            for (let key in toClone) {
+            for (let key of Object.keys(toClone)) {
                 try {
                     obj[key] = toClone[key].clone(chain);
                 }

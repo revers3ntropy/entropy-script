@@ -2,7 +2,7 @@ import {TypeError} from '../../errors.js';
 import {Position} from '../../position.js';
 import { ESNumber, ESString, Primitive} from '../../runtime/primitiveTypes.js';
 import {str} from '../../util/util.js';
-import type {JSModule} from './module.js';
+import type {JSModule} from '../module.js';
 
 const module: JSModule = {
     asciiToChar:({}, number: Primitive) => {

@@ -1,7 +1,7 @@
 import { Position } from "../position.js";
-import { digits, identifierChars, KEYWORDS, singleLineComment, stringSurrounds, } from "../constants.js";
+import { digits, doubleCharTokens, identifierChars, KEYWORDS, singleCharTokens, singleLineComment, stringSurrounds, tripleCharTokens, tt, } from '../constants.js';
 import { IllegalCharError } from "../errors.js";
-import { doubleCharTokens, singleCharTokens, Token, tripleCharTokens, tt } from "../parse/tokens.js";
+import { Token } from "../parse/tokens.js";
 export class Lexer {
     constructor(program, fileName) {
         this.text = program;

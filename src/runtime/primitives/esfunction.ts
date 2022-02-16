@@ -3,7 +3,7 @@ import {ESError} from '../../errors.js';
 import {Position} from '../../position.js';
 import {BuiltInFunction} from '../../util/util.js';
 import {runtimeArgument} from '../argument.js';
-import {Context} from '../context.js';
+import type {Context} from '../context.js';
 import {call} from '../functionCaller.js';
 import {Node} from '../nodes.js';
 import {ESPrimitive} from './esprimitive.js';
@@ -34,7 +34,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         this.info.name = name;
         this.this_ = this_;
         this.returnType = returnType;
-        this.__closure__ = closure ?? new Context();
+        this.__closure__ = closure;
 
         this.info.returnType = str(returnType);
         this.info.args = arguments_.map(arg => ({

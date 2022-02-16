@@ -1,7 +1,7 @@
 import {Position} from '../../position.js';
 import {strip} from '../../runtime/primitives/wrapStrip.js';
 import {ESNumber, ESObject, ESPrimitive, ESString} from '../../runtime/primitiveTypes.js';
-import {JSModule} from './module.js';
+import {JSModule} from '../module.js';
 import {str} from '../../util/util.js';
 import {TypeError} from '../../errors.js';
 

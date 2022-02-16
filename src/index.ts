@@ -11,7 +11,11 @@ import { ESArray } from "./runtime/primitiveTypes.js";
 import { timeData } from "./util/util.js";
 import { Context } from "./runtime/context.js";
 import addNodeLibs from "./built-in/nodeLibs.js";
-import { JSModuleParams } from "./built-in/built-in-modules/module.js";
+import { JSModuleParams } from "./built-in/module.js";
+
+export {
+    Context,
+};
 
 
 /**

@@ -19,8 +19,9 @@ const module = ({ https, http, print, fetch }) => ({
             if (options.corsOrigin)
                 res.setHeader("Access-Control-Allow-Origin", options.corsOrigin);
             const url = req.url || '/';
-            if (options.debug)
+            if (options.debug) {
                 console.log(`Got request at ${url}`);
+            }
             if (handlers.hasOwnProperty(url)) {
                 let data = '';
                 // need to get the data one packet at a time, and then deal with the whole lot at once

@@ -12,8 +12,9 @@ function callNode(self, context, params, fn) {
     if (!(this_ instanceof ESObject))
         return new TypeError(Position.unknown, 'object', typeof this_, this_, '\'this\' must be an object');
     let setRes = newContext.set('this', this_);
-    if (setRes instanceof ESError)
+    if (setRes instanceof ESError) {
         return setRes;
+    }
     const res = fn.interpret(newContext);
     if (res.error)
         return res.error;
@@ -37,8 +38,9 @@ function callNative(self, context, params, fn) {
     const res = fn({
         context
     }, ...params);
-    if (res instanceof ESError || res instanceof ESPrimitive)
+    if (res instanceof ESError || res instanceof ESPrimitive) {
         return res;
+    }
     return new ESUndefined();
 }
 /**

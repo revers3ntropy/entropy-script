@@ -1,13 +1,13 @@
 import {Position} from "../position.js";
 import {
-    digits,
+    digits, doubleCharTokens,
     identifierChars,
-    KEYWORDS,
+    KEYWORDS, singleCharTokens,
     singleLineComment,
-    stringSurrounds,
-} from "../constants.js";
+    stringSurrounds, tripleCharTokens, tt,
+} from '../constants.js';
 import {ESError, IllegalCharError} from "../errors.js";
-import {doubleCharTokens, singleCharTokens, Token, tripleCharTokens, tt} from "../parse/tokens.js";
+import {Token} from "../parse/tokens.js";
 
 export class Lexer {
     private readonly text: string;

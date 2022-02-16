@@ -1,7 +1,6 @@
 import { global } from '../../constants.js';
 import { ESError } from '../../errors.js';
 import { Position } from '../../position.js';
-import { Context } from '../context.js';
 import { call } from '../functionCaller.js';
 import { ESPrimitive } from './esprimitive.js';
 import { str } from '../../util/util.js';
@@ -38,7 +37,7 @@ export class ESFunction extends ESPrimitive {
         this.info.name = name;
         this.this_ = this_;
         this.returnType = returnType;
-        this.__closure__ = closure !== null && closure !== void 0 ? closure : new Context();
+        this.__closure__ = closure;
         this.info.returnType = str(returnType);
         this.info.args = arguments_.map(arg => ({
             name: arg.name,

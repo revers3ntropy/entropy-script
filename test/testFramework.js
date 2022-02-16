@@ -1,5 +1,5 @@
-import { run } from "../build/index.js";
-import { ESError, TestFailed } from "../build/errors.js";
+import { run } from '../build/index.js';
+import { ESError, TestFailed } from '../build/errors.js';
 import { Context } from "../build/runtime/context.js";
 import {ESSymbol} from '../build/runtime/symbol.js';
 import { global, now } from "../build/constants.js";
@@ -12,6 +12,13 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+/**
+ * @name testExecutor
+ * @function
+ * @param {Context} env
+ * @returns {boolean | ESError}
+ */
 
 export class TestResult {
     failed = 0;
@@ -55,7 +62,7 @@ export class TestResult {
             ${this.failed === 0 ? 'All tests passed!'.green : ''}
             
             ${this.fails.map(([test, error]) =>
-                `\n----------------- ${test.batteryName} (#${test.id}): \n${error.str}\n`
+                `\n----------------- ${test.batteryName} (#${test.batteryID}): \n${error.str}\n`
             )}
         `;
     }
@@ -65,16 +72,19 @@ export class Test {
     test;
     id;
     batteryName;
+    batteryID;
 
     /**
-     * @param {(env: Context) => boolean | ESError} test
+     * @param {testExecutor} test
      * @param {string | number} id
      * @param {string} batteryName
+     * @param {number} batteryID
      */
-    constructor(test, id = 'test', batteryName='') {
+    constructor(test, id = 'test', batteryName='', batteryID = 0) {
         this.id = id;
         this.test = test;
         this.batteryName = batteryName;
+        this.batteryID = batteryID;
     }
 
     /**
@@ -90,10 +100,11 @@ export class Test {
 
     /**
      * @param {string} batteryName
-     * @param {(env: Context) => (boolean | ESError)} test
+     * @param {testExecutor} test
+     * @param {number} batteryID
      */
-    static test (batteryName, test) {
-        Test.tests.push(new Test(test, Test.tests.length, batteryName));
+    static test (batteryName, test, batteryID) {
+        Test.tests.push(new Test(test, Test.tests.length, batteryName, batteryID));
     }
 
     /**
@@ -118,15 +129,22 @@ export class Test {
 }
 
 function objectsSame(primary, secondary) {
-    if (primary instanceof ESFunction || primary instanceof ESType || primary instanceof ESSymbol)
+    if (primary instanceof ESFunction || primary instanceof ESType || primary instanceof ESSymbol) {
         return secondary === primary.str().valueOf();
-    if (secondary instanceof ESFunction || secondary instanceof ESType || secondary instanceof ESSymbol)
+    }
+    if (secondary instanceof ESFunction || secondary instanceof ESType || secondary instanceof ESSymbol) {
         return primary === secondary.str().valueOf();
+    }
 
-    if (typeof primary !== 'object' || typeof secondary !== 'object')
+    if (typeof primary !== 'object' || typeof secondary !== 'object') {
         return false;
+    }
 
-    for (let key in primary) {
+    if (Object.keys(primary).length !== Object.keys(secondary).length) {
+        return false;
+    }
+
+    for (let key of Object.keys(primary)) {
         if (!secondary.hasOwnProperty(key)) {
             return false;
         }
@@ -135,12 +153,14 @@ function objectsSame(primary, secondary) {
         const sValue = secondary[key];
 
         if (Array.isArray(pValue)) {
-            return arraysSame(pValue, sValue);
-        } if (typeof pValue === 'object' || typeof sValue === 'object') {
-            return objectsSame(pValue, sValue) || objectsSame(sValue, pValue);
-        }
-
-        if (pValue !== sValue) {
+            if (!arraysSame(pValue, sValue)) {
+                return false;
+            }
+        } else if (typeof pValue === 'object' || typeof sValue === 'object') {
+            if (!objectsSame(pValue, sValue) || !objectsSame(sValue, pValue)) {
+                return false;
+            }
+        } else if (pValue !== sValue) {
             return false;
         }
     }
@@ -155,28 +175,34 @@ function objectsSame(primary, secondary) {
 function arraysSame (arr1, arr2) {
     if (!Array.isArray(arr1) || !Array.isArray(arr2)) {
         return false;
-    }
-    if (arr1.length !== arr2.length) {
+    } else if (arr1.length !== arr2.length) {
         return false;
     }
 
     for (let i = 0; i < arr1.length; i++) {
-        if (Array.isArray(arr1[i]) || Array.isArray(arr2[i])) {
-            return arraysSame(arr1[i], arr2[i])
-        }
+        const item1 = arr1[i], 
+            item2 = arr2[i];
+        if (Array.isArray(item1) || Array.isArray(item2)) {
+            if (!arraysSame(item1, item2)) {
+                return false;
+            }
 
-        if (arr2[i] instanceof ESFunction || arr2[i] instanceof ESType) {
-            return arr1[i] === arr2[i].str().valueOf();
-        }
-        if (arr1[i] instanceof ESFunction || arr1[i] instanceof ESType) {
-            return arr2[i] === arr1[i].str().valueOf();
-        }
+        } else if (item2 instanceof ESFunction || item2 instanceof ESType) {
+            if (item1 !== item2.str().valueOf()) {
+                return false;
+            }
 
-        if (typeof arr1[i] === 'object' || typeof arr2[i] === 'object') {
-            return objectsSame(arr1[i], arr2[i]) || objectsSame(arr2[i], arr1[i]);
-        }
+        } else if (item1 instanceof ESFunction || item1 instanceof ESType) {
+            if (item2 !== item1.str().valueOf()) {
+                return false;
+            }
 
-        if (arr1[i] !== arr2[i]) {
+        } else if (typeof item1 === 'object' || typeof item2 === 'object') {
+            if (!objectsSame(item1, item2) || !objectsSame(item2, item1)) {
+                return false;
+            }
+
+        } else if (item1 !== item2) {
             return false;
         }
     }
@@ -184,8 +210,10 @@ function arraysSame (arr1, arr2) {
 }
 
 let currentFile = '';
+let currentID = 0;
 export function file (name) {
     currentFile = name;
+    currentID = -1;
 }
 
 /**
@@ -193,8 +221,9 @@ export function file (name) {
  * @param {string} from
  */
 export function expect (expected, from) {
+    currentID++;
     Test.test(currentFile, env => {
-        /** @type {interpretResult | ({ timeData: timeData; } & interpretResult)} */
+        /** @type {interpretResult | ({ timeData: timeData } & interpretResult)} */
         let result;
         try {
             result = run(from, {
@@ -205,7 +234,7 @@ export function expect (expected, from) {
             return new TestFailed(`Tried to run, but got error: ${e}. With code: ${from}`);
         }
 
-        let resVal = result.val?.valueOf();
+        let resVal = strip(result.val);
 
         if (result.error && Array.isArray(expected))
             return new TestFailed(
@@ -228,13 +257,15 @@ with code
                 return (name || 'Error') === expected;
             }
 
-            /* extreme debugging
-            if (!arraysSame(expected, strip(result.val))) {
+            const res = arraysSame(expected, strip(result.val));
+
+            //* extreme debugging
+            if (!res) {
                 console.log('\n%%%', expected, str(strip(result.val)), '@@');
             }
             //*/
 
-            return arraysSame(expected, strip(result.val));
+            return res;
         })();
 
         if (res) {
@@ -247,5 +278,5 @@ with code
             `Expected \n'${str(expected)}' \n but got \n'${str(val)}'\n instead from test with code \n'${from}'\n`
         );
 
-    });
+    }, currentID);
 }
