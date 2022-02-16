@@ -52,7 +52,7 @@ const DOMNode = new ESType(
                 return node;
             }
 
-            if (content) {
+            if (content instanceof ESString) {
                 node.innerHTML = str(content);
             }
 

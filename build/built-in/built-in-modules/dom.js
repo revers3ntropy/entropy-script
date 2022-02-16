@@ -35,7 +35,7 @@ const DOMNode = new ESType(false, 'DOMNode', [
         if (!(node instanceof HTMLElement)) {
             return node;
         }
-        if (content) {
+        if (content instanceof ESString) {
             node.innerHTML = str(content);
         }
         return wrap(node.innerHTML);
