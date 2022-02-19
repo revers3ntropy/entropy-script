@@ -1,7 +1,7 @@
 import {expect, file} from '../testFramework.js';
 file('typing/returns');
 
-expect(['<Func: append_>', [10]], `
+expect(['<Func>', [10]], `
     const append_ = func (a: array, item: any): array {
         a.add(item);
         return a;

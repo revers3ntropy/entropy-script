@@ -1,4 +1,4 @@
-import { ESError } from '../../errors.js';
+import { ESError, IndexError } from '../../errors.js';
 import { Position } from '../../position.js';
 import { ESArray } from './esarray.js';
 import { ESBoolean } from './esboolean.js';
@@ -11,12 +11,10 @@ import { ESType } from './estype.js';
 import { ESPrimitive } from './esprimitive.js';
 import { types } from './primitive.js';
 import { str } from '../../util/util.js';
+import { wrap } from "./wrapStrip.js";
 export class ESUndefined extends ESPrimitive {
     constructor() {
         super(undefined, types.undefined);
-        this.isa = ({}, type) => {
-            return new ESBoolean(type === types.undefined);
-        };
         this.cast = ({ context }, type) => {
             switch (type) {
                 case types.number:
@@ -51,7 +49,17 @@ export class ESUndefined extends ESPrimitive {
             typeof n.valueOf() === 'undefined');
         this.__bool__ = () => new ESBoolean();
         this.bool = this.__bool__;
-        this.clone = (chain) => new ESUndefined();
+        this.clone = () => new ESUndefined();
+        this.__getProperty__ = ({}, key) => {
+            if (this.self.hasOwnProperty(str(key))) {
+                const val = this.self[str(key)];
+                if (typeof val === 'function') {
+                    return new ESFunction(val);
+                }
+                return wrap(val);
+            }
+            return new IndexError(Position.unknown, key.valueOf(), this);
+        };
         this.info = {
             name: 'undefined',
             description: 'Not defined, not a value.',

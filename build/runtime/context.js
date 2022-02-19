@@ -113,6 +113,9 @@ export class Context {
         }
         return parent;
     }
+    get keys() {
+        return Object.keys(this.symbolTable);
+    }
     resetAsGlobal() {
         var _a, _b;
         if (!this.initialisedAsGlobal)

@@ -7,6 +7,8 @@ import {ESNamespace} from './runtime/primitiveTypes.js';
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const singleLineComment = '//';
+export const multiLineCommentStart = '/*';
+export const multiLineCommentEnd = '*/';
 
 export let global: Context;
 export const setGlobalContext = (c: Context) => void (global = c);

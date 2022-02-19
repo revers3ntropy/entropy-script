@@ -1,5 +1,4 @@
-import {ESError, IndexError, InvalidOperationError} from '../../errors.js';
-import {Position} from '../../position.js';
+import { ESError, InvalidOperationError } from '../../errors.js';
 
 import {ESBoolean} from './esboolean.js';
 import type {ESString} from './esstring.js';
@@ -8,7 +7,6 @@ import type {Info} from './info.js';
 import {Primitive, types} from './primitive.js';
 
 import { funcProps, str } from '../../util/util.js';
-import {wrap} from './wrapStrip.js';
 
 
 export abstract class ESPrimitive <T> {
@@ -82,12 +80,7 @@ export abstract class ESPrimitive <T> {
     public __setProperty__ (props: funcProps, key: Primitive, value: Primitive): void | ESError {
         return new InvalidOperationError('__setProperty__', this, `[${str(key)}] = ${str(value)}`);
     }
-    public __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
-        if (this.self.hasOwnProperty(key.valueOf())) {
-            return wrap(this.self[key.valueOf()]);
-        }
-        return new IndexError(Position.unknown, key.valueOf(), this);
-    };
+    public abstract __getProperty__: (props: funcProps, key: Primitive) => Primitive | ESError;
 
     public __call__ (props: funcProps, ...parameters: Primitive[]): ESError | Primitive {
         return new InvalidOperationError('__call__', this);
@@ -96,18 +89,21 @@ export abstract class ESPrimitive <T> {
     public abstract bool(): ESBoolean;
 
     /**
-     * @param {Primitive[]} chain for solving circular objects. First element is object originally cloned
+     * Shallow clone of Primitive
      * @returns {Primitive} deep clone of this
      */
-    public abstract clone: (chain: Primitive[]) => Primitive;
+    public abstract clone: () => Primitive;
 
     /**
      * @returns if this type is a subset of the type passed
      */
-    public abstract isa: (config: funcProps, type: Primitive) => ESBoolean | ESError;
+    public isa = (config: funcProps, type: Primitive): ESBoolean | ESError => {
+        return new ESBoolean(type === this.__type__);
+    };
 
-    public is = ({context}: funcProps, obj: Primitive): ESBoolean =>
-        new ESBoolean(obj === this);
+    public is = ({context}: funcProps, obj: Primitive): ESBoolean => {
+        return new ESBoolean(obj === this);
+    }
 
     // getters for private props
     public valueOf = (): T => this.__value__;

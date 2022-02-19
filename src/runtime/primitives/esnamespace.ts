@@ -9,6 +9,7 @@ import {ESPrimitive} from './esprimitive.js';
 import {str} from '../../util/util.js';
 import {Primitive, types} from './primitive.js';
 import {wrap} from './wrapStrip.js';
+import { ESFunction } from "./esfunction.js";
 
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
@@ -18,10 +19,6 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         super(value, types.object);
         this.info.name = str(name);
         this.mutable = mutable;
-    }
-
-    isa = ({}, type: Primitive) => {
-        return new ESBoolean(type === types.object);
     }
 
     cast = ({}) => {
@@ -36,18 +33,18 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         this.info.name = v.valueOf();
     }
 
-    clone = (chain: Primitive[]): Primitive => {
+    clone = (): Primitive => {
         let obj: dict<ESSymbol> = {};
         let toClone = this.valueOf();
-        for (let key in toClone) {
-            obj[key] = toClone[key].clone();
+        for (let key of Object.keys(toClone)) {
+            obj[key] = toClone[key];
         }
         return new ESNamespace(this.name, obj);
     }
 
     str = (): ESString => {
         const keys = Object.keys(this.valueOf());
-        return new ESString(`<Namespace ${str(this.name)}: ${keys.slice(0, 5)}${keys.length >= 5 ? '...' : ''}>`);
+        return new ESString(`<Namespace ${str(this.name)}${keys.length > 0 ? ': ' : ''}${keys.slice(0, 5)}${keys.length >= 5 ? '...' : ''}>`);
     }
 
     __eq__ = ({}: {context: Context}, n: Primitive): ESBoolean => {
@@ -66,8 +63,16 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
             }
         }
 
-        if (this.self.hasOwnProperty(key.valueOf())) {
-            return wrap(this.self[key.valueOf()]);
+        if (!(key instanceof ESString)) {
+            return new TypeError(Position.unknown, 'string', key.typeName());
+        }
+
+        if (this.self.hasOwnProperty(str(key))) {
+            const val = this.self[str(key)];
+            if (typeof val === 'function') {
+                return new ESFunction(val);
+            }
+            return wrap(val);
         }
 
         return new IndexError(Position.unknown, key.valueOf(), this.self);

@@ -1,18 +1,19 @@
+import {ESPrimitive} from './esprimitive.js';
 import {global} from '../../constants.js';
-import {ESError} from '../../errors.js';
+import { ESError, IndexError } from '../../errors.js';
 import {Position} from '../../position.js';
-import {BuiltInFunction} from '../../util/util.js';
+import { BuiltInFunction, funcProps } from '../../util/util.js';
 import {runtimeArgument} from '../argument.js';
 import type {Context} from '../context.js';
 import {call} from '../functionCaller.js';
 import {Node} from '../nodes.js';
-import {ESPrimitive} from './esprimitive.js';
 import {str} from '../../util/util.js';
 import {ESBoolean} from './esboolean.js';
 import {ESObject} from './esobject.js';
 import {ESString} from './esstring.js';
 import {ESType} from './estype.js';
 import {Primitive, types} from './primitive.js';
+import { wrap } from "./wrapStrip.js";
 
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
@@ -24,7 +25,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     constructor (
         func: Node | BuiltInFunction = (() => {}),
         arguments_: runtimeArgument[] = [],
-        name='(anonymous)',
+        name='(anon)',
         this_: ESObject = new ESObject(),
         returnType = types.any,
         closure = global
@@ -46,10 +47,6 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         // TODO: info.helpLink
     }
 
-    isa = ({}, type: Primitive) => {
-        return new ESBoolean(type === types.function);
-    }
-
     cast = ({}, type: Primitive) => {
         return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'function'`)
     }
@@ -62,7 +59,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         this.info.name = v;
     }
 
-    clone = (chain: Primitive[]): ESFunction => {
+    clone = (): ESFunction => {
         return new ESFunction(
             this.__value__,
             this.arguments_,
@@ -90,4 +87,15 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     __call__ = ({}, ...params: Primitive[]): ESError | Primitive => {
         return call(this.__closure__, this, params);
     }
+
+    __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+        if (this.self.hasOwnProperty(str(key))) {
+            const val = this.self[str(key)];
+            if (typeof val === 'function') {
+                return new ESFunction(val);
+            }
+            return wrap(val);
+        }
+        return new IndexError(Position.unknown, key.valueOf(), this);
+    };
 }

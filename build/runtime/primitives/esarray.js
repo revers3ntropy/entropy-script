@@ -8,12 +8,10 @@ import { ESPrimitive } from './esprimitive.js';
 import { ESUndefined } from './esundefined.js';
 import { types } from './primitive.js';
 import { wrap } from './wrapStrip.js';
+import { ESFunction } from "./esfunction.js";
 export class ESArray extends ESPrimitive {
     constructor(values = []) {
         super(values, types.array);
-        this.isa = ({}, type) => {
-            return new ESBoolean(type === types.array);
-        };
         this.cast = ({}, type) => {
             switch (type) {
                 case types.number:
@@ -63,8 +61,12 @@ export class ESArray extends ESPrimitive {
         this.__bool__ = () => new ESBoolean(this.valueOf().length > 0);
         this.bool = this.__bool__;
         this.__getProperty__ = ({}, key) => {
-            if (key instanceof ESString && this.self.hasOwnProperty(key.valueOf())) {
-                return wrap(this.self[key.valueOf()]);
+            if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
+                const val = this.self[str(key)];
+                if (typeof val === 'function') {
+                    return new ESFunction(val);
+                }
+                return wrap(val);
             }
             if (!(key instanceof ESNumber)) {
                 return new ESUndefined();
@@ -91,10 +93,10 @@ export class ESArray extends ESPrimitive {
                     return true;
             return false;
         };
-        this.clone = (chain) => {
+        this.clone = () => {
             const newArr = [];
             for (let element of this.valueOf()) {
-                newArr.push(element.clone(chain));
+                newArr.push(element);
             }
             return new ESArray(newArr);
         };

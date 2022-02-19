@@ -12,6 +12,7 @@ import { global, importCache } from "../constants.js";
 // node only built in modules
 import http from './built-in-modules/http.js';
 import MySQL from './built-in-modules/mysql.js'
+import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
 
 /**
  * Adds node functionality like access to files, https and more.
@@ -21,9 +22,12 @@ import MySQL from './built-in-modules/mysql.js'
 function addNodeLibs (options: JSModuleParams, context: Context) {
 
     addModuleFromObj('http', http(options));
+
     addModuleFromObj('mysql', MySQL(options));
 
     const { fs, path } = options;
+
+    addModuleFromObj('fs', new ESJSBinding(fs, 'fs'));
 
     context.set('import', new ESFunction(({context}, rawPath): ESError | Primitive | undefined => {
             let scriptPath: string = str(rawPath);
@@ -38,6 +42,8 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
                 return importCache[scriptPath];
             }
 
+            console.log('CURRENT: ', context.path);
+
             try {
                 if (!fs.existsSync(scriptPath)) {
                     if (fs.existsSync('./particles/' + scriptPath)) {
@@ -51,10 +57,12 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
                     }
                 }
 
+                const exDir = path.dirname(scriptPath);
 
                 const code = fs.readFileSync(scriptPath, 'utf-8');
                 const env = new Context();
                 env.parent = global;
+                env.path = exDir;
 
                 const n = new ESNamespace(new ESString(scriptPath), {});
                 importCache[scriptPath] = n;
@@ -63,7 +71,7 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
                     env,
                     measurePerformance: false,
                     fileName: scriptPath,
-                    currentDir: path.dirname(scriptPath),
+                    currentDir: exDir,
                 });
 
                 n.__value__ = env.getSymbolTableAsDict();
@@ -88,8 +96,9 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
         const path = str(path_);
         const encoding = str(encoding_) || 'utf-8';
 
-        if (!fs.existsSync(path))
+        if (!fs.existsSync(path)) {
             return new ImportError(Position.unknown, path);
+        }
 
         return new ESObject({
             str: new ESFunction(({context}) => {

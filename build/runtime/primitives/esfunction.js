@@ -1,23 +1,21 @@
+import { ESPrimitive } from './esprimitive.js';
 import { global } from '../../constants.js';
-import { ESError } from '../../errors.js';
+import { ESError, IndexError } from '../../errors.js';
 import { Position } from '../../position.js';
 import { call } from '../functionCaller.js';
-import { ESPrimitive } from './esprimitive.js';
 import { str } from '../../util/util.js';
 import { ESBoolean } from './esboolean.js';
 import { ESObject } from './esobject.js';
 import { ESString } from './esstring.js';
 import { types } from './primitive.js';
+import { wrap } from "./wrapStrip.js";
 export class ESFunction extends ESPrimitive {
-    constructor(func = (() => { }), arguments_ = [], name = '(anonymous)', this_ = new ESObject(), returnType = types.any, closure = global) {
+    constructor(func = (() => { }), arguments_ = [], name = '(anon)', this_ = new ESObject(), returnType = types.any, closure = global) {
         super(func, types.function);
-        this.isa = ({}, type) => {
-            return new ESBoolean(type === types.function);
-        };
         this.cast = ({}, type) => {
             return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'function'`);
         };
-        this.clone = (chain) => {
+        this.clone = () => {
             return new ESFunction(this.__value__, this.arguments_, this.name, this.this_, this.returnType, this.__closure__);
         };
         this.valueOf = () => this;
@@ -31,6 +29,16 @@ export class ESFunction extends ESPrimitive {
         this.bool = this.__bool__;
         this.__call__ = ({}, ...params) => {
             return call(this.__closure__, this, params);
+        };
+        this.__getProperty__ = ({}, key) => {
+            if (this.self.hasOwnProperty(str(key))) {
+                const val = this.self[str(key)];
+                if (typeof val === 'function') {
+                    return new ESFunction(val);
+                }
+                return wrap(val);
+            }
+            return new IndexError(Position.unknown, key.valueOf(), this);
         };
         this.arguments_ = arguments_;
         this.info.name = name;

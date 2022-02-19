@@ -10,17 +10,18 @@ import { ESPrimitive } from './esprimitive.js';
 import { ESUndefined } from './esundefined.js';
 import { types } from './primitive.js';
 import { strip, wrap } from './wrapStrip.js';
+import { ESFunction } from "./esfunction.js";
 export class ESObject extends ESPrimitive {
     constructor(val = {}) {
         super(val, types.object);
-        this.isa = ({ context }, type) => {
+        this.isa = (props, type) => {
             if (type === types.object) {
                 return new ESBoolean(true);
             }
             if (!(type instanceof ESType)) {
                 return new TypeError(Position.unknown, 'TypeError', 'type', str(type.typeName()), str(type));
             }
-            return this.__type__.includesType({ context }, type);
+            return this.__type__.includesType(props, type);
         };
         this.cast = ({}, type) => {
             switch (type) {
@@ -94,13 +95,13 @@ export class ESObject extends ESPrimitive {
             }
             return new ESObject(newOb);
         };
-        this.__subtract__ = ({ context }, n) => {
+        this.__subtract__ = (props, n) => {
             let keysToRemove = [];
             if (n instanceof ESString) {
                 keysToRemove = [str(n)];
             }
             else if (n instanceof ESArray) {
-                keysToRemove = strip(n);
+                keysToRemove = strip(n, props);
             }
             else {
                 return new TypeError(Position.unknown, 'array | string', n.typeName().valueOf(), n);
@@ -112,7 +113,7 @@ export class ESObject extends ESPrimitive {
             for (let k of this.keys) {
                 const key = k.valueOf();
                 if (keysToRemove.indexOf(key) === -1) {
-                    let res = this.__getProperty__({ context }, k);
+                    let res = this.__getProperty__(props, k);
                     if (res instanceof ESError) {
                         return res;
                     }
@@ -130,7 +131,11 @@ export class ESObject extends ESPrimitive {
                 return this.valueOf()[key];
             }
             if (this.self.hasOwnProperty(key)) {
-                return wrap(this.self[key]);
+                const val = this.self[key];
+                if (typeof val === 'function') {
+                    return new ESFunction(val);
+                }
+                return wrap(val);
             }
             return new ESUndefined();
         };
@@ -140,25 +145,22 @@ export class ESObject extends ESPrimitive {
             }
             this.__value__[key.valueOf()] = value;
         };
-        this.hasProperty = ({}, k) => {
+        this.hasProperty = (props, k) => {
             const key = str(k);
             if (this.valueOf().hasOwnProperty(str(key))) {
                 return new ESBoolean(true);
             }
             return new ESBoolean(this.hasOwnProperty(key));
         };
-        this.clone = (chain) => {
+        this.clone = () => {
+            const res = new ESObject();
             let obj = {};
             let toClone = this.valueOf();
             for (let key of Object.keys(toClone)) {
-                try {
-                    obj[key] = toClone[key].clone(chain);
-                }
-                catch (e) {
-                    obj[key] = toClone[key];
-                }
+                obj[key] = toClone[key];
             }
-            return new ESObject(obj);
+            res.__value__ = obj;
+            return res;
         };
     }
     get keys() {

@@ -6,26 +6,24 @@ import { ESPrimitive } from './esprimitive.js';
 import { str } from '../../util/util.js';
 import { types } from './primitive.js';
 import { wrap } from './wrapStrip.js';
+import { ESFunction } from "./esfunction.js";
 export class ESNamespace extends ESPrimitive {
     constructor(name, value, mutable = false) {
         super(value, types.object);
-        this.isa = ({}, type) => {
-            return new ESBoolean(type === types.object);
-        };
         this.cast = ({}) => {
             return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'namespace'`);
         };
-        this.clone = (chain) => {
+        this.clone = () => {
             let obj = {};
             let toClone = this.valueOf();
-            for (let key in toClone) {
-                obj[key] = toClone[key].clone();
+            for (let key of Object.keys(toClone)) {
+                obj[key] = toClone[key];
             }
             return new ESNamespace(this.name, obj);
         };
         this.str = () => {
             const keys = Object.keys(this.valueOf());
-            return new ESString(`<Namespace ${str(this.name)}: ${keys.slice(0, 5)}${keys.length >= 5 ? '...' : ''}>`);
+            return new ESString(`<Namespace ${str(this.name)}${keys.length > 0 ? ': ' : ''}${keys.slice(0, 5)}${keys.length >= 5 ? '...' : ''}>`);
         };
         this.__eq__ = ({}, n) => {
             return new ESBoolean(this === n);
@@ -39,8 +37,15 @@ export class ESNamespace extends ESPrimitive {
                     return symbol.value;
                 }
             }
-            if (this.self.hasOwnProperty(key.valueOf())) {
-                return wrap(this.self[key.valueOf()]);
+            if (!(key instanceof ESString)) {
+                return new TypeError(Position.unknown, 'string', key.typeName());
+            }
+            if (this.self.hasOwnProperty(str(key))) {
+                const val = this.self[str(key)];
+                if (typeof val === 'function') {
+                    return new ESFunction(val);
+                }
+                return wrap(val);
             }
             return new IndexError(Position.unknown, key.valueOf(), this.self);
         };

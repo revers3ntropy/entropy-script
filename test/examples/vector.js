@@ -2,18 +2,18 @@ import {expect, file} from '../testFramework.js';
 file('examples/vector');
 
 expect(
-    [
-        '<Type: v2>',
-        {x: 0, y: 0, add: '<Func: add>', str: '<Func: str>'},
-        {x: 3, y: 4, add: '<Func: add>', str: '<Func: str>'},
-        '3, 4',
-        true,
-        {x: 4, y: 5, add: '<Func: add>', str: '<Func: str>'},
-        '3, 4',
-        '4, 5'
-],
+	[
+		'<Type: v2>',
+		{x: 0, y: 0, add: '<Func>', str: '<Func>', clone: '<Func>'},
+		{x: 3, y: 4, add: '<Func>', str: '<Func>', clone: '<Func>'},
+		'3, 4',
+		true,
+		{x: 4, y: 5, add: '<Func>', str: '<Func>', clone: '<Func>'},
+		'3, 4',
+		'4, 5'
+	],
 
-`
+	`
     const v2 = class {
         init (x: number, y: number) {
             this.x = x;
@@ -28,6 +28,10 @@ expect(
         
         str (): string {
             return this.x.str() + ', ' + this.y.str();
+        }
+        
+        clone () {
+			return v2(this.x, this.y);
         }
     };
     

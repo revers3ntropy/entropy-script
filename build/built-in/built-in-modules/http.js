@@ -3,17 +3,18 @@ import { Context } from '../../runtime/context.js';
 import { strip } from '../../runtime/primitives/wrapStrip.js';
 import { ESFunction, ESObject, types } from '../../runtime/primitiveTypes.js';
 import { str } from '../../util/util.js';
+import { ESJSBinding } from "../../runtime/primitives/esjsbinding.js";
 const module = ({ https, http, print, fetch }) => ({
-    fetch: new ESFunction(({ context }, url, options, callback) => {
-        fetch(str(url), strip(options));
+    fetch: new ESFunction((props, url, options, callback) => {
+        fetch(str(url), strip(options, props));
     }, [
         { name: 'uri', type: types.string },
         { name: 'options', type: types.object },
         { name: 'callback', type: types.function }
     ], 'fetch', undefined, types.undefined),
-    createServer: ({ context }, options_, handlers_) => {
-        let options = strip(options_);
-        let handlers = strip(handlers_);
+    createServer: (props, options_, handlers_) => {
+        let options = strip(options_, props);
+        let handlers = strip(handlers_, props);
         options = Object.assign({ port: 3000, secure: false, debug: false }, options);
         const handler = (req, res) => {
             if (options.corsOrigin)
@@ -44,9 +45,8 @@ const module = ({ https, http, print, fetch }) => ({
                     }
                     const context = new Context();
                     context.parent = fn.__closure__;
-                    context.set('body', new ESObject(body));
                     fn.__closure__ = context;
-                    const esRes = fn.__call__({ context });
+                    const esRes = fn.__call__({ context }, new ESJSBinding(body));
                     if (esRes instanceof ESError) {
                         print(esRes.str);
                         res.writeHead(500);
@@ -56,7 +56,7 @@ const module = ({ https, http, print, fetch }) => ({
                     let response = '';
                     try {
                         if (esRes instanceof ESObject) {
-                            response = JSON.stringify(strip(esRes));
+                            response = JSON.stringify(strip(esRes, { context }));
                         }
                         else {
                             res.writeHead(500);
@@ -66,8 +66,9 @@ const module = ({ https, http, print, fetch }) => ({
                     }
                     catch (e) {
                         print(`Incorrect return value for handler of ${url}. Must be JSONifyable.`);
-                        if (options.debug)
+                        if (options.debug) {
                             print(`Detail: Expected type (object|undefined) but got value ${esRes.valueOf()} of type ${esRes.typeName()}`);
+                        }
                         res.writeHead(500);
                         res.end(`{}`);
                         return;

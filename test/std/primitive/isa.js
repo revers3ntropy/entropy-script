@@ -28,7 +28,7 @@ expect (['', false, true, false, false, false, false, false, false, false], `
     a.isa(error);
 `);
 
-expect (['<Func: a>', false, false, true, false, false, false, false, false, false], `
+expect (['<Func>', false, false, true, false, false, false, false, false, false], `
     const a = func () {};
     a.isa(number);
     a.isa(string);

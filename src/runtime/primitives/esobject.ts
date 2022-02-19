@@ -11,6 +11,7 @@ import {ESPrimitive} from './esprimitive.js';
 import {ESUndefined} from './esundefined.js';
 import { Primitive, types} from './primitive.js';
 import {strip, wrap} from './wrapStrip.js';
+import { ESFunction } from "./esfunction.js";
 
 
 export class ESObject extends ESPrimitive <dict<Primitive>> {
@@ -18,14 +19,14 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         super(val, types.object);
     }
 
-    isa = ({context}: {context: Context}, type: Primitive) => {
+    isa = (props: funcProps, type: Primitive) => {
         if (type === types.object) {
             return new ESBoolean(true);
         }
         if (!(type instanceof ESType)) {
             return new TypeError(Position.unknown, 'TypeError', 'type', str(type.typeName()), str(type));
         }
-        return this.__type__.includesType({context}, type);
+        return this.__type__.includesType(props, type);
     }
 
     cast = ({}, type: Primitive) => {
@@ -98,7 +99,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             return new TypeError(Position.unknown, 'object', n.typeName().valueOf(), n);
         }
 
-        let newOb: dict<ESPrimitive<any>> = {};
+        let newOb: dict<Primitive> = {};
 
         for (let k of this.keys) {
             const key = k.valueOf();
@@ -124,13 +125,13 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESObject(newOb);
     };
 
-    __subtract__ = ({context}: { context: Context }, n: Primitive): Primitive | ESError => {
+    __subtract__ = (props: funcProps, n: Primitive): Primitive | ESError => {
 
         let keysToRemove = [];
         if (n instanceof ESString) {
             keysToRemove = [str(n)];
         } else if (n instanceof ESArray) {
-            keysToRemove = strip(n);
+            keysToRemove = strip(n, props);
         } else {
             return new TypeError(Position.unknown, 'array | string', n.typeName().valueOf(), n);
         }
@@ -139,12 +140,12 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             return new TypeError(Position.unknown, 'array | string', n.typeName().valueOf(), n);
         }
 
-        let newOb: dict<ESPrimitive<any>> = {};
+        let newOb: dict<Primitive> = {};
 
         for (let k of this.keys) {
             const key = k.valueOf();
             if (keysToRemove.indexOf(key) === -1) {
-                let res = this.__getProperty__({context}, k);
+                let res = this.__getProperty__(props, k);
                 if (res instanceof ESError) {
                     return res;
                 }
@@ -167,7 +168,11 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         }
 
         if (this.self.hasOwnProperty(key)) {
-            return wrap(this.self[key]);
+            const val = this.self[key];
+            if (typeof val === 'function') {
+                return new ESFunction(val);
+            }
+            return wrap(val);
         }
 
         return new ESUndefined();
@@ -180,7 +185,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         this.__value__[key.valueOf()] = value;
     }
 
-    hasProperty = ({}: funcProps, k: Primitive): ESBoolean => {
+    hasProperty = (props: funcProps, k: Primitive): ESBoolean => {
         const key = str(k);
         if (this.valueOf().hasOwnProperty(str(key))) {
             return new ESBoolean(true);
@@ -189,17 +194,18 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESBoolean(this.hasOwnProperty(key));
     };
 
-    clone = (chain: Primitive[]): ESObject => {
+    clone = (): ESObject => {
+
+        const res = new ESObject();
         let obj: dict<Primitive> = {};
         let toClone = this.valueOf();
 
         for (let key of Object.keys(toClone)) {
-            try {
-                obj[key] = toClone[key].clone(chain);
-            } catch (e) {
-                obj[key] = toClone[key];
-            }
+            obj[key] = toClone[key];
         }
-        return new ESObject(obj);
+
+        res.__value__ = obj;
+
+        return res;
     }
 }

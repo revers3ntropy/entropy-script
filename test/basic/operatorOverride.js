@@ -3,7 +3,7 @@ file('basic/operatorOverride');
 
 expect([
     '<Type: myClass>',
-    {a: 12, __multiply__: '<Func: __multiply__>'}, 12
+    {a: 12, __multiply__: '<Func>'}, 12
 ], `
     var myClass = class {
         init (a) {

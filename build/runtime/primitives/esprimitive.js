@@ -1,19 +1,16 @@
-import { IndexError, InvalidOperationError } from '../../errors.js';
-import { Position } from '../../position.js';
+import { InvalidOperationError } from '../../errors.js';
 import { ESBoolean } from './esboolean.js';
 import { types } from './primitive.js';
 import { str } from '../../util/util.js';
-import { wrap } from './wrapStrip.js';
 export class ESPrimitive {
     constructor(value, type = types.any) {
         this.self = this;
-        this.__getProperty__ = ({}, key) => {
-            if (this.self.hasOwnProperty(key.valueOf())) {
-                return wrap(this.self[key.valueOf()]);
-            }
-            return new IndexError(Position.unknown, key.valueOf(), this);
+        this.isa = (config, type) => {
+            return new ESBoolean(type === this.__type__);
         };
-        this.is = ({ context }, obj) => new ESBoolean(obj === this);
+        this.is = ({ context }, obj) => {
+            return new ESBoolean(obj === this);
+        };
         this.valueOf = () => this.__value__;
         this.typeName = () => this.__type__.__name__;
         this.hasProperty = ({}, key) => new ESBoolean(this.hasOwnProperty(str(key)));

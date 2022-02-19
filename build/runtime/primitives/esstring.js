@@ -7,13 +7,11 @@ import { ESNumber } from './esnumber.js';
 import { ESPrimitive } from './esprimitive.js';
 import { types } from './primitive.js';
 import { wrap } from './wrapStrip.js';
+import { ESFunction } from "./esfunction.js";
 export class ESString extends ESPrimitive {
     constructor(value = '') {
         super(value, types.string);
         this.str = () => this;
-        this.isa = ({}, type) => {
-            return new ESBoolean(type === types.string);
-        };
         this.cast = ({}, type) => {
             switch (type) {
                 case types.number:
@@ -59,17 +57,25 @@ export class ESString extends ESPrimitive {
         this.len = () => {
             return new ESNumber(this.valueOf().length);
         };
-        this.clone = (chain) => new ESString(this.valueOf());
-        this.__getProperty__ = ({}, key) => {
-            if (key instanceof ESString && this.self.hasOwnProperty(str(key)))
-                return wrap(this.self[str(key)]);
-            if (!(key instanceof ESNumber))
+        this.clone = () => new ESString(this.valueOf());
+        this.__getProperty__ = (props, key) => {
+            if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
+                const val = this.self[str(key)];
+                if (typeof val === 'function') {
+                    return new ESFunction(val);
+                }
+                return wrap(val);
+            }
+            if (!(key instanceof ESNumber)) {
                 return new ESString();
+            }
             let idx = key.valueOf();
-            while (idx < 0)
+            while (idx < 0) {
                 idx = this.valueOf().length + idx;
-            if (idx < this.valueOf().length)
+            }
+            if (idx < this.valueOf().length) {
                 return new ESString(this.valueOf()[idx]);
+            }
             return new ESString();
         };
     }

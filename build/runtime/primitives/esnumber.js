@@ -1,4 +1,4 @@
-import { ESError, TypeError } from '../../errors.js';
+import { ESError, IndexError, TypeError } from '../../errors.js';
 import { Position } from '../../position.js';
 import { ESArray } from './esarray.js';
 import { ESBoolean } from './esboolean.js';
@@ -6,12 +6,11 @@ import { ESString } from './esstring.js';
 import { ESPrimitive } from './esprimitive.js';
 import { str } from '../../util/util.js';
 import { types } from './primitive.js';
+import { ESFunction } from "./esfunction.js";
+import { wrap } from "./wrapStrip.js";
 export class ESNumber extends ESPrimitive {
     constructor(value = 0) {
         super(value, types.number);
-        this.isa = ({}, type) => {
-            return new ESBoolean(type === types.number);
-        };
         this.cast = ({}, type) => {
             switch (type) {
                 case types.number:
@@ -69,6 +68,16 @@ export class ESNumber extends ESPrimitive {
             return new ESBoolean(this.valueOf() > 0);
         };
         this.bool = this.__bool__;
-        this.clone = (chain) => new ESNumber(this.valueOf());
+        this.clone = () => new ESNumber(this.valueOf());
+        this.__getProperty__ = ({}, key) => {
+            if (this.self.hasOwnProperty(str(key))) {
+                const val = this.self[str(key)];
+                if (typeof val === 'function') {
+                    return new ESFunction(val);
+                }
+                return wrap(val);
+            }
+            return new IndexError(Position.unknown, key.valueOf(), this);
+        };
     }
 }

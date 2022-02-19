@@ -1,13 +1,9 @@
 import {expect, file} from '../testFramework.js';
 file('basic/objects');
 
-expect([{a:1}, 2], `
+expect([{a: 1}, 2], `
     n = {a: 1};
     n.a += 1;
-`);
-expect('TypeError', `
-    n = 0;
-    n.n = 1;
 `);
 
 expect([{}, 1, 1, 1], `
@@ -22,7 +18,7 @@ expect([{}, 1, 1, 1], `
     a.a;
     a['a'];
 `);
-expect([{a: {}}, 6, 6, 6, 6, 6], `
+expect([{a: {a: 6}}, 6, 6, 6, 6, 6], `
     var a = {a: {}};
     a.a.a = 6;
     a.a.a;
@@ -45,7 +41,7 @@ expect(['a', {a: 1}, 1, 1], `
     a['a'];
     a.a;
 `);
-expect([{a: '<Func: (anon)>'}, '<Func: (anon)>', 'e'], `
+expect([{a: '<Func>'}, '<Func>', 'e'], `
     var a = {a: func () {
         return 'hello world';
     }};
@@ -54,7 +50,7 @@ expect([{a: '<Func: (anon)>'}, '<Func: (anon)>', 'e'], `
 `);
 
 // passing objects
-expect(['<Func: changer>', {a: 2}, 1, 1], `
+expect(['<Func>', {a: 2}, 1, 1], `
     const changer = func (a) {
         a.a = 1;
         return a.a;

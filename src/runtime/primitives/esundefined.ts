@@ -1,4 +1,4 @@
-import {ESError} from '../../errors.js';
+import { ESError, IndexError } from '../../errors.js';
 import {Position} from '../../position.js';
 import {Context} from '../context.js';
 import {ESArray} from './esarray.js';
@@ -11,7 +11,8 @@ import {ESString} from './esstring.js';
 import {ESType} from './estype.js';
 import {ESPrimitive} from './esprimitive.js';
 import {Primitive, types} from './primitive.js';
-import {str} from '../../util/util.js';
+import { funcProps, str } from '../../util/util.js';
+import { wrap } from "./wrapStrip.js";
 
 export class ESUndefined extends ESPrimitive <undefined> {
     constructor () {
@@ -24,10 +25,6 @@ export class ESUndefined extends ESPrimitive <undefined> {
             file: 'built-in',
             isBuiltIn: true
         };
-    }
-
-    isa = ({}, type: Primitive) => {
-        return new ESBoolean(type === types.undefined);
     }
 
     cast = ({context}: {context: Context}, type: Primitive): Primitive | ESError => {
@@ -71,5 +68,16 @@ export class ESUndefined extends ESPrimitive <undefined> {
     __bool__ = () => new ESBoolean();
     bool = this.__bool__;
 
-    clone = (chain: Primitive[]): ESUndefined => new ESUndefined();
+    clone = () => new ESUndefined();
+
+    __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+        if (this.self.hasOwnProperty(str(key))) {
+            const val = this.self[str(key)];
+            if (typeof val === 'function') {
+                return new ESFunction(val);
+            }
+            return wrap(val);
+        }
+        return new IndexError(Position.unknown, key.valueOf(), this);
+    };
 }

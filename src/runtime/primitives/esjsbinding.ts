@@ -10,28 +10,22 @@ import { ESFunction } from "./esfunction.js";
 
 
 export class ESJSBinding<T> extends ESPrimitive<T> {
-    constructor (value: T, name='<AnonNative>') {
+    constructor (value: T, name='<AnonNative>', functionsTakeProps=false) {
         super(value, types.object);
         this.info.name = str(name);
     }
-
-    isa = ({}, type: Primitive) => {
-        return new ESBoolean(type === types.object);
-    };
 
     cast = ({}) => {
         return new ESError(Position.unknown, 'TypeError', `Cannot cast native object`);
     };
 
-    clone = (chain: Primitive[]) => {
-        return new ESJSBinding<T>(this.__value__);
-    };
+    clone = () => new ESJSBinding<T>(this.__value__);
 
     str = (): ESString => {
         try {
-            return new ESString(`<NativeObject ${JSON.stringify(this.__value__)}>`);
+            return new ESString(JSON.stringify(this.__value__));
         } catch (e: any) {
-            return new ESString(`<NativeObject ${this.__value__}>`);
+            return new ESString(`${this.__value__}`);
         }
     };
 
@@ -42,7 +36,7 @@ export class ESJSBinding<T> extends ESPrimitive<T> {
     __bool__ = () => new ESBoolean(true);
     bool = this.__bool__;
 
-    __getProperty__ = ({}: funcProps, k: Primitive): Primitive | ESError => {
+    __getProperty__ = (props: funcProps, k: Primitive): Primitive | ESError => {
         const key = str(k);
 
         const val: any = this.valueOf();
@@ -54,7 +48,11 @@ export class ESJSBinding<T> extends ESPrimitive<T> {
             // check on self after confirming it doesn't exist on the native value
             const self: any = this;
             if (self.hasOwnProperty(key)) {
-                return wrap(self[key]);
+                const val = this.self[str(key)];
+                if (typeof val === 'function') {
+                    return new ESFunction(val);
+                }
+                return wrap(val);
             }
 
             return new IndexError(Position.unknown, key, this);
@@ -67,7 +65,7 @@ export class ESJSBinding<T> extends ESPrimitive<T> {
         // preserve this context
         if (typeof res === 'function') {
             return new ESFunction(({context}: funcProps, ...args) => {
-                return val[key](...args.map(strip));
+                return val[key](...args.map(o => strip(o, props)));
             });
         }
 
@@ -79,7 +77,7 @@ export class ESJSBinding<T> extends ESPrimitive<T> {
             return new TypeError(Position.unknown, 'function', typeof this.__value__, str(this));
         }
 
-        const res = this.__value__(...args.map(strip));
+        const res = this.__value__(...args.map(o => strip(o, props)));
 
         if (res instanceof ESPrimitive) {
             return res;

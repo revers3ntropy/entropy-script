@@ -88,6 +88,7 @@ export function run(msg, { env = global, measurePerformance = false, fileName = 
         res.val = new ESArray([]);
         return res;
     }
+    console.log('RUNTIME: ', env.path);
     const finalRes = res.node.interpret(env);
     timeData.interpretTotal = now() - start;
     timeData.total = now() - start;

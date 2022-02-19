@@ -1,6 +1,6 @@
 import {ESError, TypeError} from "../errors.js";
 import {Position} from "../position.js";
-import {strip} from '../runtime/primitives/wrapStrip.js';
+import { strip, wrap } from '../runtime/primitives/wrapStrip.js';
 import {
     ESArray, ESFunction, ESNamespace,
     ESNumber,
@@ -48,11 +48,12 @@ export const builtInFunctions: {[n: string]: [BuiltInFunction, FunctionInfo]} = 
     'parseNum': [({context}, num) => {
         try {
             const val: number = parseFloat(str(num));
-            if (isNaN(val))
-                return new ESNumber();
+            if (isNaN(val)) {
+                return new ESError(Position.unknown, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
+            }
             return new ESNumber(val);
         } catch (e) {
-            return new TypeError(Position.unknown, 'String', num.typeName().valueOf(), num.valueOf(), 'This string is not parse-able as a number');
+            return new ESError(Position.unknown, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
         }
     }, {
         args: [{
@@ -119,10 +120,12 @@ Try 'help(object)' for help about a particular object.
         }
 
         console.log(out);
-        if (things.length > 1)
+        if (things.length > 1) {
             return new ESArray(things);
-        if (things)
+        }
+        if (things) {
             return things[0];
+        }
     }, {
         args: [{
             name: 'value',
@@ -148,14 +151,14 @@ Try 'help(object)' for help about a particular object.
         returnType: 'any'
     }],
 
-    'detail': [({context}, thing, info) => {
+    'detail': [(props, thing, info) => {
         if (!(info instanceof ESObject))
             return new TypeError(Position.unknown, 'object', str(info.typeName()), str(info));
 
        if (thing.info.isBuiltIn)
            return new ESError(Position.unknown, 'TypeError',`Can't edit info for built-in value ${thing.info.name} with 'detail'`);
 
-        thing.info = strip(info);
+        thing.info = strip(info, props);
         thing.info.isBuiltIn = false;
 
         return thing;
@@ -186,12 +189,6 @@ Try 'help(object)' for help about a particular object.
 
     }],
 
-    'cast': [({context}, thing) => {
-
-    }, {
-
-    }],
-
     'delete': [({context}, name) => {
         const id = str(name);
         if (!context.has(id)) {
@@ -202,6 +199,22 @@ Try 'help(object)' for help about a particular object.
         name: 'delete',
         args: [{name: 'identifier', type: 'string'}],
         description: 'Deletes a variable from the current context'
+    }],
+
+    '__path': [({context}) => {
+        return new ESString(context.path);
+    }, {
+        name: '__path',
+        args: [],
+        description: 'Returns the current path'
+    }],
+
+    '__allSymbols': [({context}) => {
+        return wrap(context.keys);
+    }, {
+        name: '__allSymbols',
+        args: [],
+        description: 'Returns an array of the names of all symbols in the current context'
     }],
 
     'using': [({context}, module, global_) => {

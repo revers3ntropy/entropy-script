@@ -9,6 +9,7 @@ import {ESPrimitive} from './esprimitive.js';
 import {ESUndefined} from './esundefined.js';
 import {Primitive, types} from './primitive.js';
 import {wrap} from './wrapStrip.js';
+import { ESFunction } from "./esfunction.js";
 
 export class ESArray extends ESPrimitive <Primitive[]> {
     len: number;
@@ -16,9 +17,6 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     constructor(values: Primitive[] = []) {
         super(values, types.array);
         this.len = values.length;
-    }
-    isa = ({}, type: Primitive) => {
-        return new ESBoolean(type === types.array);
     }
 
     cast = ({}, type: Primitive): Primitive | ESError => {
@@ -83,8 +81,12 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     bool = this.__bool__;
 
     __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
-        if (key instanceof ESString && this.self.hasOwnProperty(<string>key.valueOf())) {
-            return wrap(this.self[key.valueOf()]);
+        if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
+            const val = this.self[str(key)];
+            if (typeof val === 'function') {
+                return new ESFunction(val);
+            }
+            return wrap(val);
         }
 
         if (!(key instanceof ESNumber)) {
@@ -147,10 +149,10 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return false;
     };
 
-    clone = (chain: Primitive[]): ESArray => {
+    clone = (): ESArray => {
         const newArr = [];
         for (let element of this.valueOf()) {
-            newArr.push(element.clone(chain));
+            newArr.push(element);
         }
         return new ESArray(newArr);
     }

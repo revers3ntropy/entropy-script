@@ -12,13 +12,14 @@ import {ESType} from './estype.js';
 import {ESUndefined} from './esundefined.js';
 import {Primitive} from './primitive.js';
 import { ESJSBinding } from "./esjsbinding.js";
-import {global} from "../../constants.js";
+import { funcProps } from "../../util/util.js";
 
 /**
  * @param {any} thing
+ * @param {boolean} functionsTakeProps
  * @returns {Primitive}
  */
-export function wrap (thing: any = undefined): Primitive {
+export function wrap (thing: any, functionsTakeProps=false): Primitive {
     if (thing instanceof ESPrimitive) {
         return thing;
 
@@ -47,14 +48,15 @@ export function wrap (thing: any = undefined): Primitive {
         return new ESString(String(thing));
     }
     // catch objects, functions and other
-    return new ESJSBinding(thing);
+    return new ESJSBinding(thing, undefined, functionsTakeProps);
 }
 
 /**
  * Returns the thing passed in its js form
  * @param {Primitive} thing
+ * @param props
  */
-export function strip (thing: Primitive | undefined): any {
+export function strip (thing: Primitive | undefined, props: funcProps): any {
     if (thing == undefined) {
         return undefined;
 
@@ -62,12 +64,12 @@ export function strip (thing: Primitive | undefined): any {
         return thing;
 
     } else if (thing instanceof ESArray) {
-        return thing.valueOf().map(m => strip(m));
+        return thing.valueOf().map(m => strip(m, props), props);
 
     } else if (thing instanceof ESObject) {
         let val: any = {};
         for (let key in thing.valueOf())
-            val[key] = strip(thing.valueOf()[key]);
+            val[key] = strip(thing.valueOf()[key], props);
         return val;
 
     } else if (thing instanceof ESUndefined) {
@@ -75,11 +77,11 @@ export function strip (thing: Primitive | undefined): any {
 
     } else if (thing instanceof ESFunction) {
         return (...args: any[]): any => {
-            const res = thing.__call__({context: global}, ...args.map(wrap));
+            const res = thing.__call__(props, ...args.map(a => wrap(a)));
             if (res instanceof ESError) {
                 return res;
             }
-            return strip(res);
+            return strip(res, props);
         };
 
     } else if (thing instanceof ESType) {

@@ -134,6 +134,8 @@ export function run (msg: string, {
         return res;
     }
 
+    console.log('RUNTIME: ', env.path);
+
     const finalRes = res.node.interpret(env);
     timeData.interpretTotal = now() - start;
     timeData.total = now() - start;

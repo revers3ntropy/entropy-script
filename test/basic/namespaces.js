@@ -23,7 +23,7 @@ expect([{a: '<Symbol: a>'}, 1, 1], `
    MyLib.a = 1;
    MyLib['a'];
 `);
-expect([{myClass: '<Symbol: myClass>', myFunc: '<Symbol: myFunc>', a: '<Symbol: a>'}, '<Type: myClass>', 'myClass', 123, 'Hello world!'], `
+expect([{myClass: '<Symbol: myClass>', myFunc: '<Symbol: myFunc>', a: '<Symbol: a>'}, '<Type: myClass>', {thing: 123}, 123, 'Hello world!'], `
     global const MyLib = namespace {
         const myClass = class {
             init () {

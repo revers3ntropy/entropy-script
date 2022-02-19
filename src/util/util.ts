@@ -62,8 +62,15 @@ export function deepClone (obj: any, hash = new WeakMap()): any {
  * @param {number} depth
  */
 export function str (val: any, depth = 0): string {
-    if (typeof val === 'string') return val;
-    if (depth > 20) return '...';
+    if (typeof val === 'string') {
+        if (depth > 0) {
+            return `'${val}'`;
+        }
+        return val;
+    }
+    if (depth > 20) {
+        return '...';
+    }
     let result = '';
 
     if (typeof val === 'undefined') {

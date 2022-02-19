@@ -21,6 +21,7 @@ export class Context {
         }
         return this.parent.path;
     }
+
     set path (val: string) {
         this.path_ = val;
     }
@@ -154,6 +155,10 @@ export class Context {
         }
 
         return parent;
+    }
+
+    get keys () {
+        return Object.keys(this.symbolTable);
     }
 
     resetAsGlobal () {

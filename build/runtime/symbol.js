@@ -3,7 +3,7 @@ export class ESSymbol {
     constructor(value, identifier, options = {}) {
         var _a, _b;
         this.clone = () => {
-            return new ESSymbol(this.value.clone([]), this.identifier, {
+            return new ESSymbol(this.value.clone(), this.identifier, {
                 isConstant: this.isConstant,
                 isAccessible: this.isAccessible
             });

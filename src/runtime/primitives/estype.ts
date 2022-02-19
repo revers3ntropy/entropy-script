@@ -1,4 +1,4 @@
-import {ESError} from '../../errors.js';
+import { ESError, IndexError, InvalidOperationError } from '../../errors.js';
 import {createInstance} from '../instantiator.js';
 import {ESBoolean} from './esboolean.js';
 import {ESFunction} from './esfunction.js';
@@ -7,6 +7,9 @@ import {ESString} from './esstring.js';
 import {ESPrimitive} from './esprimitive.js';
 import {Primitive, types, typeName} from './primitive.js';
 import { funcProps } from "../../util/util.js";
+import { wrap } from "./wrapStrip.js";
+import { Position } from "../../position.js";
+import {str} from "../../util/util.js";
 
 export class ESType extends ESPrimitive<undefined> {
     readonly __isPrimitive__: boolean;
@@ -41,13 +44,13 @@ export class ESType extends ESPrimitive<undefined> {
         }
     }
 
-    clone = (chain: Primitive[]) => {
+    clone = () => {
         return new ESType(
             this.__isPrimitive__,
             this.__name__,
-            this.__methods__.map(f => f.clone(chain)),
+            this.__methods__,
             this.__extends__,
-            this.__init__?.clone(chain)
+            this.__init__
         )
     }
 
@@ -55,25 +58,25 @@ export class ESType extends ESPrimitive<undefined> {
         return new ESBoolean(type === types.type);
     }
 
-    cast = ({}, type: Primitive) => this;
+    cast = ({}, type: Primitive) => new InvalidOperationError('cast', this);
 
-    includesType = ({context}: funcProps, t: ESType): ESBoolean => {
+    includesType = (props: funcProps, t: ESType): ESBoolean => {
         if (
-            this.equals({context}, types.any).bool().valueOf() ||
-            t.equals({context}, types.any).bool().valueOf() ||
+            this.equals(props, types.any).bool().valueOf() ||
+            t.equals(props, types.any).bool().valueOf() ||
 
-            (this.__extends__?.equals({context}, t).valueOf() === true) ||
-            (this.__extends__?.equals({context}, types.any).valueOf() === true) ||
-            (this.__extends__?.includesType({context}, t).valueOf() === true) ||
+            (this.__extends__?.equals(props, t).valueOf() === true) ||
+            (this.__extends__?.equals(props, types.any).valueOf() === true) ||
+            (this.__extends__?.includesType(props, t).valueOf() === true) ||
 
-            (t.__extends__?.equals({context}, this).valueOf() === true) ||
-            (t.__extends__?.equals({context}, types.any).valueOf() === true) ||
-            (t.__extends__?.includesType({context}, this).valueOf() === true)
+            (t.__extends__?.equals(props, this).valueOf() === true) ||
+            (t.__extends__?.equals(props, types.any).valueOf() === true) ||
+            (t.__extends__?.includesType(props, this).valueOf() === true)
         ) {
             return new ESBoolean(true);
         }
 
-        return this.equals({context}, t);
+        return this.equals(props, t);
     }
 
     equals = ({}: funcProps, t: ESType): ESBoolean => {
@@ -92,4 +95,15 @@ export class ESType extends ESPrimitive<undefined> {
 
     __bool__ = () => new ESBoolean(true);
     bool = this.__bool__;
+
+    __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+        if (this.self.hasOwnProperty(str(key))) {
+            const val = this.self[str(key)];
+            if (typeof val === 'function') {
+                return new ESFunction(val);
+            }
+            return wrap(val);
+        }
+        return new IndexError(Position.unknown, key.valueOf(), this);
+    };
 }

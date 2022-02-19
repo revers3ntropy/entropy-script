@@ -61,12 +61,12 @@ export class TestResult {
             
             ${this.failed === 0 ? 'All tests passed!'.green : ''}
             
-            ${this.fails.map(([test, _]) =>
-                `\n ${test.batteryName} (#${test.batteryID})`
+            ${this.fails.map(([test, error]) =>
+                `\n ${test.batteryName} (#${test.batteryID}${error.pos.isUnknown ? '' : ` ${error.pos.ln}:${error.pos.col}`})`
             )}
         
             ${this.fails.map(([test, error]) =>
-                `\n----------------- ${test.batteryName} (#${test.batteryID}): \n${error.str}\n`
+                `\n----------------- ${test.batteryName} (#${test.batteryID}): \n${error.colouredStr}\n`
             )}
         `;
     }
@@ -84,7 +84,7 @@ export class Test {
      * @param {string} batteryName
      * @param {number} batteryID
      */
-    constructor(test, id = 'test', batteryName='', batteryID = 0) {
+    constructor (test, id = 'test', batteryName='', batteryID = 0) {
         this.id = id;
         this.test = test;
         this.batteryName = batteryName;
@@ -115,14 +115,15 @@ export class Test {
      * @returns {TestResult}
      */
     static testAll () {
+        let time = now();
+
         const res = new TestResult();
 
-        let time = now();
+        global.path = __dirname;
 
         for (let test of Test.tests) {
             const testEnv = new Context();
             testEnv.parent = global;
-            testEnv.path = __dirname;
             res.register(test, test.run(testEnv));
         }
 
@@ -132,7 +133,7 @@ export class Test {
     }
 }
 
-function objectsSame(primary, secondary) {
+function objectsSame (primary, secondary) {
     if (primary instanceof ESFunction || primary instanceof ESType || primary instanceof ESSymbol) {
         return secondary === primary.str().valueOf();
     }
@@ -164,6 +165,15 @@ function objectsSame(primary, secondary) {
             if (!objectsSame(pValue, sValue) || !objectsSame(sValue, pValue)) {
                 return false;
             }
+        } else if (typeof pValue === 'function') {
+            if (sValue !== '<Func>') {
+                return false;
+            }
+
+        } else if (typeof sValue === 'function') {
+            if (pValue !== '<Func>') {
+                return false;
+            }
         } else if (pValue !== sValue) {
             return false;
         }
@@ -186,6 +196,7 @@ function arraysSame (arr1, arr2) {
     for (let i = 0; i < arr1.length; i++) {
         const item1 = arr1[i], 
             item2 = arr2[i];
+
         if (Array.isArray(item1) || Array.isArray(item2)) {
             if (!arraysSame(item1, item2)) {
                 return false;
@@ -203,6 +214,15 @@ function arraysSame (arr1, arr2) {
 
         } else if (typeof item1 === 'object' || typeof item2 === 'object') {
             if (!objectsSame(item1, item2) || !objectsSame(item2, item1)) {
+                return false;
+            }
+        } else if (typeof item1 === 'function') {
+            if (item2 !== '<Func>') {
+                return false;
+            }
+
+        } else if (typeof item2 === 'function') {
+            if (item1 !== '<Func>') {
                 return false;
             }
 
@@ -234,19 +254,15 @@ export function expect (expected, from) {
                 env,
                 fileName: 'TEST_ENV'
             });
-        } catch (e) {
-            return new TestFailed(`Tried to run, but got error: ${e}. With code: ${from}`);
+        } catch (err) {
+            return new TestFailed(err.stack);
         }
 
         let resVal = strip(result.val);
 
-        if (result.error && Array.isArray(expected))
-            return new TestFailed(
-            `Unexpected error encountered when running test. Expected '${expected}' but got error:
-${result.error.str}
-with code
-'${from}'\n`
-        );
+        if (result.error && Array.isArray(expected)) {
+            return result.error;
+        }
 
         const res = (() => {
             if (result.error || typeof expected === 'string') {
@@ -263,7 +279,7 @@ with code
 
             const res = arraysSame(expected, strip(result.val));
 
-            /* extreme debugging
+            //* extreme debugging
             if (!res) {
                 console.log('\n%%%', expected, str(strip(result.val)), '@@');
             }
@@ -279,7 +295,7 @@ with code
         const val = result.error || resVal;
 
         return new TestFailed(
-            `Expected \n'${str(expected)}' \n but got \n'${str(val)}'\n instead from test with code \n'${from}'\n`
+            `${'Expected'.yellow} \n'${str(expected)}' \n ${'but got'.yellow} \n'${str(val)}'\n ${'instead from test with code'.yellow} \n'${from}'\n`
         );
 
     }, currentID);

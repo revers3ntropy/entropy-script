@@ -10,6 +10,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const singleLineComment = '//';
+export const multiLineCommentStart = '/*';
+export const multiLineCommentEnd = '*/';
 export let global;
 export const setGlobalContext = (c) => void (global = c);
 export const stringSurrounds = ['\'', '`', '"'];

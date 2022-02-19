@@ -8,10 +8,12 @@ import { addModuleFromObj, getModule, moduleExist } from './builtInModules.js';
 import { global, importCache } from "../constants.js";
 import http from './built-in-modules/http.js';
 import MySQL from './built-in-modules/mysql.js';
+import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
 function addNodeLibs(options, context) {
     addModuleFromObj('http', http(options));
     addModuleFromObj('mysql', MySQL(options));
     const { fs, path } = options;
+    addModuleFromObj('fs', new ESJSBinding(fs, 'fs'));
     context.set('import', new ESFunction(({ context }, rawPath) => {
         let scriptPath = str(rawPath);
         if (moduleExist(scriptPath)) {
@@ -21,6 +23,7 @@ function addNodeLibs(options, context) {
         if (scriptPath in importCache) {
             return importCache[scriptPath];
         }
+        console.log('CURRENT: ', context.path);
         try {
             if (!fs.existsSync(scriptPath)) {
                 if (fs.existsSync('./particles/' + scriptPath)) {
@@ -35,16 +38,18 @@ function addNodeLibs(options, context) {
                     return new ESError(Position.unknown, 'ImportError', `Can't find file '${scriptPath}' to import.`);
                 }
             }
+            const exDir = path.dirname(scriptPath);
             const code = fs.readFileSync(scriptPath, 'utf-8');
             const env = new Context();
             env.parent = global;
+            env.path = exDir;
             const n = new ESNamespace(new ESString(scriptPath), {});
             importCache[scriptPath] = n;
             const res = run(code, {
                 env,
                 measurePerformance: false,
                 fileName: scriptPath,
-                currentDir: path.dirname(scriptPath),
+                currentDir: exDir,
             });
             n.__value__ = env.getSymbolTableAsDict();
             if (res.error) {
@@ -62,8 +67,9 @@ function addNodeLibs(options, context) {
     context.setOwn('open', new ESFunction(({ context }, path_, encoding_) => {
         const path = str(path_);
         const encoding = str(encoding_) || 'utf-8';
-        if (!fs.existsSync(path))
+        if (!fs.existsSync(path)) {
             return new ImportError(Position.unknown, path);
+        }
         return new ESObject({
             str: new ESFunction(({ context }) => {
                 return new ESString(fs.readFileSync(context.path + path, encoding));

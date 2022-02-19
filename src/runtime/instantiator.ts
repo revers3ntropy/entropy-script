@@ -9,7 +9,7 @@ import {
     ESBoolean,
     ESFunction,
     ESNumber,
-    ESObject, ESPrimitive,
+    ESObject,
     ESString, ESType,
     ESUndefined,
     Primitive
@@ -17,14 +17,14 @@ import {
 
 /**
  * Adds the properties of a parent class to an instance of a child class
- * @param {Context} context_ the context of the class definition
- * @param {ESType} class_ the class that the object is currently implementing
+ * @param {Context} context
+ * @param {ESType} class_ the class that the object is currently extending
  * @param {dict<Primitive>} instance the instance to add the properties to
- * @param {Context} callContext
  * @param {ESObject} this_ the 'super' function's 'this' context
+ * @param callContext
  * @returns {ESError | void}
  */
-function dealWithExtends (context_: Context, class_: ESType, instance: dict<Primitive>, callContext: Context, this_: ESObject): ESError | void {
+function dealWithExtends (context: Context, class_: ESType, instance: dict<Primitive>, this_: ESObject, callContext: Context): ESError | void {
     if (!(class_ instanceof ESType)) {
         return new TypeError(
             Position.unknown,
@@ -36,27 +36,23 @@ function dealWithExtends (context_: Context, class_: ESType, instance: dict<Prim
 
     const superFunc = new ESFunction(({context}, ...args) => {
         const newContext = new Context();
-        newContext.parent = context_;
-        /*let setRes = newContext.setOwn('type', new ESObject(instance));
-        if (setRes instanceof ESError) {
-            return setRes;
-        }
-         */
-
-        if (class_.__extends__ !== undefined) {
-            let _a = dealWithExtends(newContext, class_.__extends__, instance, callContext, this_);
+        newContext.parent = context;
+        // deal with next level
+        if (class_.__extends__) {
+            let _a = dealWithExtends(newContext, class_.__extends__, instance, this_, callContext);
             if (_a instanceof ESError) {
                 return _a;
             }
         }
 
-        const initFunc = class_?.__init__?.clone([]);
+        const initFunc = class_?.__init__;
 
         if (!initFunc) {
             return;
         }
 
         initFunc.this_ = this_;
+        initFunc.__closure__ = newContext;
 
         const res_ = initFunc.__call__({context: newContext}, ...args);
         if (res_ instanceof ESError) {
@@ -64,16 +60,16 @@ function dealWithExtends (context_: Context, class_: ESType, instance: dict<Prim
         }
     }, undefined, 'super', this_);
 
-    let setRes = context_.setOwn('super', superFunc);
+    let setRes = context.setOwn('super', superFunc);
     if (setRes instanceof ESError) {
         return setRes;
     }
 
-    const res = createInstance(class_, {context: callContext}, [], false, instance);
+    // recurse with extended class
+    const res = createInstance(class_, {context}, [], false, instance);
     if (res instanceof ESError) {
         return res;
     }
-    instance = res.valueOf();
 }
 
 /**
@@ -86,8 +82,13 @@ function dealWithExtends (context_: Context, class_: ESType, instance: dict<Prim
  * @param {dict<Primitive>} on
  * @returns {ESBoolean | Primitive | ESFunction | ESUndefined | ESString | ESObject | ESError | ESNumber | ESArray | ESType}
  */
-export function createInstance (type: ESType, {context}: funcProps, params: Primitive[], runInit=true, on: dict<Primitive> = {}): ESError | Primitive {
-    const callContext = context;
+export function createInstance (
+    type: ESType,
+    {context}: funcProps,
+    params: Primitive[],
+    runInit=true,
+    on: dict<Primitive> = {}
+): ESError | Primitive {
 
     if (type.__isPrimitive__) {
         // make sure we have at least one arg
@@ -113,8 +114,6 @@ export function createInstance (type: ESType, {context}: funcProps, params: Prim
                 return new ESFunction(params[0].valueOf());
             case 'Boolean':
                 return new ESBoolean(params[0].bool().valueOf());
-            case 'Object':
-                return new ESObject(<dict<any>>params[0]);
             default:
                 return wrap(params[0]);
         }
@@ -127,7 +126,7 @@ export function createInstance (type: ESType, {context}: funcProps, params: Prim
     const instance = new ESObject();
 
     if (type.__extends__) {
-        let res = dealWithExtends(newContext, type.__extends__, on, callContext, instance);
+        let res = dealWithExtends(newContext, type.__extends__, on, instance, context);
         if (res instanceof ESError) {
             return res;
         }
@@ -136,14 +135,13 @@ export function createInstance (type: ESType, {context}: funcProps, params: Prim
     instance.__value__ = on;
 
     for (let method of type.__methods__) {
-        const methodClone = method.clone([]);
+        const methodClone = method.clone();
         methodClone.this_ = instance;
         on[method.name] = methodClone;
 
         if (primitiveMethods.indexOf(method.name) !== -1) {
             const i: any = instance;
-            i[method.name] = ({context}: any, ...args: Primitive[]) =>
-                methodClone.__call__({context}, ...args);
+            i[method.name] = methodClone.__call__;
         }
     }
 
@@ -153,7 +151,7 @@ export function createInstance (type: ESType, {context}: funcProps, params: Prim
         // newContext, which inherits from the current closure
         type.__init__.__closure__ = newContext;
 
-        const res = type.__init__.__call__({context: callContext}, ...params);
+        const res = type.__init__.__call__({context: newContext}, ...params);
         // return value of init is ignored
         if (res instanceof ESError) {
             return res;

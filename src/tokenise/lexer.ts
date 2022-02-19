@@ -2,7 +2,7 @@ import {Position} from "../position.js";
 import {
     digits, doubleCharTokens,
     identifierChars,
-    KEYWORDS, singleCharTokens,
+    KEYWORDS, multiLineCommentEnd, multiLineCommentStart, singleCharTokens,
     singleLineComment,
     stringSurrounds, tripleCharTokens, tt,
 } from '../constants.js';
@@ -44,7 +44,12 @@ export class Lexer {
                 this.currentChar === singleLineComment[0] &&
                 this.text[this.position.idx + 1] === singleLineComment[1]
             ) {
-                this.comment();
+                this.singleLineComment();
+            } else if (
+                this.currentChar === multiLineCommentStart[0] &&
+                this.text[this.position.idx + 1] === multiLineCommentStart[1]
+            ) {
+                this.multiLineComment();
 
             } else if (identifierChars.includes(this.currentChar)) {
                 tokens.push(this.makeIdentifier());
@@ -56,12 +61,12 @@ export class Lexer {
                 const possibleAssignFirstChar = this.currentChar;
                 let token = this.unknownChar();
                 if (token) {
-                    if (token.type === tt.ASSIGN)
+                    if (token.type === tt.ASSIGN) {
                         token.value = possibleAssignFirstChar;
+                    }
                     tokens.push(token);
-                }
 
-                else {
+                } else {
                     // unknown char
                     let pos = this.position.clone;
                     let char = this.currentChar;
@@ -84,8 +89,9 @@ export class Lexer {
 
         while (this.currentChar !== undefined && (digits+'._').includes(this.currentChar)) {
             if (this.currentChar === '.') {
-                if (dotCount === 1)
+                if (dotCount === 1) {
                     break;
+                }
 
                 dotCount++;
                 numStr += '.';
@@ -136,14 +142,17 @@ export class Lexer {
 
         let tokType = tt.IDENTIFIER;
 
-        if (KEYWORDS.indexOf(idStr) !== -1)
+        if (KEYWORDS.indexOf(idStr) !== -1) {
             tokType = tt.KEYWORD;
+        }
 
         return new Token(posStart, tokType, idStr);
     }
 
     private unknownChar (): Token | undefined {
-        if (this.currentChar === undefined) return undefined;
+        if (this.currentChar === undefined) {
+            return undefined;
+        }
 
         for (let triple in tripleCharTokens) {
             if (triple[0] === this.currentChar)
@@ -179,12 +188,27 @@ export class Lexer {
         return undefined;
     }
 
-    private comment () {
+    private singleLineComment () {
         this.advance();
 
-        while (this.currentChar !== '\n' && this.currentChar !== undefined)
+        while (this.currentChar !== '\n' && this.currentChar !== undefined) {
             this.advance();
+        }
 
+        this.advance();
+    }
+
+    private multiLineComment () {
+        this.advance();
+
+        while (!(
+            this.currentChar === multiLineCommentEnd[0] &&
+            this.text[this.position.idx + 1] === multiLineCommentEnd[1]
+        )) {
+            this.advance();
+        }
+
+        this.advance();
         this.advance();
     }
 }

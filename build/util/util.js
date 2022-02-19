@@ -24,10 +24,15 @@ export function deepClone(obj, hash = new WeakMap()) {
     return Object.assign(result, ...Object.keys(obj).map(key => ({ [key]: deepClone(obj[key], hash) })));
 }
 export function str(val, depth = 0) {
-    if (typeof val === 'string')
+    if (typeof val === 'string') {
+        if (depth > 0) {
+            return `'${val}'`;
+        }
         return val;
-    if (depth > 20)
+    }
+    if (depth > 20) {
         return '...';
+    }
     let result = '';
     if (typeof val === 'undefined') {
         return 'undefined';

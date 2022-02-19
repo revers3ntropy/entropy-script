@@ -1,13 +1,13 @@
 import {expect, file} from '../testFramework.js';
 file('typing/parameters');
 
-expect(['<Func: f>', 'hello world'], `
+expect(['<Func>', 'hello world'], `
     const f = func (a: string, b: string) {
         return a + b;
     };
     f('hello', ' world');
 `);
-expect(['<Func: f>', 21], `
+expect(['<Func>', 21], `
     const f = func (x: number){
         return 2 * x + 1;
     };
@@ -20,7 +20,7 @@ expect('TypeError', `
     f([10]);
 `);
 
-expect(['<Type: Concatenator>', 'Concatenator', 'hello world'], `
+expect(['<Type: Concatenator>', {concat: '<Func>', str: 'hello '}, 'hello world'], `
     const Concatenator = class {
         init (str1: string) {
             this.str = str1;

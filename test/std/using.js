@@ -14,7 +14,7 @@ expect([undefined, 0], `
     a;
 `);
 
-expect([undefined, '<Func: asciiToChar>'], `
+expect([undefined, '<Func>'], `
     using(import('ascii'));
     asciiToChar;
 `);

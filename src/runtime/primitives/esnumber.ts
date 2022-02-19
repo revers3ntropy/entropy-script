@@ -1,20 +1,18 @@
-import {ESError, TypeError} from '../../errors.js';
+import { ESError, IndexError, TypeError } from '../../errors.js';
 import {Position} from '../../position.js';
 import {Context} from '../context.js';
 import {ESArray} from './esarray.js';
 import {ESBoolean} from './esboolean.js';
 import {ESString} from './esstring.js';
 import {ESPrimitive} from './esprimitive.js';
-import {str} from '../../util/util.js';
+import { funcProps, str } from '../../util/util.js';
 import {Primitive, types} from './primitive.js';
+import { ESFunction } from "./esfunction.js";
+import { wrap } from "./wrapStrip.js";
 
 export class ESNumber extends ESPrimitive <number> {
     constructor (value: number = 0) {
         super(value, types.number);
-    }
-
-    isa = ({}, type: Primitive) => {
-        return new ESBoolean(type === types.number);
     }
 
     cast = ({}, type: Primitive): Primitive | ESError => {
@@ -78,5 +76,16 @@ export class ESNumber extends ESPrimitive <number> {
     }
     bool = this.__bool__;
 
-    clone = (chain: Primitive[]): ESNumber => new ESNumber(this.valueOf());
+    clone = (): ESNumber => new ESNumber(this.valueOf());
+
+    __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+        if (this.self.hasOwnProperty(str(key))) {
+            const val = this.self[str(key)];
+            if (typeof val === 'function') {
+                return new ESFunction(val);
+            }
+            return wrap(val);
+        }
+        return new IndexError(Position.unknown, key.valueOf(), this);
+    };
 }

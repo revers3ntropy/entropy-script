@@ -1,7 +1,7 @@
 import {ESError, TypeError} from '../../errors.js';
 import {Position} from '../../position.js';
 import {Context} from '../context.js';
-import {str} from '../../util/util.js';
+import { funcProps, str } from '../../util/util.js';
 
 import {ESArray} from './esarray.js';
 import {ESBoolean} from './esboolean.js';
@@ -9,6 +9,7 @@ import {ESNumber} from './esnumber.js';
 import {ESPrimitive} from './esprimitive.js';
 import {Primitive, types} from './primitive.js';
 import {wrap} from './wrapStrip.js';
+import { ESFunction } from "./esfunction.js";
 
 
 export class ESString extends ESPrimitive <string> {
@@ -17,10 +18,6 @@ export class ESString extends ESPrimitive <string> {
     }
 
     str = () => this;
-
-    isa = ({}, type: Primitive) => {
-        return new ESBoolean(type === types.string);
-    }
 
     cast = ({}, type: Primitive): Primitive | ESError => {
         switch (type) {
@@ -71,22 +68,30 @@ export class ESString extends ESPrimitive <string> {
     len = () => {
         return new ESNumber(this.valueOf().length);
     }
-    clone = (chain: Primitive[]): ESString => new ESString(this.valueOf());
+    clone = () => new ESString(this.valueOf());
 
-    __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
-        if (key instanceof ESString && this.self.hasOwnProperty(str(key)))
-            return wrap(this.self[str(key)]);
+    __getProperty__ = (props: funcProps, key: Primitive): Primitive => {
+        if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
+            const val = this.self[str(key)];
+            if (typeof val === 'function') {
+                return new ESFunction(val);
+            }
+            return wrap(val);
+        }
 
-        if (!(key instanceof ESNumber))
+        if (!(key instanceof ESNumber)) {
             return new ESString();
+        }
 
         let idx = key.valueOf();
 
-        while (idx < 0)
+        while (idx < 0) {
             idx = this.valueOf().length + idx;
+        }
 
-        if (idx < this.valueOf().length)
+        if (idx < this.valueOf().length) {
             return new ESString(this.valueOf()[idx]);
+        }
 
         return new ESString();
     };

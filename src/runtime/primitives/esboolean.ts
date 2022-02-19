@@ -1,11 +1,13 @@
-import {ESError, TypeError} from '../../errors.js';
+import { ESError, IndexError, TypeError } from '../../errors.js';
 import {Position} from '../../position.js';
 import {Context} from '../context.js';
 import {ESPrimitive} from './esprimitive.js';
-import {str} from '../../util/util.js';
+import { funcProps, str } from '../../util/util.js';
 import {ESNumber} from './esnumber.js';
 import {ESString} from './esstring.js';
 import {Primitive, types} from './primitive.js';
+import { ESFunction } from "./esfunction.js";
+import { wrap } from "./wrapStrip.js";
 
 export class ESBoolean extends ESPrimitive <boolean> {
     constructor (val: boolean = false) {
@@ -20,9 +22,16 @@ export class ESBoolean extends ESPrimitive <boolean> {
         };
     }
 
-    isa = ({}, type: Primitive) => {
-        return new ESBoolean(type === types.bool);
-    }
+    __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+        if (this.self.hasOwnProperty(str(key))) {
+            const val = this.self[str(key)];
+            if (typeof val === 'function') {
+                return new ESFunction(val);
+            }
+            return wrap(val);
+        }
+        return new IndexError(Position.unknown, key.valueOf(), this);
+    };
 
     cast = ({}, type: Primitive) => {
         switch (type) {
@@ -50,7 +59,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
     };
 
     str = () => new ESString(this.valueOf() ? 'true' : 'false');
-    clone = (chain: Primitive[]): ESBoolean => new ESBoolean(this.valueOf());
+    clone = (): ESBoolean => new ESBoolean(this.valueOf());
 
     bool = (): ESBoolean => this;
 }

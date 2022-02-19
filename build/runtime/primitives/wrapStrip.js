@@ -11,8 +11,7 @@ import { ESString } from './esstring.js';
 import { ESType } from './estype.js';
 import { ESUndefined } from './esundefined.js';
 import { ESJSBinding } from "./esjsbinding.js";
-import { global } from "../../constants.js";
-export function wrap(thing = undefined) {
+export function wrap(thing, functionsTakeProps = false) {
     if (thing instanceof ESPrimitive) {
         return thing;
     }
@@ -40,9 +39,9 @@ export function wrap(thing = undefined) {
     else if (typeof thing === 'symbol') {
         return new ESString(String(thing));
     }
-    return new ESJSBinding(thing);
+    return new ESJSBinding(thing, undefined, functionsTakeProps);
 }
-export function strip(thing) {
+export function strip(thing, props) {
     if (thing == undefined) {
         return undefined;
     }
@@ -50,12 +49,12 @@ export function strip(thing) {
         return thing;
     }
     else if (thing instanceof ESArray) {
-        return thing.valueOf().map(m => strip(m));
+        return thing.valueOf().map(m => strip(m, props), props);
     }
     else if (thing instanceof ESObject) {
         let val = {};
         for (let key in thing.valueOf())
-            val[key] = strip(thing.valueOf()[key]);
+            val[key] = strip(thing.valueOf()[key], props);
         return val;
     }
     else if (thing instanceof ESUndefined) {
@@ -63,11 +62,11 @@ export function strip(thing) {
     }
     else if (thing instanceof ESFunction) {
         return (...args) => {
-            const res = thing.__call__({ context: global }, ...args.map(wrap));
+            const res = thing.__call__(props, ...args.map(a => wrap(a)));
             if (res instanceof ESError) {
                 return res;
             }
-            return strip(res);
+            return strip(res, props);
         };
     }
     else if (thing instanceof ESType) {

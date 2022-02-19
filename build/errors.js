@@ -7,7 +7,7 @@ export class ESError {
         this.name = name;
         this.details = details;
     }
-    get str() {
+    get colouredStr() {
         let out = '';
         if (this.traceback.length) {
             out = 'Error Traceback (most recent call last):\n'.yellow;
@@ -17,7 +17,7 @@ export class ESError {
         out += `${this.name.red}: ${this.details} \n at ${this.pos.str.cyan}`;
         return out;
     }
-    get uncolouredStr() {
+    get str() {
         return `${this.name}: ${this.details} \n at ${this.pos.str}`;
     }
 }

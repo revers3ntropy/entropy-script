@@ -20,7 +20,7 @@ export class ESError {
         this.details = details;
     }
 
-    get str (): string {
+    get colouredStr (): string {
         let out = '';
         if (this.traceback.length) {
             out = 'Error Traceback (most recent call last):\n'.yellow;
@@ -32,7 +32,7 @@ export class ESError {
         return out;
     }
 
-    get uncolouredStr () {
+    get str () {
         return `${this.name}: ${this.details} \n at ${this.pos.str}`;
     }
 }
