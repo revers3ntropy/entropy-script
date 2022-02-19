@@ -11,6 +11,7 @@ export class ESError {
     name: string;
     details: string;
     pos: Position;
+
     traceback: TracebackFrame[] = [];
 
     constructor (pos: Position, name: string, details: string) {
@@ -80,7 +81,7 @@ export class ReferenceError extends ESError {
 
 export class IndexError extends ESError {
     constructor(pos: Position, ref: string, object: Primitive) {
-        super(pos,'IndexError', `${ref} is not defined on object '${object?.info?.name || str(object)}'`);
+        super(pos,'IndexError', `'${ref}' is not a property of '${(object?.info?.name) || str(object)}'`);
     }
 }
 

@@ -1,6 +1,6 @@
 import {ESError, TypeError} from '../../errors.js';
 import {Position} from '../../position.js';
-import {dict, str} from '../../util/util.js';
+import { dict, funcProps, str } from '../../util/util.js';
 import {Context} from '../context.js';
 import {ESArray} from './esarray.js';
 import {ESBoolean} from './esboolean.js';
@@ -9,7 +9,7 @@ import {ESString} from './esstring.js';
 import {ESType} from './estype.js';
 import {ESPrimitive} from './esprimitive.js';
 import {ESUndefined} from './esundefined.js';
-import {funcProps, Primitive, types} from './primitive.js';
+import { Primitive, types} from './primitive.js';
 import {strip, wrap} from './wrapStrip.js';
 
 
@@ -173,7 +173,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESUndefined();
     };
 
-    __setProperty__ = ({}: {context: Context}, key: Primitive, value: Primitive): void | ESError => {
+    __setProperty__ = ({}: funcProps, key: Primitive, value: Primitive): void | ESError => {
         if (!(key instanceof ESString)) {
             return new TypeError(Position.unknown, 'string', key.typeName(), str(key));
         }

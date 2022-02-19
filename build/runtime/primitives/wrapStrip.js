@@ -10,11 +10,10 @@ import { ESPrimitive } from './esprimitive.js';
 import { ESString } from './esstring.js';
 import { ESType } from './estype.js';
 import { ESUndefined } from './esundefined.js';
-export function wrap(thing = undefined, nativeWrap = false, depth = 0) {
-    if (depth >= 20) {
-        return new ESUndefined();
-    }
-    else if (thing instanceof ESPrimitive) {
+import { ESJSBinding } from "./esjsbinding.js";
+import { global } from "../../constants.js";
+export function wrap(thing = undefined) {
+    if (thing instanceof ESPrimitive) {
         return thing;
     }
     else if (thing === undefined || thing === null) {
@@ -26,22 +25,6 @@ export function wrap(thing = undefined, nativeWrap = false, depth = 0) {
     else if (thing instanceof ESSymbol) {
         return thing.value;
     }
-    else if (typeof thing == 'function') {
-        return new ESFunction((p, ...args) => {
-            let res;
-            if (nativeWrap) {
-                res = thing(...(args.map(strip)));
-            }
-            else {
-                res = thing(p, ...args);
-            }
-            if (res instanceof ESError || res instanceof ESPrimitive) {
-                return res;
-            }
-            console.log(res);
-            return wrap(res, nativeWrap, depth + 1);
-        });
-    }
     else if (typeof thing === 'number') {
         return new ESNumber(thing);
     }
@@ -51,30 +34,13 @@ export function wrap(thing = undefined, nativeWrap = false, depth = 0) {
     else if (typeof thing === 'boolean') {
         return new ESBoolean(thing);
     }
-    else if (typeof thing === 'object') {
-        if (Array.isArray(thing)) {
-            try {
-                return new ESArray(thing.map(s => wrap(s, nativeWrap, depth + 1)));
-            }
-            catch (e) {
-                return new ESArray();
-            }
-        }
-        let newObj = {};
-        for (const key in thing) {
-            if (thing.hasOwnProperty(key) || typeof thing[key] == "function") {
-                newObj[key] = wrap(thing[key], nativeWrap, depth + 1);
-            }
-        }
-        return new ESObject(newObj);
-    }
     else if (typeof thing === 'bigint') {
         return new ESNumber(Number(thing));
     }
     else if (typeof thing === 'symbol') {
         return new ESString(String(thing));
     }
-    return new ESUndefined();
+    return new ESJSBinding(thing);
 }
 export function strip(thing) {
     if (thing == undefined) {
@@ -95,7 +61,16 @@ export function strip(thing) {
     else if (thing instanceof ESUndefined) {
         return undefined;
     }
-    else if (thing instanceof ESType || thing instanceof ESFunction) {
+    else if (thing instanceof ESFunction) {
+        return (...args) => {
+            const res = thing.__call__({ context: global }, ...args.map(wrap));
+            if (res instanceof ESError) {
+                return res;
+            }
+            return strip(res);
+        };
+    }
+    else if (thing instanceof ESType) {
         return thing;
     }
     return thing.valueOf();

@@ -10,6 +10,7 @@ import {
     FunctionInfo, types
 } from '../runtime/primitiveTypes.js';
 import {BuiltInFunction, indent, sleep, str} from '../util/util.js';
+import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
 
 export const builtInFunctions: {[n: string]: [BuiltInFunction, FunctionInfo]} = {
     'range': [({context}, num) => {
@@ -204,7 +205,7 @@ Try 'help(object)' for help about a particular object.
     }],
 
     'using': [({context}, module, global_) => {
-        if (!(module instanceof ESNamespace)) {
+        if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding)) {
             return new TypeError(Position.unknown, 'Namespace', str(module.typeName()));
         }
 

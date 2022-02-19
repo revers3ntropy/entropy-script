@@ -13,7 +13,7 @@ export const setGlobalContext = (c: Context) => void (global = c);
 
 export const stringSurrounds = ['\'', '`', '"'];
 
-export let IS_NODE_INSTANCE = false;
+export let IS_NODE_INSTANCE = typeof window === 'undefined';
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 
 export const libs: JSModuleParams = {
@@ -219,4 +219,10 @@ export const primitiveMethods: string[] = [
     '__setProperty__',
     '__getProperty__',
     '__call__',
+    'str',
+    'isa',
+    'is',
+    'bool',
+    'cast',
+    'hasProperty',
 ];

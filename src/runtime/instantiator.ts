@@ -1,9 +1,8 @@
 import {primitiveMethods} from '../constants.js';
 import { Context } from "./context.js";
-import {dict, str} from '../util/util.js';
+import { dict, funcProps } from '../util/util.js';
 import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
-import {funcProps} from './primitives/primitive.js';
 import {wrap} from './primitives/wrapStrip.js';
 import {
     ESArray,

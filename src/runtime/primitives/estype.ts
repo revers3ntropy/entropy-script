@@ -5,7 +5,8 @@ import {ESFunction} from './esfunction.js';
 import {ESObject} from './esobject.js';
 import {ESString} from './esstring.js';
 import {ESPrimitive} from './esprimitive.js';
-import {Primitive, types, typeName, funcProps} from './primitive.js';
+import {Primitive, types, typeName} from './primitive.js';
+import { funcProps } from "../../util/util.js";
 
 export class ESType extends ESPrimitive<undefined> {
     readonly __isPrimitive__: boolean;

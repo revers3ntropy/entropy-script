@@ -17,33 +17,40 @@ export interface timeData {
     interprets: number,
 }
 
-export type BuiltInFunction = (config: {
-    context: Context,
-}, ...args: Primitive[]) => void | ESError | Primitive | Promise<void>;
+// funcProps is the props that every exposed function
+// takes as a first argument
+export type funcProps = {
+    context: Context
+};
+
+export type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | ESError | Primitive | Promise<void>;
+
 
 /**
- * @desc opens a modal window to display a message
  * @return bool - success or failure
  * @param {any} obj
  * @param hash
  */
-export function deepClone(obj: any, hash = new WeakMap()): any {
+export function deepClone (obj: any, hash = new WeakMap()): any {
+    let result: any;
     // Do not try to clone primitives or functions
-    if (Object(obj) !== obj || obj instanceof Function)
+    if (Object(obj) !== obj || obj instanceof Function) {
         return obj;
-    if (hash.has(obj))
-        return hash.get(obj); // Cyclic reference
-    try { // Try to run constructor (without arguments, as we don't know them)
-        var result = new obj.constructor();
     }
-    catch (e) { // Constructor failed, create object without running the constructor
+    if (hash.has(obj)) {
+        return hash.get(obj);
+    } // Cyclic reference
+    try { // Try to run constructor (without arguments, as we don't know them)
+        result = new obj.constructor();
+    } catch (e) { // Constructor failed, create object without running the constructor
         result = Object.create(Object.getPrototypeOf(obj));
     }
     // Optional: support for some standard constructors (extend as desired)
-    if (obj instanceof Map)
+    if (obj instanceof Map) {
         Array.from(obj, ([key, val]) => result.set(deepClone(key, hash), deepClone(val, hash)));
-    else if (obj instanceof Set)
+    } else if (obj instanceof Set) {
         Array.from(obj, (key) => result.add(deepClone(key, hash)));
+    }
     // Register in hash
     hash.set(obj, result);
     // Clone and assign enumerable own properties recursively
@@ -52,14 +59,11 @@ export function deepClone(obj: any, hash = new WeakMap()): any {
 
 /**
  * @param {any} val to be turned to string. used by .str primitive method
+ * @param {number} depth
  */
 export function str (val: any, depth = 0): string {
-    if (typeof val === 'string') {
-        return val;
-    }
-    if (depth > 20) {
-        return '...';
-    }
+    if (typeof val === 'string') return val;
+    if (depth > 20) return '...';
     let result = '';
 
     if (typeof val === 'undefined') {
@@ -81,8 +85,7 @@ export function str (val: any, depth = 0): string {
                 for (let item of val) {
                     try {
                         result += str(item, depth + 1)+`, `;
-                    }
-                    catch (e) {
+                    } catch (e) {
                         result += '<large property>, '
                     }
                 }
@@ -101,11 +104,14 @@ export function str (val: any, depth = 0): string {
                 let i = 0;
                 for (let item in val) {
                     i++;
-                    if (!val.hasOwnProperty) continue;
-                    if (!val.hasOwnProperty(item)) continue;
+                    if (!val.hasOwnProperty || !val.hasOwnProperty(item)){
+                        continue;
+                    }
                     result += `  ${item}: ${str(val[item], depth + 1) || ''}, \n`;
                 }
-                if (i > 0) result = result.substring(0, result.length - 3);
+                if (i > 0) {
+                    result = result.substring(0, result.length - 3);
+                }
                 result += '\n}\n';
             }
             break;
@@ -129,9 +135,8 @@ export function str (val: any, depth = 0): string {
             break;
 
     }
-    for (let i = 0; i < depth; i++) {
+    for (let i = 0; i < depth; i++)
         result = indent(result);
-    }
     return result;
 }
 

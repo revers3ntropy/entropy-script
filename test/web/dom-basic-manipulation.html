@@ -9,7 +9,13 @@
     <script type="es">
         using(import('dom'));
 
-        $('body').html;
+        const div = $('#myDiv');
+
+        div.html('hello world!');
+        div.css({ color: 'green' });
+
+        div.click(func () div.html('You clicked me!'));
+
     </script>
 </head>
 <body>

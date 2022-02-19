@@ -3,6 +3,7 @@ import { Position } from "../position.js";
 import { strip } from '../runtime/primitives/wrapStrip.js';
 import { ESArray, ESFunction, ESNamespace, ESNumber, ESObject, ESPrimitive, ESString, ESUndefined } from '../runtime/primitiveTypes.js';
 import { indent, sleep, str } from '../util/util.js';
+import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
 export const builtInFunctions = {
     'range': [({ context }, num) => {
             if (!(num instanceof ESNumber))
@@ -174,7 +175,7 @@ Try 'help(object)' for help about a particular object.
             description: 'Deletes a variable from the current context'
         }],
     'using': [({ context }, module, global_) => {
-            if (!(module instanceof ESNamespace)) {
+            if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding)) {
                 return new TypeError(Position.unknown, 'Namespace', str(module.typeName()));
             }
             let global = true;

@@ -5,9 +5,9 @@ import {ESBoolean} from './esboolean.js';
 import type {ESString} from './esstring.js';
 import type {ESType} from './estype.js';
 import type {Info} from './info.js';
-import {funcProps, Primitive, types} from './primitive.js';
+import {Primitive, types} from './primitive.js';
 
-import {str} from '../../util/util.js';
+import { funcProps, str } from '../../util/util.js';
 import {wrap} from './wrapStrip.js';
 
 

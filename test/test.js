@@ -67,7 +67,7 @@ function askQuestion(query) {
 
 (async () => {
 
-	await es.init(
+	const err = await es.init(
 		console.log,
 		async (msg, cb) =>
 			cb(await askQuestion(msg).catch(console.log)),
@@ -81,6 +81,10 @@ function askQuestion(query) {
 			path
 		},
 	);
+
+	if (err) {
+		console.log(err);
+	}
 
 	console.log(Test.testAll().str());
 })();

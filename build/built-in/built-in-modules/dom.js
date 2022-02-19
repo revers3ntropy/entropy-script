@@ -1,16 +1,11 @@
 import { ReferenceError } from '../../errors.js';
 import { Position } from '../../position.js';
-import { wrap } from '../../runtime/primitives/wrapStrip.js';
+import { ESJSBinding } from "../../runtime/primitives/esjsbinding.js";
 const module = () => {
-    let $;
-    if ('$' in window) {
-        $ = window.$;
-    }
-    else {
+    if (typeof window === 'undefined' || !('$' in window)) {
         return new ReferenceError(Position.unknown, '$ must be property of window to use dom library');
     }
-    return {
-        $: wrap($, true)
-    };
+    const $ = new ESJSBinding(window.$, 'jquery');
+    return { $ };
 };
 export default module;

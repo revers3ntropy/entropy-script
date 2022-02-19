@@ -54,7 +54,7 @@ export class ReferenceError extends ESError {
 export class IndexError extends ESError {
     constructor(pos, ref, object) {
         var _a;
-        super(pos, 'IndexError', `${ref} is not defined on object '${((_a = object === null || object === void 0 ? void 0 : object.info) === null || _a === void 0 ? void 0 : _a.name) || str(object)}'`);
+        super(pos, 'IndexError', `'${ref}' is not a property of '${((_a = object === null || object === void 0 ? void 0 : object.info) === null || _a === void 0 ? void 0 : _a.name) || str(object)}'`);
     }
 }
 export class InvalidOperationError extends ESError {

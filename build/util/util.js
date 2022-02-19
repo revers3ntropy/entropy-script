@@ -1,30 +1,33 @@
 import { Node } from "../runtime/nodes.js";
 import { ESPrimitive } from '../runtime/primitiveTypes.js';
 export function deepClone(obj, hash = new WeakMap()) {
-    if (Object(obj) !== obj || obj instanceof Function)
+    let result;
+    if (Object(obj) !== obj || obj instanceof Function) {
         return obj;
-    if (hash.has(obj))
+    }
+    if (hash.has(obj)) {
         return hash.get(obj);
+    }
     try {
-        var result = new obj.constructor();
+        result = new obj.constructor();
     }
     catch (e) {
         result = Object.create(Object.getPrototypeOf(obj));
     }
-    if (obj instanceof Map)
+    if (obj instanceof Map) {
         Array.from(obj, ([key, val]) => result.set(deepClone(key, hash), deepClone(val, hash)));
-    else if (obj instanceof Set)
+    }
+    else if (obj instanceof Set) {
         Array.from(obj, (key) => result.add(deepClone(key, hash)));
+    }
     hash.set(obj, result);
     return Object.assign(result, ...Object.keys(obj).map(key => ({ [key]: deepClone(obj[key], hash) })));
 }
 export function str(val, depth = 0) {
-    if (typeof val === 'string') {
+    if (typeof val === 'string')
         return val;
-    }
-    if (depth > 20) {
+    if (depth > 20)
         return '...';
-    }
     let result = '';
     if (typeof val === 'undefined') {
         return 'undefined';
@@ -63,14 +66,14 @@ export function str(val, depth = 0) {
                 let i = 0;
                 for (let item in val) {
                     i++;
-                    if (!val.hasOwnProperty)
+                    if (!val.hasOwnProperty || !val.hasOwnProperty(item)) {
                         continue;
-                    if (!val.hasOwnProperty(item))
-                        continue;
+                    }
                     result += `  ${item}: ${str(val[item], depth + 1) || ''}, \n`;
                 }
-                if (i > 0)
+                if (i > 0) {
                     result = result.substring(0, result.length - 3);
+                }
                 result += '\n}\n';
             }
             break;
@@ -89,9 +92,8 @@ export function str(val, depth = 0) {
             result = `<NativeFunction ${val.name}>`;
             break;
     }
-    for (let i = 0; i < depth; i++) {
+    for (let i = 0; i < depth; i++)
         result = indent(result);
-    }
     return result;
 }
 export const sleep = (ms) => new Promise(resolve => setTimeout(() => resolve(), ms));

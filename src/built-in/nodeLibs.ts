@@ -25,7 +25,7 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
 
     const { fs, path } = options;
 
-    context.set('import', new ESFunction(({context}, rawPath): ESError | ESNamespace | undefined => {
+    context.set('import', new ESFunction(({context}, rawPath): ESError | Primitive | undefined => {
             let scriptPath: string = str(rawPath);
 
             if (moduleExist(scriptPath)) {

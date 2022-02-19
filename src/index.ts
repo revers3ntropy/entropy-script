@@ -29,18 +29,20 @@ export {
  * @returns {Promise<void | ESError>}
  */
 export async function init (
-    printFunc: (...args: any) => void = console.log,
+    printFunc: (...args: any[]) => void = console.log,
     inputFunc: (msg: string, cb: (...arg: any[]) => any) => void,
-    node=true,
+    node= true,
     libs: JSModuleParams = {print: console.log},
     context= new Context(),
     path = '',
 ): Promise<ESError | undefined> {
-    setGlobalContext(context);
+
     const res = initialise(context, printFunc, inputFunc);
     if (res instanceof ESError) {
         return res;
     }
+
+    setGlobalContext(context);
 
     libs['context'] ??= context;
 

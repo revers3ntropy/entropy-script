@@ -576,38 +576,28 @@ export class N_functionCall extends Node {
         if (!val) {
             return new TypeError(this.pos, 'any', 'undefined', undefined, 'On function call');
         }
-        if (!val.hasProperty({context}, new ESString('__call__')))
-            return new TypeError(this.pos, 'unknown',
-                val?.typeName().valueOf() || 'unknown', val?.valueOf(),
-                'Can only () on something with __call__ property');
 
         let params: Primitive[] = [];
 
         for (let arg of this.arguments) {
             const res = arg.interpret(context);
-            if (res.error) return res.error;
-            if (res.val) params.push(res.val);
+            if (res.error) {
+                return res.error;
+            }
+            if (res.val) {
+                params.push(res.val);
+            }
         }
 
-        const __call__ = val.__call__;
-
-        if (typeof __call__ !== 'function') {
-            return new TypeError(Position.unknown, 'native function', typeof __call__);
-        }
-        const res = __call__({context}, ...params);
+        const res = val.__call__({context}, ...params);
 
         if (res instanceof ESError) {
             res.traceback.push({
                 position: this.pos,
                 // do the best we can to recreate line,
                 // giving some extra info as well as it is the interpreted arguments so variables values not names
-                line: `${val.info.name}(${params.map(str).join(', ')})`
+                line: `${val.info.name || '<AnonFunction>'}(${params.map(str).join(', ')})`
             });
-            return res;
-        }
-
-        if (!(res instanceof ESPrimitive)) {
-            return new ESUndefined();
         }
 
         return res;

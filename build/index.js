@@ -23,11 +23,11 @@ export { Context, };
 export function init(printFunc = console.log, inputFunc, node = true, libs = { print: console.log }, context = new Context(), path = '') {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
-        setGlobalContext(context);
         const res = initialise(context, printFunc, inputFunc);
         if (res instanceof ESError) {
             return res;
         }
+        setGlobalContext(context);
         (_a = libs['context']) !== null && _a !== void 0 ? _a : (libs['context'] = context);
         if (path) {
             context.path = path;
