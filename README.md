@@ -5,7 +5,7 @@ JS interpreter for EntropyScript
 
 Install with `npm i -g entropy-script`.
 
-Run file.es file with `entropy-script file.es` or `jses file.es`.
+Run a script with `entropy-script <filename>.es` or `jses <filename>.es`.
 
 See [the docs](https://entropygames.io/entropy-script).
 
