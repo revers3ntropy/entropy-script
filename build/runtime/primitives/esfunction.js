@@ -27,7 +27,8 @@ export class ESFunction extends ESPrimitive {
         };
         this.__bool__ = () => new ESBoolean(true);
         this.bool = this.__bool__;
-        this.__call__ = ({}, ...params) => {
+        this.__call__ = ({ context }, ...params) => {
+            this.__closure__.path = context.path;
             return call(this.__closure__, this, params);
         };
         this.__getProperty__ = ({}, key) => {

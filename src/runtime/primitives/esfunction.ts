@@ -84,7 +84,8 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     __bool__ = () => new ESBoolean(true);
     bool = this.__bool__;
 
-    __call__ = ({}, ...params: Primitive[]): ESError | Primitive => {
+    __call__ = ({context}: funcProps, ...params: Primitive[]): ESError | Primitive => {
+        this.__closure__.path = context.path;
         return call(this.__closure__, this, params);
     }
 

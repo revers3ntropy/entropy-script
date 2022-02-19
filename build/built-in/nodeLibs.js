@@ -14,6 +14,10 @@ function addNodeLibs(options, context) {
     addModuleFromObj('mysql', MySQL(options));
     const { fs, path } = options;
     addModuleFromObj('fs', new ESJSBinding(fs, 'fs'));
+    addModuleFromObj('path', new ESJSBinding(path, 'path'));
+    addModuleFromObj('http', new ESJSBinding(options.http, 'http'));
+    addModuleFromObj('https', new ESJSBinding(options.https, 'https'));
+    addModuleFromObj('mysql', new ESJSBinding(options.mysql, 'mysql'));
     context.set('import', new ESFunction(({ context }, rawPath) => {
         let scriptPath = str(rawPath);
         if (moduleExist(scriptPath)) {
@@ -23,7 +27,6 @@ function addNodeLibs(options, context) {
         if (scriptPath in importCache) {
             return importCache[scriptPath];
         }
-        console.log('CURRENT: ', context.path);
         try {
             if (!fs.existsSync(scriptPath)) {
                 if (fs.existsSync('./particles/' + scriptPath)) {
