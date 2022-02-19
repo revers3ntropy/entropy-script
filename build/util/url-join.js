@@ -1,4 +1,3 @@
-// src: https://github.com/jfromaniello/url-join/blob/master/lib/url-join.js
 function normalize(strArray) {
     let resultArray = [];
     if (strArray.length === 0) {

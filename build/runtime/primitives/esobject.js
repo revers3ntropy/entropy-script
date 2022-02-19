@@ -32,7 +32,6 @@ export class ESObject extends ESPrimitive {
         };
         this.str = () => {
             let val = str(this.valueOf());
-            // remove trailing new line
             if (val[val.length - 1] === '\n')
                 val = val.substr(0, val.length - 1);
             return new ESString(`<ESObject ${val}>`);
@@ -50,7 +49,6 @@ export class ESObject extends ESPrimitive {
                 const nElement = n.valueOf()[key];
                 if (!thisElement) {
                     if (nElement) {
-                        // this element is not defined but the other element is
                         return new ESBoolean();
                     }
                     continue;

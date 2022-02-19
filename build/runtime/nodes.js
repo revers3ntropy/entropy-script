@@ -53,7 +53,6 @@ export class Node {
 Node.interprets = 0;
 Node.totalTime = 0;
 Node.maxTime = 0;
-// --- NON-TERMINAL NODES ---
 export class N_binOp extends Node {
     constructor(pos, left, opTok, right) {
         super(pos);
@@ -160,7 +159,6 @@ export class N_varAssign extends Node {
         this.isDeclaration = isDeclaration;
         this.isLocal = isLocal;
         if (type instanceof ESType) {
-            // wrap raw ESType in node
             this.type = new N_primWrapper(type);
         }
         else
@@ -192,7 +190,6 @@ export class N_varAssign extends Node {
             return res.val;
         }
         if (this.assignType === '=') {
-            // simple assign
             let value = res.val;
             if (value === undefined)
                 value = new ESUndefined();
@@ -206,7 +203,6 @@ export class N_varAssign extends Node {
         else {
             if (this.isDeclaration)
                 return new InvalidSyntaxError(this.pos, `Cannot declare variable with operator '${this.assignType}'`);
-            // assign with modifier like *= or -=
             const currentVal = context.get(this.varNameTok.value);
             if (currentVal instanceof ESError)
                 return currentVal;
@@ -263,14 +259,12 @@ export class N_if extends Node {
             return compRes;
         if ((_a = compRes.val) === null || _a === void 0 ? void 0 : _a.bool().valueOf()) {
             res = this.ifTrue.interpret(newContext);
-            // so that if statements always return a value of None
             res.val = new ESUndefined();
             if (res.error)
                 return res;
         }
         else if (this.ifFalse) {
             res = this.ifFalse.interpret(newContext);
-            // so that if statements always return a value of None
             res.val = new ESUndefined();
             if (res.error)
                 return res;
@@ -432,7 +426,6 @@ export class N_statements extends Node {
             const res = item.interpret(context);
             if (res.error || (typeof res.funcReturn !== 'undefined') || res.shouldBreak || res.shouldContinue)
                 return res;
-            // return last statement
             last = res.val;
         }
         if (last)
@@ -472,8 +465,6 @@ export class N_functionCall extends Node {
         if (res instanceof ESError) {
             res.traceback.push({
                 position: this.pos,
-                // do the best we can to recreate line,
-                // giving some extra info as well as it is the interpreted arguments so variables values not names
                 line: `${val.info.name}(${params.map(str).join(', ')})`
             });
             return res;
@@ -665,7 +656,6 @@ export class N_namespace extends Node {
         return new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
     }
 }
-// --- TERMINAL NODES ---
 export class N_number extends Node {
     constructor(pos, a) {
         super(pos, true);

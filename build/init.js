@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import { builtInFunctions } from "./built-in/builtInFunctions.js";
-import { getModule, moduleExist } from './built-in/builtInModules.js';
+import { getModule, initModules, moduleExist } from './built-in/builtInModules.js';
 import { Context } from "./runtime/context.js";
 import { ESError, ImportError } from "./errors.js";
 import { Position } from "./position.js";
@@ -78,5 +78,9 @@ export function initialise(globalContext, printFunc, inputFunc) {
         });
     }
     loadGlobalConstants(globalContext);
+    const initModRes = initModules();
+    if (initModRes) {
+        return initModRes;
+    }
     globalContext.initialisedAsGlobal = true;
 }

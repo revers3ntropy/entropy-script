@@ -15,6 +15,9 @@ export const setGlobalContext = (c) => void (global = c);
 export const stringSurrounds = ['\'', '`', '"'];
 export let IS_NODE_INSTANCE = false;
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);
+export const libs = {
+    print: console.log
+};
 export const KEYWORDS = [
     'var',
     'let',
@@ -42,7 +45,6 @@ export function refreshPerformanceNow(IS_NODE_INSTANCE) {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         if (IS_NODE_INSTANCE) {
-            // @ts-ignore
             const performance = yield import('perf_hooks');
             now = (_a = (() => { var _a; return (_a = performance === null || performance === void 0 ? void 0 : performance.performance) === null || _a === void 0 ? void 0 : _a.now(); })) !== null && _a !== void 0 ? _a : (() => 0);
         }

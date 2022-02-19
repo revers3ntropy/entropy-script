@@ -20,7 +20,6 @@ export class ESFunction extends ESPrimitive {
         this.clone = (chain) => {
             return new ESFunction(this.__value__, this.arguments_, this.name, this.this_, this.returnType, this.__closure__);
         };
-        // @ts-ignore
         this.valueOf = () => this;
         this.str = () => new ESString(`<Func: ${this.name}>`);
         this.__eq__ = ({}, n) => {
@@ -45,7 +44,6 @@ export class ESFunction extends ESPrimitive {
             type: arg.type.info.name,
             required: true
         }));
-        // TODO: info.helpLink
     }
     get name() {
         var _a;

@@ -24,12 +24,10 @@ const module = ({ https, http, print, fetch }) => ({
             }
             if (handlers.hasOwnProperty(url)) {
                 let data = '';
-                // need to get the data one packet at a time, and then deal with the whole lot at once
                 req.on('data', (chunk) => {
                     data += chunk;
                 });
                 req.on('end', () => {
-                    // the POST body has fully come through, continue on now
                     res.writeHead(200);
                     let body = {};
                     try {

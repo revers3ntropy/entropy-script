@@ -54,18 +54,25 @@ export function deepClone(obj: any, hash = new WeakMap()): any {
  * @param {any} val to be turned to string. used by .str primitive method
  */
 export function str (val: any, depth = 0): string {
-    if (typeof val === 'string') return val;
-    if (depth > 20) return '...';
+    if (typeof val === 'string') {
+        return val;
+    }
+    if (depth > 20) {
+        return '...';
+    }
     let result = '';
 
-    if (typeof val === 'undefined')
+    if (typeof val === 'undefined') {
         return 'undefined';
+    }
 
-    if (val instanceof ESPrimitive)
+    if (val instanceof ESPrimitive) {
         return val.str().valueOf();
+    }
 
-    if (val instanceof Node)
+    if (val instanceof Node) {
         return `<RunTimeNode: ${val.constructor.name}>`;
+    }
 
     switch (typeof val) {
         case 'object':
@@ -79,8 +86,9 @@ export function str (val: any, depth = 0): string {
                         result += '<large property>, '
                     }
                 }
-                if (val.length)
+                if (val.length) {
                     result = result.substring(0, result.length - 2);
+                }
                 result += ']';
             } else {
                 try {
@@ -121,8 +129,9 @@ export function str (val: any, depth = 0): string {
             break;
 
     }
-    for (let i = 0; i < depth; i++)
+    for (let i = 0; i < depth; i++) {
         result = indent(result);
+    }
     return result;
 }
 

@@ -4,15 +4,6 @@ import { ESError, TypeError } from "../errors.js";
 import { Position } from "../position.js";
 import { wrap } from './primitives/wrapStrip.js';
 import { ESArray, ESBoolean, ESFunction, ESNumber, ESObject, ESString, ESType, ESUndefined } from "./primitiveTypes.js";
-/**
- * Adds the properties of a parent class to an instance of a child class
- * @param {Context} context_ the context of the class definition
- * @param {ESType} class_ the class that the object is currently implementing
- * @param {dict<Primitive>} instance the instance to add the properties to
- * @param {Context} callContext
- * @param {ESObject} this_ the 'super' function's 'this' context
- * @returns {ESError | void}
- */
 function dealWithExtends(context_, class_, instance, callContext, this_) {
     if (!(class_ instanceof ESType)) {
         return new TypeError(Position.unknown, 'Type', typeof class_, class_);
@@ -21,11 +12,6 @@ function dealWithExtends(context_, class_, instance, callContext, this_) {
         var _b;
         const newContext = new Context();
         newContext.parent = context_;
-        /*let setRes = newContext.setOwn('type', new ESObject(instance));
-        if (setRes instanceof ESError) {
-            return setRes;
-        }
-         */
         if (class_.__extends__ !== undefined) {
             let _a = dealWithExtends(newContext, class_.__extends__, instance, callContext, this_);
             if (_a instanceof ESError) {
@@ -52,21 +38,10 @@ function dealWithExtends(context_, class_, instance, callContext, this_) {
     }
     instance = res.valueOf();
 }
-/**
- * Instantiates an instance of a type as an object.
- * Simply adds clones of all properties and methods to an empty object
- * @param {ESType} type
- * @param {Context} context
- * @param {Primitive[]} params
- * @param {boolean} runInit
- * @param {dict<Primitive>} on
- * @returns {ESBoolean | Primitive | ESFunction | ESUndefined | ESString | ESObject | ESError | ESNumber | ESArray | ESType}
- */
 export function createInstance(type, { context }, params, runInit = true, on = {}) {
     var _b;
     const callContext = context;
     if (type.__isPrimitive__) {
-        // make sure we have at least one arg
         if (params.length < 1) {
             return new ESUndefined();
         }
@@ -116,10 +91,8 @@ export function createInstance(type, { context }, params, runInit = true, on = {
     }
     if (runInit && type.__init__) {
         type.__init__.this_ = instance;
-        // newContext, which inherits from the current closure
         type.__init__.__closure__ = newContext;
         const res = type.__init__.__call__({ context: callContext }, ...params);
-        // return value of init is ignored
         if (res instanceof ESError) {
             return res;
         }

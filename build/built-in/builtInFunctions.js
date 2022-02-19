@@ -52,8 +52,6 @@ export const builtInFunctions = {
             returnType: 'number | TypeError'
         }],
     'help': [({ context }, ...things) => {
-            // I am truly disgusted by this function.
-            // But I am not going to make it look better.
             var _a;
             if (!things.length)
                 return new ESString(`

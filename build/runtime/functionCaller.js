@@ -33,16 +33,8 @@ function callNative(self, context, params, fn) {
     }
     return new ESUndefined();
 }
-/**
- * Calls an ESFunction
- * @param {Context} context
- * @param {ESFunction} self
- * @param {Primitive[]} params
- * @returns {ESUndefined | TypeError | ESError | ESPrimitive<any>}
- */
 export function call(context, self, params) {
     var _a;
-    // generate context
     let callContext = context;
     context = self.__closure__;
     context.path = callContext.path;

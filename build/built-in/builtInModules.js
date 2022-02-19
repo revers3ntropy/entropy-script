@@ -1,17 +1,25 @@
+import { libs } from '../constants.js';
+import { ESError } from '../errors.js';
 import { wrap } from '../runtime/primitives/wrapStrip.js';
 import { ESNamespace, ESObject, ESString } from '../runtime/primitiveTypes.js';
 import { ESSymbol } from '../runtime/symbol.js';
-// All modules
-// make this only import required modules in the future
 import maths from './built-in-modules/maths.js';
 import ascii from './built-in-modules/ascii.js';
 import json from './built-in-modules/json.js';
 import dom from './built-in-modules/dom.js';
 const modules = {
-    maths, ascii, json, dom
+    maths, ascii, json
 };
-// memoize the modules for faster access
 const processedModules = {};
+export function initModules() {
+    const domRes = dom(libs);
+    if (!(domRes instanceof ESError)) {
+        modules['dom'] = domRes;
+    }
+    else {
+        return domRes;
+    }
+}
 export function processRawModule(module, name) {
     const moduleDict = {};
     const moduleRaw = module.valueOf();

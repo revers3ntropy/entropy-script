@@ -6,14 +6,8 @@ import { str } from "../util/util.js";
 import { run } from "../index.js";
 import { addModuleFromObj, getModule, moduleExist } from './builtInModules.js';
 import { global, importCache } from "../constants.js";
-// node only built in modules
 import http from './built-in-modules/http.js';
 import MySQL from './built-in-modules/mysql.js';
-/**
- * Adds node functionality like access to files, https and more.
- * @param {JSModuleParams} options
- * @param {Context} context
- */
 function addNodeLibs(options, context) {
     addModuleFromObj('http', http(options));
     addModuleFromObj('mysql', MySQL(options));

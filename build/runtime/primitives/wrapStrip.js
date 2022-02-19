@@ -10,8 +10,11 @@ import { ESPrimitive } from './esprimitive.js';
 import { ESString } from './esstring.js';
 import { ESType } from './estype.js';
 import { ESUndefined } from './esundefined.js';
-export function wrap(thing = undefined) {
-    if (thing instanceof ESPrimitive) {
+export function wrap(thing = undefined, nativeWrap = false, depth = 0) {
+    if (depth >= 20) {
+        return new ESUndefined();
+    }
+    else if (thing instanceof ESPrimitive) {
         return thing;
     }
     else if (thing === undefined || thing === null) {
@@ -25,11 +28,18 @@ export function wrap(thing = undefined) {
     }
     else if (typeof thing == 'function') {
         return new ESFunction((p, ...args) => {
-            const res = thing(p, ...args);
+            let res;
+            if (nativeWrap) {
+                res = thing(...(args.map(strip)));
+            }
+            else {
+                res = thing(p, ...args);
+            }
             if (res instanceof ESError || res instanceof ESPrimitive) {
                 return res;
             }
-            return wrap(res);
+            console.log(res);
+            return wrap(res, nativeWrap, depth + 1);
         });
     }
     else if (typeof thing === 'number') {
@@ -43,12 +53,19 @@ export function wrap(thing = undefined) {
     }
     else if (typeof thing === 'object') {
         if (Array.isArray(thing)) {
-            return new ESArray(thing.map(s => wrap(s)));
+            try {
+                return new ESArray(thing.map(s => wrap(s, nativeWrap, depth + 1)));
+            }
+            catch (e) {
+                return new ESArray();
+            }
         }
         let newObj = {};
-        Object.getOwnPropertyNames(thing).forEach(key => {
-            newObj[key] = wrap(thing[key]);
-        });
+        for (const key in thing) {
+            if (thing.hasOwnProperty(key) || typeof thing[key] == "function") {
+                newObj[key] = wrap(thing[key], nativeWrap, depth + 1);
+            }
+        }
         return new ESObject(newObj);
     }
     else if (typeof thing === 'bigint') {
@@ -57,13 +74,8 @@ export function wrap(thing = undefined) {
     else if (typeof thing === 'symbol') {
         return new ESString(String(thing));
     }
-    // for typeof === undefined
     return new ESUndefined();
 }
-/**
- * Returns the thing passed in its js form
- * @param {Primitive} thing
- */
 export function strip(thing) {
     if (thing == undefined) {
         return undefined;

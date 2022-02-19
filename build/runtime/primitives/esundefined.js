@@ -52,7 +52,6 @@ export class ESUndefined extends ESPrimitive {
         this.__bool__ = () => new ESBoolean();
         this.bool = this.__bool__;
         this.clone = (chain) => new ESUndefined();
-        // define the same info for every instance
         this.info = {
             name: 'undefined',
             description: 'Not defined, not a value.',

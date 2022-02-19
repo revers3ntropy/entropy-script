@@ -1,3 +1,5 @@
+import {libs} from '../constants.js';
+import {ESError} from '../errors.js';
 import {wrap} from '../runtime/primitives/wrapStrip.js';
 import {ESNamespace, ESObject, ESString} from '../runtime/primitiveTypes.js';
 import {ESSymbol} from '../runtime/symbol.js';
@@ -11,11 +13,20 @@ import json from './built-in-modules/json.js';
 import dom from './built-in-modules/dom.js';
 
 const modules: {[s: string]: JSModule} = {
-    maths, ascii, json, dom
+    maths, ascii, json
 };
 
 // memoize the modules for faster access
 const processedModules: {[s: string]: ESNamespace} = {};
+
+export function initModules () {
+    const domRes = dom(libs);
+    if (!(domRes instanceof ESError)) {
+        modules['dom'] = domRes;
+    } else {
+        return domRes;
+    }
+}
 
 export function processRawModule (module: ESObject, name: string): ESNamespace {
     const moduleDict: {[s: string]: ESSymbol} = {};

@@ -53,12 +53,14 @@ export class ReferenceError extends ESError {
 }
 export class IndexError extends ESError {
     constructor(pos, ref, object) {
-        super(pos, 'IndexError', `${ref} is not defined on object '${object.info.name}'`);
+        var _a;
+        super(pos, 'IndexError', `${ref} is not defined on object '${((_a = object === null || object === void 0 ? void 0 : object.info) === null || _a === void 0 ? void 0 : _a.name) || str(object)}'`);
     }
 }
 export class InvalidOperationError extends ESError {
     constructor(op, value, detail = '', pos = Position.unknown) {
-        super(pos, 'TypeError', `Cannot perform '${op}' on value ${value.info.name || str(value)}: ${detail}`);
+        var _a;
+        super(pos, 'TypeError', `Cannot perform '${op}' on value ${((_a = value === null || value === void 0 ? void 0 : value.info) === null || _a === void 0 ? void 0 : _a.name) || str(value)}: ${detail}`);
     }
 }
 export class TestFailed extends ESError {

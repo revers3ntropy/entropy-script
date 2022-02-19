@@ -17,7 +17,6 @@ export class Lexer {
             return [[new Token(this.position, tt.EOF)], undefined];
         const tokens = [];
         while (this.currentChar !== undefined) {
-            // add semi-colon after
             if (' \t\n'.includes(this.currentChar)) {
                 this.advance();
             }
@@ -43,7 +42,6 @@ export class Lexer {
                     tokens.push(token);
                 }
                 else {
-                    // unknown char
                     let pos = this.position.clone;
                     let char = this.currentChar;
                     this.advance();
@@ -64,7 +62,6 @@ export class Lexer {
                     break;
                 dotCount++;
                 numStr += '.';
-                // use _ as a deliminator for sets of 0s - eg 1_000_000_000
             }
             else if (this.currentChar !== '_') {
                 numStr += this.currentChar;
@@ -80,9 +77,7 @@ export class Lexer {
         this.advance();
         while (this.currentChar !== strClose && this.currentChar !== undefined) {
             if (this.currentChar === '\\') {
-                // skip over the character so that you can include the strClose string in the string
                 this.advance();
-                // @ts-ignore
                 if (this.currentChar === 'n') {
                     str += '\n';
                     this.advance();

@@ -37,7 +37,6 @@ export class ESArray extends ESPrimitive {
                 const nElement = n.valueOf()[i];
                 if (!thisElement) {
                     if (nElement) {
-                        // this element is not defined but the other element is
                         return new ESBoolean();
                     }
                     continue;
@@ -79,12 +78,6 @@ export class ESArray extends ESPrimitive {
             }
             return new ESUndefined();
         };
-        // Util
-        /**
-         * Uses JS Array.prototype.splice
-         * @param val value to insert
-         * @param idx index to insert at, defaults to end of array
-         */
         this.add = ({}, val, idx = new ESNumber(this.len - 1)) => {
             if (!(val instanceof ESPrimitive))
                 throw 'adding non-primitive to array: ' + str(val);
@@ -92,10 +85,6 @@ export class ESArray extends ESPrimitive {
             this.__value__.splice(idx.valueOf(), 0, val);
             return new ESNumber(this.len);
         };
-        /**
-         * Uses JS Array.prototype.includes
-         * @param val value to check for
-         */
         this.contains = ({}, val) => {
             for (let element of this.__value__)
                 if (val.valueOf() == element.valueOf())

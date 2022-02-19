@@ -76,7 +76,6 @@ export class Context {
             context = this.root;
         }
         else {
-            // searches upwards to find the identifier, and if none can be found then it assigns it to the current context
             while (!context.hasOwn(identifier) && context.parent !== undefined)
                 context = context.parent;
             if (!context.hasOwn(identifier))
@@ -88,7 +87,6 @@ export class Context {
         if (!(value instanceof ESPrimitive)) {
             value = wrap(value);
         }
-        // is not global
         if (options.global && !this.initialisedAsGlobal)
             options.global = false;
         if (!options.forceThroughConst) {
@@ -169,7 +167,6 @@ export function generateESFunctionCallContext(params, self, parent) {
         if (!self.arguments_[i]) {
             continue;
         }
-        // type checking
         const arg = self.arguments_[i];
         if (!(arg.type instanceof ESType)) {
             return new TypeError(Position.unknown, 'Type', typeof arg.type, arg.type);

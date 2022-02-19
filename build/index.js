@@ -18,40 +18,30 @@ import { interpretResult, Node } from "./runtime/nodes.js";
 import { ESArray } from "./runtime/primitiveTypes.js";
 import { Context } from "./runtime/context.js";
 import addNodeLibs from "./built-in/nodeLibs.js";
+import { libs as allLibs } from './constants.js';
 export { Context, };
-/**
- * @param {(...args: any) => void} printFunc
- * @param {(msg: string, cb: (...arg: any[]) => any) => void} inputFunc
- * @param {boolean} node
- * @param nodeLibs
- * @param {Context} context
- * @param {string} path
- * @returns {Promise<void>}
- */
-export function init(printFunc = console.log, inputFunc, node = true, nodeLibs = {}, context = new Context(), path = '') {
+export function init(printFunc = console.log, inputFunc, node = true, libs = { print: console.log }, context = new Context(), path = '') {
     var _a;
     return __awaiter(this, void 0, void 0, function* () {
         setGlobalContext(context);
-        initialise(context, printFunc, inputFunc);
-        (_a = nodeLibs['context']) !== null && _a !== void 0 ? _a : (nodeLibs['context'] = context);
+        const res = initialise(context, printFunc, inputFunc);
+        if (res instanceof ESError) {
+            return res;
+        }
+        (_a = libs['context']) !== null && _a !== void 0 ? _a : (libs['context'] = context);
         if (path) {
             context.path = path;
+        }
+        if (libs.print) {
+            allLibs.print = libs.print;
         }
         if (node) {
             runningInNode();
             yield refreshPerformanceNow(true);
-            addNodeLibs(nodeLibs, context);
+            addNodeLibs(libs, context);
         }
     });
 }
-/**
- * @param {string} msg
- * @param {Context} env
- * @param {boolean} measurePerformance
- * @param {string} fileName
- * @param {string} currentDir
- * @returns {interpretResult | ({timeData: timeData} & interpretResult)}
- */
 export function run(msg, { env = global, measurePerformance = false, fileName = '(unknown)', currentDir = '' } = {}) {
     if (currentDir) {
         env.path = currentDir;

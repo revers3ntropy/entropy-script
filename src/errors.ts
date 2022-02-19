@@ -80,13 +80,13 @@ export class ReferenceError extends ESError {
 
 export class IndexError extends ESError {
     constructor(pos: Position, ref: string, object: Primitive) {
-        super(pos,'IndexError', `${ref} is not defined on object '${object.info.name}'`);
+        super(pos,'IndexError', `${ref} is not defined on object '${object?.info?.name || str(object)}'`);
     }
 }
 
 export class InvalidOperationError extends ESError {
     constructor(op: string, value: Primitive, detail: string = '', pos = Position.unknown) {
-        super(pos,'TypeError', `Cannot perform '${op}' on value ${value.info.name || str(value)}: ${detail}`);
+        super(pos,'TypeError', `Cannot perform '${op}' on value ${value?.info?.name || str(value)}: ${detail}`);
     }
 }
 

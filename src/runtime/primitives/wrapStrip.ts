@@ -12,8 +12,18 @@ import {ESType} from './estype.js';
 import {ESUndefined} from './esundefined.js';
 import {Primitive} from './primitive.js';
 
-export function wrap (thing: any = undefined): Primitive {
-    if (thing instanceof ESPrimitive) {
+/**
+ * @param {any} thing
+ * @param {boolean} nativeWrap - wraps objects fully and recursively, including methods
+ * @param {number} depth
+ * @returns {Primitive}
+ */
+export function wrap (thing: any = undefined, nativeWrap=false, depth=0): Primitive {
+    if (depth >= 20) {
+        // urghh....
+        return new ESUndefined();
+
+    } else if (thing instanceof ESPrimitive) {
         return thing;
 
     } else if (thing === undefined || thing === null) {
@@ -28,11 +38,19 @@ export function wrap (thing: any = undefined): Primitive {
     } else if (typeof thing == 'function') {
         return new ESFunction(
             (p, ...args: Primitive[]) => {
-                const res = thing(p, ...args);
+                let res;
+                if (nativeWrap) {
+                    res = thing(...(args.map(strip)));
+                } else {
+                    res = thing(p, ...args);
+                }
                 if (res instanceof ESError || res instanceof ESPrimitive) {
                     return res;
                 }
-                return wrap(res);
+
+                console.log(res);
+
+                return wrap(res, nativeWrap, depth+1);
             }
         );
     } else if (typeof thing === 'number') {
@@ -46,13 +64,21 @@ export function wrap (thing: any = undefined): Primitive {
 
     } else if (typeof thing === 'object') {
         if (Array.isArray(thing)) {
-            return new ESArray(thing.map(s => wrap(s)));
+            try {
+                return new ESArray(thing.map(s => wrap(s, nativeWrap, depth+1)));
+            } catch (e: any) {
+                return new ESArray();
+            }
         }
 
         let newObj: {[s: string]: Primitive} = {};
-        Object.getOwnPropertyNames(thing).forEach(key => {
-            newObj[key] = wrap(thing[key]);
-        });
+
+        for (const key in thing) {
+            if (thing.hasOwnProperty(key) || typeof thing[key] == "function") {
+                newObj[key] = wrap(thing[key], nativeWrap, depth+1);
+            }
+        }
+
         return new ESObject(newObj);
 
     } else if (typeof thing === 'bigint') {

@@ -1,3 +1,5 @@
+import {JSModuleParams} from './built-in/module.js';
+import nodeLibs from './built-in/nodeLibs.js';
 import type { Context } from './runtime/context';
 import {dict, enumDict} from './util/util.js';
 import {ESNamespace} from './runtime/primitiveTypes.js';
@@ -13,6 +15,10 @@ export const stringSurrounds = ['\'', '`', '"'];
 
 export let IS_NODE_INSTANCE = false;
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);
+
+export const libs: JSModuleParams = {
+    print: console.log
+};
 
 export const KEYWORDS = [
     'var',

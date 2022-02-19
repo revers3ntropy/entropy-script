@@ -1,48 +1,40 @@
 import { Node } from "../runtime/nodes.js";
 import { ESPrimitive } from '../runtime/primitiveTypes.js';
-/**
- * @desc opens a modal window to display a message
- * @return bool - success or failure
- * @param {any} obj
- * @param hash
- */
 export function deepClone(obj, hash = new WeakMap()) {
-    // Do not try to clone primitives or functions
     if (Object(obj) !== obj || obj instanceof Function)
         return obj;
     if (hash.has(obj))
-        return hash.get(obj); // Cyclic reference
-    try { // Try to run constructor (without arguments, as we don't know them)
+        return hash.get(obj);
+    try {
         var result = new obj.constructor();
     }
-    catch (e) { // Constructor failed, create object without running the constructor
+    catch (e) {
         result = Object.create(Object.getPrototypeOf(obj));
     }
-    // Optional: support for some standard constructors (extend as desired)
     if (obj instanceof Map)
         Array.from(obj, ([key, val]) => result.set(deepClone(key, hash), deepClone(val, hash)));
     else if (obj instanceof Set)
         Array.from(obj, (key) => result.add(deepClone(key, hash)));
-    // Register in hash
     hash.set(obj, result);
-    // Clone and assign enumerable own properties recursively
     return Object.assign(result, ...Object.keys(obj).map(key => ({ [key]: deepClone(obj[key], hash) })));
 }
-/**
- * @param {any} val to be turned to string. used by .str primitive method
- */
 export function str(val, depth = 0) {
-    if (typeof val === 'string')
+    if (typeof val === 'string') {
         return val;
-    if (depth > 20)
+    }
+    if (depth > 20) {
         return '...';
+    }
     let result = '';
-    if (typeof val === 'undefined')
+    if (typeof val === 'undefined') {
         return 'undefined';
-    if (val instanceof ESPrimitive)
+    }
+    if (val instanceof ESPrimitive) {
         return val.str().valueOf();
-    if (val instanceof Node)
+    }
+    if (val instanceof Node) {
         return `<RunTimeNode: ${val.constructor.name}>`;
+    }
     switch (typeof val) {
         case 'object':
             if (Array.isArray(val)) {
@@ -55,8 +47,9 @@ export function str(val, depth = 0) {
                         result += '<large property>, ';
                     }
                 }
-                if (val.length)
+                if (val.length) {
                     result = result.substring(0, result.length - 2);
+                }
                 result += ']';
             }
             else {
@@ -96,14 +89,11 @@ export function str(val, depth = 0) {
             result = `<NativeFunction ${val.name}>`;
             break;
     }
-    for (let i = 0; i < depth; i++)
+    for (let i = 0; i < depth; i++) {
         result = indent(result);
+    }
     return result;
 }
-/**
- * Returns a promise which is resolved after a set number of ms.
- * @param {number} ms
- */
 export const sleep = (ms) => new Promise(resolve => setTimeout(() => resolve(), ms));
 export function indent(str) {
     return str.replace(/\n/g, '\n    ');

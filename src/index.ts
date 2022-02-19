@@ -12,6 +12,7 @@ import { timeData } from "./util/util.js";
 import { Context } from "./runtime/context.js";
 import addNodeLibs from "./built-in/nodeLibs.js";
 import { JSModuleParams } from "./built-in/module.js";
+import {libs as allLibs} from './constants.js';
 
 export {
     Context,
@@ -22,32 +23,39 @@ export {
  * @param {(...args: any) => void} printFunc
  * @param {(msg: string, cb: (...arg: any[]) => any) => void} inputFunc
  * @param {boolean} node
- * @param nodeLibs
+ * @param libs
  * @param {Context} context
  * @param {string} path
- * @returns {Promise<void>}
+ * @returns {Promise<void | ESError>}
  */
 export async function init (
     printFunc: (...args: any) => void = console.log,
     inputFunc: (msg: string, cb: (...arg: any[]) => any) => void,
     node=true,
-    nodeLibs: any = {},
+    libs: JSModuleParams = {print: console.log},
     context= new Context(),
     path = '',
-) {
+): Promise<ESError | undefined> {
     setGlobalContext(context);
-    initialise(context, printFunc, inputFunc);
+    const res = initialise(context, printFunc, inputFunc);
+    if (res instanceof ESError) {
+        return res;
+    }
 
-    nodeLibs['context'] ??= context;
+    libs['context'] ??= context;
 
     if (path) {
         context.path = path;
     }
 
+    if (libs.print) {
+        allLibs.print = libs.print;
+    }
+
     if (node) {
         runningInNode();
         await refreshPerformanceNow(true);
-        addNodeLibs( <JSModuleParams> nodeLibs, context);
+        addNodeLibs(libs, context);
     }
 }
 

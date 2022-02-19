@@ -87,7 +87,6 @@ export class Parser {
         let moreStatements = true;
         while (true) {
             let newLineCount = 0;
-            // @ts-ignore
             while (this.currentToken.type === tt.ENDSTATEMENT) {
                 this.advance(res);
                 newLineCount++;
@@ -118,7 +117,6 @@ export class Parser {
             if (this.currentToken.type !== tt.ENDSTATEMENT)
                 expr = res.register(this.expr());
             return res.success(new n.N_return(pos, expr));
-            // yield has the same format as return
         }
         else if (this.currentToken.matches(tt.KEYWORD, 'yield')) {
             this.advance(res);
@@ -208,7 +206,6 @@ export class Parser {
                     break;
                 case tt.DOT:
                     this.advance(res);
-                    // @ts-ignore
                     if (this.currentToken.type !== tt.IDENTIFIER)
                         return res.failure(new InvalidSyntaxError(this.currentToken.pos, `Expected identifier after '.'`));
                     prevNode = node;
@@ -219,7 +216,6 @@ export class Parser {
         if (this.currentToken.type === tt.ASSIGN) {
             let assignType = this.currentToken.value;
             if (functionCall) {
-                // TODO: f(x) = x+1 syntax here
                 return res.failure(new InvalidSyntaxError(pos, `Cannot assign to return value of function`));
             }
             this.advance(res);
@@ -314,10 +310,7 @@ export class Parser {
         let left = res.register(func());
         if (res.error)
             return res;
-        while (
-        // @ts-ignore
-        ops.indexOf(this.currentToken.type) !== -1
-            // @ts-ignore
+        while (ops.indexOf(this.currentToken.type) !== -1
             || ops.indexOf([this.currentToken.type, this.currentToken.value]) !== -1) {
             const opTok = this.currentToken;
             this.advance(res);
@@ -343,7 +336,6 @@ export class Parser {
         if (this.currentToken.type !== tt.OPAREN)
             return res.failure(new InvalidSyntaxError(pos, "Expected '['"));
         this.advance(res);
-        // @ts-ignore
         if (this.currentToken.type === tt.CPAREN) {
             this.advance(res);
             return res.success(new n.N_functionCall(pos, to, []));
@@ -351,14 +343,12 @@ export class Parser {
         args.push(res.register(this.expr()));
         if (res.error)
             return res.failure(new InvalidSyntaxError(this.currentToken.pos, "Invalid argument"));
-        // @ts-ignore
         while (this.currentToken.type === tt.COMMA) {
             this.advance(res);
             args.push(res.register(this.expr()));
             if (res.error)
                 return res;
         }
-        // @ts-ignore
         if (this.currentToken.type !== tt.CPAREN)
             return res.failure(new InvalidSyntaxError(this.currentToken.pos, "Expected ',' or ')'"));
         this.advance(res);
@@ -371,14 +361,12 @@ export class Parser {
         if (this.currentToken.type !== tt.OSQUARE)
             return res.failure(new InvalidSyntaxError(pos, "Expected '["));
         this.advance(res);
-        // @ts-ignore
         if (this.currentToken.type === tt.CSQUARE) {
             return res.failure(new InvalidSyntaxError(pos, `Cannot index without expression`));
         }
         let index = res.register(this.expr());
         if (res.error)
             return res.failure(new InvalidSyntaxError(this.currentToken.pos, "Invalid index"));
-        // @ts-ignore
         if (this.currentToken.type !== tt.CSQUARE)
             return res.failure(new InvalidSyntaxError(this.currentToken.pos, "Expected ']'"));
         this.advance(res);
@@ -424,19 +412,15 @@ export class Parser {
         const varName = this.currentToken;
         this.advance(res);
         let type = types.any;
-        // @ts-ignore
         if (this.currentToken.type === tt.COLON) {
             isDeclaration = true;
             this.consume(res, tt.COLON);
             type = res.register(this.typeExpr());
         }
-        // @ts-ignore doesn't like two different comparisons after each other with different values
         if (this.currentToken.type !== tt.ASSIGN) {
             if (isConst)
                 return res.failure(new InvalidSyntaxError(pos, 'Cannot initialise constant to undefined'));
-            return res.success(new n.N_varAssign(pos, varName, new n.N_undefined(this.currentToken.pos), '=', isGlobal, isLocal, 
-            // must be false ^
-            isConst, isDeclaration, type));
+            return res.success(new n.N_varAssign(pos, varName, new n.N_undefined(this.currentToken.pos), '=', isGlobal, isLocal, isConst, isDeclaration, type));
         }
         let assignType = this.currentToken.value;
         this.advance(res);
@@ -457,7 +441,6 @@ export class Parser {
         if (res.error)
             return res;
         this.clearEndStatements(res);
-        // @ts-ignore
         if (this.currentToken.type === tt.CBRACES) {
             this.advance(res);
             return res.success(new n.N_undefined(this.currentToken.pos));
@@ -524,12 +507,6 @@ export class Parser {
         this.addEndStatement(res);
         return res.success(new n.N_while(pos, condition, loop));
     }
-    /**
-     * Gets the __name__ and __type__ of a parameter, for example `arg1: number`
-     * @param {ParseResults} res
-     * @private
-     * @returns {[string, Node] | ESError}
-     */
     parameter(res) {
         let name;
         let type = new n.N_primWrapper(types.any);
@@ -537,7 +514,6 @@ export class Parser {
             return new InvalidSyntaxError(this.currentToken.pos, "Expected identifier");
         name = this.currentToken.value;
         this.advance(res);
-        // @ts-ignore
         if (this.currentToken.type === tt.COLON) {
             this.consume(res, tt.COLON);
             if (res.error)
@@ -548,16 +524,11 @@ export class Parser {
         }
         return { name, type };
     }
-    /**
-     * () {} part of the function or method
-     * @private
-     */
     funcCore() {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         let body, args = [], returnType = new n.N_primWrapper(types.any);
         this.consume(res, tt.OPAREN);
-        // @ts-ignore
         if (this.currentToken.type === tt.CPAREN) {
             this.advance(res);
         }
@@ -566,7 +537,6 @@ export class Parser {
             if (param instanceof ESError)
                 return res.failure(param);
             args.push(param);
-            // @ts-ignore
             while (this.currentToken.type === tt.COMMA) {
                 this.advance(res);
                 let param = this.parameter(res);
@@ -574,19 +544,16 @@ export class Parser {
                     return res.failure(param);
                 args.push(param);
             }
-            // @ts-ignore
             if (this.currentToken.type !== tt.CPAREN)
                 return res.failure(new InvalidSyntaxError(this.currentToken.pos, "Expected ',' or ')'"));
             this.advance(res);
         }
-        // @ts-ignore
         if (this.currentToken.type === tt.COLON) {
             this.advance(res);
             returnType = res.register(this.typeExpr());
             if (res.error)
                 return res;
         }
-        // @ts-ignore
         if (this.currentToken.type !== tt.OBRACES) {
             body = new n.N_return(this.currentToken.pos, res.register(this.expr()));
             if (res.error)
@@ -675,7 +642,6 @@ export class Parser {
         else if (this.currentToken.matches(tt.KEYWORD, 'var') || this.currentToken.matches(tt.KEYWORD, 'let')) {
             this.advance(res);
         }
-        // @ts-ignore - comparison again
         if (this.currentToken.type !== tt.IDENTIFIER)
             return res.failure(new InvalidSyntaxError(this.currentToken.pos, "Expected identifier"));
         identifier = this.currentToken;
@@ -699,7 +665,6 @@ export class Parser {
         if (this.currentToken.type !== tt.OSQUARE)
             return res.failure(new InvalidSyntaxError(pos, "Expected '["));
         this.advance(res);
-        // @ts-ignore
         if (this.currentToken.type === tt.CSQUARE) {
             this.advance(res);
             return res.success(new n.N_array(pos, []));
@@ -707,14 +672,12 @@ export class Parser {
         elements.push(res.register(this.expr()));
         if (res.error)
             return res.failure(new InvalidSyntaxError(this.currentToken.pos, "Expected ']', 'var', 'if', 'for', 'while', number, identifier, '+', '-', '(', '[' or '!' 2"));
-        // @ts-ignore
         while (this.currentToken.type === tt.COMMA) {
             this.advance(res);
             elements.push(res.register(this.expr()));
             if (res.error)
                 return res;
         }
-        // @ts-ignore
         if (this.currentToken.type !== tt.CSQUARE)
             return res.failure(new InvalidSyntaxError(this.currentToken.pos, "Expected ',' or ']'"));
         this.advance(res);
@@ -727,26 +690,21 @@ export class Parser {
         if (this.currentToken.type !== tt.OBRACES)
             return res.failure(new InvalidSyntaxError(pos, "Expected '{"));
         this.advance(res);
-        // @ts-ignore
         if (this.currentToken.type === tt.CBRACES) {
             this.advance(res);
             return res.success(new n.N_emptyObject(pos));
         }
-        // @ts-ignore
         while (true) {
             let keyType, key, value;
-            // @ts-ignore
             if (this.currentToken.type === tt.IDENTIFIER) {
                 keyType = 'id';
                 key = new n.N_string(this.currentToken.pos, this.currentToken);
                 this.advance(res);
-                // @ts-ignore
             }
             else if (this.currentToken.type === tt.STRING) {
                 keyType = 'string';
                 key = new n.N_string(this.currentToken.pos, this.currentToken);
                 this.advance(res);
-                // @ts-ignore
             }
             else if (this.currentToken.type === tt.OSQUARE) {
                 keyType = 'value';
@@ -776,7 +734,6 @@ export class Parser {
                 if (keyType !== 'id')
                     return res.failure(new InvalidSyntaxError(this.currentToken.pos, `You must specify a value when initialising an object literal with a key that is not an identifier.
                         Try using \`key: value\` syntax.`));
-                // reverse back to the identifier
                 this.reverse();
                 value = new n.N_variable(this.currentToken);
                 this.advance(res);
@@ -787,7 +744,6 @@ export class Parser {
             if (res.error)
                 return res;
         }
-        // @ts-ignore
         if (this.currentToken.type !== tt.CBRACES)
             return res.failure(new InvalidSyntaxError(this.currentToken.pos, "Expected identifier, ',' or '}'"));
         this.advance(res);

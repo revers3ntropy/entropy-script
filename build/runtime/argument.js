@@ -1,12 +1,6 @@
 import { ESPrimitive, ESType } from "./primitiveTypes.js";
 import { TypeError } from "../errors.js";
 import { Position } from "../position.js";
-/**
- * Converts uninterpretedArgument -> runtimeArgument
- * @param {uninterpretedArgument} arg
- * @param {Context} context
- * @returns {runtimeArgument|ESError}
- */
 export function interpretArgument(arg, context) {
     var _a;
     let type;

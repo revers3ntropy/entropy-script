@@ -1,5 +1,5 @@
 import { builtInFunctions } from "./built-in/builtInFunctions.js";
-import {getModule, moduleExist} from './built-in/builtInModules.js';
+import {getModule, initModules, moduleExist} from './built-in/builtInModules.js';
 import { Context } from "./runtime/context.js";
 import { ESError, ImportError } from "./errors.js";
 import { Position } from "./position.js";
@@ -14,8 +14,7 @@ export function initialise (
     globalContext: Context,
     printFunc: (...args: string[]) => void,
     inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
-) {
-
+): ESError | undefined {
     builtInFunctions['import'] = [({context}, rawUrl, callback) => {
         if (IS_NODE_INSTANCE) {
             return new ESError(Position.unknown, 'ImportError', 'Is running in node instance but trying to run browser import function');
@@ -89,6 +88,11 @@ export function initialise (
     }
 
     loadGlobalConstants(globalContext);
+
+    const initModRes = initModules();
+    if (initModRes) {
+        return initModRes;
+    }
 
     globalContext.initialisedAsGlobal = true;
 }

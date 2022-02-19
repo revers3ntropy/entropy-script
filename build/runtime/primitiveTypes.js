@@ -21,7 +21,6 @@ types.function = new ESType(true, 'Function');
 types.bool = new ESType(true, 'Boolean');
 types.object = new ESType(true, 'Object');
 types.error = new ESType(true, 'Error');
-// Documentation for types
 types.any.info = {
     name: 'any',
     description: 'Matches any other type',
