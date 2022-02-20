@@ -3,17 +3,17 @@ import {ESError} from '../errors.js';
 import {wrap} from '../runtime/primitives/wrapStrip.js';
 import {ESSymbol} from '../runtime/symbol.js';
 import type {JSModule} from './module.js';
+import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
 
 // All modules
 // make this only import required modules in the future
-import maths from './built-in-modules/maths.js';
 import ascii from './built-in-modules/ascii.js';
 import json from './built-in-modules/json.js';
 import dom from './built-in-modules/dom.js';
-import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
+
 
 const modules: {[s: string]: JSModule} = {
-    maths, ascii, json
+    ascii, json
 };
 
 type modulePrimitive = ESJSBinding<{[k: string]: any}>;
@@ -22,6 +22,8 @@ type modulePrimitive = ESJSBinding<{[k: string]: any}>;
 const processedModules: {[s: string]: modulePrimitive} = {};
 
 export function initModules () {
+
+    processedModules['math'] = new ESJSBinding<{[p: string]: any}>(Math);
 
     if (!IS_NODE_INSTANCE) {
         const domRes = dom(libs);
@@ -46,7 +48,7 @@ export function processRawModule (module: modulePrimitive, name: string): module
 }
 
 export function moduleExist (name: string) {
-    return name in modules;
+    return name in modules || name in processedModules;
 }
 
 export function addModule (name: string, body: modulePrimitive) {
@@ -59,9 +61,11 @@ export function addModuleFromObj (name: string, raw: {[s: string]: any}) {
 }
 
 export function getModule (name: string): modulePrimitive | undefined {
+
     if (name in processedModules) {
         return processedModules[name];
     }
+
     if (name in modules) {
         const res = new ESJSBinding(modules[name]);
         const processed = processRawModule(res, name);

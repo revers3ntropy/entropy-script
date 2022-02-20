@@ -6,12 +6,8 @@ import { str } from "../util/util.js";
 import { run } from "../index.js";
 import { addModuleFromObj, getModule, moduleExist } from './builtInModules.js';
 import { global, importCache } from "../constants.js";
-import http from './built-in-modules/http.js';
-import MySQL from './built-in-modules/mysql.js';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
 function addNodeLibs(options, context) {
-    addModuleFromObj('http', http(options));
-    addModuleFromObj('mysql', MySQL(options));
     const { fs, path } = options;
     addModuleFromObj('fs', new ESJSBinding(fs, 'fs'));
     addModuleFromObj('path', new ESJSBinding(path, 'path'));

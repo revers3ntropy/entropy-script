@@ -10,8 +10,6 @@ import {addModuleFromObj, getModule, moduleExist} from './builtInModules.js';
 import { global, importCache } from "../constants.js";
 
 // node only built in modules
-import http from './built-in-modules/http.js';
-import MySQL from './built-in-modules/mysql.js'
 import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
 
 /**
@@ -20,10 +18,6 @@ import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
  * @param {Context} context
  */
 function addNodeLibs (options: JSModuleParams, context: Context) {
-
-    addModuleFromObj('http', http(options));
-
-    addModuleFromObj('mysql', MySQL(options));
 
     const { fs, path } = options;
 

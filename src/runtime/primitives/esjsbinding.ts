@@ -77,7 +77,15 @@ export class ESJSBinding<T> extends ESPrimitive<T> {
             return new TypeError(Position.unknown, 'function', typeof this.__value__, str(this));
         }
 
-        const res = this.__value__(...args.map(o => strip(o, props)));
+        let res;
+
+        try {
+            // @ts-ignore
+            res = new this.__value__(...args.map(o => strip(o, props)));
+        } catch {
+            res = this.__value__(...args.map(o => strip(o, props)));
+
+        }
 
         if (res instanceof ESPrimitive) {
             return res;
