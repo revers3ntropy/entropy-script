@@ -26,15 +26,19 @@ export class ParseResults {
         this.lastRegisteredAdvanceCount++;
     }
 
-    register (res: ParseResults | any): n.Node {
+    register (res: ParseResults): n.Node {
         this.lastRegisteredAdvanceCount = res.advanceCount;
         this.advanceCount += res.advanceCount;
-        if (res.error)
+        if (res.error) {
             this.error = res.error;
+        }
+        if (!res.node) {
+            return new N_undefined();
+        }
         return res.node;
     }
 
-    tryRegister (res: ParseResults | any) {
+    tryRegister (res: ParseResults) {
         if (res.error) {
             this.reverseCount += res.advanceCount;
             return;
@@ -114,12 +118,18 @@ export class Parser {
     private statements (useArray = false): ParseResults {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
-        let statements = [];
+        let statements: Node[] = [];
 
         this.clearEndStatements(res);
 
-        statements.push(res.register(this.statement()));
-        if (res.error) return res;
+        const firstStatement = res.register(this.statement());
+        if (!firstStatement) {
+            return res;
+        }
+        statements.push(firstStatement);
+        if (res.error) {
+            return res;
+        }
 
         let moreStatements = true;
 
@@ -158,16 +168,26 @@ export class Parser {
         if (this.currentToken.matches(tt.KEYWORD, 'return')) {
             this.advance(res);
             let expr: Node = new N_undefined(this.currentToken.pos);
-            if (this.currentToken.type !== tt.ENDSTATEMENT)
-                expr = res.register(this.expr());
+            if (this.currentToken.type !== tt.ENDSTATEMENT) {
+                let exprRes = res.register(this.expr());
+                if (!exprRes) {
+                    return res.failure(new InvalidSyntaxError(this.currentToken.pos, 'Expected end of statement'));
+                }
+                expr = exprRes;
+            }
             return res.success(new n.N_return(pos, expr));
 
             // yield has the same format as return
         } else if (this.currentToken.matches(tt.KEYWORD, 'yield')) {
             this.advance(res);
             let expr: Node = new N_undefined(this.currentToken.pos);
-            if (this.currentToken.type !== tt.ENDSTATEMENT)
-                expr = res.register(this.expr());
+            if (this.currentToken.type !== tt.ENDSTATEMENT) {
+                let exprRes = res.register(this.expr());
+                if (!exprRes) {
+                    return res.failure(new InvalidSyntaxError(this.currentToken.pos, 'Expected end of statement'));
+                }
+                expr = exprRes;
+            }
             return res.success(new n.N_yield(pos, expr));
 
         } else if (this.currentToken.matches(tt.KEYWORD, 'break')) {
@@ -180,7 +200,13 @@ export class Parser {
         }
 
         const expr = res.register(this.expr());
-        if (res.error) return res;
+        if (res.error) {
+            return res;
+        }
+
+        if (!expr) {
+            return res.failure(new InvalidSyntaxError(pos, 'No empty statements'));
+        }
 
         return res.success(expr);
     }
@@ -624,10 +650,13 @@ export class Parser {
 
         this.advance(res);
         const expr = res.register(this.expr());
-        if (res.error) return res;
+        if (res.error){
+            return res;
+        }
 
-        if (expr instanceof n.N_class || expr instanceof n.N_functionDefinition)
+        if (expr instanceof n.N_class || expr instanceof n.N_functionDefinition) {
             expr.name = varName.value;
+        }
 
         if (expr instanceof N_namespace) {
             expr.name = varName.value;
@@ -651,7 +680,9 @@ export class Parser {
         const res = new ParseResults();
 
         this.consume(res, tt.OBRACES);
-        if (res.error) return res;
+        if (res.error) {
+            return res;
+        }
 
         this.clearEndStatements(res);
 
@@ -661,10 +692,14 @@ export class Parser {
             return res.success(new n.N_undefined(this.currentToken.pos));
         }
         const expr = res.register(this.statements());
-        if (res.error) return res;
+        if (res.error) {
+            return res;
+        }
 
         this.consume(res, tt.CBRACES);
-        if (res.error) return res;
+        if (res.error) {
+            return res;
+        }
 
         return res.success(expr);
     }

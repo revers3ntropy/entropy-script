@@ -1,6 +1,6 @@
 import './util/colourString.js';
 
-import { Lexer } from "./tokenise/lexer.js";
+import { Lexer } from "./parse/lexer.js";
 import { Parser } from "./parse/parser.js";
 import { global, now, refreshPerformanceNow, runningInNode, setGlobalContext } from "./constants.js";
 import { initialise } from "./init.js";
@@ -108,16 +108,16 @@ export function run (msg: string, {
     }
 
     const lexer = new Lexer(msg, fileName);
-    const [tokens, error] = lexer.generate();
-    if (error) {
+    const lexerRes = lexer.generate();
+    if (lexerRes instanceof ESError) {
         const res_ = new interpretResult();
-        res_.error = error;
+        res_.error = lexerRes;
         return res_;
     }
     timeData.lexerTotal = now() - start;
     start = now();
 
-    const parser = new Parser(tokens);
+    const parser = new Parser(lexerRes);
     const res = parser.parse();
     if (res.error) {
         const res_ = new interpretResult();

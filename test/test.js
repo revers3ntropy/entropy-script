@@ -1,42 +1,5 @@
 import {Test} from './testFramework.js';
 
-// import all tests
-import './basic/general.js';
-import './basic/arrays.js';
-import './basic/assignment.js';
-import './basic/classes.js';
-import './basic/comments.js';
-import './basic/functions.js';
-import './basic/if.js';
-import './basic/loops.js';
-import './basic/namespaces.js';
-import './basic/objects.js';
-import './basic/operatorOverride.js';
-
-import './typing/assignment.js';
-import './typing/custom.js';
-import './typing/parameters.js';
-import './typing/returns.js';
-
-import './examples/vector.js';
-
-import './std/array.js';
-import './std/import.js';
-import './std/parseNum.js';
-import './std/range.js';
-import './std/string.js';
-import './std/type.js';
-import './std/using.js';
-
-import './std/primitive/bool.js';
-import './std/primitive/cast.js';
-import './std/primitive/clone.js';
-import './std/primitive/isa.js';
-import './std/primitive/is.js';
-import './std/primitive/str.js';
-
-import './std/type/__instances__.js';
-
 // libs for ES
 import * as es from "../build/index.js";
 import https from "https";
@@ -46,6 +9,10 @@ import * as sql from "sync-mysql";
 import * as path from 'path';
 import readline from "readline";
 
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 
 /**
@@ -65,7 +32,23 @@ function askQuestion(query) {
 	}));
 }
 
+async function importAll (dir='./test/tests') {
+	const files = fs.readdirSync(dir);
+	for (let f of files) {
+
+		const file = path.join(dir, f);
+
+		if (file.substr(file.length-3, file.length) !== '.js') {
+			await importAll(file);
+		} else {
+			await import(file);
+		}
+	}
+}
+
 (async () => {
+
+	await importAll();
 
 	const err = await es.init(
 		console.log,

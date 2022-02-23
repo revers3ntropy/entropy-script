@@ -56,7 +56,7 @@ export function wrap (thing: any, functionsTakeProps=false): Primitive {
  * @param {Primitive} thing
  * @param props
  */
-export function strip (thing: Primitive | undefined, props: funcProps): any {
+export function strip (thing: Primitive | undefined, props: funcProps): NativeObj {
     if (thing == undefined) {
         return undefined;
 
@@ -67,9 +67,10 @@ export function strip (thing: Primitive | undefined, props: funcProps): any {
         return thing.valueOf().map(m => strip(m, props), props);
 
     } else if (thing instanceof ESObject) {
-        let val: any = {};
-        for (let key in thing.valueOf())
+        let val: { [key: string]: NativeObj } = {};
+        for (let key in thing.valueOf()) {
             val[key] = strip(thing.valueOf()[key], props);
+        }
         return val;
 
     } else if (thing instanceof ESUndefined) {

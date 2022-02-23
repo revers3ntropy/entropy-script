@@ -5,15 +5,17 @@ import {str} from '../../util/util.js';
 import type {JSModule} from '../module.js';
 
 const module: JSModule = {
-    asciiToChar: ({}, number: Primitive) => {
-        if (!(number instanceof ESNumber))
+    asciiToChar: (props, number: Primitive) => {
+        if (!(number instanceof ESNumber)) {
             return new TypeError(Position.unknown, 'number', str(number.typeName()), str(number));
+        }
         return new ESString(String.fromCharCode(number.valueOf()));
     },
 
-    charToAscii: ({}, char: Primitive) => {
-        if (!(char instanceof ESString))
+    charToAscii: (props, char: Primitive) => {
+        if (!(char instanceof ESString)) {
             return new TypeError(Position.unknown, 'string', str(char.typeName()), str(char));
+        }
         return new ESNumber(str(char).charCodeAt(0));
     },
 };

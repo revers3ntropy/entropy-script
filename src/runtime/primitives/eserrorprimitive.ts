@@ -14,7 +14,7 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
         super(error, types.error);
     }
 
-    __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+    __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
         if (this.self.hasOwnProperty(str(key))) {
             const val = this.self[str(key)];
             if (typeof val === 'function') {
@@ -25,13 +25,14 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
         return new IndexError(Position.unknown, key.valueOf(), this);
     };
 
-    cast = ({}) => {
-        return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'error'`);
-    }
+    cast = ({}) =>
+        new ESError(Position.unknown, 'TypeError', `Cannot cast type 'error'`);
 
-    str = () => new ESString(`<Error: ${this.valueOf().str}>`);
 
-    __eq__ = ({}: funcProps, n: Primitive) =>
+    str = () =>
+        new ESString(`<Error: ${this.valueOf().str}>`);
+
+    __eq__ = (props: funcProps, n: Primitive) =>
         new ESBoolean(
             n instanceof ESErrorPrimitive &&
             this.valueOf().constructor === n.valueOf().constructor
@@ -40,5 +41,5 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
     __bool__ = () => new ESBoolean(true);
     bool = this.__bool__;
 
-    clone = (): ESErrorPrimitive => new ESErrorPrimitive(this.valueOf());
+    clone = () => new ESErrorPrimitive(this.valueOf());
 }

@@ -1,19 +1,22 @@
-import { ESError, InvalidOperationError } from '../../errors.js';
+import {ESError, InvalidOperationError, TypeError} from '../../errors.js';
+import {Position} from '../../position.js';
 
 import {ESBoolean} from './esboolean.js';
+import type {ESObject} from './esobject.js';
 import type {ESString} from './esstring.js';
 import type {ESType} from './estype.js';
 import type {Info} from './info.js';
 import {Primitive, types} from './primitive.js';
 
 import { funcProps, str } from '../../util/util.js';
+import {strip} from './wrapStrip.js';
 
 
 export abstract class ESPrimitive <T> {
     public __value__: T;
     public __type__: ESType;
     public info: Info;
-    protected self: any = this;
+    protected self: NativeObj = this;
 
     /**
      * @param value
@@ -97,11 +100,11 @@ export abstract class ESPrimitive <T> {
     /**
      * @returns if this type is a subset of the type passed
      */
-    public isa = (config: funcProps, type: Primitive): ESBoolean | ESError => {
+    public isa = (props: funcProps, type: Primitive): ESBoolean | ESError => {
         return new ESBoolean(type === this.__type__);
     };
 
-    public is = ({context}: funcProps, obj: Primitive): ESBoolean => {
+    public is = (props: funcProps, obj: Primitive): ESBoolean => {
         return new ESBoolean(obj === this);
     }
 
@@ -110,6 +113,34 @@ export abstract class ESPrimitive <T> {
     public typeName = (): string => this.__type__.__name__;
 
     // Object stuff
-    public hasProperty = ({}: funcProps, key: Primitive): ESBoolean =>
+    public hasProperty = (props: funcProps, key: Primitive): ESBoolean =>
         new ESBoolean(this.hasOwnProperty(str(key)));
+
+    public describe = (props: funcProps, info: Primitive) => {
+        if (this.info.isBuiltIn) {
+            return;
+        }
+
+        this.info.description = str(info);
+    };
+
+    public detail = (props: funcProps, info: Primitive) => {
+
+        if (this.info.isBuiltIn) {
+            return;
+        }
+
+        const res = strip(info, props);
+
+        if (typeof res !== 'object') {
+            return new TypeError(Position.unknown, 'object', this.typeName(), str(this));
+        }
+
+        this.info = {
+            ...this.info,
+            ...res
+        };
+
+        this.info.isBuiltIn = false;
+    };
 }

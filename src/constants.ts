@@ -221,10 +221,4 @@ export const primitiveMethods: string[] = [
     '__setProperty__',
     '__getProperty__',
     '__call__',
-    'str',
-    'isa',
-    'is',
-    'bool',
-    'cast',
-    'hasProperty',
 ];

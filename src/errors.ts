@@ -1,3 +1,4 @@
+import {IS_NODE_INSTANCE} from './constants.js';
 import {Position} from "./position.js";
 import {Primitive} from './runtime/primitives/primitive.js';
 import {str} from "./util/util.js";
@@ -88,6 +89,12 @@ export class IndexError extends ESError {
 export class InvalidOperationError extends ESError {
     constructor(op: string, value: Primitive, detail: string = '', pos = Position.unknown) {
         super(pos,'TypeError', `Cannot perform '${op}' on value ${value?.info?.name || str(value)}: ${detail}`);
+    }
+}
+
+export class InvalidRuntimeError extends ESError {
+    constructor () {
+        super(Position.unknown,'InvalidRuntimeError', `Required runtime of ${IS_NODE_INSTANCE ? 'browser' : 'node'}`);
     }
 }
 

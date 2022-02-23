@@ -52,7 +52,7 @@ function callNative (self: ESFunction, context: Context, params: Primitive[], fn
  * @param {Primitive[]} params
  * @returns {ESUndefined | TypeError | ESError | ESPrimitive<any>}
  */
-export function call (context: Context, self: ESFunction, params: Primitive[]) {
+export function call (context: Context, self: ESFunction, params: Primitive[]): ESUndefined | TypeError | ESError | ESPrimitive<NativeObj> {
 
     // generate context
     let callContext = context;

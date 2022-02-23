@@ -39,15 +39,14 @@ export class ESJSBinding<T> extends ESPrimitive<T> {
     __getProperty__ = (props: funcProps, k: Primitive): Primitive | ESError => {
         const key = str(k);
 
-        const val: any = this.valueOf();
+        const val: T & {[key: string]: NativeObj} = this.valueOf();
 
         const res = val[key];
 
         if (res === undefined) {
 
             // check on self after confirming it doesn't exist on the native value
-            const self: any = this;
-            if (self.hasOwnProperty(key)) {
+            if (this.self.hasOwnProperty(key)) {
                 const val = this.self[str(key)];
                 if (typeof val === 'function') {
                     return new ESFunction(val);

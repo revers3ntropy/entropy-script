@@ -140,8 +140,7 @@ export function createInstance (
         on[method.name] = methodClone;
 
         if (primitiveMethods.indexOf(method.name) !== -1) {
-            const i: any = instance;
-            i[method.name] = methodClone.__call__;
+            (<NativeObj>instance)[method.name] = methodClone.__call__;
         }
     }
 

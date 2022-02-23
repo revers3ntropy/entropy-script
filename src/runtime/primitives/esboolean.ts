@@ -1,6 +1,5 @@
 import { ESError, IndexError, TypeError } from '../../errors.js';
 import {Position} from '../../position.js';
-import {Context} from '../context.js';
 import {ESPrimitive} from './esprimitive.js';
 import { funcProps, str } from '../../util/util.js';
 import {ESNumber} from './esnumber.js';
@@ -22,7 +21,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
         };
     }
 
-    __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+    __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
         if (this.self.hasOwnProperty(str(key))) {
             const val = this.self[str(key)];
             if (typeof val === 'function') {
@@ -33,7 +32,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
         return new IndexError(Position.unknown, key.valueOf(), this);
     };
 
-    cast = ({}, type: Primitive) => {
+    cast = (props: funcProps, type: Primitive) => {
         switch (type) {
             case types.number:
                 return new ESNumber(this.valueOf() ? 1 : 0);
@@ -42,7 +41,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
         }
     }
 
-    __eq__ = ({}: {context: Context}, n: Primitive) => {
+    __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESBoolean)) {
             return new TypeError(Position.unknown, 'Boolean', n.typeName().valueOf(), n.valueOf());
         }
@@ -50,16 +49,15 @@ export class ESBoolean extends ESPrimitive <boolean> {
     };
     __bool__ = () => this;
 
-    __and__ = ({}: {context: Context}, n: Primitive) => {
-        return new ESBoolean(this.valueOf() && n.bool().valueOf());
-    };
+    __and__ = (props: funcProps, n: Primitive) =>
+        new ESBoolean(this.valueOf() && n.bool().valueOf());
 
-    __or__ = ({}: {context: Context}, n: Primitive): ESError | ESBoolean => {
+    __or__ = (props: funcProps, n: Primitive): ESError | ESBoolean => {
         return new ESBoolean(this.valueOf() || n.bool().valueOf());
     };
 
     str = () => new ESString(this.valueOf() ? 'true' : 'false');
-    clone = (): ESBoolean => new ESBoolean(this.valueOf());
+    clone = () => new ESBoolean(this.valueOf());
 
-    bool = (): ESBoolean => this;
+    bool = () => this;
 }

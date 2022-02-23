@@ -7,17 +7,18 @@ import {
     ESObject,
     ESPrimitive,
     ESString, ESUndefined,
-    FunctionInfo, types
+    FunctionInfo
 } from '../runtime/primitiveTypes.js';
 import {BuiltInFunction, indent, sleep, str} from '../util/util.js';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
 
-export const builtInFunctions: {[n: string]: [BuiltInFunction, FunctionInfo]} = {
+export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} = {
     'range': [({context}, num) => {
-        if (!(num instanceof ESNumber))
+        if (!(num instanceof ESNumber)) {
             return new TypeError(Position.unknown, 'Number', num.typeName().valueOf(), num.valueOf());
+        }
 
-        const n: any = num.valueOf();
+        const n = num.valueOf();
 
         try {
             return new ESArray([...Array(n).keys()].map(n => new ESNumber(n)));
@@ -68,11 +69,12 @@ export const builtInFunctions: {[n: string]: [BuiltInFunction, FunctionInfo]} = 
         // I am truly disgusted by this function.
         // But I am not going to make it look better.
 
-        if (!things.length)
-            return new ESString(`
-Visit https://entropygames.io/entropy-script for help with Entropy Script!
-Try 'help(object)' for help about a particular object.
-`);
+        if (!things.length) {
+            return new ESString(
+                'Visit https://entropygames.io/entropy-script for help with Entropy Script!\n' +
+                'Try \'help(<anything>)\' for help about a particular object.'
+            );
+        }
 
         let out = '';
 
@@ -82,7 +84,7 @@ Try 'help(object)' for help about a particular object.
                 return;
             }
             const info = thing.info;
-            out += `${`Help on '${info.name || '(anonymous)'.yellow}'`.yellow}:
+            out += `${`Help on '${info.name || '(anonymous)'}'`.yellow}:
     
     ${'Value'.yellow}: ${indent(indent(str(thing)))}
     ${'Type'.yellow}: '${str(thing.typeName())}'
@@ -135,60 +137,6 @@ Try 'help(object)' for help about a particular object.
         returns: 'value passed in'
     }],
 
-    'describe': [({context}, thing, description) => {
-        thing.info.description = str(description);
-        return thing;
-    }, {
-        args: [{
-            name: 'value',
-            type: 'any'
-        }, {
-            name: 'description',
-            type: 'string'
-        }],
-        description: `Adds a description to whatever is passed in. Can be seen by calling help(value). Add more details with the 'detail' function`,
-        returns: 'the value passed in',
-        returnType: 'any'
-    }],
-
-    'detail': [(props, thing, info) => {
-        if (!(info instanceof ESObject))
-            return new TypeError(Position.unknown, 'object', str(info.typeName()), str(info));
-
-       if (thing.info.isBuiltIn)
-           return new ESError(Position.unknown, 'TypeError',`Can't edit info for built-in value ${thing.info.name} with 'detail'`);
-
-        thing.info = strip(info, props);
-        thing.info.isBuiltIn = false;
-
-        return thing;
-    }, {
-        args: [{
-            name: 'value',
-            type: 'any'
-        }, {
-            name: 'info',
-            type:
-`   Info {
-        name?: string,
-        description?: string,
-        file?: string,
-        helpLink?: string,
-        args?: {
-            name?: string,
-            type?: string,
-            description?: string,
-            required?: boolean
-        }[],
-        returns?: string,
-        returnType?: string,
-        contents?: Info[]
-    }`
-        }],
-        returns: 'the value passed',
-
-    }],
-
     'delete': [({context}, name) => {
         const id = str(name);
         if (!context.has(id)) {
@@ -209,7 +157,7 @@ Try 'help(object)' for help about a particular object.
         description: 'Returns the current path'
     }],
 
-    '__allSymbols': [({context}) => {
+    '__symbols': [({context}) => {
         return wrap(context.keys);
     }, {
         name: '__allSymbols',
