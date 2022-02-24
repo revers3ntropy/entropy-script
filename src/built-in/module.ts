@@ -6,13 +6,15 @@ import type {BuiltInFunction} from '../util/util.js';
 type moduleValues = number | string | moduleValues[] | Primitive | BuiltInFunction;
 export type JSModule = {[key: string]: moduleValues};
 export type JSModuleParams = {
-    https?: any,
-    http?: any,
-    fs?: any,
-    mysql?: any,
-    fetch?: any,
+    https?: NativeObj,
+    http?: NativeObj,
+    fs?: NativeObj,
+    mysql?: NativeObj,
+    fetch?: NativeObj,
     context?: Context,
     print: (...args: string[]) => void,
-    path?: any
+    path?: NativeObj,
+
+    [k: string]: NativeObj;
 };
 export type JSModuleFunc = (config: JSModuleParams) => JSModule | ESError;

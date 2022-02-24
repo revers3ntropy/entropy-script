@@ -1,6 +1,6 @@
 {
   "name": "entropy-script",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "description": "JS interpreter for EntropyScript. See https://entropgames.io/entropy-script.",
   "author": {
     "name": "EntropyGames",

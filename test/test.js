@@ -41,7 +41,8 @@ async function importAll (dir='./test/tests') {
 		if (file.substr(file.length-3, file.length) !== '.js') {
 			await importAll(file);
 		} else {
-			await import(file);
+			// ../ as it is being run from the dir above, but imports are relative to this file
+			await import(path.join('../', file));
 		}
 	}
 }

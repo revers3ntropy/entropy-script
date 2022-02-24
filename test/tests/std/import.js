@@ -3,7 +3,7 @@ file('std/import');
 
 
 expect([{otherLib: '<Symbol: otherLib>', doThing: '<Symbol: doThing>'}, '<Func>', 'hello world'], `
-	const lib = import('./examples/imports/lib/main.es');
+	const lib = import('./imports/lib/main.es');
 	
 	const main = func () {
 		return lib.doThing();

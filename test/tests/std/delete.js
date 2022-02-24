@@ -1,7 +1,7 @@
 import {expect, file} from '../../testFramework.js';
 file('std/delete');
 
-
+/*
 expect('ReferenceError', `
 	const a = 0;
 	delete(a);
@@ -23,3 +23,4 @@ expect([0, '<Func>', undefined, 0], `
 	f();
 	a;
 `);
+ */

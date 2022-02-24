@@ -21,11 +21,11 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
 
     const { fs, path } = options;
 
-    addModuleFromObj('fs', new ESJSBinding(fs, 'fs'));
-    addModuleFromObj('path', new ESJSBinding(path, 'path'));
-    addModuleFromObj('http', new ESJSBinding(options.http, 'http'));
-    addModuleFromObj('https', new ESJSBinding(options.https, 'https'));
-    addModuleFromObj('mysql', new ESJSBinding(options.mysql, 'mysql'));
+    for (let libName in options) {
+        if (options.hasOwnProperty(libName)) {
+            addModuleFromObj(libName, new ESJSBinding(options[libName], libName));
+        }
+    }
 
     context.set('import', new ESFunction(({context}, rawPath): ESError | Primitive | undefined => {
             let scriptPath: string = str(rawPath);
