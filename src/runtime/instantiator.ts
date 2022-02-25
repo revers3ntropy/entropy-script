@@ -1,9 +1,10 @@
-import {primitiveMethods} from '../constants.js';
-import { Context } from "./context.js";
-import { dict, funcProps } from '../util/util.js';
-import { ESError, TypeError } from "../errors.js";
-import { Position } from "../position.js";
-import {wrap} from './primitives/wrapStrip.js';
+import {primitiveMethods} from '../constants';
+import { Context } from "./context";
+import { dict, funcProps } from '../util/util';
+import { ESError, TypeError } from "../errors";
+import { Position } from "../position";
+import {NativeObj} from './primitives/primitive';
+import {wrap} from './primitives/wrapStrip';
 import {
     ESArray,
     ESBoolean,
@@ -13,7 +14,7 @@ import {
     ESString, ESType,
     ESUndefined,
     Primitive
-} from "./primitiveTypes.js";
+} from "./primitiveTypes";
 
 /**
  * Adds the properties of a parent class to an instance of a child class

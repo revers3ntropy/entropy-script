@@ -2,8 +2,8 @@ import * as fs from 'fs';
 import request from 'request';
 import urlExist from 'url-exist';
 import admZip from 'adm-zip';
-import {installListOfDeps} from './install.js';
-import {editConfig, PACKAGE_DIR_NAME} from './util.js';
+import {installListOfDeps} from './install';
+import {editConfig, PACKAGE_DIR_NAME} from './util';
 
 /**
  * Checks to see if package can be downloaded

@@ -1,4 +1,4 @@
-import {expect, file} from '../../testFramework.js';
+const {expect, file} = require( '../../testFramework');
 file('basic/loops');
 
 expect([undefined, 0, undefined, 9, 10], `

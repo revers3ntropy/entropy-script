@@ -1,12 +1,12 @@
-import {ESError, IndexError, TypeError} from '../../errors.js';
-import {Position} from '../../position.js';
-import {ESBoolean} from './esboolean.js';
-import {ESString} from './esstring.js';
-import {ESPrimitive} from './esprimitive.js';
-import { funcProps, str } from '../../util/util.js';
-import { Primitive, types } from './primitive.js';
-import { strip, wrap } from './wrapStrip.js';
-import { ESFunction } from "./esfunction.js";
+import {ESError, IndexError, TypeError} from '../../errors';
+import {Position} from '../../position';
+import {ESBoolean} from './esboolean';
+import {ESString} from './esstring';
+import {ESPrimitive} from './esprimitive';
+import { funcProps, str } from '../../util/util';
+import {NativeObj, Primitive, types} from './primitive';
+import { strip, wrap } from './wrapStrip';
+import { ESFunction } from "./esfunction";
 
 
 export class ESJSBinding<T> extends ESPrimitive<T> {

@@ -1,16 +1,16 @@
-import {Position} from "../position.js";
-import {Context} from "../runtime/context.js";
-import {ESError, ImportError} from "../errors.js";
-import {ESFunction, ESNamespace, ESObject, ESString, Primitive, types} from '../runtime/primitiveTypes.js';
-import { str } from "../util/util.js";
-import {interpretResult} from "../runtime/nodes.js";
-import {run} from "../index.js";
-import {JSModuleParams} from './module.js';
-import {addModuleFromObj, getModule, moduleExist} from './builtInModules.js';
-import { global, importCache } from "../constants.js";
+import {Position} from "../position";
+import {Context} from "../runtime/context";
+import {ESError, ImportError} from "../errors";
+import {ESFunction, ESNamespace, ESObject, ESString, Primitive, types} from '../runtime/primitiveTypes';
+import { str } from "../util/util";
+import {interpretResult} from "../runtime/nodes";
+import {run} from "../index";
+import {JSModuleParams} from './module';
+import {addModuleFromObj, getModule, moduleExist} from './builtInModules';
+import { global, importCache } from "../constants";
 
 // node only built in modules
-import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
+import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 
 /**
  * Adds node functionality like access to files, https and more.

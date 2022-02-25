@@ -1,17 +1,4 @@
-import { run } from '../build/index.js';
-import { ESError, TestFailed } from '../build/errors.js';
-import { Context } from "../build/runtime/context.js";
-import {ESSymbol} from '../build/runtime/symbol.js';
-import { global, now } from "../build/constants.js";
-import {strip} from '../build/runtime/primitives/wrapStrip.js';
-import { str } from "../build/util/util.js";
-import { ESFunction, ESType } from "../build/runtime/primitiveTypes.js";
-import { interpretResult } from "../build/runtime/nodes.js";
-
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const es = require('../build/latest.js');
 
 /**
  * @name testExecutor
@@ -20,7 +7,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  * @returns {boolean | ESError}
  */
 
-export class TestResult {
+class TestResult {
     failed = 0;
     passed = 0;
     /** @type {[Test, ESError][]}*/
@@ -41,7 +28,7 @@ export class TestResult {
             return;
         }
 
-        if (res instanceof ESError) {
+        if (res instanceof es.ESError) {
             this.failed++;
             this.fails.push([test, res]);
             return;
@@ -72,7 +59,9 @@ export class TestResult {
     }
 }
 
-export class Test {
+exports.TestResult = TestResult;
+
+class Test {
     test;
     id;
     batteryName;
@@ -115,29 +104,31 @@ export class Test {
      * @returns {TestResult}
      */
     static testAll () {
-        let time = now();
+        let time = es.now();
 
         const res = new TestResult();
 
         global.path = __dirname;
 
         for (let test of Test.tests) {
-            const testEnv = new Context();
-            testEnv.parent = global;
+            const testEnv = new es.Context();
+            testEnv.parent = es.global;
             res.register(test, test.run(testEnv));
         }
 
-        res.time = Math.round(now() - time);
+        res.time = Math.round(es.now() - time);
 
         return res;
     }
 }
 
+exports.Test = Test;
+
 function objectsSame (primary, secondary) {
-    if (primary instanceof ESFunction || primary instanceof ESType || primary instanceof ESSymbol) {
+    if (primary instanceof es.ESFunction || primary instanceof es.ESType || primary instanceof es.ESSymbol) {
         return secondary === primary.str().valueOf();
     }
-    if (secondary instanceof ESFunction || secondary instanceof ESType || secondary instanceof ESSymbol) {
+    if (secondary instanceof es.ESFunction || secondary instanceof es.ESType || secondary instanceof es.ESSymbol) {
         return primary === secondary.str().valueOf();
     }
 
@@ -202,12 +193,12 @@ function arraysSame (arr1, arr2) {
                 return false;
             }
 
-        } else if (item2 instanceof ESFunction || item2 instanceof ESType) {
+        } else if (item2 instanceof es.ESFunction || item2 instanceof es.ESType) {
             if (item1 !== item2.str().valueOf()) {
                 return false;
             }
 
-        } else if (item1 instanceof ESFunction || item1 instanceof ESType) {
+        } else if (item1 instanceof es.ESFunction || item1 instanceof es.ESType) {
             if (item2 !== item1.str().valueOf()) {
                 return false;
             }
@@ -244,21 +235,21 @@ export function file (name) {
  * @param {any[] | string} expected
  * @param {string} from
  */
-export function expect (expected, from) {
+function expect (expected, from) {
     currentID++;
     Test.test(currentFile, env => {
         /** @type {interpretResult | ({ timeData: timeData } & interpretResult)} */
         let result;
         try {
-            result = run(from, {
+            result = es.run(from, {
                 env,
                 fileName: 'TEST_ENV'
             });
         } catch (err) {
-            return new TestFailed(err.stack);
+            return new es.TestFailed(err.stack);
         }
 
-        let resVal = strip(result.val);
+        let resVal = es.strip(result.val);
 
         if (result.error && Array.isArray(expected)) {
             return result.error;
@@ -277,11 +268,11 @@ export function expect (expected, from) {
                 return (name || 'Error') === expected;
             }
 
-            const res = arraysSame(expected, strip(result.val));
+            const res = arraysSame(expected, es.strip(result.val));
 
             //* extreme debugging
             if (!res) {
-                console.log('\n%%%', expected, str(strip(result.val)), '@@');
+                console.log('\n%%%', expected, es.str(es.strip(result.val)), '@@');
             }
             //*/
 
@@ -294,9 +285,10 @@ export function expect (expected, from) {
 
         const val = result.error || resVal;
 
-        return new TestFailed(
-            `${'Expected'.yellow} \n'${str(expected)}' \n ${'but got'.yellow} \n'${str(val)}'\n ${'instead from test with code'.yellow} \n'${from}'\n`
+        return new es.TestFailed(
+            `${'Expected'.yellow} \n'${es.str(expected)}' \n ${'but got'.yellow} \n'${str(val)}'\n ${'instead from test with code'.yellow} \n'${from}'\n`
         );
 
     }, currentID);
 }
+exports.expect = expect;

@@ -1,10 +1,10 @@
-import { initialise } from "../init.js";
-import { ESError, TypeError, ReferenceError } from "../errors.js";
-import { Position } from "../position.js";
-import {wrap} from './primitives/wrapStrip.js';
-import {ESArray, ESFunction, ESPrimitive, ESType, ESUndefined, Primitive, types} from "./primitiveTypes.js";
-import {dict, str} from "../util/util.js";
-import {ESSymbol, symbolOptions} from './symbol.js';
+import { initialise } from "../init";
+import { ESError, TypeError, ReferenceError } from "../errors";
+import { Position } from "../position";
+import {wrap} from './primitives/wrapStrip';
+import {ESArray, ESFunction, ESPrimitive, ESType, ESUndefined, Primitive, types} from "./primitiveTypes";
+import {dict, str} from "../util/util";
+import {ESSymbol, symbolOptions} from './symbol';
 
 export class Context {
     private symbolTable: {[identifier: string]: ESSymbol} = {};

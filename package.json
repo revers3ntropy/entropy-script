@@ -1,6 +1,6 @@
 {
   "name": "entropy-script",
-  "version": "2.8.1a",
+  "version": "2.8.2",
   "description": "JS interpreter for EntropyScript. See https://entropgames.io/entropy-script.",
   "author": {
     "name": "EntropyGames",
@@ -15,13 +15,16 @@
     "node-fetch": "^3.1.0",
     "request": "^2.88.2",
     "sync-mysql": "^3.0.1",
+    "ts-loader": "^9.2.6",
     "url-exist": "^3.0.0"
   },
-  "type": "module",
   "bin": {
     "entropy-script": "./bin/index.js",
     "jses": "./bin/index.js",
     "espm": "./bin/espm.js"
   },
-  "preferGlobal": true
+  "preferGlobal": true,
+  "devDependencies": {
+    "webpack-cli": "^4.9.2"
+  }
 }

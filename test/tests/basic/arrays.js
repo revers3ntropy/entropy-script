@@ -1,4 +1,4 @@
-import {expect, file} from '../../testFramework.js';
+const {expect, file} = require( '../../testFramework');
 file('basic/arrays');
 
 expect([[0, 1, 2]], `

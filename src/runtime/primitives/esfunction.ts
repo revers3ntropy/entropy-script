@@ -1,19 +1,19 @@
-import {ESPrimitive} from './esprimitive.js';
-import {global} from '../../constants.js';
-import { ESError, IndexError } from '../../errors.js';
-import {Position} from '../../position.js';
-import { BuiltInFunction, funcProps } from '../../util/util.js';
-import {runtimeArgument} from '../argument.js';
-import type {Context} from '../context.js';
-import {call} from '../functionCaller.js';
-import {Node} from '../nodes.js';
-import {str} from '../../util/util.js';
-import {ESBoolean} from './esboolean.js';
-import {ESObject} from './esobject.js';
-import {ESString} from './esstring.js';
-import {ESType} from './estype.js';
-import {Primitive, types} from './primitive.js';
-import { wrap } from "./wrapStrip.js";
+import {ESPrimitive} from './esprimitive';
+import {global} from '../../constants';
+import { ESError, IndexError } from '../../errors';
+import {Position} from '../../position';
+import { BuiltInFunction, funcProps } from '../../util/util';
+import {runtimeArgument} from '../argument';
+import type {Context} from '../context';
+import {call} from '../functionCaller';
+import {Node} from '../nodes';
+import {str} from '../../util/util';
+import {ESBoolean} from './esboolean';
+import {ESObject} from './esobject';
+import {ESString} from './esstring';
+import {ESType} from './estype';
+import {Primitive, types} from './primitive';
+import { wrap } from "./wrapStrip";
 
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {

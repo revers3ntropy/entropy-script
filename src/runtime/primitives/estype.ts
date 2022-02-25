@@ -1,15 +1,15 @@
-import { ESError, IndexError, InvalidOperationError } from '../../errors.js';
-import {createInstance} from '../instantiator.js';
-import {ESBoolean} from './esboolean.js';
-import {ESFunction} from './esfunction.js';
-import {ESObject} from './esobject.js';
-import {ESString} from './esstring.js';
-import {ESPrimitive} from './esprimitive.js';
-import {Primitive, types, typeName} from './primitive.js';
-import { funcProps } from "../../util/util.js";
-import { wrap } from "./wrapStrip.js";
-import { Position } from "../../position.js";
-import {str} from "../../util/util.js";
+import { ESError, IndexError, InvalidOperationError } from '../../errors';
+import {createInstance} from '../instantiator';
+import {ESBoolean} from './esboolean';
+import {ESFunction} from './esfunction';
+import {ESObject} from './esobject';
+import {ESString} from './esstring';
+import {ESPrimitive} from './esprimitive';
+import {Primitive, types, typeName} from './primitive';
+import { funcProps } from "../../util/util";
+import { wrap } from "./wrapStrip";
+import { Position } from "../../position";
+import {str} from "../../util/util";
 
 export class ESType extends ESPrimitive<undefined> {
     readonly __isPrimitive__: boolean;

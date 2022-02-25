@@ -3,28 +3,24 @@
  *
  * Syntax:
  *
- * >> node es.js ./path/to/script.es
+ * >> node index.js ./path/to/script.es
  * will run a script
  *
- * >> node es.js
+ * >> node index.js
  * will start the terminal
  */
 
 // node libs that scripts should have access to
-import * as https from 'https';
-import * as http from 'http';
-import * as fs from 'fs';
-import * as sql from 'sync-mysql';
-import readline from 'readline';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
+const sql = require('sync-mysql');
+const readline = require('readline');
+const path = require('path');
+const dotenv = require('dotenv');
 dotenv.config();
 
-import {ImportError} from './build/errors.js';
-
-import * as es from './build/index.js';
-import {Position} from './build/position.js';
-import {str} from "./build/util/util.js";
+const es = require('./build/latest');
 
 /**
  * Syntax: String(await askQuestion(query).
@@ -46,7 +42,7 @@ function askQuestion(query) {
 /**
  * @return {Promise<void>}
  */
-export async function init () {
+async function init () {
 	await es.init(
 		console.log,
 		async (msg, cb) =>
@@ -67,9 +63,9 @@ export async function init () {
  * Runs a .es script
  * @param {string} file
  */
-export function runScript (file) {
+function runScript (file) {
 	if (!fs.existsSync(file)) {
-		console.log(new ImportError(new Position(0, 0, 0, 'JSES-CLI'), file, `Can't find file`).str);
+		console.log(new es.ImportError(new es.Position(0, 0, 0, 'JSES-CLI'), file, `Can't find file`).str);
 		return;
 	}
 	let res = es.run(fs.readFileSync(file, 'utf-8'), {
@@ -85,7 +81,7 @@ export function runScript (file) {
  * Starts the terminal
  * @return {Promise<void>}
  */
-export async function runTerminal () {
+async function runTerminal () {
 	const input = String(await askQuestion('>>> '));
 
 	if (input === 'exit') {
@@ -119,13 +115,13 @@ export async function runTerminal () {
 	}
 	if (out !== undefined) {
 		// final out
-		console.log(str(out));
+		console.log(es.str(out));
 	}
 
 	runTerminal();
 }
 
-export async function main () {
+async function main () {
 	await init();
 
 	if (process.argv.length === 2) {

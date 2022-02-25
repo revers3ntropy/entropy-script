@@ -1,5 +1,6 @@
-import {Position} from "../position.js";
-import {tokenType} from '../constants.js';
+import {Position} from "../position";
+import {tokenType} from '../constants';
+import {NativeObj} from '../runtime/primitives/primitive';
 
 export class Token {
     type: tokenType;

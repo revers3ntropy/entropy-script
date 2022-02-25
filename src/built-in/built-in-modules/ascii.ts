@@ -1,8 +1,8 @@
-import {TypeError} from '../../errors.js';
-import {Position} from '../../position.js';
-import { ESNumber, ESString, Primitive} from '../../runtime/primitiveTypes.js';
-import {str} from '../../util/util.js';
-import type {JSModule} from '../module.js';
+import {TypeError} from '../../errors';
+import {Position} from '../../position';
+import { ESNumber, ESString, Primitive} from '../../runtime/primitiveTypes';
+import {str} from '../../util/util';
+import type {JSModule} from '../module';
 
 const module: JSModule = {
     asciiToChar: (props, number: Primitive) => {

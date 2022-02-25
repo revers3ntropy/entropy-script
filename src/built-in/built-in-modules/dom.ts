@@ -1,8 +1,8 @@
-import {IS_NODE_INSTANCE} from '../../constants.js';
-import { ESError, ReferenceError, InvalidRuntimeError } from '../../errors.js';
-import {Position} from '../../position.js';
-import { JSModule, JSModuleFunc } from '../module.js';
-import { ESJSBinding } from "../../runtime/primitives/esjsbinding.js";
+import {IS_NODE_INSTANCE} from '../../constants';
+import { ESError, ReferenceError, InvalidRuntimeError } from '../../errors';
+import {Position} from '../../position';
+import { JSModule, JSModuleFunc } from '../module';
+import { ESJSBinding } from "../../runtime/primitives/esjsbinding";
 
 const module: JSModuleFunc = (): JSModule | ESError => {
 
@@ -10,16 +10,18 @@ const module: JSModuleFunc = (): JSModule | ESError => {
         return new InvalidRuntimeError();
     }
 
-    if (typeof window === 'undefined' || !('$' in window)) {
+    const w: { [k: string]: any; } | undefined = window;
+
+    if (typeof w === 'undefined' || !('$' in w)) {
         return new ReferenceError(Position.unknown, '$ must be property of window to use dom library');
     }
 
-    const $: any = new ESJSBinding(window.$, 'jquery');
+    const $: any = new ESJSBinding(w['$'], 'jquery');
 
     return {
         $,
-        window: new ESJSBinding(window, 'window'),
-        document: new ESJSBinding(window.document, 'document'),
+        window: new ESJSBinding(w, 'window'),
+        document: new ESJSBinding(w['document'], 'document'),
     };
 }
 

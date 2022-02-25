@@ -1,8 +1,8 @@
-import {ESError} from '../errors.js';
-import {Position} from '../position.js';
-import {Context} from '../runtime/context.js';
-import {Node} from "../runtime/nodes.js";
-import {ESPrimitive, Primitive} from '../runtime/primitiveTypes.js';
+import {ESError} from '../errors';
+import {Position} from '../position';
+import {Context} from '../runtime/context';
+import {Node} from "../runtime/nodes";
+import {ESPrimitive, Primitive} from '../runtime/primitiveTypes';
 
 export type enumDict<T extends number, U> = { [k in T]: U };
 export type dict<T> = { [key in (string | number)]: T; };

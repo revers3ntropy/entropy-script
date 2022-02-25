@@ -1,8 +1,7 @@
-import {JSModuleParams} from './built-in/module.js';
-import nodeLibs from './built-in/nodeLibs.js';
+import {JSModuleParams} from './built-in/module';
 import type { Context } from './runtime/context';
-import {dict, enumDict} from './util/util.js';
-import {ESNamespace} from './runtime/primitiveTypes.js';
+import {dict, enumDict} from './util/util';
+import {ESNamespace} from './runtime/primitiveTypes';
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -53,9 +52,7 @@ export const KEYWORDS = [
 export let now: (() => number) = () => 0;
 export async function refreshPerformanceNow (IS_NODE_INSTANCE: boolean) {
     if (IS_NODE_INSTANCE) {
-        // @ts-ignore
-        const performance: any = await import('perf_hooks');
-        now = (() => performance?.performance?.now()) ?? (() => 0);
+        now = () => Date.now();
 
     } else {
         now = () => {

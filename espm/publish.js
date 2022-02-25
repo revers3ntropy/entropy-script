@@ -1,4 +1,4 @@
-import {readConfig, deleteRecursively} from './util.js';
+import {readConfig, deleteRecursively} from './util';
 import * as fs from 'fs';
 import ncp from 'ncp';
 import archiver from 'archiver';

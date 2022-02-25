@@ -1,19 +1,13 @@
-import {Test} from './testFramework.js';
+const {Test} = require('./testFramework');
 
 // libs for ES
-import * as es from "../build/index.js";
-import https from "https";
-import http from "http";
-import fs from "fs";
-import * as sql from "sync-mysql";
-import * as path from 'path';
-import readline from "readline";
-
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
+const es = require("../build/latest.js");
+const https = require('https');
+const http = require('http');
+const fs = require('fs');
+const sql = require('sync-mysql');
+const readline = require('readline');
+const path = require('path');
 
 /**
  * Syntax: String(await askQuestion(query).

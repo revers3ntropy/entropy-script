@@ -1,17 +1,17 @@
-import {types, Primitive} from './primitives/primitive.js';
-import {FunctionInfo} from './primitives/info.js';
+import {types, Primitive} from './primitives/primitive';
+import {FunctionInfo} from './primitives/info';
 
-import {ESPrimitive} from './primitives/esprimitive.js';
-import {ESArray} from './primitives/esarray.js';
-import {ESBoolean} from './primitives/esboolean.js';
-import {ESErrorPrimitive} from './primitives/eserrorprimitive.js';
-import {ESFunction} from './primitives/esfunction.js';
-import {ESNumber} from './primitives/esnumber.js';
-import {ESObject} from './primitives/esobject.js';
-import {ESString} from './primitives/esstring.js';
-import {ESType} from './primitives/estype.js';
-import {ESUndefined} from './primitives/esundefined.js';
-import {ESNamespace} from './primitives/esnamespace.js';
+import {ESPrimitive} from './primitives/esprimitive';
+import {ESArray} from './primitives/esarray';
+import {ESBoolean} from './primitives/esboolean';
+import {ESErrorPrimitive} from './primitives/eserrorprimitive';
+import {ESFunction} from './primitives/esfunction';
+import {ESNumber} from './primitives/esnumber';
+import {ESObject} from './primitives/esobject';
+import {ESString} from './primitives/esstring';
+import {ESType} from './primitives/estype';
+import {ESUndefined} from './primitives/esundefined';
+import {ESNamespace} from './primitives/esnamespace';
 
 export {
     ESArray,

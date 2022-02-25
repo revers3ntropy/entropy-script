@@ -1,15 +1,15 @@
-import {ESError, TypeError} from '../../errors.js';
-import {Position} from '../../position.js';
-import {Context} from '../context.js';
-import { funcProps, str } from '../../util/util.js';
+import {ESError, TypeError} from '../../errors';
+import {Position} from '../../position';
+import {Context} from '../context';
+import { funcProps, str } from '../../util/util';
 
-import {ESArray} from './esarray.js';
-import {ESBoolean} from './esboolean.js';
-import {ESNumber} from './esnumber.js';
-import {ESPrimitive} from './esprimitive.js';
-import {Primitive, types} from './primitive.js';
-import {wrap} from './wrapStrip.js';
-import { ESFunction } from "./esfunction.js";
+import {ESArray} from './esarray';
+import {ESBoolean} from './esboolean';
+import {ESNumber} from './esnumber';
+import {ESPrimitive} from './esprimitive';
+import {Primitive, types} from './primitive';
+import {wrap} from './wrapStrip';
+import { ESFunction } from "./esfunction";
 
 
 export class ESString extends ESPrimitive <string> {

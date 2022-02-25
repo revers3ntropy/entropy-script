@@ -1,6 +1,6 @@
-import install from './install.js';
-import publish from './publish.js';
-import {PACKAGE_DIR_NAME} from './util.js';
+import install from './install';
+import publish from './publish';
+import {PACKAGE_DIR_NAME} from './util';
 import {existsSync, mkdirSync} from 'fs';
 
 function logWelcome () {

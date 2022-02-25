@@ -1,12 +1,12 @@
-import { ESError, IndexError, TypeError } from '../../errors.js';
-import {Position} from '../../position.js';
-import {ESPrimitive} from './esprimitive.js';
-import { funcProps, str } from '../../util/util.js';
-import {ESNumber} from './esnumber.js';
-import {ESString} from './esstring.js';
-import {Primitive, types} from './primitive.js';
-import { ESFunction } from "./esfunction.js";
-import { wrap } from "./wrapStrip.js";
+import { ESError, IndexError, TypeError } from '../../errors';
+import {Position} from '../../position';
+import {ESPrimitive} from './esprimitive';
+import { funcProps, str } from '../../util/util';
+import {ESNumber} from './esnumber';
+import {ESString} from './esstring';
+import {Primitive, types} from './primitive';
+import { ESFunction } from "./esfunction";
+import { wrap } from "./wrapStrip";
 
 export class ESBoolean extends ESPrimitive <boolean> {
     constructor (val: boolean = false) {

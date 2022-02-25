@@ -1,10 +1,10 @@
-import {Token} from "../parse/tokens.js";
-import {ESError, InvalidSyntaxError, ReferenceError, TypeError} from "../errors.js";
-import {Context} from './context.js';
-import {Position} from "../position.js";
-import {now, tokenTypeString, tt} from "../constants.js";
-import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument.js";
-import {wrap} from './primitives/wrapStrip.js';
+import {Token} from "../parse/tokens";
+import {ESError, InvalidSyntaxError, ReferenceError, TypeError} from "../errors";
+import {Context} from './context';
+import {Position} from "../position";
+import {now, tokenTypeString, tt} from "../constants";
+import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument";
+import {wrap} from './primitives/wrapStrip';
 import {
     ESArray,
     ESBoolean,
@@ -18,8 +18,8 @@ import {
     ESUndefined,
     Primitive,
     types
-} from "./primitiveTypes.js";
-import {dict, str} from '../util/util.js';
+} from "./primitiveTypes";
+import {dict, str} from '../util/util';
 
 export class interpretResult {
     val: Primitive = new ESUndefined();

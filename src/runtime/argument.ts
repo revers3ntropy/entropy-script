@@ -1,8 +1,8 @@
-import { ESPrimitive, ESType, Primitive } from "./primitiveTypes.js";
-import { Context } from "./context.js";
-import { ESError, TypeError } from "../errors.js";
-import { Node } from "./nodes.js";
-import { Position } from "../position.js";
+import { ESPrimitive, ESType, Primitive } from "./primitiveTypes";
+import { Context } from "./context";
+import { ESError, TypeError } from "../errors";
+import { Node } from "./nodes";
+import { Position } from "../position";
 
 /**
  * The argument which has been populated with Primitive values

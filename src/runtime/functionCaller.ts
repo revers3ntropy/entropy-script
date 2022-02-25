@@ -1,8 +1,9 @@
-import { Node } from "./nodes.js";
-import { Context, generateESFunctionCallContext } from "./context.js";
-import { ESError, TypeError } from "../errors.js";
-import { Position } from "../position.js";
-import { ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive, types } from "./primitiveTypes.js";
+import { Node } from "./nodes";
+import { Context, generateESFunctionCallContext } from "./context";
+import { ESError, TypeError } from "../errors";
+import { Position } from "../position";
+import {NativeObj} from './primitives/primitive';
+import { ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive, types } from "./primitiveTypes";
 
 function callNode (self: ESFunction, context: Context, params: Primitive[], fn: Node) {
 

@@ -1,4 +1,4 @@
-import {expect, file} from '../../testFramework.js';
+import {expect, file} from '../../testFramework';
 file('typing/custom');
 
 expect(['<Type: myType>', {}, {}], `

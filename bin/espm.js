@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 
-import '../espm/index.js';
+import '../espm/index';

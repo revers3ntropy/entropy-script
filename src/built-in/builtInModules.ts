@@ -1,15 +1,15 @@
-import { IS_NODE_INSTANCE, libs } from '../constants.js';
-import {ESError} from '../errors.js';
-import {wrap} from '../runtime/primitives/wrapStrip.js';
-import {ESSymbol} from '../runtime/symbol.js';
-import type {JSModule} from './module.js';
-import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
+import { IS_NODE_INSTANCE, libs } from '../constants';
+import {ESError} from '../errors';
+import {wrap} from '../runtime/primitives/wrapStrip';
+import {ESSymbol} from '../runtime/symbol';
+import type {JSModule} from './module';
+import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 
 // All modules
 // make this only import required modules in the future
-import ascii from './built-in-modules/ascii.js';
-import json from './built-in-modules/json.js';
-import dom from './built-in-modules/dom.js';
+import ascii from './built-in-modules/ascii';
+import json from './built-in-modules/json';
+import dom from './built-in-modules/dom';
 
 
 const modules: {[s: string]: JSModule} = {

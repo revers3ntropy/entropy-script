@@ -1,4 +1,4 @@
-import {expect, file} from '../../../testFramework.js';
+import {expect, file} from '../../../testFramework';
 file('std/primitive/is');
 
 expect([1, true, false, false], `

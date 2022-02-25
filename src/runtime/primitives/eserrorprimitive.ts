@@ -1,13 +1,13 @@
-import {ESPrimitive} from './esprimitive.js';
-import { ESError, IndexError } from '../../errors.js';
-import {Position} from '../../position.js';
-import {ESBoolean} from './esboolean.js';
-import {ESString} from './esstring.js';
-import {Primitive, types} from './primitive.js';
-import type { funcProps } from "../../util/util.js";
-import { ESFunction } from "./esfunction.js";
-import { wrap } from "./wrapStrip.js";
-import {str} from "../../util/util.js";
+import {ESPrimitive} from './esprimitive';
+import { ESError, IndexError } from '../../errors';
+import {Position} from '../../position';
+import {ESBoolean} from './esboolean';
+import {ESString} from './esstring';
+import {Primitive, types} from './primitive';
+import type { funcProps } from "../../util/util";
+import { ESFunction } from "./esfunction";
+import { wrap } from "./wrapStrip";
+import {str} from "../../util/util";
 
 export class ESErrorPrimitive extends ESPrimitive <ESError> {
     constructor (error: ESError = new ESError(Position.unknown, 'Unknown', 'Error not specified')) {

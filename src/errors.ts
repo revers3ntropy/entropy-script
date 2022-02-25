@@ -1,7 +1,7 @@
-import {IS_NODE_INSTANCE} from './constants.js';
-import {Position} from "./position.js";
-import {Primitive} from './runtime/primitives/primitive.js';
-import {str} from "./util/util.js";
+import {IS_NODE_INSTANCE} from './constants';
+import {Position} from "./position";
+import {Primitive} from './runtime/primitives/primitive';
+import {str} from "./util/util";
 
 export interface TracebackFrame {
     position: Position;

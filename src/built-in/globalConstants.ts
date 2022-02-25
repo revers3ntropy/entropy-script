@@ -1,4 +1,4 @@
-import { ESBoolean, ESUndefined, Primitive, types } from '../runtime/primitiveTypes.js';
+import { ESBoolean, ESUndefined, Primitive, types } from '../runtime/primitiveTypes';
 import { Context } from "../runtime/context";
 
 export default function load (context: Context) {

@@ -1,15 +1,15 @@
-import {ESError, IndexError, TypeError} from '../../errors.js';
-import {Position} from '../../position.js';
-import {dict} from '../../util/util.js';
-import {Context} from '../context.js';
-import {ESSymbol} from '../symbol.js';
-import {ESBoolean} from './esboolean.js';
-import {ESString} from './esstring.js';
-import {ESPrimitive} from './esprimitive.js';
-import {str} from '../../util/util.js';
-import {Primitive, types} from './primitive.js';
-import {wrap} from './wrapStrip.js';
-import { ESFunction } from "./esfunction.js";
+import {ESError, IndexError, TypeError} from '../../errors';
+import {Position} from '../../position';
+import {dict} from '../../util/util';
+import {Context} from '../context';
+import {ESSymbol} from '../symbol';
+import {ESBoolean} from './esboolean';
+import {ESString} from './esstring';
+import {ESPrimitive} from './esprimitive';
+import {str} from '../../util/util';
+import {Primitive, types} from './primitive';
+import {wrap} from './wrapStrip';
+import { ESFunction } from "./esfunction";
 
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {

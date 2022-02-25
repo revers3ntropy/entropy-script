@@ -1,14 +1,14 @@
-import { builtInFunctions } from "./built-in/builtInFunctions.js";
-import {getModule, initModules, moduleExist} from './built-in/builtInModules.js';
-import { Context } from "./runtime/context.js";
-import { ESError, ImportError } from "./errors.js";
-import { Position } from "./position.js";
-import { run } from "./index.js";
-import {IS_NODE_INSTANCE} from "./constants.js";
-import { str } from "./util/util.js";
-import {ESFunction, ESNamespace, ESString} from './runtime/primitiveTypes.js';
-import {interpretResult} from "./runtime/nodes.js";
-import loadGlobalConstants from "./built-in/globalConstants.js";
+import { builtInFunctions } from "./built-in/builtInFunctions";
+import {getModule, initModules, moduleExist} from './built-in/builtInModules';
+import { Context } from "./runtime/context";
+import { ESError, ImportError } from "./errors";
+import { Position } from "./position";
+import { run } from "./index";
+import {IS_NODE_INSTANCE} from "./constants";
+import { str } from "./util/util";
+import {ESFunction, ESNamespace, ESString} from './runtime/primitiveTypes';
+import {interpretResult} from "./runtime/nodes";
+import loadGlobalConstants from "./built-in/globalConstants";
 
 export function initialise (
     globalContext: Context,

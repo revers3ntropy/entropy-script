@@ -1,4 +1,4 @@
-import {expect, file} from '../../testFramework.js';
+import {expect, file} from '../../testFramework';
 file('std/array');
 
 expect([['1.2']], 'array(`1.2`)');

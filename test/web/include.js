@@ -1,4 +1,4 @@
-import * as es from '../../build/index.js';
+import * as es from '../../build/index';
 
 (async () => {
 

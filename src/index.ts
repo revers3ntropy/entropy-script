@@ -1,23 +1,29 @@
-import './util/colourString.js';
+import './util/colourString';
 
-import { Lexer } from "./parse/lexer.js";
-import { Parser } from "./parse/parser.js";
-import { global, now, refreshPerformanceNow, runningInNode, setGlobalContext } from "./constants.js";
-import { initialise } from "./init.js";
-import { ESError } from "./errors.js";
-import { Position } from "./position.js";
-import { interpretResult, Node } from "./runtime/nodes.js";
-import { ESArray } from "./runtime/primitiveTypes.js";
-import { timeData } from "./util/util.js";
-import { Context } from "./runtime/context.js";
-import addNodeLibs from "./built-in/nodeLibs.js";
-import { JSModuleParams } from "./built-in/module.js";
-import {libs as allLibs} from './constants.js';
+import { Lexer } from "./parse/lexer";
+import { Parser } from "./parse/parser";
+import { global, now, refreshPerformanceNow, runningInNode, setGlobalContext } from "./constants";
+import { initialise } from "./init";
+import { ESError } from "./errors";
+import { Position } from "./position";
+import { interpretResult, Node } from "./runtime/nodes";
+import { ESArray } from "./runtime/primitiveTypes";
+import { timeData } from "./util/util";
+import { Context } from "./runtime/context";
+import addNodeLibs from "./built-in/nodeLibs";
+import { JSModuleParams } from "./built-in/module";
+import {libs as allLibs} from './constants';
 
 export {
     Context,
 };
 
+export * from './runtime/primitiveTypes';
+export * from './constants';
+export * from './errors';
+export * from './runtime/nodes';
+export {str} from './util/util';
+export {strip, wrap} from './runtime/primitives/wrapStrip';
 
 /**
  * @param {(...args: any) => void} printFunc

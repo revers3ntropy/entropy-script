@@ -1,15 +1,15 @@
-import {ESError, InvalidOperationError, TypeError} from '../../errors.js';
-import {Position} from '../../position.js';
+import {ESError, InvalidOperationError, TypeError} from '../../errors';
+import {Position} from '../../position';
 
-import {ESBoolean} from './esboolean.js';
-import type {ESObject} from './esobject.js';
-import type {ESString} from './esstring.js';
-import type {ESType} from './estype.js';
-import type {Info} from './info.js';
-import {Primitive, types} from './primitive.js';
+import {ESBoolean} from './esboolean';
+import type {ESObject} from './esobject';
+import type {ESString} from './esstring';
+import type {ESType} from './estype';
+import type {Info} from './info';
+import {NativeObj, Primitive, types} from './primitive';
 
-import { funcProps, str } from '../../util/util.js';
-import {strip} from './wrapStrip.js';
+import { funcProps, str } from '../../util/util';
+import {strip} from './wrapStrip';
 
 
 export abstract class ESPrimitive <T> {

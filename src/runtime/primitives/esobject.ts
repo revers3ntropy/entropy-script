@@ -1,17 +1,17 @@
-import {ESError, TypeError} from '../../errors.js';
-import {Position} from '../../position.js';
-import { dict, funcProps, str } from '../../util/util.js';
-import {Context} from '../context.js';
-import {ESArray} from './esarray.js';
-import {ESBoolean} from './esboolean.js';
-import {ESNumber} from './esnumber.js';
-import {ESString} from './esstring.js';
-import {ESType} from './estype.js';
-import {ESPrimitive} from './esprimitive.js';
-import {ESUndefined} from './esundefined.js';
-import { Primitive, types} from './primitive.js';
-import {strip, wrap} from './wrapStrip.js';
-import { ESFunction } from "./esfunction.js";
+import {ESError, TypeError} from '../../errors';
+import {Position} from '../../position';
+import { dict, funcProps, str } from '../../util/util';
+import {Context} from '../context';
+import {ESArray} from './esarray';
+import {ESBoolean} from './esboolean';
+import {ESNumber} from './esnumber';
+import {ESString} from './esstring';
+import {ESType} from './estype';
+import {ESPrimitive} from './esprimitive';
+import {ESUndefined} from './esundefined';
+import { Primitive, types} from './primitive';
+import {strip, wrap} from './wrapStrip';
+import { ESFunction } from "./esfunction";
 
 
 export class ESObject extends ESPrimitive <dict<Primitive>> {

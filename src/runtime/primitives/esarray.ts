@@ -1,15 +1,15 @@
-import {ESError, TypeError} from '../../errors.js';
-import {Position} from '../../position.js';
-import {Context} from '../context.js';
-import {str} from '../../util/util.js';
-import {ESBoolean} from './esboolean.js';
-import {ESNumber} from './esnumber.js';
-import {ESString} from './esstring.js';
-import {ESPrimitive} from './esprimitive.js';
-import {ESUndefined} from './esundefined.js';
-import {Primitive, types} from './primitive.js';
-import {wrap} from './wrapStrip.js';
-import { ESFunction } from "./esfunction.js";
+import {ESError, TypeError} from '../../errors';
+import {Position} from '../../position';
+import {Context} from '../context';
+import {str} from '../../util/util';
+import {ESBoolean} from './esboolean';
+import {ESNumber} from './esnumber';
+import {ESString} from './esstring';
+import {ESPrimitive} from './esprimitive';
+import {ESUndefined} from './esundefined';
+import {Primitive, types} from './primitive';
+import {wrap} from './wrapStrip';
+import { ESFunction } from "./esfunction";
 
 export class ESArray extends ESPrimitive <Primitive[]> {
     len: number;

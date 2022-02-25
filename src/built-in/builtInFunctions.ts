@@ -1,6 +1,6 @@
-import {ESError, TypeError} from "../errors.js";
-import {Position} from "../position.js";
-import { strip, wrap } from '../runtime/primitives/wrapStrip.js';
+import {ESError, TypeError} from "../errors";
+import {Position} from "../position";
+import { strip, wrap } from '../runtime/primitives/wrapStrip';
 import {
     ESArray, ESFunction, ESNamespace,
     ESNumber,
@@ -8,9 +8,9 @@ import {
     ESPrimitive,
     ESString, ESUndefined,
     FunctionInfo
-} from '../runtime/primitiveTypes.js';
-import {BuiltInFunction, indent, sleep, str} from '../util/util.js';
-import { ESJSBinding } from "../runtime/primitives/esjsbinding.js";
+} from '../runtime/primitiveTypes';
+import {BuiltInFunction, indent, sleep, str} from '../util/util';
+import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 
 export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} = {
     'range': [({context}, num) => {

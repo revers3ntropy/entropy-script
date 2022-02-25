@@ -1,9 +1,9 @@
-import {Position} from '../../position.js';
-import {strip} from '../../runtime/primitives/wrapStrip.js';
-import {ESNumber, ESObject, ESString} from '../../runtime/primitiveTypes.js';
-import {JSModule} from '../module.js';
-import {str} from '../../util/util.js';
-import {TypeError} from '../../errors.js';
+import {Position} from '../../position';
+import {strip} from '../../runtime/primitives/wrapStrip';
+import {ESNumber, ESObject, ESString} from '../../runtime/primitiveTypes';
+import {JSModule} from '../module';
+import {str} from '../../util/util';
+import {TypeError} from '../../errors';
 
 const module: JSModule = {
 

@@ -2,20 +2,10 @@
   "compilerOptions": {
     "module": "es2015",
     "target": "es6",
-    "outDir": "./build",
     "lib": [ "es2015", "dom" ],
     "strict": true,
-    "typeRoots": [
-      "./src/types.d.ts"
-    ],
     "experimentalDecorators": true,
     "noEmit": false,
     "removeComments": true
-  },
-  "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "build"
-  ]
+  }
 }

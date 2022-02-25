@@ -1,14 +1,14 @@
-import { ESError, IndexError, TypeError } from '../../errors.js';
-import {Position} from '../../position.js';
-import {Context} from '../context.js';
-import {ESArray} from './esarray.js';
-import {ESBoolean} from './esboolean.js';
-import {ESString} from './esstring.js';
-import {ESPrimitive} from './esprimitive.js';
-import { funcProps, str } from '../../util/util.js';
-import {Primitive, types} from './primitive.js';
-import { ESFunction } from "./esfunction.js";
-import { wrap } from "./wrapStrip.js";
+import { ESError, IndexError, TypeError } from '../../errors';
+import {Position} from '../../position';
+import {Context} from '../context';
+import {ESArray} from './esarray';
+import {ESBoolean} from './esboolean';
+import {ESString} from './esstring';
+import {ESPrimitive} from './esprimitive';
+import { funcProps, str } from '../../util/util';
+import {Primitive, types} from './primitive';
+import { ESFunction } from "./esfunction";
+import { wrap } from "./wrapStrip";
 
 export class ESNumber extends ESPrimitive <number> {
     constructor (value: number = 0) {

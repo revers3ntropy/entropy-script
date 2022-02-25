@@ -1,18 +1,18 @@
-import { ESError, IndexError } from '../../errors.js';
-import {Position} from '../../position.js';
-import {Context} from '../context.js';
-import {ESArray} from './esarray.js';
-import {ESBoolean} from './esboolean.js';
-import {ESErrorPrimitive} from './eserrorprimitive.js';
-import {ESFunction} from './esfunction.js';
-import {ESNumber} from './esnumber.js';
-import {ESObject} from './esobject.js';
-import {ESString} from './esstring.js';
-import {ESType} from './estype.js';
-import {ESPrimitive} from './esprimitive.js';
-import {Primitive, types} from './primitive.js';
-import { funcProps, str } from '../../util/util.js';
-import { wrap } from "./wrapStrip.js";
+import { ESError, IndexError } from '../../errors';
+import {Position} from '../../position';
+import {Context} from '../context';
+import {ESArray} from './esarray';
+import {ESBoolean} from './esboolean';
+import {ESErrorPrimitive} from './eserrorprimitive';
+import {ESFunction} from './esfunction';
+import {ESNumber} from './esnumber';
+import {ESObject} from './esobject';
+import {ESString} from './esstring';
+import {ESType} from './estype';
+import {ESPrimitive} from './esprimitive';
+import {Primitive, types} from './primitive';
+import { funcProps, str } from '../../util/util';
+import { wrap } from "./wrapStrip";
 
 export class ESUndefined extends ESPrimitive <undefined> {
     constructor () {

@@ -1,5 +1,5 @@
-import installPackage, {addPackageToConfig, canInstallPackage} from './installPackage.js';
-import {editConfig} from './util.js';
+import installPackage, {addPackageToConfig, canInstallPackage} from './installPackage';
+import {editConfig} from './util';
 
 /**
  * 'install *'
