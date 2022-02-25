@@ -1,3 +1,6 @@
 /examples/
 /grammer/
 /test/
+.gitattributes
+test.es
+/npm-package/
