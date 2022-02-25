@@ -1,6 +1,6 @@
 import {ESError, TypeError} from "../errors";
 import {Position} from "../position";
-import { strip, wrap } from '../runtime/primitives/wrapStrip';
+import { wrap } from '../runtime/primitives/wrapStrip';
 import {
     ESArray, ESFunction, ESNamespace,
     ESNumber,
@@ -11,6 +11,7 @@ import {
 } from '../runtime/primitiveTypes';
 import {BuiltInFunction, indent, sleep, str} from '../util/util';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
+import chalk from "../util/colours";
 
 export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} = {
     'range': [({context}, num) => {
@@ -84,27 +85,27 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
                 return;
             }
             const info = thing.info;
-            out += `${`Help on '${info.name || '(anonymous)'}'`.yellow}:
+            out += `${chalk.yellow(`Help on '${info.name || '(anonymous)'}'`)}:
     
-    ${'Value'.yellow}: ${indent(indent(str(thing)))}
-    ${'Type'.yellow}: '${str(thing.typeName())}'
-    ${'Location'.yellow}: ${info.file || '(unknown)'.yellow}
+    ${chalk.yellow('Value')}: ${indent(indent(str(thing)))}
+    ${chalk.yellow('Type')}: '${str(thing.typeName())}'
+    ${chalk.yellow('Location')}: ${info.file || chalk.yellow('(unknown)')}
     
-        ${info.description?.green || `No description.`}
+        ${chalk.green(info.description) || `No description.`}
         
-    ${info.helpLink ? (info.helpLink + '\n\n').cyan : ''}
+    ${info.helpLink ? chalk.cyan(info.helpLink + '\n\n') : ''}
 `;
             if (info.args && thing instanceof ESFunction) {
                 const total = info.args.length;
                 const required = info.args.filter(a => a.required).length;
                 if (total == required)
-                    out += `    Arguments (${total}): \n`.yellow;
+                    out += chalk.yellow(`    Arguments (${total}): \n`);
                 else
-                    out += `    Arguments (${required}-${total}): \n`.yellow;
+                    out += chalk.yellow(`    Arguments (${required}-${total}): \n`);
 
                 for (const [idx, arg] of info.args.entries()) {
                     if (typeof arg !== 'object') out += `        ${idx + 1}. INVALID ARG INFO`;
-                    else out += `        ${idx + 1}. ${arg.name}${arg.required === false ? ' (optional) ' : ' '.yellow}{${arg.type}} ${arg.description || ''}\n`;
+                    else out += `        ${idx + 1}. ${arg.name}${arg.required === false ? chalk.yellow(' (optional) ') : ' '}{${arg.type}} ${arg.description || ''}\n`;
                 }
 
                 out += `\n\n`;

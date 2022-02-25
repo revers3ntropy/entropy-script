@@ -1,4 +1,4 @@
-import {expect, file} from '../../../testFramework';
+const {expect, file} = require( '../../../testFramework');
 file('std/primitive/is');
 
 expect([1, true, false, false], `

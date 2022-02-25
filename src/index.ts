@@ -1,5 +1,3 @@
-import './util/colourString';
-
 import { Lexer } from "./parse/lexer";
 import { Parser } from "./parse/parser";
 import { global, now, refreshPerformanceNow, runningInNode, setGlobalContext } from "./constants";
@@ -13,17 +11,20 @@ import { Context } from "./runtime/context";
 import addNodeLibs from "./built-in/nodeLibs";
 import { JSModuleParams } from "./built-in/module";
 import {libs as allLibs} from './constants';
+import colours from './util/colours';
 
 export {
     Context,
+    colours
 };
 
 export * from './runtime/primitiveTypes';
 export * from './constants';
 export * from './errors';
 export * from './runtime/nodes';
-export {str} from './util/util';
-export {strip, wrap} from './runtime/primitives/wrapStrip';
+export * from './util/util';
+export * from './runtime/primitives/wrapStrip';
+export * from './runtime/symbol';
 
 /**
  * @param {(...args: any) => void} printFunc

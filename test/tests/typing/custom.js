@@ -1,4 +1,4 @@
-import {expect, file} from '../../testFramework';
+const {expect, file} = require( '../../testFramework');
 file('typing/custom');
 
 expect(['<Type: myType>', {}, {}], `

@@ -228,8 +228,9 @@ export class N_varAssign extends Node {
 
     interpret_(context: Context): interpretResult | ESError | Primitive {
 
-        if (this.isDeclaration && context.hasOwn(this.varNameTok.value))
+        if (this.isDeclaration && context.hasOwn(this.varNameTok.value)) {
             return new InvalidSyntaxError(this.pos, `Symbol '${this.varNameTok.value}' already exists, and cannot be redeclared`);
+        }
 
 
         const res = this.value.interpret(context);
@@ -238,19 +239,22 @@ export class N_varAssign extends Node {
         if (res.error) return res.error;
         if (typeRes.error) return typeRes.error;
 
-        if (!typeRes.val || !(typeRes.val instanceof ESType))
+        if (!typeRes.val || !(typeRes.val instanceof ESType)) {
             return new TypeError(this.varNameTok.pos, 'Type',
                 typeRes.val?.typeName().valueOf() ?? 'undefined', typeRes.val?.str(), `@ !typeRes.val || !(typeRes.val instanceof ESType)`);
+        }
 
-        if (!res.val)
+        if (!res.val) {
             return new TypeError(this.varNameTok.pos, '~undefined', 'undefined', 'N_varAssign.interpret_');
+        }
 
-        if (typeRes.val.includesType({context}, res.val.__type__).valueOf() === false)
+        if (!typeRes.val.includesType({context}, res.val.__type__).bool().valueOf()) {
             return new TypeError(this.varNameTok.pos,
                 str(typeRes.val),
                 str(res.val?.typeName()),
                 str(res.val)
             );
+        }
 
 
         if (this.isDeclaration) {

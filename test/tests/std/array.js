@@ -1,4 +1,4 @@
-import {expect, file} from '../../testFramework';
+const {expect, file} = require( '../../testFramework');
 file('std/array');
 
 expect([['1.2']], 'array(`1.2`)');

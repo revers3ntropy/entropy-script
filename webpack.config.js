@@ -24,5 +24,6 @@ module.exports = {
         libraryTarget: 'umd',
         globalObject: 'this',
     },
-    mode: 'production'
+    mode: 'production',
+    devtool: 'source-map'
 };

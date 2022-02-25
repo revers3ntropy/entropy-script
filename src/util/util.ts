@@ -1,5 +1,4 @@
 import {ESError} from '../errors';
-import {Position} from '../position';
 import {Context} from '../runtime/context';
 import {Node} from "../runtime/nodes";
 import {ESPrimitive, Primitive} from '../runtime/primitiveTypes';

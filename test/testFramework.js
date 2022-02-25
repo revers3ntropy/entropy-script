@@ -1,4 +1,5 @@
 const es = require('../build/latest.js');
+const path = require('path');
 
 /**
  * @name testExecutor
@@ -41,12 +42,12 @@ class TestResult {
     str () {
         return `
             ---   TEST REPORT   ---
-                ${(this.failed.toString())[this.failed < 1 ? 'green' : 'red']} tests failed
-                ${this.passed.toString().green} tests passed
+                ${es.colours[this.failed < 1 ? 'green' : 'red'](this.failed.toString())} tests failed
+                ${es.colours.green(this.passed.toString())} tests passed
                 
-            In ${this.time.toFixed(0).cyan}ms
+            In ${es.colours.cyan(this.time.toFixed(0))}ms
             
-            ${this.failed === 0 ? 'All tests passed!'.green : ''}
+            ${this.failed === 0 ? es.colours.green('All tests passed!') : ''}
             
             ${this.fails.map(([test, error]) =>
                 `\n ${test.batteryName} (#${test.batteryID}${error.pos.isUnknown ? '' : ` ${error.pos.ln}:${error.pos.col}`})`
@@ -108,11 +109,11 @@ class Test {
 
         const res = new TestResult();
 
-        global.path = __dirname;
-
         for (let test of Test.tests) {
             const testEnv = new es.Context();
             testEnv.parent = es.global;
+            testEnv.path = path.resolve(__dirname);
+
             res.register(test, test.run(testEnv));
         }
 
@@ -226,10 +227,11 @@ function arraysSame (arr1, arr2) {
 
 let currentFile = '';
 let currentID = 0;
-export function file (name) {
+function file (name) {
     currentFile = name;
     currentID = -1;
 }
+exports.file = file;
 
 /**
  * @param {any[] | string} expected

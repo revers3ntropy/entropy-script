@@ -2,6 +2,7 @@ import {IS_NODE_INSTANCE} from './constants';
 import {Position} from "./position";
 import {Primitive} from './runtime/primitives/primitive';
 import {str} from "./util/util";
+import chalk from "./util/colours";
 
 export interface TracebackFrame {
     position: Position;
@@ -24,12 +25,12 @@ export class ESError {
     get colouredStr (): string {
         let out = '';
         if (this.traceback.length) {
-            out = 'Error Traceback (most recent call last):\n'.yellow;
+            out = chalk.yellow('Error Traceback (most recent call last):\n');
             for (let pos of [...this.traceback].reverse())
-                out += `    ${pos.position.str.cyan}:\n        ${pos.line}\n`;
+                out += `    ${chalk.cyan(pos.position.str)}:\n        ${pos.line}\n`;
         }
 
-        out += `${this.name.red}: ${this.details} \n at ${this.pos.str.cyan}`;
+        out += `${chalk.red(this.name)}: ${this.details} \n at ${chalk.cyan(this.pos.str)}`;
         return out;
     }
 

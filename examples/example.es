@@ -5,18 +5,19 @@ let message = 'hi my name is ' + name;
 print(message); // hi my name is bob
 
 // loops
-for (i in 3) {
+for i in 3 {
     print(i);
 }
 // 0, 1, 2
 // accessing i would give error
 
-for (global i in [0, 1, 2])
-    print(i);
+for global i in [0, 1, 2] {
+	print(i);
+}
     // 0, 1, 2
 i; // 2
 
-while (i < 10) {
+while i < 10 {
     i += 1;
 }
 i; // 9, as i is now defined globally
@@ -29,7 +30,7 @@ let myFunc = func () {
         output += arg.str();
     }
     return output;
-}; // note the ;
+}; // note the ; after functions
 
 print(myFunc('hi ', 123, ['hi', 1])); // hi 123[hi, 1];
 

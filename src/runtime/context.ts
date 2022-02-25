@@ -5,6 +5,7 @@ import {wrap} from './primitives/wrapStrip';
 import {ESArray, ESFunction, ESPrimitive, ESType, ESUndefined, Primitive, types} from "./primitiveTypes";
 import {dict, str} from "../util/util";
 import {ESSymbol, symbolOptions} from './symbol';
+import chalk from "../util/colours";
 
 export class Context {
     private symbolTable: {[identifier: string]: ESSymbol} = {};
@@ -31,7 +32,7 @@ export class Context {
     }
     set parent (val: Context | undefined) {
         if (val == this) {
-            console.error(`Setting context parent to self`.red);
+            console.error(chalk.red(`Setting context parent to self`));
             return;
         }
         this.parent_ = val;

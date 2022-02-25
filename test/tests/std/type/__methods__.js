@@ -1,2 +1,2 @@
-import {expect, file} from '../../../testFramework';
+const {expect, file} = require( '../../../testFramework');
 file('std/type/__methods__');

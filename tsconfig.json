@@ -6,6 +6,7 @@
     "strict": true,
     "experimentalDecorators": true,
     "noEmit": false,
-    "removeComments": true
+    "removeComments": true,
+    "moduleResolution": "Node"
   }
 }
