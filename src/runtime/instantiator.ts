@@ -138,8 +138,10 @@ export function createInstance (
     for (let method of type.__methods__) {
         const methodClone = method.clone();
         methodClone.this_ = instance;
+
         on[method.name] = methodClone;
 
+        // if it is an operator override method, set it on the primitive rather than the properties object
         if (primitiveMethods.indexOf(method.name) !== -1) {
             (<NativeObj>instance)[method.name] = methodClone.__call__;
         }

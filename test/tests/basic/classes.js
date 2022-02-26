@@ -156,3 +156,52 @@ expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', 
     instance.c;
     instance.d;
 `);
+
+// INHERITANCE
+expect(['<Type: parentClass>', '<Type: childClass>', {doThing: '<Func>', doOtherThing: '<Func>'}, 3, 2], `
+    var parentClass = class {
+        doThing () {
+        	return 1;
+        }
+        
+		doOtherThing () {
+        	return 2;
+        }
+    };
+    
+    var childClass = class extends parentClass {
+		doThing () {
+        	return 3;
+        }
+    };
+    
+    var instance = childClass();
+    instance.doThing();
+    instance.doOtherThing();
+`);
+
+
+// POLYMORPHISM
+expect(['<Type: parentClass>', '<Type: childClass>', {doThing: '<Func>', doOtherThing: '<Func>'}, true, true, true, false], `
+    var parentClass = class {
+        doThing () {
+        	return 1;
+        }
+        
+		doOtherThing () {
+        	return 2;
+        }
+    };
+    
+    var childClass = class extends parentClass {
+		doThing () {
+        	return 3;
+        }
+    };
+    
+    var instance = childClass();
+    instance.isa(childClass);
+    instance.isa(object);
+    instance.isa(parentClass);
+    instance.isa(string);
+`);

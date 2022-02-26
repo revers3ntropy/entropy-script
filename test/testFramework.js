@@ -288,8 +288,11 @@ function expect (expected, from) {
         const val = result.error || resVal;
 
         return new es.TestFailed(
-            `${'Expected'.yellow} \n'${es.str(expected)}' \n ${'but got'.yellow} \n'${str(val)}'\n ${'instead from test with code'.yellow} \n'${from}'\n`
-        );
+            `${es.colours.yellow('Expected')} \n'${es.str(expected)}' 
+            ${es.colours.yellow('but got')} \n'${es.str(val)}'
+            ${es.colours.yellow('instead from test with code')}
+            '${from}'
+        `);
 
     }, currentID);
 }
