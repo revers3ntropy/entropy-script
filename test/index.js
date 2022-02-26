@@ -1,4 +1,4 @@
-const {Test} = require('./testFramework');
+const {Test: Index} = require('./testFramework');
 
 // libs for ES
 const es = require("../build/latest.js");
@@ -64,6 +64,6 @@ async function importAll (dir='./test/tests') {
 		console.log(err);
 	}
 
-	console.log(Test.testAll().str());
+	console.log(Index.testAll().str());
 })();
 

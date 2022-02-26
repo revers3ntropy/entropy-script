@@ -9,7 +9,7 @@ import { strip, wrap } from './wrapStrip';
 import { ESFunction } from "./esfunction";
 
 
-export class ESJSBinding<T> extends ESPrimitive<T> {
+export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
     constructor (value: T, name='<AnonNative>', functionsTakeProps=false) {
         super(value, types.object);
         this.info.name = str(name);

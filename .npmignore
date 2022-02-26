@@ -3,5 +3,6 @@
 /test/
 .gitattributes
 test.es
-/npm-package/
 /.idea/
+/src/
+build.js

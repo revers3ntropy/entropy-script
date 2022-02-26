@@ -3,10 +3,10 @@
  *
  * Syntax:
  *
- * >> node index.js ./path/to/script.es
+ * >> node cli.js ./path/to/script.es
  * will run a script
  *
- * >> node index.js
+ * >> node cli.js
  * will start the terminal
  */
 
