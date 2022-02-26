@@ -12,6 +12,7 @@ import {ESString} from './primitives/esstring';
 import {ESType} from './primitives/estype';
 import {ESUndefined} from './primitives/esundefined';
 import {ESNamespace} from './primitives/esnamespace';
+import {ESJSBinding} from "./primitives/esjsbinding";
 
 export {
     ESArray,
@@ -25,6 +26,7 @@ export {
     ESType,
     ESUndefined,
     ESNamespace,
+    ESJSBinding,
 
     types,
     Primitive,

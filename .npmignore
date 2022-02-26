@@ -4,3 +4,4 @@
 .gitattributes
 test.es
 /npm-package/
+/.idea/
