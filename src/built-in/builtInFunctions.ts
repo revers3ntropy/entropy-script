@@ -204,20 +204,27 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
     }],
 
     'sleep': [({context}, time, cb) => {
-        if (!(time instanceof ESNumber))
+        if (!(time instanceof ESNumber)) {
             return new TypeError(Position.unknown, 'number', str(time.typeName()), str(time));
-        if (!(cb instanceof ESFunction))
-            return new TypeError(Position.unknown, 'function', str(cb.typeName()), str(cb));
+        }
 
         sleep(time.valueOf())
             .then(() => {
                 const res = cb.__call__({context});
-                if (res instanceof ESError)
+                if (res instanceof ESError) {
                     console.log(res.str);
+                }
             });
     }, {
         name: 'sleep',
         args: [{name: 'n', type: 'number'}, {name: 'callback', type: 'function'}],
         description: 'Waits n milliseconds and then executes the callback'
+    }],
+
+    'throw': [({context}, name, details) => {
+        return new ESError(Position.unknown, str(name), str(details));
+    }, {
+        name: 'throw',
+        args: [{name: 'name', type: 'string'}, {name: 'details', type: 'string'}]
     }],
 }

@@ -1,6 +1,6 @@
 import {Position} from '../../position';
 import {strip} from '../../runtime/primitives/wrapStrip';
-import {ESNumber, ESObject, ESString} from '../../runtime/primitiveTypes';
+import {ESObject, ESString} from '../../runtime/primitiveTypes';
 import {JSModule} from '../module';
 import {str} from '../../util/util';
 import {TypeError} from '../../errors';

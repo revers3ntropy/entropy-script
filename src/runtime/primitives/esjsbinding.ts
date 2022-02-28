@@ -64,11 +64,11 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
         // preserve this context
         if (typeof res === 'function') {
             return new ESFunction(({context}: funcProps, ...args) => {
-                return val[key](...args.map(o => strip(o, props)));
+                return wrap(val[key](...args.map(o => strip(o, props))));
             });
         }
 
-        return new ESJSBinding(res);
+        return wrap(res);
     };
 
     __call__ = (props: funcProps, ...args: Primitive[]): ESError | Primitive => {
@@ -83,14 +83,13 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
             res = new this.__value__(...args.map(o => strip(o, props)));
         } catch {
             res = this.__value__(...args.map(o => strip(o, props)));
-
         }
 
         if (res instanceof ESPrimitive) {
             return res;
         }
 
-        return new ESJSBinding(res);
+        return wrap(res);
     };
 
     hasProperty = (props: funcProps, key: Primitive): ESBoolean => {
