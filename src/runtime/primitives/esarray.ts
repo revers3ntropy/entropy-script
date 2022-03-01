@@ -1,7 +1,7 @@
 import {ESError, TypeError} from '../../errors';
 import {Position} from '../../position';
 import {Context} from '../context';
-import {str} from '../../util/util';
+import { funcProps, str } from '../../util/util';
 import {ESBoolean} from './esboolean';
 import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
@@ -80,7 +80,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     __bool__ = () => new ESBoolean(this.valueOf().length > 0);
     bool = this.__bool__;
 
-    __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive => {
+    __getProperty__ = (props: funcProps, key: Primitive): Primitive => {
         if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
             const val = this.self[str(key)];
             if (typeof val === 'function') {
@@ -106,7 +106,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return new ESUndefined();
     };
 
-    __setProperty__({}: {context: Context}, key: Primitive, value: Primitive): void {
+    __setProperty__(props: funcProps, key: Primitive, value: Primitive): void {
         if (!(key instanceof ESNumber)) {
             return;
         }
@@ -127,10 +127,8 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     // Util
     /**
      * Uses JS Array.prototype.splice
-     * @param val value to insert
-     * @param idx index to insert at, defaults to end of array
      */
-    add = ({}: {context: Context}, val: Primitive, idx: Primitive = new ESNumber(this.len - 1)) => {
+    add = (props: funcProps, val: Primitive, idx: Primitive = new ESNumber(this.len - 1)) => {
         if (!(val instanceof ESPrimitive))
             throw 'adding non-primitive to array: ' + str(val);
         this.len++;
@@ -140,12 +138,13 @@ export class ESArray extends ESPrimitive <Primitive[]> {
 
     /**
      * Uses JS Array.prototype.includes
-     * @param val value to check for
      */
-    contains = ({}: {context: Context}, val: Primitive) => {
-        for (let element of this.__value__)
-            if (val.valueOf() == element.valueOf())
+    contains = (props: funcProps, val: Primitive) => {
+        for (let element of this.__value__) {
+            if (val.__eq__(props, element)) {
                 return true;
+            }
+        }
         return false;
     };
 

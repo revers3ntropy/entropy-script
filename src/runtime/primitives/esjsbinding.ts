@@ -39,7 +39,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
     __getProperty__ = (props: funcProps, k: Primitive): Primitive | ESError => {
         const key = str(k);
 
-        const val: T & {[key: string]: NativeObj} = this.valueOf();
+        const val: T & { [key: string]: NativeObj } = this.valueOf();
 
         const res = val[key];
 
@@ -64,7 +64,9 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
         // preserve this context
         if (typeof res === 'function') {
             return new ESFunction(({context}: funcProps, ...args) => {
-                return wrap(val[key](...args.map(o => strip(o, props))));
+                args = args.map(o => strip(o, props));
+                const res = val[key](...args);
+                return wrap(res);
             });
         }
 

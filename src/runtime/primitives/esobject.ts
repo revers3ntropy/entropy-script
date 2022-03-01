@@ -156,12 +156,12 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESObject(newOb);
     }
 
-    __getProperty__ = ({}: {context: Context}, k: Primitive): Primitive| ESError => {
-        if (!(k instanceof ESString)) {
-            return new TypeError(Position.unknown, 'string', k.typeName(), str(k));
+    __getProperty__ = (props: funcProps, k: Primitive): Primitive| ESError => {
+        if (!(k instanceof ESString) && !(k instanceof ESNumber)) {
+            return new TypeError(Position.unknown, 'string | number', k.typeName(), str(k));
         }
 
-        const key: string = k.valueOf();
+        const key: string | number = k.valueOf();
 
         if (this.valueOf().hasOwnProperty(key)) {
             return this.valueOf()[key];

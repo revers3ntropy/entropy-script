@@ -35,27 +35,27 @@ export class ESString extends ESPrimitive <string> {
         }
     }
 
-    __add__ = ({}: {context: Context}, n: Primitive) => {
+    __add__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString))
             return new TypeError(Position.unknown, 'String', n.typeName().valueOf(), n.valueOf());
         return new ESString(this.valueOf() + n.valueOf());
     };
-    __multiply__ = ({}: {context: Context}, n: Primitive) => {
+    __multiply__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber))
             return new TypeError(Position.unknown, 'Number', n.typeName().valueOf(), n.valueOf());
         return new ESString(this.valueOf().repeat(n.valueOf()));
     };
-    __eq__ = ({}: {context: Context}, n: Primitive) => {
+    __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString))
             return new ESBoolean(false);
         return new ESBoolean(this.valueOf() === n.valueOf());
     };
-    __gt__ = ({}: {context: Context}, n: Primitive) => {
+    __gt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString))
             return new TypeError(Position.unknown, 'String', n.typeName().valueOf(), n.valueOf());
         return new ESBoolean(this.valueOf().length > n.valueOf().length);
     };
-    __lt__ = ({}: {context: Context}, n: Primitive) => {
+    __lt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString))
             return new TypeError(Position.unknown, 'String', n.typeName().valueOf(), n.valueOf());
         return new ESBoolean(this.valueOf().length < n.valueOf().length);
@@ -96,7 +96,7 @@ export class ESString extends ESPrimitive <string> {
         return new ESString();
     };
 
-    __setProperty__({}: {context: Context}, key: Primitive, value: Primitive): void {
+    __setProperty__(props: funcProps, key: Primitive, value: Primitive): void {
         if (!(key instanceof ESNumber))
             return;
 

@@ -75,7 +75,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
     str = () => new ESString(`<Func: ${this.name}>`);
 
-    __eq__ = ({}: {context: Context}, n: Primitive) => {
+    __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESFunction))
             return new ESBoolean(false);
         return new ESBoolean(this.__value__ === n.__value__);

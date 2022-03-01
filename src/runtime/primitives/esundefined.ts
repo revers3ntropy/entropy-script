@@ -58,7 +58,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
 
     str = () => new ESString('<Undefined>');
 
-    __eq__ = ({}: {context: Context}, n: Primitive) =>
+    __eq__ = (props: funcProps, n: Primitive) =>
         new ESBoolean(
             n instanceof ESUndefined ||
             typeof n === 'undefined' ||

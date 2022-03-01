@@ -1,4 +1,4 @@
-global airportsTXT = [
+const airportsTXT = [
     ['JFK', 'John F Kennedy International', 5326, 5486],
     ['ORY', 'Paris-Orly', 629, 379],
     ['MAD', 'Adolfo Suarez Madrid-Barajas', 1428, 1151],
@@ -6,29 +6,29 @@ global airportsTXT = [
     ['CAI', 'Cairo International', 3779, 3584]
 ];
 
-global list_of_airports = [];
+list_of_airports = [];
 
 // inputted data:
-global uk_airport = '';
-global overseas_airport = '';
-global airplane_type = -1;
-global first_seats = 0;
-global first_price = 0;
-global standard_price = 0;
+const uk_airport = '';
+const overseas_airport = '';
+const airplane_type = -1;
+const first_seats = 0;
+const first_price = 0;
+const standard_price = 0;
 
 // setting the types of airplanes as ints for use in the data dict:
-global medium_narrow = 0;
-global large_narrow = 1;
-global medium_wide = 2;
+const medium_narrow = 0;
+const large_narrow = 1;
+const medium_wide = 2;
 
 // variables for each type of airplane
-global running_cost = 0;
-global max_range = 1;
-global max_capacity = 2;
-global min_first_class = 3;
+const running_cost = 0;
+const max_range = 1;
+const max_capacity = 2;
+const min_first_class = 3;
 
 // fixed data for each type of airplane
-global airplane_types_data = {
+const airplane_types_data = {
     [medium_narrow]: {
         [running_cost]: 8,
         [max_range]: 2650,
@@ -49,7 +49,7 @@ global airplane_types_data = {
     }
 };
 
-global Airplane = class {
+const Airplane = class {
     init (airplane_type) {
         type_data = airplane_types_data[airplane_type];
 
@@ -60,7 +60,7 @@ global Airplane = class {
     }
 };
 
-global Airport = class {
+const Airport = class {
     init (data) {
         this.code = data[0];
         this.name = data[1];
@@ -69,29 +69,31 @@ global Airport = class {
     }
 };
 
-global initialise = func () {
-    for (data in airportsTXT) {
-        append(list_of_airports, Airport(data));
+const initialise = func () {
+    for data in airportsTXT {
+        list_of_airports.add(Airport(data));
     }
 };
 
 // menu.py
-global clear_data = func () {
+const clear_data = func () {
     uk_airport = '';
-    overseas_airport = undefined;
+    overseas_airport = nil;
     airplane_type = 0;
     first_seats = 0;
     first_price = 0;
     standard_price = 0;
 };
 
-global enter_airport_details = func () {
+const VALID_UK_CODES = ['LPL', 'BOH'];
+
+const enter_airport_details = func () {
     // for entering the UK airport code
 
     input('UK airport code (either LPL or BOH): ', func (uk_airport) {
-        if (contains (['LPL', 'BOH'], uk_airport))  // if the code is valid
+        if VALID_UK_CODES.contains(uk_airport) {
             uk_airport = uk_airport
-        else {
+        } else {
             print('Sorry, that is not a valid code, or the airport you are looking for does not exist.');
             enter_airport_details();
             return;
@@ -103,15 +105,15 @@ global enter_airport_details = func () {
             input('Overseas airport code: ', func (overseas_airport) {
                 // loops through all the possible airport codes, and checks to see if the code matches
                 let valid = false;
-                for (i in list_of_airports) {
-                    if (i.code == overseas_airport) {
+                for i in list_of_airports {
+                    if i.code == overseas_airport {
                         valid = true;
                         overseas_airport = i;
                         print('The name of the overseas airport is ', i.name, '.');
                     }
                 }
 
-                if(!valid) {
+                if !valid {
                     print('Sorry, that is not a valid code, or the airport you are looking for does not exist.');
                     get_overseas_airport();
                 }
@@ -124,22 +126,25 @@ global enter_airport_details = func () {
     });
 };
 
-global enter_flight_details = func () {
+const VALID_AIRPLANE_TYPES = ['medium narrow', 'large narrow', 'medium wide'];
+
+const enter_flight_details = func () {
     input('Type of aircraft to be used: ', func (response) {
-        print(response);
-        if (!contains(['medium narrow', 'large narrow', 'medium wide'], response)) {
+		print(response);
+        if !VALID_AIRPLANE_TYPES.contains(response) {
             print('not valid');
             enter_flight_details();
             return;
         }
 
         print('    -	Aircraft details:	-	');
-        if (response == 'medium narrow')
-            airplane_type = medium_narrow;
-        else if (response == 'large narrow')
-            airplane_type = large_narrow;
-        else if (response == 'medium wide')
+        if response == 'medium narrow' {
+           airplane_type = medium_narrow;
+	    } else if response == 'large narrow' {
+	    	airplane_type = large_narrow;
+	    } else if response == 'medium wide' {
             airplane_type = medium_wide;
+	    }
 
         let aircraft_data = airplane_types_data[airplane_type];
 
@@ -155,11 +160,11 @@ global enter_flight_details = func () {
                     main_menu();
                     return;
                 }
-                if (first_class_seats < aircraft_data[min_first_class])
-                    print('That is smaller than the minimum number of first class seats for that aircraft.');
-                else if (first_class_seats > aircraft_data[max_capacity] / 2)
+                if first_class_seats < aircraft_data[min_first_class] {
+                	print('That is smaller than the minimum number of first class seats for that aircraft.');
+                } else if first_class_seats > aircraft_data[max_capacity] / 2 {
                     print('That is larger than the maximum number of first class seats for that aircraft.');
-                else {
+                } else {
                     first_seats = first_class_seats;
                     valid_response = true;
                     max_standard_seats = aircraft_data[max_capacity];
@@ -174,16 +179,16 @@ global enter_flight_details = func () {
     });
 };
 
-global calculate_cost = func () {
-    if (uk_airport == "" || overseas_airport == undefined) {
+const calculate_cost = func () {
+    if uk_airport == "" || overseas_airport == nil {
         print('Sorry, please enter flight details first');
         main_menu();
         return;
-    } else if (airplane_type == -1) {
+    } else if airplane_type == -1 {
         print('Sorry, please enter airplane type first');
         main_menu();
         return;
-    } else if (first_seats == 0) {
+    } else if first_seats == 0 {
         print('Sorry, please enter the number of first class seats first');
         main_menu();
         return;
@@ -191,12 +196,13 @@ global calculate_cost = func () {
     airplane_max = airplane_types_data[airplane_type][max_range];
 
     let airport_dist;
-    if (uk_airport == 'LJL')
-        airport_dist = overseas_airport.dist_LJL;
-    else
-        airport_dist = overseas_airport.dist_BI;
+    if uk_airport == 'LJL'{
+		airport_dist = overseas_airport.dist_LJL;
+   	} else {
+   		airport_dist = overseas_airport.dist_BI;
+   	}
 
-    if (airplane_max < airport_dist) {
+    if airplane_max < airport_dist {
         print('Sorry, but the range of the selected airport is too short for the flight plan');
         main_menu();
         return;
@@ -205,7 +211,7 @@ global calculate_cost = func () {
     let get_first_class_seats = func () {
         input('Please enter the price of a first class seat', func (price) {
             price = parseNum(price);
-            if ((!price && price != undefined) || price < 0) {
+            if (!price && price != undefined) || price < 0 {
                 print('error, please try again');
                 get_first_class_seats();
                 return;
@@ -214,7 +220,7 @@ global calculate_cost = func () {
             let get_standard_seats = func () {
                 input('Please enter the price of a standard class seat', func (price) {
                     price = parseNum(price);
-                    if ((!price && price != undefined) || price < 0) {
+                    if (!price && price != undefined) || price < 0 {
                         print('error, please try again');
                         get_standard_seats();
                         return;
@@ -242,18 +248,18 @@ global calculate_cost = func () {
 
 // end menu.py
 
-global main_menu = func () {
+const main_menu = func () {
     print('What would you like to do?');
     input("You can 'calculate flight profit', 'enter airport details', 'enter flight details', 'clear data' or 'quit'\n", func (option) {
-        if (option == 'quit'){}
+        if (option == 'quit') {}
 
-        else if (option == 'calculate flight profit')
-            calculate_cost();
-        else if (option == 'enter airport details')
-            enter_airport_details();
-        else if (option == 'enter flight details')
-            enter_flight_details();
-        else if (option == 'clear data') {
+        else if option == 'calculate flight profit' {
+        	calculate_cost();
+        } else if option == 'enter airport details' {
+        	enter_airport_details();
+        } else if option == 'enter flight details' {
+        	enter_flight_details();
+        } else if option == 'clear data' {
             clear_data();
             main_menu();
         } else {

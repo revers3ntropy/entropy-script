@@ -26,7 +26,7 @@ i; // 9, as i is now defined globally
 // functions
 let myFunc = func () {
     let output = '';
-    for (let arg in args) {
+    for let arg in args {
         output += arg.str();
     }
     return output;
@@ -73,7 +73,7 @@ print(arr); // [0, 1, 'hi!', 2, 3, 7]
 
 // classes
 const MyClass = class {
-    init (a) {
+    init (a: any) {
         this.a = a;
     }
 
@@ -86,7 +86,7 @@ const MyClass = class {
     }
 
     output () {
-        print(this.constructor.name + ': ' + this.a.str());
+        print(this.a.str());
     }
 };
 let instance = MyClass(1);
@@ -94,4 +94,13 @@ instance.output(); // MyClass: 1
 instance.setA('hello world');
 instance.output(); // MyClass: hello world
 instance.a = 2;
-print(instance); // MyClass: {setA: N_function, getA: N_function, log: N_function, a: 2}
+print(instance);
+/*
+	<ESObject Object: {
+		setA: <Func: setA>,
+		getA: <Func: getA>,
+		output: <Func: output>,
+		a: 2
+	}>
+*/
+

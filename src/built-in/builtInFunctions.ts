@@ -14,18 +14,46 @@ import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import chalk from "../util/colours";
 
 export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} = {
-    'range': [({context}, num) => {
-        if (!(num instanceof ESNumber)) {
-            return new TypeError(Position.unknown, 'Number', num.typeName().valueOf(), num.valueOf());
+    'range': [({context}, minP, maxP, stepP) => {
+        if (!(minP instanceof ESNumber)) {
+            return new ESArray();
         }
 
-        const n = num.valueOf();
+        const min = minP.valueOf();
 
-        try {
-            return new ESArray([...Array(n).keys()].map(n => new ESNumber(n)));
-        } catch (e) {
-            return new ESError(Position.unknown, 'RangeError', `Cannot make range of length '${str(num)}'`);
+        if (maxP instanceof ESUndefined) {
+            try {
+                return new ESArray([...Array(min).keys()].map(n => new ESNumber(n)));
+            } catch (e) {
+                return new ESError(Position.unknown, 'RangeError', `Cannot make range of length '${str(min)}'`);
+            }
         }
+
+        let step = 1;
+
+        if (!(maxP instanceof ESNumber)) {
+            return new TypeError(Position.unknown, 'number', maxP.typeName(), str(maxP));
+        }
+
+        let max = maxP.valueOf();
+
+        if (!(stepP instanceof ESUndefined)) {
+            if (!(stepP instanceof ESNumber)) {
+                return new TypeError(Position.unknown, 'number', stepP.typeName(), str(stepP));
+            }
+            step = stepP.valueOf();
+        }
+
+        let arr = [];
+
+        let i = min;
+        while (i < max) {
+            arr.push(new ESNumber(i));
+            i += step;
+        }
+
+        return new ESArray(arr);
+
     }, {
        args: [{
            name: 'N',

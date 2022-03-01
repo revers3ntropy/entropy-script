@@ -1,6 +1,6 @@
 import {ESError, IndexError, TypeError} from '../../errors';
 import {Position} from '../../position';
-import {dict} from '../../util/util';
+import { dict, funcProps } from '../../util/util';
 import {Context} from '../context';
 import {ESSymbol} from '../symbol';
 import {ESBoolean} from './esboolean';
@@ -47,7 +47,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         return new ESString(`<Namespace ${str(this.name)}${keys.length > 0 ? ': ' : ''}${keys.slice(0, 5)}${keys.length >= 5 ? '...' : ''}>`);
     }
 
-    __eq__ = ({}: {context: Context}, n: Primitive): ESBoolean => {
+    __eq__ = (props: funcProps, n: Primitive): ESBoolean => {
         return new ESBoolean(this === n);
     };
 
@@ -55,7 +55,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     bool = this.__bool__;
 
 
-    __getProperty__ = ({}: {context: Context}, key: Primitive): Primitive | ESError => {
+    __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
         if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf())) {
             const symbol = this.valueOf()[key.valueOf()];
             if (symbol.isAccessible) {
@@ -78,7 +78,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         return new IndexError(Position.unknown, key.valueOf(), this.self);
     };
 
-    __setProperty__({}: {context: Context}, key: Primitive, value: Primitive): void | ESError {
+    __setProperty__(props: funcProps, key: Primitive, value: Primitive): void | ESError {
         if (!(key instanceof ESString)) {
             return new TypeError(Position.unknown, 'string', key.typeName().valueOf(), str(key));
         }
@@ -98,10 +98,10 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
             return new ESError(Position.unknown, 'SymbolError', `Symbol ${idx} is not declared in namespace ${str(this.name)}.`);
         }
         if (symbol.isConstant) {
-            return new TypeError(Position.unknown, 'mutable', 'immutable', `${str(this.name)}.${idx}`);
+            return new TypeError(Position.unknown, 'mutable', 'immutable', `${str(this.name)}[${idx}]`);
         }
         if (!symbol.isAccessible) {
-            return new TypeError(Position.unknown, 'accessible', 'inaccessible', `${str(this.name)}.${idx}`);
+            return new TypeError(Position.unknown, 'accessible', 'inaccessible', `${str(this.name)}[${idx}]`);
         }
 
         symbol.value = value;

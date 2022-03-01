@@ -30,42 +30,42 @@ export class ESNumber extends ESPrimitive <number> {
 
     str = () => new ESString(this.valueOf().toString());
 
-    __add__ = ({}: {context: Context}, n: Primitive) => {
+    __add__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber))
             return new TypeError(Position.unknown, 'Number', n.typeName().valueOf(), n.valueOf());
         return new ESNumber(this.valueOf() + n.valueOf());
     };
-    __subtract__ = ({}: {context: Context}, n: Primitive) => {
+    __subtract__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber))
             return new TypeError(Position.unknown, 'Number', n.typeName().valueOf(), n.valueOf());
         return new ESNumber(this.valueOf() - n.valueOf());
     };
-    __multiply__ = ({}: {context: Context}, n: Primitive) => {
+    __multiply__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber))
             return new TypeError(Position.unknown, 'Number', n.typeName().valueOf(), n.valueOf());
         return new ESNumber(this.valueOf() * n.valueOf());
     };
-    __divide__ = ({}: {context: Context}, n: Primitive) => {
+    __divide__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber))
             return new TypeError(Position.unknown, 'Number', n.typeName().valueOf(), n.valueOf());
         return new ESNumber(this.valueOf() / n.valueOf());
     };
-    __pow__ = ({}: {context: Context}, n: Primitive) => {
+    __pow__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber))
             return new TypeError(Position.unknown, 'Number', n.typeName().valueOf(), n.valueOf());
         return new ESNumber(this.valueOf() ** n.valueOf());
     };
-    __eq__ = ({}: {context: Context}, n: Primitive) => {
+    __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber))
             return new ESBoolean(false);
         return new ESBoolean(this.valueOf() === n.valueOf());
     };
-    __gt__ = ({}: {context: Context}, n: Primitive) => {
+    __gt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber))
             return new TypeError(Position.unknown, 'Number', n.typeName().valueOf(), n.valueOf());
         return new ESBoolean(this.valueOf() > n.valueOf());
     };
-    __lt__ = ({}: {context: Context}, n: Primitive) => {
+    __lt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber))
             return new TypeError(Position.unknown, 'Number', n.typeName().valueOf(), n.valueOf());
         return new ESBoolean(this.valueOf() < n.valueOf());
