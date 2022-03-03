@@ -1,10 +1,10 @@
 import {Position} from "../position";
 import {Context} from "../runtime/context";
-import {ESError, ImportError} from "../errors";
+import {ESError, ImportError, PermissionRequiredError} from '../errors';
 import {ESFunction, ESNamespace, ESObject, ESString, Primitive, types} from '../runtime/primitiveTypes';
 import { str } from "../util/util";
 import {interpretResult} from "../runtime/nodes";
-import {run} from "../index";
+import {permissions, run} from '../index';
 import {JSModuleParams} from './module';
 import {addModuleFromObj, getModule, moduleExist} from './builtInModules';
 import { global, importCache } from "../constants";
@@ -28,59 +28,68 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
     }
 
     context.set('import', new ESFunction(({context}, rawPath): ESError | Primitive | undefined => {
-            let scriptPath: string = str(rawPath);
 
-            if (moduleExist(scriptPath)) {
-                return getModule(scriptPath);
-            }
+        if (!permissions.imports) {
+            return new PermissionRequiredError('Imports not allowed');
+        }
 
-            scriptPath = path.join(context.path, scriptPath);
+        if (!permissions.imports) {
+            return new PermissionRequiredError('Imports not allowed');
+        }
 
-            if (scriptPath in importCache) {
-                return importCache[scriptPath];
-            }
+        let scriptPath: string = str(rawPath);
 
-            try {
-                if (!fs.existsSync(scriptPath)) {
-                    if (fs.existsSync('./particles/' + scriptPath)) {
-                        if (fs.existsSync('particles/' + scriptPath + '/main.es')) {
-                            scriptPath = 'particles/' + scriptPath + '/main.es';
-                        } else {
-                            return new ESError(Position.unknown, 'ImportError', `Module '${scriptPath}' has no entry point. Requires 'main.es'.`)
-                        }
+        if (permissions.useSTD && moduleExist(scriptPath)) {
+            return getModule(scriptPath);
+        }
+
+        scriptPath = path.join(context.path, scriptPath);
+
+        if (scriptPath in importCache) {
+            return importCache[scriptPath];
+        }
+
+        try {
+            if (!fs.existsSync(scriptPath)) {
+                if (fs.existsSync('./particles/' + scriptPath)) {
+                    if (fs.existsSync('particles/' + scriptPath + '/main.es')) {
+                        scriptPath = 'particles/' + scriptPath + '/main.es';
                     } else {
-                        return new ESError(Position.unknown, 'ImportError', `Can't find file '${scriptPath}' to import.`)
+                        return new ESError(Position.unknown, 'ImportError', `Module '${scriptPath}' has no entry point. Requires 'main.es'.`)
                     }
+                } else {
+                    return new ESError(Position.unknown, 'ImportError', `Can't find file '${scriptPath}' to import.`)
                 }
-
-                const exDir = path.dirname(scriptPath);
-
-                const code = fs.readFileSync(scriptPath, 'utf-8');
-                const env = new Context();
-                env.parent = global;
-                env.path = exDir;
-
-                const n = new ESNamespace(new ESString(scriptPath), {});
-                importCache[scriptPath] = n;
-
-                const res: interpretResult = run(code, {
-                    env,
-                    measurePerformance: false,
-                    fileName: scriptPath,
-                    currentDir: exDir,
-                });
-
-                n.__value__ = env.getSymbolTableAsDict();
-
-                if (res.error) {
-                    return res.error;
-                }
-                return n;
-
-            } catch (E: any) {
-                return new ESError(Position.unknown, 'ImportError', E.toString());
             }
-        },
+
+            const exDir = path.dirname(scriptPath);
+
+            const code = fs.readFileSync(scriptPath, 'utf-8');
+            const env = new Context();
+            env.parent = global;
+            env.path = exDir;
+
+            const n = new ESNamespace(new ESString(scriptPath), {});
+            importCache[scriptPath] = n;
+
+            const res: interpretResult = run(code, {
+                env,
+                measurePerformance: false,
+                fileName: scriptPath,
+                currentDir: exDir,
+            });
+
+            n.__value__ = env.getSymbolTableAsDict();
+
+            if (res.error) {
+                return res.error;
+            }
+            return n;
+
+        } catch (E: any) {
+            return new ESError(Position.unknown, 'ImportError', E.toString());
+        }
+    },
             [{name: 'path', type: types.string}],
             'import', undefined, types.object
     ), {
@@ -89,6 +98,10 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
     });
 
     context.setOwn('open', new ESFunction(({context}, path_, encoding_) => {
+        if (!permissions.fileSystem) {
+            return new PermissionRequiredError('No access to file system');
+        }
+
         const path = str(path_);
         const encoding = str(encoding_) || 'utf-8';
 

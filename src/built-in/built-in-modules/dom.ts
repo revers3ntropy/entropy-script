@@ -1,10 +1,14 @@
-import {IS_NODE_INSTANCE} from '../../constants';
-import { ESError, ReferenceError, InvalidRuntimeError } from '../../errors';
+import {IS_NODE_INSTANCE, permissions} from '../../constants';
+import {ESError, ReferenceError, InvalidRuntimeError, PermissionRequiredError} from '../../errors';
 import {Position} from '../../position';
 import { JSModule, JSModuleFunc } from '../module';
 import { ESJSBinding } from "../../runtime/primitives/esjsbinding";
 
 const module: JSModuleFunc = (): JSModule | ESError => {
+
+    if (!permissions.accessDOM) {
+        return new PermissionRequiredError('No access to DOM');
+    }
 
     if (IS_NODE_INSTANCE) {
         return new InvalidRuntimeError();

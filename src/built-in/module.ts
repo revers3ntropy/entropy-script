@@ -5,7 +5,9 @@ import type {Primitive} from '../runtime/primitiveTypes';
 import type {BuiltInFunction} from '../util/util';
 
 type moduleValues = number | string | moduleValues[] | Primitive | BuiltInFunction;
+
 export type JSModule = {[key: string]: moduleValues};
+
 export type JSModuleParams = {
     https?: NativeObj,
     http?: NativeObj,
@@ -18,4 +20,5 @@ export type JSModuleParams = {
 
     [k: string]: NativeObj;
 };
+
 export type JSModuleFunc = (config: JSModuleParams) => JSModule | ESError;

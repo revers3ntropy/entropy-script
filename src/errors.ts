@@ -104,3 +104,9 @@ export class TestFailed extends ESError {
         super(Position.unknown, 'TestFailed', detail);
     }
 }
+
+export class PermissionRequiredError extends ESError {
+    constructor(detail: string) {
+        super(Position.unknown, 'PermissionRequiredError', detail);
+    }
+}

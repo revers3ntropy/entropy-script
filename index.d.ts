@@ -1,5 +1,3 @@
-import { types } from "./src";
-
 declare module 'entropy-script' {
 
     type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | ESError | Primitive | Promise<void>;
@@ -29,7 +27,7 @@ declare module 'entropy-script' {
     }
 
     type enumDict<T extends number, U> = { [k in T]: U };
-    type dict<T> = { [k: string | number]: T; };
+    type dict<T> = { [k in (string | number)]: T; };
 
     class Context {
         initialisedAsGlobal: boolean;
@@ -433,7 +431,22 @@ declare module 'entropy-script' {
         constructor ();
     }
 
+    class PermissionRequiredError extends ESError {
+        constructor (detail: string);
+    }
+
     function str(v: any): string;
     function wrap(thing: any, functionsTakeProps?: boolean): Primitive;
     function strip(thing: Primitive | undefined, props: funcProps): NativeObj;
+
+    interface Permissions {
+        networking: boolean;
+        imports: boolean;
+        accessDOM: boolean;
+        useSTD: boolean;
+    }
+
+    const permissions: Permissions;
+
+    function updatePermissions (newPermissions: Permissions): void;
 }
