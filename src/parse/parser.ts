@@ -1,10 +1,10 @@
 import {tokenType, tokenTypeString, tt} from '../constants';
 import {Token} from "./tokens";
 import * as n from '../runtime/nodes';
-import {N_functionDefinition, N_namespace, N_undefined, N_variable, Node} from '../runtime/nodes';
+import { N_functionDefinition, N_namespace, N_tryCatch, N_undefined, N_variable, Node } from '../runtime/nodes';
 import { ESError, InvalidSyntaxError } from "../errors";
 import {Position} from "../position";
-import { ESType, types } from "../runtime/primitiveTypes";
+import { ESType, ESUndefined, types } from "../runtime/primitiveTypes";
 import { uninterpretedArgument } from "../runtime/argument";
 
 export class ParseResults {
@@ -197,15 +197,13 @@ export class Parser {
         } else if (this.currentToken.matches(tt.KEYWORD, 'continue')) {
             this.advance(res);
             return res.success(new n.N_continue(pos));
+        } else if (this.currentToken.matches(tt.KEYWORD, 'try')) {
+            return this.tryCatch();
         }
 
         const expr = res.register(this.expr());
         if (res.error) {
             return res;
-        }
-
-        if (!expr) {
-            return res.failure(new InvalidSyntaxError(pos, 'No empty statements'));
         }
 
         return res.success(expr);
@@ -788,7 +786,7 @@ export class Parser {
      */
     private parameter (res: ParseResults): uninterpretedArgument | ESError {
         let name: string;
-        let type: Node = new n.N_primWrapper(types.any);
+        let type: Node = new n.N_primitiveWrapper(types.any);
 
         if (this.currentToken.type !== tt.IDENTIFIER)
             return new InvalidSyntaxError(
@@ -821,7 +819,7 @@ export class Parser {
         const pos = this.currentToken.pos;
         let body: n.Node,
             args: uninterpretedArgument[] = [],
-            returnType: Node = new n.N_primWrapper(types.any);
+            returnType: Node = new n.N_primitiveWrapper(types.any);
 
         this.consume(res, tt.OPAREN);
 
@@ -1016,6 +1014,7 @@ export class Parser {
         if (res.error) return res;
 
         this.addEndStatement(res);
+        if (res.error) return res;
 
         return res.success(new n.N_for(
             pos, body, array, identifier, isGlobalIdentifier, isConstIdentifier
@@ -1201,5 +1200,51 @@ export class Parser {
         if (res.error) return res;
 
         return res.success(new n.N_namespace(pos, statements));
+    }
+
+    private tryCatch (): ParseResults {
+        const res = new ParseResults();
+
+        this.consume(res, tt.KEYWORD);
+        if (res.error) return res;
+        this.consume(res, tt.OBRACES);
+        if (res.error) return res;
+
+        if (this.currentToken.type === tt.CBRACES) {
+            return res.failure(new InvalidSyntaxError(this.currentToken.pos, 'No empty try block'));
+        }
+
+        const body = res.register(this.statements());
+        if (res.error) return res;
+
+        this.consume(res, tt.CBRACES);
+        if (res.error) return res;
+
+
+        if (this.currentToken.value !== 'catch') {
+            return res.failure(new InvalidSyntaxError(this.currentToken.pos, 'try block requires catch'));
+        }
+
+        this.consume(res, tt.KEYWORD);
+        if (res.error) return res;
+
+        this.consume(res, tt.OBRACES);
+        if (res.error) return res;
+
+        // @ts-ignore
+        if (this.currentToken.type === tt.CBRACES) {
+            return res.success(new N_tryCatch(this.currentToken.pos, body, new N_undefined()));
+        }
+
+        const catchBlock = res.register(this.statements());
+        if (res.error) return res;
+
+        this.consume(res, tt.CBRACES);
+        if (res.error) return res;
+
+        this.addEndStatement(res);
+        if (res.error) return res;
+
+        return res.success(new N_tryCatch(this.currentToken.pos, body, catchBlock));
     }
 }

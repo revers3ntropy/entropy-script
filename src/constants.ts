@@ -21,6 +21,8 @@ export const libs: JSModuleParams = {
     print: console.log
 };
 
+export const catchBlockErrorSymbolName = 'err';
+
 export const KEYWORDS = [
     'var',
     'let',
@@ -46,7 +48,10 @@ export const KEYWORDS = [
     'extends',
 
     'namespace',
-    'export'
+    'export',
+
+    'try',
+    'catch'
 ];
 
 export let now: (() => number) = () => 0;

@@ -8,6 +8,7 @@ import type { funcProps } from "../../util/util";
 import { ESFunction } from "./esfunction";
 import { wrap } from "./wrapStrip";
 import {str} from "../../util/util";
+import { ESArray } from "./esarray";
 
 export class ESErrorPrimitive extends ESPrimitive <ESError> {
     constructor (error: ESError = new ESError(Position.unknown, 'Unknown', 'Error not specified')) {
@@ -15,17 +16,27 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
     }
 
     __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
-        if (this.self.hasOwnProperty(str(key))) {
-            const val = this.self[str(key)];
-            if (typeof val === 'function') {
-                return new ESFunction(val);
-            }
-            return wrap(val);
+
+        switch (str(key)) {
+
+            case 'name':
+                return new ESString(this.valueOf().name);
+            case 'details':
+                return new ESString(this.valueOf().details);
+
+            case 'traceback':
+                return new ESArray(this.valueOf().traceback
+                        .map(s => new ESString(`${s.position.str} : ${s.line}`)));
+
+            default:
+                if (this.self.hasOwnProperty(str(key))) {
+                    return wrap(this.self[str(key)]);
+                }
+                return new IndexError(Position.unknown, key.valueOf(), this);
         }
-        return new IndexError(Position.unknown, key.valueOf(), this);
     };
 
-    cast = ({}) =>
+    cast = () =>
         new ESError(Position.unknown, 'TypeError', `Cannot cast type 'error'`);
 
 

@@ -2,12 +2,12 @@ import {Token} from "../parse/tokens";
 import {ESError, InvalidSyntaxError, ReferenceError, TypeError} from "../errors";
 import {Context} from './context';
 import {Position} from "../position";
-import {now, tokenTypeString, tt} from "../constants";
+import { catchBlockErrorSymbolName, now, tokenTypeString, tt } from "../constants";
 import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument";
 import {wrap} from './primitives/wrapStrip';
 import {
     ESArray,
-    ESBoolean,
+    ESBoolean, ESErrorPrimitive,
     ESFunction,
     ESNamespace,
     ESNumber,
@@ -222,7 +222,7 @@ export class N_varAssign extends Node {
 
         if (type instanceof ESType) {
             // wrap raw ESType in node
-            this.type = new N_primWrapper(type);
+            this.type = new N_primitiveWrapper(type);
         } else this.type = type;
     }
 
@@ -970,7 +970,7 @@ export class N_continue extends Node {
     }
 }
 
-export class N_primWrapper extends Node {
+export class N_primitiveWrapper extends Node {
     value: Primitive;
     constructor(val: Primitive, pos = Position.unknown) {
         super(pos, true);
@@ -980,4 +980,32 @@ export class N_primWrapper extends Node {
     public interpret_(context: Context): Primitive {
         return this.value;
     }
+}
+
+export class N_tryCatch extends Node {
+
+    body: Node;
+    catchBlock: Node;
+
+    constructor(pos: Position, body: Node, catchBlock: Node) {
+        super(pos, true);
+        this.body = body;
+        this.catchBlock = catchBlock;
+    }
+    interpret_ (context: Context): ESError | Primitive | interpretResult {
+        const res = this.body.interpret(context);
+
+        if (res.error) {
+            const newContext = new Context();
+            newContext.parent = context;
+            newContext.setOwn(catchBlockErrorSymbolName, new ESErrorPrimitive(res.error), {
+                isConstant: true
+            });
+            const catchRes = this.catchBlock.interpret(newContext);
+            if (catchRes.error) return catchRes.error;
+        }
+
+        return new interpretResult();
+    }
+
 }

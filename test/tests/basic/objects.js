@@ -95,3 +95,10 @@ expect('TypeError', `{b: 2} - type`);
 expect('TypeError', `{b: 2} - string`);
 expect('TypeError', `{b: 2} - (func () {})`);
 expect('TypeError', `-{b: 2}`);
+
+// Circular objects
+/*expect([{}, ], `
+	a = {};
+	a.b = a;
+`);
+ */
