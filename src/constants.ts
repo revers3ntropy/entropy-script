@@ -17,6 +17,31 @@ export const stringSurrounds = ['\'', '`', '"'];
 export let IS_NODE_INSTANCE = typeof window === 'undefined';
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 
+export interface Permissions {
+    networking: boolean;
+    imports: boolean;
+    accessDOM: boolean;
+    useSTD: boolean;
+    fileSystem: boolean,
+
+    [k: string]: any
+}
+
+export let permissions: Permissions = {
+    networking: false,
+    imports: true,
+    accessDOM: false,
+    useSTD: true,
+    fileSystem: false,
+};
+
+export function updatePermissions (newPermissions: any) {
+    permissions = {
+        ...permissions,
+        ...newPermissions
+    };
+}
+
 export const libs: JSModuleParams = {
     print: console.log
 };

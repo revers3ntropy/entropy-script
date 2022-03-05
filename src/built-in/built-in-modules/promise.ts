@@ -13,11 +13,17 @@ export default class {
 
     constructor (cb: promiseCB) {
         cb((value) => {
+            if (this.resolved) {
+                return;
+            }
             this.resolved = true;
             for (let then of this.thens) {
                 then(value);
             }
         }, (error) => {
+            if (this.resolved) {
+                return;
+            }
             this.resolved = true;
             if (this.catch_) {
                 this.catch_(error);

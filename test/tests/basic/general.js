@@ -45,3 +45,9 @@ expect([undefined, true], 'var a; a == nil;');
 expect([1, 2], `let n = 1; n = 2;`);
 expect('TypeError', `const n = 1; n = 2;`);
 expect('InvalidSyntaxError', `const n = 1; const n = 2;`);
+
+// modulo
+expect([0], `3 % 15`);
+expect([1], `3 % 2`);
+expect([false], `3 % 2 == 0`);
+expect([false], `14 % 2 != 0`);
