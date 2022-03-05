@@ -1,13 +1,14 @@
-import {Token} from "../parse/tokens";
-import {ESError, InvalidSyntaxError, ReferenceError, TypeError} from "../errors";
-import {Context} from './context';
-import {Position} from "../position";
+import { Token } from "../parse/tokens";
+import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
+import { Context } from './context';
+import { Position } from "../position";
 import { catchBlockErrorSymbolName, now, tokenTypeString, tt } from "../constants";
 import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument";
-import {wrap} from './primitives/wrapStrip';
+import { wrap } from './primitives/wrapStrip';
 import {
     ESArray,
-    ESBoolean, ESErrorPrimitive,
+    ESBoolean,
+    ESErrorPrimitive,
     ESFunction,
     ESNamespace,
     ESNumber,
@@ -19,7 +20,7 @@ import {
     Primitive,
     types
 } from "./primitiveTypes";
-import {dict, str} from '../util/util';
+import { dict, str } from '../util/util';
 
 export class interpretResult {
     val: Primitive = new ESUndefined();
@@ -27,6 +28,19 @@ export class interpretResult {
     funcReturn: Primitive | undefined;
     shouldBreak = false;
     shouldContinue = false;
+}
+
+export class compileResult {
+    val: string = '';
+    error: ESError | undefined;
+
+    constructor (val?: string | ESError) {
+        if (typeof val === 'string') {
+            this.val = val;
+        } else if (val) {
+            this.error = val;
+        }
+    }
 }
 
 export abstract class Node {
@@ -46,11 +60,12 @@ export abstract class Node {
 
     interpret (context: Context): interpretResult {
         const start = now();
-        const res = new interpretResult();
+        const res = new interpretResult;
         const val = this.interpret_(context);
 
-        if (val instanceof ESError)
+        if (val instanceof ESError) {
             res.error = val;
+        }
 
         else if (val instanceof interpretResult) {
             res.val = val.val;
@@ -59,11 +74,13 @@ export abstract class Node {
             res.shouldBreak = val.shouldBreak;
             res.shouldContinue = val.shouldContinue;
 
-        } else
+        } else {
             res.val = val;
+        }
 
-        if (res.error && res.error.pos.isUnknown)
+        if (res.error && res.error.pos.isUnknown) {
             res.error.pos = this.pos;
+        }
 
         if (!(res.val instanceof ESPrimitive)) {
             res.error = new TypeError(Position.unknown, 'Primitive', 'Native JS value', str(res.val));
@@ -79,6 +96,8 @@ export abstract class Node {
 
         return res;
     }
+
+    abstract compileJS (): compileResult;
 }
 
 // --- NON-TERMINAL NODES ---
@@ -97,17 +116,19 @@ export class N_binOp extends Node {
 
      interpret_(context: Context): ESError | Primitive {
         const left = this.left.interpret(context);
-         if (left.error) return left.error;
+        if (left.error) return left.error;
         const right = this.right.interpret(context);
         if (right.error) return right.error;
 
         const l = left.val;
         const r = right.val;
-        if (typeof l === 'undefined')
+        if (typeof l === 'undefined') {
             return new TypeError(this.opTok.pos, '~undefined', 'undefined', l, 'N_binOp.interpret_');
+        }
 
-        if (typeof r === 'undefined')
+        if (typeof r === 'undefined') {
             return new TypeError(this.opTok.pos, '~undefined', 'undefined', r, 'N_binOp.interpret_');
+        }
 
         switch (this.opTok.type) {
             case tt.LTE: {
@@ -157,6 +178,17 @@ export class N_binOp extends Node {
                 );
         }
     }
+
+    compileJS () {
+        const left = this.left.compileJS();
+        if (left.error) return left;
+        const right = this.right.compileJS();
+        if (right.error) return right;
+
+        const res = new compileResult;
+        res.val = `${left.val}${tokenTypeString[this.opTok.type]}${right.val}`;
+        return res;
+    }
 }
 
 export class N_unaryOp extends Node {
@@ -189,6 +221,13 @@ export class N_unaryOp extends Node {
                 );
         }
     }
+
+    compileJS () {
+        const val = this.a.compileJS();
+        if (val.error) return val;
+
+        return new compileResult(`${tokenTypeString[this.opTok.type]}${val.val}`);
+    }
 }
 
 export class N_varAssign extends Node {
@@ -203,7 +242,8 @@ export class N_varAssign extends Node {
 
     constructor (
         pos: Position,
-        varNameTok: Token, value: Node,
+        varNameTok: Token,
+        value: Node,
         assignType='=',
         isGlobal=false,
         isLocal=false,
@@ -326,10 +366,31 @@ export class N_varAssign extends Node {
             res.val = newVal;
         }
 
-        if (res.val.info.name === '(anonymous)' || !res.val.info.name)
+        if (res.val.info.name === '(anonymous)' || !res.val.info.name) {
             res.val.info.name = this.varNameTok.value;
+        }
 
         return res;
+    }
+
+    compileJS () {
+        const val = this.value.compileJS();
+        if (val.error) return val;
+
+        let declaration = '';
+
+        if (this.isDeclaration) {
+            if (this.isGlobal) {
+                declaration = 'var';
+            } else if (this.isConstant) {
+                declaration = 'const';
+            } else {
+                declaration = 'let';
+            }
+        }
+
+
+        return new compileResult(`${declaration} ${this.varNameTok.value}${this.assignType}${val.val}`);
     }
 }
 
@@ -368,6 +429,23 @@ export class N_if extends Node {
 
         return res;
     }
+
+    compileJS () {
+        const statementRes = this.comparison.compileJS();
+        if (statementRes.error) return statementRes;
+
+        const ifTrueRes = this.ifTrue.compileJS();
+        if (ifTrueRes.error) return ifTrueRes;
+
+        if (!this.ifFalse) {
+            return new compileResult(`if(${statementRes.val}){${ifTrueRes.val}`);
+        }
+
+        const ifFalseRes = this.ifFalse.compileJS();
+        if (ifFalseRes.error) return ifFalseRes;
+
+        return new compileResult(`if(${statementRes.val}){${ifTrueRes.val}}else{${ifFalseRes.val}}`);
+    }
 }
 
 export class N_while extends Node {
@@ -396,6 +474,16 @@ export class N_while extends Node {
         }
         return new ESUndefined();
     }
+
+    compileJS () {
+        const comparisonRes = this.comparison.compileJS();
+        if (comparisonRes.error) return comparisonRes;
+
+        const bodyRes = this.loop.compileJS();
+        if (bodyRes.error) return bodyRes;
+
+        return new compileResult(`while(${ comparisonRes.val }){${ bodyRes.val }}`);
+    }
 }
 
 export class N_for extends Node {
@@ -421,12 +509,13 @@ export class N_for extends Node {
         const array = this.array.interpret(context);
         if (array.error) return array;
 
-        if (['Array', 'Number', 'Object', 'String', 'Any'].indexOf(array.val?.typeName().valueOf() || '') === -1)
+        if (['Array', 'Number', 'Object', 'String', 'Any'].indexOf(array.val?.typeName() || '') === -1) {
             return new TypeError(
                 this.identifier.pos,
                 'Array | Number | Object | String',
                 typeof array.val + ' | ' + array.val?.typeName()
             );
+        }
 
         function iteration (body: Node, id: string, element: Primitive, isGlobal: boolean, isConstant: boolean): 'break' | interpretResult | undefined {
             newContext.set(id, element, {
@@ -474,11 +563,31 @@ export class N_for extends Node {
 
         return new ESUndefined();
     }
+
+    compileJS () {
+        const iteratorRes = this.array.compileJS();
+        if (iteratorRes.error) return iteratorRes;
+
+        const bodyRes = this.body.compileJS();
+        if (bodyRes.error) return bodyRes;
+
+        let declaration = 'let';
+
+        if (this.isGlobalId) {
+            declaration = 'var';
+        } else if (this.isConstId) {
+            declaration = 'const';
+        }
+
+        return new compileResult(`for(${declaration} ${this.identifier.value} of ${iteratorRes.val}){${bodyRes.val}}`);
+    }
 }
 
 export class N_array extends Node {
+
     items: Node[];
     shouldClone: boolean;
+
     constructor(pos: Position, items: Node[], shouldClone=false) {
         super(pos);
         this.items = items;
@@ -494,14 +603,26 @@ export class N_array extends Node {
             if (res.error || (res.funcReturn !== undefined)) return res;
             if (!res.val) continue;
             let val = res.val;
-            if (this.shouldClone)
+            if (this.shouldClone) {
                 val = val.clone();
+            }
             interpreted.push(val);
         }
 
         result.val = new ESArray(interpreted);
 
         return result;
+    }
+
+    compileJS () {
+        const res = new compileResult('[');
+        for (let item of this.items) {
+            const itemRes = item.compileJS();
+            if (itemRes.error) return itemRes;
+            res.val += itemRes.val + ',';
+        }
+        res.val += ']';
+        return res;
     }
 }
 
@@ -522,11 +643,29 @@ export class N_objectLiteral extends Node {
             const key = keyNode.interpret(context);
             if (key.error) return key.error;
 
-            if (key.val && value.val)
+            if (key.val && value.val) {
                 interpreted[key.val.valueOf()] = value.val;
+            }
         }
 
         return new ESObject(interpreted);
+    }
+
+    compileJS () {
+        const res = new compileResult('{');
+        for (const [keyNode, valueNode] of this.properties) {
+            const value = valueNode.compileJS();
+            if (value.error) return value;
+
+            const key = keyNode.compileJS();
+            if (key.error) return key;
+
+            if (key.val && value.val) {
+                res.val += `[${key.val}]: ${value.val},`;
+            }
+        }
+        res.val += '}';
+        return res;
     }
 }
 
@@ -537,6 +676,10 @@ export class N_emptyObject extends Node {
 
     interpret_ (context: Context) {
         return new ESObject({});
+    }
+
+    compileJS (): compileResult {
+        return new compileResult('{}');
     }
 }
 
@@ -559,6 +702,16 @@ export class N_statements extends Node {
 
         if (last) return last;
         return new ESUndefined();
+    }
+
+    compileJS () {
+        const res = new compileResult;
+        for (let item of this.items) {
+            const itemRes = item.compileJS();
+            if (itemRes.error) return itemRes;
+            res.val += itemRes.val + ';';
+        }
+        return res;
     }
 }
 
@@ -603,6 +756,24 @@ export class N_functionCall extends Node {
                 line: `${val.info.name || '<AnonFunction>'}(${params.map(str).join(', ')})`
             });
         }
+
+        return res;
+    }
+
+    compileJS () {
+        const res = new compileResult;
+
+        const funcRes = this.to.compileJS();
+        if (funcRes.error) return funcRes;
+        res.val = funcRes.val + '(';
+
+        for (let arg of this.arguments) {
+            const argRes = arg.compileJS();
+            if (argRes.error) return argRes;
+            res.val += argRes.val + ',';
+        }
+
+        res.val += ')';
 
         return res;
     }
@@ -656,6 +827,20 @@ export class N_functionDefinition extends Node {
 
         return new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val, context);
     }
+
+    compileJS () {
+        const res = new compileResult('function(');
+
+        for (let param of this.arguments) {
+            res.val += param.name + ',';
+        }
+        res.val += '){';
+
+        const bodyRes = this.body.compileJS();
+        if (bodyRes.error) return bodyRes;
+        res.val += bodyRes.val + '}';
+        return res;
+    }
 }
 
 export class N_return extends Node {
@@ -679,6 +864,12 @@ export class N_return extends Node {
         res.funcReturn = val.val;
         return res;
     }
+
+    compileJS (): compileResult {
+        const valRes = this.value?.compileJS();
+        if (valRes?.error) return valRes;
+        return new compileResult(`return(${valRes?.val})`);
+    }
 }
 
 export class N_yield extends Node {
@@ -699,10 +890,19 @@ export class N_yield extends Node {
         let val = this.value.interpret(context);
         if (val.error) return val.error;
 
-        if (val.val?.bool().valueOf())
+        if (val.val?.bool().valueOf()) {
             res.funcReturn = val.val;
+        }
 
         return res;
+    }
+
+    compileJS (): compileResult {
+        const valRes = this.value?.compileJS();
+        if (!valRes || !valRes.val) {
+            return new compileResult('');
+        }
+        return new compileResult(`if(_=${valRes.val}){return(_))`);
     }
 }
 
@@ -777,6 +977,23 @@ export class N_indexed extends Node {
         }
         return base.__getProperty__({context}, index);
     }
+
+    compileJS () {
+        const objectRes = this.base.compileJS();
+        if (objectRes.error) return objectRes;
+
+        const keyRes = this.index.compileJS();
+        if (keyRes.error) return keyRes;
+
+        if (!this.value) {
+            return new compileResult(`${objectRes.val}[${keyRes.val}]`);
+        }
+
+        const valRes = this.value.compileJS();
+        if (valRes.error) return valRes;
+
+        return new compileResult(`${objectRes.val}[${keyRes.val}]${this.assignType||'='}${valRes.val}`);
+    }
 }
 
 export class N_class extends Node {
@@ -800,8 +1017,9 @@ export class N_class extends Node {
         const methods: ESFunction[] = [];
         for (let method of this.methods) {
             const res = method.interpret(context);
-            if (res.error)
+            if (res.error) {
                 return res.error;
+            }
             if (!(res.val instanceof ESFunction))
                 return new TypeError(
                     this.pos,
@@ -814,8 +1032,9 @@ export class N_class extends Node {
         let extends_;
         if (this.extends_) {
             const extendsRes = this.extends_.interpret(context);
-            if (extendsRes.error)
+            if (extendsRes.error) {
                 return extendsRes.error;
+            }
             if (!(extendsRes.val instanceof ESType))
                 return new TypeError(
                     this.pos,
@@ -828,19 +1047,25 @@ export class N_class extends Node {
         let init;
         if (this.init) {
             const initRes = this.init.interpret(context);
-            if (initRes.error)
+            if (initRes.error) {
                 return initRes.error;
-            if (!(initRes.val instanceof ESFunction))
+            }
+            if (!(initRes.val instanceof ESFunction)) {
                 return new TypeError(
                     this.pos,
                     'Function',
                     initRes.val?.typeName().valueOf() || 'undefined',
                     'method on ' + this.name
                 );
+            }
             init = initRes.val;
         }
 
         return new ESType(false, this.name, methods, extends_, init);
+    }
+
+    compileJS () {
+        return new compileResult('function(){return{};}');
     }
 }
 
@@ -855,7 +1080,7 @@ export class N_namespace extends Node {
         this.mutable = mutable;
     }
 
-    interpret_(context: Context): Primitive | interpretResult {
+    interpret_ (context: Context): Primitive | interpretResult {
         const newContext = new Context();
         newContext.parent = context;
 
@@ -863,6 +1088,13 @@ export class N_namespace extends Node {
         if (res.error) return res;
 
         return new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
+    }
+
+    compileJS () {
+        const bodyRes = this.statements.compileJS();
+        if (bodyRes.error) return bodyRes;
+
+        return new compileResult(`(() => {${bodyRes.val}})()`);
     }
 }
 
@@ -876,15 +1108,21 @@ export class N_number extends Node {
     interpret_ (context: Context): interpretResult | ESError {
         let val = this.a.value;
 
-        if (typeof val !== 'number') return new TypeError(
-            this.pos,
-            'number',
-            typeof val
-        );
+        if (typeof val !== 'number') {
+            return new TypeError(
+                this.pos,
+                'number',
+                typeof val
+            );
+        }
 
         const res = new interpretResult();
         res.val = new ESNumber(val);
         return res;
+    }
+
+    compileJS () {
+        return new compileResult(this.a.value.toString());
     }
 }
 
@@ -907,6 +1145,10 @@ export class N_string extends Node {
         res.val = new ESString(val);
         return res;
     }
+
+    compileJS () {
+        return new compileResult(`'${this.a.value}'`);
+    }
 }
 
 export class N_variable extends Node {
@@ -923,14 +1165,20 @@ export class N_variable extends Node {
         let res = new interpretResult();
         let symbol = context.getSymbol(this.a.value);
 
-        if (!symbol)
+        if (!symbol) {
             return new ESUndefined();
-        if (symbol instanceof ESError)
+        }
+        if (symbol instanceof ESError) {
             return symbol;
+        }
 
         res.val = symbol.value;
 
         return res;
+    }
+
+    compileJS () {
+        return new compileResult(this.a.value.toString());
     }
 }
 
@@ -945,6 +1193,10 @@ export class N_undefined extends Node {
         res.val = new ESUndefined();
         return res;
     }
+
+    compileJS () {
+        return new compileResult('undefined');
+    }
 }
 
 export class N_break extends Node {
@@ -957,6 +1209,10 @@ export class N_break extends Node {
         res.shouldBreak = true;
         return res;
     }
+
+    compileJS () {
+        return new compileResult('break');
+    }
 }
 export class N_continue extends Node {
     constructor(pos: Position) {
@@ -967,6 +1223,10 @@ export class N_continue extends Node {
         const res = new interpretResult();
         res.shouldContinue = true;
         return res;
+    }
+
+    compileJS () {
+        return new compileResult('continue');
     }
 }
 
@@ -980,6 +1240,10 @@ export class N_primitiveWrapper extends Node {
     public interpret_(context: Context): Primitive {
         return this.value;
     }
+
+    compileJS () {
+        return new compileResult(JSON.stringify(this.value.valueOf()));
+    }
 }
 
 export class N_tryCatch extends Node {
@@ -992,6 +1256,7 @@ export class N_tryCatch extends Node {
         this.body = body;
         this.catchBlock = catchBlock;
     }
+
     interpret_ (context: Context): ESError | Primitive | interpretResult {
         const res = this.body.interpret(context);
 
@@ -1006,6 +1271,16 @@ export class N_tryCatch extends Node {
         }
 
         return new interpretResult();
+    }
+
+    compileJS () {
+        const bodyRes = this.body.compileJS();
+        if (bodyRes.error) return bodyRes;
+
+        const catchRes = this.catchBlock.compileJS();
+        if (catchRes.error) return catchRes;
+
+        return new compileResult(`try{${bodyRes.val}}catch(${catchBlockErrorSymbolName}){${catchRes.val}}`);
     }
 
 }

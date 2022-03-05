@@ -115,7 +115,7 @@ export class Parser {
         }
     }
 
-    private statements (useArray = false): ParseResults {
+    private statements (topLevel = false): ParseResults {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         let statements: Node[] = [];
@@ -155,8 +155,9 @@ export class Parser {
         this.clearEndStatements(res);
 
         let node = new n.N_statements(pos, statements);
-        if (useArray)
+        if (topLevel) {
             node = new n.N_array(pos, statements, true);
+        }
 
         return res.success(node);
     }
@@ -932,22 +933,25 @@ export class Parser {
         }
 
         while (true) {
-            if (this.currentToken.type !== tt.IDENTIFIER)
+            if (this.currentToken.type !== tt.IDENTIFIER) {
                 break;
+            }
             let methodId = this.currentToken.value;
             this.advance(res);
 
             const func = res.register(this.funcCore());
             if (res.error) return res;
-            if (!(func instanceof N_functionDefinition))
+            if (!(func instanceof N_functionDefinition)) {
                 return res.failure(new ESError(this.currentToken.pos, 'ParseError', `Tried to get function, but got ${func} instead`));
+            }
 
             func.name = methodId;
 
-            if (methodId === 'init')
+            if (methodId === 'init') {
                 init = func;
-            else
+            } else {
                 methods.push(func);
+            }
         }
 
         this.consume(res, tt.CBRACES);

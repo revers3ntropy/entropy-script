@@ -6,3 +6,4 @@ test.es
 /.idea/
 /src/
 build.js
+out.js

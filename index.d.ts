@@ -1,3 +1,6 @@
+/**
+ * @module entropy-script
+ */
 declare module 'entropy-script' {
 
     type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | ESError | Primitive | Promise<void>;
@@ -9,6 +12,13 @@ declare module 'entropy-script' {
         name: string;
         type: Primitive;
         defaultValue?: Primitive;
+    }
+
+    export class compileResult {
+        val: string;
+        error: ESError | undefined;
+
+        constructor (val?: string | ESError);
     }
 
     const global: Context;
@@ -198,6 +208,15 @@ declare module 'entropy-script' {
         fileName: string | undefined,
         currentDir: string | undefined,
     }): interpretResult | ({ timeData: timeData } & interpretResult);
+
+    function parse (code: string, props?: {
+        fileName?: string,
+        currentDir?: string
+    }): {
+        error?: ESError
+        compileToJavaScript?: (outfile: string) => compileResult;
+        interpret?: (env?: Context) => interpretResult;
+    }
 
     type Info = PrimitiveInfo & FunctionInfo & ObjectInfo;
 

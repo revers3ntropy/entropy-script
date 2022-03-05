@@ -2,4 +2,5 @@
 /package-lock.json
 /.idea/
 /npm-package/
-/test.es
+test.es
+out.js

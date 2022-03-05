@@ -20,6 +20,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 dotenv.config();
 
+/** @type module:entropy-script */
 const es = require('./build/latest');
 
 /**
@@ -121,8 +122,28 @@ async function runTerminal () {
 	runTerminal();
 }
 
+async function compile (path, outPath) {
+	let {compileToJavaScript, error: parseErr} = es.parse(fs.readFileSync(path).toString());
+	if (parseErr) {
+		console.log(parseErr.str);
+	}
+
+	let {error, val} = compileToJavaScript();
+	if (error) {
+		console.log(error.str);
+	}
+
+	fs.writeFileSync(outPath, val);
+}
+
 async function main () {
 	await init();
+
+	const compileIdx = process.argv.indexOf('-compile');
+	if (compileIdx !== -1) {
+		compile(process.argv[compileIdx+1], process.argv[compileIdx+2]);
+		return;
+	}
 
 	if (process.argv.length === 2) {
 		runTerminal();

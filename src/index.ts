@@ -1,16 +1,15 @@
 import { Lexer } from "./parse/lexer";
 import { Parser } from "./parse/parser";
-import { global, now, refreshPerformanceNow, runningInNode, setGlobalContext } from "./constants";
+import { global, libs as allLibs, now, refreshPerformanceNow, runningInNode, setGlobalContext } from "./constants";
 import { initialise } from "./init";
 import { ESError } from "./errors";
 import { Position } from "./position";
-import { interpretResult, Node } from "./runtime/nodes";
+import { compileResult, interpretResult, Node } from "./runtime/nodes";
 import { ESArray } from "./runtime/primitiveTypes";
 import { timeData } from "./util/util";
 import { Context } from "./runtime/context";
 import addNodeLibs from "./built-in/nodeLibs";
 import { JSModuleParams } from "./built-in/module";
-import {libs as allLibs} from './constants';
 import colours from './util/colours';
 
 export {
@@ -155,4 +154,56 @@ export function run (msg: string, {
     }
 
     return {...finalRes, timeData};
+}
+
+export function parse (code: string, {
+    fileName = '(unknown)',
+    currentDir=''
+} = {}) {
+
+    const lexer = new Lexer(code, fileName);
+    const lexerRes = lexer.generate();
+    if (lexerRes instanceof ESError) {
+        return {
+            error: lexerRes
+        };
+    }
+
+    const parser = new Parser(lexerRes);
+    const res = parser.parse();
+    if (res.error) {
+        return {
+            error: res.error
+        };
+    }
+
+    if (!res.node) {
+        return {
+            error: new ESError(Position.unknown, 'Error', 'no output')
+        };
+    }
+
+    return {
+        compileToJavaScript: (outfile: string): compileResult => {
+            if (!res.node) throw 'res.node still undefined';
+            return  res.node.compileJS();
+
+        },
+        interpret: (env=global): interpretResult => {
+            if (!res.node) throw 'res.node still undefined';
+
+            if (currentDir) {
+                env.path = currentDir;
+            }
+
+            if (!env.root.initialisedAsGlobal){
+                const res = new interpretResult();
+                res.error = new ESError(Position.unknown, 'Uninitialised',
+                    'Global context has not been initialised with global values');
+                return res;
+            }
+
+            return res.node.interpret(env);
+        },
+    };
 }
