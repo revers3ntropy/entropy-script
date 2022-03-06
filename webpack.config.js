@@ -11,8 +11,8 @@ module.exports = {
             {
                 test: /\.ts$/,
                 use: 'ts-loader'
-            },
-        ],
+            }
+        ]
     },
     resolve: {
         extensions: ['.ts', '.js'],
@@ -25,5 +25,5 @@ module.exports = {
         globalObject: 'this',
     },
     mode: 'production',
-    devtool: 'source-map'
+    devtool: 'source-map',
 };

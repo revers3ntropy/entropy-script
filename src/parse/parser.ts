@@ -154,10 +154,7 @@ export class Parser {
 
         this.clearEndStatements(res);
 
-        let node = new n.N_statements(pos, statements);
-        if (topLevel) {
-            node = new n.N_array(pos, statements, true);
-        }
+        let node = new n.N_statements(pos, statements, topLevel);
 
         return res.success(node);
     }
@@ -1088,7 +1085,7 @@ export class Parser {
         // @ts-ignore
         if (this.currentToken.type === tt.CBRACES) {
             this.advance(res);
-            return res.success(new n.N_emptyObject(pos));
+            return res.success(new n.N_objectLiteral(pos, []));
         }
         // @ts-ignore
         while (true) {

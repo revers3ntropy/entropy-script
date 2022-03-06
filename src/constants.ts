@@ -17,6 +17,14 @@ export const stringSurrounds = ['\'', '`', '"'];
 export let IS_NODE_INSTANCE = typeof window === 'undefined';
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 
+// @ts-ignore
+import PACKAGE_JSON from '../package.json';
+export const VERSION = PACKAGE_JSON['version'];
+
+export interface compileConfig {
+    minify?: boolean
+}
+
 export interface Permissions {
     networking: boolean;
     imports: boolean;

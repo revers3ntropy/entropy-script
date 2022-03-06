@@ -5,7 +5,6 @@ import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
 import {Primitive, types} from './primitive';
 import type { funcProps } from "../../util/util";
-import { ESFunction } from "./esfunction";
 import { wrap } from "./wrapStrip";
 import {str} from "../../util/util";
 import { ESArray } from "./esarray";

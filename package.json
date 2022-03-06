@@ -26,6 +26,8 @@
     },
     "preferGlobal": true,
     "devDependencies": {
+        "json-loader": "^0.5.7",
+        "raw-loader": "^4.0.2",
         "ts-loader": "^9.2.6",
         "webpack-cli": "^4.9.2"
     }
