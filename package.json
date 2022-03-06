@@ -1,6 +1,6 @@
 {
     "name": "entropy-script",
-    "version": "2.8.7",
+    "version": "2.9.0",
     "description": "TypeScript/JavaScript interpreter for EntropyScript",
     "license": "MIT",
     "main": "build/stable.js",

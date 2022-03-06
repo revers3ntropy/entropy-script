@@ -185,9 +185,10 @@ export class N_binOp extends Node {
         const right = this.right.compileJS(config);
         if (right.error) return right;
 
-        const res = new compileResult;
-        res.val = `${left.val}${tokenTypeString[this.opTok.type]}${right.val}`;
-        return res;
+        if (config.minify) {
+            return new compileResult(`${left.val}${tokenTypeString[this.opTok.type]}${right.val}`);
+        }
+        return new compileResult(`${left.val} ${tokenTypeString[this.opTok.type]} ${right.val}`);
     }
 }
 
@@ -209,7 +210,8 @@ export class N_unaryOp extends Node {
             case tt.SUB:
             case tt.ADD:
                 if (!(res.val instanceof ESNumber)) {
-                    return new TypeError(this.pos, 'Number', res.val?.typeName().toString() || 'undefined_', res.val?.valueOf());
+                    return new TypeError(this.pos,
+                        'Number', res.val?.typeName().toString() || 'undefined_', res.val?.valueOf());
                 }
                 const numVal = res.val.valueOf();
                 return new ESNumber(this.opTok.type === tt.SUB ? -numVal : Math.abs(numVal));
@@ -281,8 +283,13 @@ export class N_varAssign extends Node {
         if (typeRes.error) return typeRes.error;
 
         if (!typeRes.val || !(typeRes.val instanceof ESType)) {
-            return new TypeError(this.varNameTok.pos, 'Type',
-                typeRes.val?.typeName().valueOf() ?? 'undefined', typeRes.val?.str(), `@ !typeRes.val || !(typeRes.val instanceof ESType)`);
+            return new TypeError(
+                this.varNameTok.pos,
+                'Type',
+                typeRes.val?.typeName().valueOf() ?? 'undefined',
+                typeRes.val?.str(),
+                `@ !typeRes.val || !(typeRes.val instanceof ESType)`
+            );
         }
 
         if (!res.val) {
@@ -390,8 +397,15 @@ export class N_varAssign extends Node {
             }
         }
 
+        let assign = this.assignType;
+        if (assign !== '=') {
+            assign += '=';
+        }
+        if (config.minify) {
+            return new compileResult(`${declaration} ${this.varNameTok.value}${assign}${val.val}`);
+        }
+        return new compileResult(`${declaration} ${this.varNameTok.value} ${assign} ${val.val}`);
 
-        return new compileResult(`${declaration} ${this.varNameTok.value}${this.assignType}${val.val}`);
     }
 }
 
@@ -432,6 +446,9 @@ export class N_if extends Node {
     }
 
     compileJS (config: compileConfig) {
+        const indent = ' '.repeat((config.indent || 4) - 4);
+        const highIndent = ' '.repeat(config.indent || 0);
+
         const statementRes = this.comparison.compileJS(config);
         if (statementRes.error) return statementRes;
 
@@ -445,7 +462,12 @@ export class N_if extends Node {
         const ifFalseRes = this.ifFalse.compileJS(config);
         if (ifFalseRes.error) return ifFalseRes;
 
-        return new compileResult(`if(${statementRes.val}){${ifTrueRes.val}}else{${ifFalseRes.val}}`);
+        if (config.minify) {
+            return new compileResult(`if(${statementRes.val}){${ifTrueRes.val}}else{${ifFalseRes.val}}`);
+        }
+
+        return new compileResult(
+            `if (${statementRes.val}) {\n${ifTrueRes.val}\n${indent}} else {\n${highIndent}${ifFalseRes.val}\n${indent}}\n`);
     }
 }
 
@@ -580,7 +602,11 @@ export class N_for extends Node {
             declaration = 'const';
         }
 
-        return new compileResult(`for(${declaration} ${this.identifier.value} of ${iteratorRes.val}){${bodyRes.val}}`);
+        if (config.minify) {
+            return new compileResult(`for(${declaration} ${this.identifier.value} of ${iteratorRes.val}){${bodyRes.val}}`);
+        }
+
+        return new compileResult(`for (${declaration} ${this.identifier.value} of ${iteratorRes.val}) {\n${bodyRes.val}\n}\n`);
     }
 }
 
@@ -714,10 +740,22 @@ export class N_statements extends Node {
 
     compileJS (config: compileConfig) {
         const res = new compileResult;
+
+        config.indent ||= 0;
+        const indent = config.indent;
+
+        res.val += ' '.repeat(indent);
+        config.indent += 4;
+
         for (let item of this.items) {
+
             const itemRes = item.compileJS(config);
             if (itemRes.error) return itemRes;
             res.val += itemRes.val + ';';
+
+            if (!config.minify) {
+                res.val += '\n' + ' '.repeat(indent);
+            }
         }
         return res;
     }
@@ -778,7 +816,14 @@ export class N_functionCall extends Node {
         for (let arg of this.arguments) {
             const argRes = arg.compileJS(config);
             if (argRes.error) return argRes;
-            res.val += argRes.val + ',';
+            res.val += argRes.val;
+            if (arg !== this.arguments[this.arguments.length-1]) {
+                res.val += ',';
+                if (!config.minify) {
+                    res.val += ' ';
+                }
+            }
+
         }
 
         res.val += ')';
@@ -950,7 +995,8 @@ export class N_indexed extends Node {
             this.assignType ??= '=';
 
             if (!assignVal) {
-                return new TypeError(this.pos, '~undefined', 'undefined', 'undefined', 'N_indexed.interpret_')
+                return new TypeError(this.pos,
+                    '~undefined', 'undefined', 'undefined', 'N_indexed.interpret_')
             }
 
             switch (this.assignType[0]) {
@@ -1200,7 +1246,9 @@ export class N_string extends Node {
 }
 
 export class N_variable extends Node {
+
     a: Token;
+
     constructor(a: Token) {
         super(a.pos, true);
         this.a = a;

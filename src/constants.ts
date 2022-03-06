@@ -22,7 +22,8 @@ import PACKAGE_JSON from '../package.json';
 export const VERSION = PACKAGE_JSON['version'];
 
 export interface compileConfig {
-    minify?: boolean
+    minify?: boolean,
+    indent?: number
 }
 
 export interface Permissions {
