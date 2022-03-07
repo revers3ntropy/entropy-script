@@ -2,7 +2,6 @@ import {ESError, InvalidOperationError, TypeError} from '../../errors';
 import {Position} from '../../position';
 
 import {ESBoolean} from './esboolean';
-import type {ESObject} from './esobject';
 import type {ESString} from './esstring';
 import type {ESType} from './estype';
 import type {Info} from './info';
@@ -57,6 +56,9 @@ export abstract class ESPrimitive <T> {
     }
     public __pow__ (props: funcProps, n: Primitive): Primitive | ESError {
         return new InvalidOperationError('__pow__', this);
+    }
+    public __mod__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new InvalidOperationError('__mod__', this);
     }
 
     // Boolean Logic

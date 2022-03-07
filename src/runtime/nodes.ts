@@ -160,6 +160,8 @@ export class N_binOp extends Node {
                 return l.__divide__({context}, r);
             case tt.POW:
                 return l.__pow__({context}, r);
+            case tt.MOD:
+                return l.__mod__({context}, r);
             case tt.EQUALS:
                 return l.__eq__({context}, r);
             case tt.LT:

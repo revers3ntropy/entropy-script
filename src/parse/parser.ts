@@ -1,4 +1,4 @@
-import {tokenType, tokenTypeString, tt} from '../constants';
+import {tokenType, tokenTypeString, tt, VAR_DECLARE_KEYWORDS} from '../constants';
 import {Token} from "./tokens";
 import * as n from '../runtime/nodes';
 import { N_functionDefinition, N_namespace, N_tryCatch, N_undefined, N_variable, Node } from '../runtime/nodes';
@@ -140,10 +140,14 @@ export class Parser {
                 this.advance(res);
                 newLineCount++;
             }
-            if (newLineCount === 0)
+            if (newLineCount === 0) {
                 moreStatements = false;
+            }
 
-            if (!moreStatements) break;
+            if (!moreStatements) {
+                break;
+            }
+
             const statement = res.tryRegister(this.statement());
             if (!statement) {
                 this.reverse(res.reverseCount);
@@ -280,7 +284,7 @@ export class Parser {
                 case tt.OPAREN:
                     functionCall = true;
                     const tempNode = node;
-                    node = res.register(this.makeFunctionCall(node, prevNode));
+                    node = res.register(this.makeFunctionCall(node));
                     prevNode = tempNode;
                     if (res.error) return res;
                     break;
@@ -316,7 +320,6 @@ export class Parser {
         if (this.currentToken.type === tt.ASSIGN) {
             let assignType = this.currentToken.value;
             if (functionCall) {
-                // TODO: f(x) = x+1 syntax here
                 return res.failure(new InvalidSyntaxError(
                     pos,
                     `Cannot assign to return value of function`
@@ -352,7 +355,11 @@ export class Parser {
     }
 
     private power () {
-         return this.binOp(() => this.atom(), [tokenType.POW], () => this.factor());
+         return this.binOp(() => this.atom(), [tokenType.POW, tokenType.MOD], () => this.factor());
+    }
+
+    private mod () {
+        return this.binOp(() => this.atom(), [tokenType.MOD], () => this.factor());
     }
 
     private factor (): ParseResults {
@@ -367,7 +374,8 @@ export class Parser {
                 const factor = res.register(this.factor());
                 if (res.error) return res;
                 return res.success(new n.N_unaryOp(tok.pos, factor, tok));
-
+            //case tt.MOD:
+              //  return this.mod();
             default:
                 return this.power();
         }
@@ -407,8 +415,7 @@ export class Parser {
 
         this.clearEndStatements(res);
 
-        if (this.currentToken.type === tt.KEYWORD &&
-        ['var', 'let', 'global', 'mutable', 'const', 'local'].indexOf(this.currentToken.value) !== -1) {
+        if (this.currentToken.type === tt.KEYWORD && VAR_DECLARE_KEYWORDS.indexOf(this.currentToken.value) !== -1) {
             return this.initiateVar(res);
 
         } else if (this.currentToken.matches(tokenType.KEYWORD, 'if')) {
@@ -443,10 +450,8 @@ export class Parser {
         if (res.error) return res;
 
         while (
-            // @ts-ignore
-            ops.indexOf(this.currentToken.type) !== -1
-            // @ts-ignore
-            || ops.indexOf([this.currentToken.type, this.currentToken.value]) !== -1
+            ops.indexOf(this.currentToken.type as any) !== -1
+            || ops.indexOf([this.currentToken.type, this.currentToken.value] as any) !== -1
         ) {
             const opTok = this.currentToken;
             this.advance(res);
@@ -471,7 +476,7 @@ export class Parser {
         return res.success(new N_variable(tok));
     }
 
-    private makeFunctionCall (to: Node, this_: Node = new n.N_undefined()) {
+    private makeFunctionCall (to: Node) {
         const res = new ParseResults();
         let args: Node[] = [];
         const pos = this.currentToken.pos;

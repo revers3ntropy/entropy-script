@@ -7,7 +7,8 @@ import {
     now,
     refreshPerformanceNow,
     runningInNode,
-    setGlobalContext, VERSION
+    setGlobalContext,
+    VERSION
 } from "./constants";
 import { initialise } from "./init";
 import { ESError } from "./errors";

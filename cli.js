@@ -126,6 +126,7 @@ async function compile (path, outPath) {
 	let {compileToJavaScript, error: parseErr} = es.parse(fs.readFileSync(path).toString());
 	if (parseErr) {
 		console.log(parseErr.str);
+		return;
 	}
 
 	let {error, val} = compileToJavaScript({

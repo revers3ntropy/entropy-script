@@ -47,7 +47,8 @@ expect('TypeError', `const n = 1; n = 2;`);
 expect('InvalidSyntaxError', `const n = 1; const n = 2;`);
 
 // modulo
-expect([0], `3 % 15`);
+expect([3], `3 % 15`);
+expect([0], `15 % 3`);
 expect([1], `3 % 2`);
 expect([false], `3 % 2 == 0`);
 expect([false], `14 % 2 != 0`);

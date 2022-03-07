@@ -17,6 +17,8 @@ export const stringSurrounds = ['\'', '`', '"'];
 export let IS_NODE_INSTANCE = typeof window === 'undefined';
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 
+export const VAR_DECLARE_KEYWORDS = ['var', 'let', 'global', 'mutable', 'const', 'local'];
+
 // @ts-ignore
 import PACKAGE_JSON from '../package.json';
 export const VERSION = PACKAGE_JSON['version'];
@@ -125,6 +127,7 @@ export enum tokenType {
     MUL,
     DIV,
     POW,
+    MOD,
 
     OPAREN,
     CPAREN,
@@ -179,6 +182,7 @@ export const tokenTypeString: enumDict<tokenType, string> = {
     [tt.MUL]: '*',
     [tt.DIV]: '/',
     [tt.POW]: '^',
+    [tt.MOD]: '%',
 
     [tt.EQUALS]: '==',
     [tt.NOTEQUALS]: '!=',
@@ -208,6 +212,7 @@ export const singleCharTokens: {[char: string]: tokenType} = {
     '(': tt.OPAREN,
     ')': tt.CPAREN,
     '^': tt.POW,
+    '%': tt.MOD,
     '{': tt.OBRACES,
     '}': tt.CBRACES,
     ',': tt.COMMA,

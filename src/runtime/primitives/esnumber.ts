@@ -1,6 +1,5 @@
 import { ESError, IndexError, TypeError } from '../../errors';
 import {Position} from '../../position';
-import {Context} from '../context';
 import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
@@ -51,9 +50,16 @@ export class ESNumber extends ESPrimitive <number> {
         return new ESNumber(this.valueOf() / n.valueOf());
     };
     __pow__ = (props: funcProps, n: Primitive) => {
-        if (!(n instanceof ESNumber))
+        if (!(n instanceof ESNumber)) {
             return new TypeError(Position.unknown, 'Number', n.typeName().valueOf(), n.valueOf());
+        }
         return new ESNumber(this.valueOf() ** n.valueOf());
+    };
+    __mod__ = (props: funcProps, n: Primitive) => {
+        if (!(n instanceof ESNumber)) {
+            return new TypeError(Position.unknown, 'Number', n.typeName().valueOf(), n.valueOf());
+        }
+        return new ESNumber(this.valueOf() % n.valueOf());
     };
     __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber))
