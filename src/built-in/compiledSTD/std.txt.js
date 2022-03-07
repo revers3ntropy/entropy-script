@@ -33,3 +33,44 @@ function import_ (path) {
 		return private.bims[path];
 	}
 }
+
+function range (minP, maxP, stepP) {
+	if (typeof minP !== 'number') {
+		return [];
+	}
+
+	const min = minP.valueOf();
+
+	if (typeof maxP === 'undefined') {
+		try {
+			return [...Array(min).keys()];
+		} catch (e) {
+			throw `RangeError: Cannot make range of length '${min}'`;
+		}
+	}
+
+	let step = 1;
+
+	if (typeof maxP !== 'number') {
+		throw 'TypeError: Expected number';
+	}
+
+	let max = maxP.valueOf();
+
+	if (typeof stepP !== 'undefined') {
+		if (typeof stepP !== 'number') {
+			throw 'TypeError: Expected number';
+		}
+		step = stepP.valueOf();
+	}
+
+	let arr = [];
+
+	let i = min;
+	while (i < max) {
+		arr.push(i);
+		i += step;
+	}
+
+	return arr;
+}

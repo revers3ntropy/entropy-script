@@ -1,7 +1,6 @@
 math = import('math');
 
-for i in 99 {
-	i += 1;
+for i in range(1, 100) {
 
 	div3 = i/3 == math.round(i/3);
 	div5 = i/5 == math.round(i/5);

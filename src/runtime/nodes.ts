@@ -528,9 +528,6 @@ export class N_for extends Node {
     }
 
     interpret_ (context: Context) {
-        let newContext = new Context();
-        newContext.parent = context;
-
         const array = this.array.interpret(context);
         if (array.error) return array;
 
@@ -543,6 +540,9 @@ export class N_for extends Node {
         }
 
         function iteration (body: Node, id: string, element: Primitive, isGlobal: boolean, isConstant: boolean): 'break' | interpretResult | undefined {
+            let newContext = new Context();
+            newContext.parent = context;
+
             newContext.set(id, element, {
                 global: isGlobal,
                 isConstant
