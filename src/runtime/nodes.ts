@@ -273,7 +273,7 @@ export class N_unaryOp extends Node {
 
 export class N_varAssign extends Node {
     value: Node;
-    varNameTok: Token;
+    varNameTok: Token<string>;
     isGlobal: boolean;
     isConstant: boolean;
     isLocal: boolean;
@@ -283,7 +283,7 @@ export class N_varAssign extends Node {
 
     constructor (
         pos: Position,
-        varNameTok: Token,
+        varNameTok: Token<string>,
         value: Node,
         assignType='=',
         isGlobal=false,
@@ -618,11 +618,11 @@ export class N_while extends Node {
 export class N_for extends Node {
     array: Node;
     body: Node;
-    identifier: Token;
+    identifier: Token<string>;
     isGlobalId: boolean;
     isConstId: boolean;
 
-    constructor (pos: Position, body: Node, array: Node, identifier: Token, isGlobalIdentifier: boolean, isConstIdentifier: boolean) {
+    constructor (pos: Position, body: Node, array: Node, identifier: Token<string>, isGlobalIdentifier: boolean, isConstIdentifier: boolean) {
         super(pos);
         this.body = body;
         this.array = array;
@@ -778,6 +778,17 @@ export class N_array extends Node {
         res.val += ']';
         return res;
     }
+
+    compilePy (config: compileConfig) {
+        const res = new compileResult('[');
+        for (let item of this.items) {
+            const itemRes = res.register(item, config);
+            if (res.error) return res;
+            res.val += itemRes + ',';
+        }
+        res.val += ']';
+        return res;
+    }
 }
 
 export class N_objectLiteral extends Node {
@@ -816,6 +827,23 @@ export class N_objectLiteral extends Node {
 
             if (key.val && value.val) {
                 res.val += `[${key.val}]: ${value.val},`;
+            }
+        }
+        res.val += '}';
+        return res;
+    }
+
+    compilePy (config: compileConfig) {
+        const res = new compileResult('{');
+        for (const [keyNode, valueNode] of this.properties) {
+            const value = res.register(valueNode, config);
+            if (res.error) return res;
+
+            const key = res.register(keyNode, config)
+            if (res.error) return res;
+
+            if (key && value) {
+                res.val += `${key}: ${value},`;
             }
         }
         res.val += '}';
@@ -886,6 +914,26 @@ export class N_statements extends Node {
         }
         return res;
     }
+
+    compilePy (config: compileConfig) {
+        const res = new compileResult;
+
+        config.indent ||= 0;
+        const indent = config.indent;
+
+        res.val += ' '.repeat(indent);
+        config.indent += 4;
+
+        for (let item of this.items) {
+
+            const itemRes = res.register(item, config);
+            if (res.error) return res;
+
+            res.val += itemRes;
+            res.val += '\n' + ' '.repeat(indent);
+        }
+        return res;
+    }
 }
 
 export class N_functionCall extends Node {
@@ -944,6 +992,31 @@ export class N_functionCall extends Node {
             const argRes = arg.compileJS(config);
             if (argRes.error) return argRes;
             res.val += argRes.val;
+            if (arg !== this.arguments[this.arguments.length-1]) {
+                res.val += ',';
+                if (!config.minify) {
+                    res.val += ' ';
+                }
+            }
+
+        }
+
+        res.val += ')';
+
+        return res;
+    }
+
+    compilePy (config: compileConfig) {
+        const res = new compileResult;
+
+        const funcRes = res.register(this.to, config);
+        if (res.error) return res;
+        res.val = funcRes + '(';
+
+        for (let arg of this.arguments) {
+            const argRes = res.register(arg, config);
+            if (res.error) return res;
+            res.val += argRes;
             if (arg !== this.arguments[this.arguments.length-1]) {
                 res.val += ',';
                 if (!config.minify) {
@@ -1021,6 +1094,10 @@ export class N_functionDefinition extends Node {
         res.val += bodyRes.val + '}';
         return res;
     }
+
+    compilePy (config: compileConfig) {
+        return new compileResult;
+    }
 }
 
 export class N_return extends Node {
@@ -1049,6 +1126,16 @@ export class N_return extends Node {
         const valRes = this.value?.compileJS(config);
         if (valRes?.error) return valRes;
         return new compileResult(`return(${valRes?.val})`);
+    }
+
+    compilePy (config: compileConfig): compileResult {
+        const res = new compileResult;
+        if (!this.value) {
+            return new compileResult('return');
+        }
+        const valRes = res.register(this.value, config);
+        if (res.error) return res;
+        return new compileResult(`return ${valRes}`);
     }
 }
 
@@ -1083,6 +1170,19 @@ export class N_yield extends Node {
             return new compileResult('');
         }
         return new compileResult(`if(_=${valRes.val}){return(_))`);
+    }
+
+    compilePy (config: compileConfig): compileResult {
+        if (!this.value) {
+            return new compileResult('');
+        }
+
+        const res = new compileResult;
+        const valRes = res.register(this.value, config);
+        if (!valRes) {
+            return new compileResult('');
+        }
+        return new compileResult(`if _ := ${valRes}: return _`);
     }
 }
 
@@ -1321,8 +1421,8 @@ export class N_tryCatch extends Node {
 
 // --- TERMINAL NODES ---
 export class N_number extends Node {
-    a: Token;
-    constructor(pos: Position, a: Token) {
+    a: Token<number>;
+    constructor(pos: Position, a: Token<number>) {
         super(pos, true);
         this.a = a;
     }
@@ -1345,11 +1445,15 @@ export class N_number extends Node {
     compileJS (config: compileConfig) {
         return new compileResult(this.a.value.toString());
     }
+
+    compilePy (config: compileConfig) {
+        return new compileResult(this.a.value.toString());
+    }
 }
 
 export class N_string extends Node {
-    a: Token;
-    constructor (pos: Position, a: Token) {
+    a: Token<string>;
+    constructor (pos: Position, a: Token<string>) {
         super(pos, true);
         this.a = a;
     }
@@ -1370,20 +1474,25 @@ export class N_string extends Node {
     compileJS (config: compileConfig) {
         return new compileResult(`'${this.a.value}'`);
     }
+
+    compilePy (config: compileConfig) {
+        return new compileResult(`'${this.a.value}'`);
+    }
 }
 
 export class N_variable extends Node {
 
-    a: Token;
+    a: Token<string>;
 
-    constructor(a: Token) {
+    constructor(a: Token<string>) {
         super(a.pos, true);
         this.a = a;
     }
 
     interpret_ (context: Context) {
-        if (!context.has(this.a.value))
+        if (!context.has(this.a.value)) {
             return new ReferenceError(this.a.pos, this.a.value);
+        }
 
         let res = new interpretResult();
         let symbol = context.getSymbol(this.a.value);
@@ -1407,6 +1516,14 @@ export class N_variable extends Node {
         }
         return new compileResult(val);
     }
+
+    compilePy (config: compileConfig): compileResult {
+        let val = this.a.value.toString();
+        if (val === 'import') {
+            val = 'import_';
+        }
+        return new compileResult(val);
+    }
 }
 
 export class N_undefined extends Node {
@@ -1424,6 +1541,10 @@ export class N_undefined extends Node {
     compileJS (config: compileConfig) {
         return new compileResult('undefined');
     }
+
+    compilePy (config: compileConfig) {
+        return new compileResult('None');
+    }
 }
 
 export class N_break extends Node {
@@ -1438,6 +1559,10 @@ export class N_break extends Node {
     }
 
     compileJS (config: compileConfig) {
+        return new compileResult('break');
+    }
+
+    compilePy (config: compileConfig) {
         return new compileResult('break');
     }
 }
@@ -1455,6 +1580,10 @@ export class N_continue extends Node {
     compileJS (config: compileConfig) {
         return new compileResult('continue');
     }
+
+    compilePy (config: compileConfig) {
+        return new compileResult('continue');
+    }
 }
 
 export class N_primitiveWrapper extends Node {
@@ -1469,6 +1598,10 @@ export class N_primitiveWrapper extends Node {
     }
 
     compileJS (config: compileConfig) {
+        return new compileResult(JSON.stringify(this.value.valueOf()));
+    }
+
+    compilePy (config: compileConfig) {
         return new compileResult(JSON.stringify(this.value.valueOf()));
     }
 }

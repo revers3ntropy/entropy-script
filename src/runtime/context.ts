@@ -38,7 +38,8 @@ export class Context {
         this.parent_ = val;
     }
 
-    has (identifier: string): boolean {
+    has (identifier?: string): boolean {
+        if (!identifier) return false;
         return this.get(identifier) !== undefined;
     }
 
