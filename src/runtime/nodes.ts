@@ -1,3 +1,7 @@
+/**
+ *
+ */
+
 import { Token } from "../parse/tokens";
 import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
@@ -32,6 +36,8 @@ export class interpretResult {
 
 export class compileResult {
     val: string = '';
+    // for hoisting declarations to the start of the file, gets added after STD
+    hoisted: string = '';
     error: ESError | undefined;
 
     constructor (val?: string | ESError) {
@@ -40,6 +46,16 @@ export class compileResult {
         } else if (val) {
             this.error = val;
         }
+    }
+
+    register (node: Node, config: compileConfig): string {
+        const res = node.compilePy(config);
+        this.hoisted += res.hoisted;
+        if (res.error) {
+            this.error = res.error;
+            return '';
+        }
+        return res.val;
     }
 }
 
@@ -85,7 +101,7 @@ export abstract class Node {
         if (!(res.val instanceof ESPrimitive)) {
             res.error = new TypeError(Position.unknown, 'Primitive', 'Native JS value', str(res.val));
             res.val = new ESUndefined();
-        }``
+        }
 
         res.val.info.file ||= this.pos.file;
 
@@ -98,6 +114,7 @@ export abstract class Node {
     }
 
     abstract compileJS (config: compileConfig): compileResult;
+    abstract compilePy (config: compileConfig): compileResult;
 }
 
 // --- NON-TERMINAL NODES ---
@@ -192,6 +209,18 @@ export class N_binOp extends Node {
         }
         return new compileResult(`${left.val} ${tokenTypeString[this.opTok.type]} ${right.val}`);
     }
+
+    public compilePy(config: compileConfig): compileResult {
+        const left = this.left.compilePy(config);
+        if (left.error) return left;
+        const right = this.right.compilePy(config);
+        if (right.error) return right;
+
+        if (config.minify) {
+            return new compileResult(`${left.val}${tokenTypeString[this.opTok.type]}${right.val}`);
+        }
+        return new compileResult(`${left.val} ${tokenTypeString[this.opTok.type]} ${right.val}`);
+    }
 }
 
 export class N_unaryOp extends Node {
@@ -229,6 +258,13 @@ export class N_unaryOp extends Node {
 
     compileJS (config: compileConfig) {
         const val = this.a.compileJS(config);
+        if (val.error) return val;
+
+        return new compileResult(`${tokenTypeString[this.opTok.type]}${val.val}`);
+    }
+
+    compilePy (config: compileConfig) {
+        const val = this.a.compilePy(config);
         if (val.error) return val;
 
         return new compileResult(`${tokenTypeString[this.opTok.type]}${val.val}`);
@@ -407,7 +443,33 @@ export class N_varAssign extends Node {
             return new compileResult(`${declaration} ${this.varNameTok.value}${assign}${val.val}`);
         }
         return new compileResult(`${declaration} ${this.varNameTok.value} ${assign} ${val.val}`);
+    }
 
+    compilePy (config: compileConfig) {
+        const res = new compileResult
+
+        const val = this.value.compilePy(config);
+        if (val.error) return val;
+        res.hoisted += val.hoisted;
+
+        let assign = this.assignType;
+        if (assign !== '=') {
+            assign += '=';
+        }
+
+
+        // if it is global then defined it at the top
+        if (this.isGlobal) {
+            res.hoisted += `${this.varNameTok.value}=None`;
+        }
+
+        if (config.minify) {
+            res.val = `${this.varNameTok.value}${assign}${val.val}`;
+        } else {
+            res.val = `${this.varNameTok.value} ${assign} ${val.val}`;
+        }
+
+        return res;
     }
 }
 
@@ -471,6 +533,32 @@ export class N_if extends Node {
         return new compileResult(
             `if (${statementRes.val}) {\n${ifTrueRes.val}\n${indent}} else {\n${highIndent}${ifFalseRes.val}\n${indent}}\n`);
     }
+
+    compilePy (config: compileConfig) {
+        const res = new compileResult;
+
+        const indent = ' '.repeat((config.indent || 4) - 4);
+        const highIndent = ' '.repeat(config.indent || 0);
+
+        const statementRes = this.comparison.compilePy(config);
+        if (statementRes.error) return statementRes;
+        res.hoisted += statementRes.hoisted;
+
+        const ifTrueRes = this.ifTrue.compilePy(config);
+        if (ifTrueRes.error) return ifTrueRes;
+        res.hoisted += ifTrueRes.hoisted;
+
+        if (!this.ifFalse) {
+            return new compileResult(`if ${statementRes.val}:\n${highIndent}${ifTrueRes.val}`);
+        }
+
+        const ifFalseRes = this.ifFalse.compilePy(config);
+        if (ifFalseRes.error) return ifFalseRes;
+        res.hoisted += ifFalseRes.hoisted;
+
+        return new compileResult(
+            `if ${statementRes.val}:\n${highIndent}${ifTrueRes.val}\n${indent}else:\n${highIndent}${ifFalseRes.val}\n${indent}`);
+    }
 }
 
 export class N_while extends Node {
@@ -508,6 +596,22 @@ export class N_while extends Node {
         if (bodyRes.error) return bodyRes;
 
         return new compileResult(`while(${ comparisonRes.val }){${ bodyRes.val }}`);
+    }
+
+    compilePy (config: compileConfig) {
+        const res = new compileResult;
+
+        const highIndent = ' '.repeat(config.indent || 0);
+
+        const comparisonRes = this.comparison.compilePy(config);
+        if (comparisonRes.error) return comparisonRes;
+        res.hoisted += comparisonRes.hoisted;
+
+        const bodyRes = this.loop.compilePy(config);
+        if (bodyRes.error) return bodyRes;
+        res.hoisted += bodyRes.hoisted;
+
+        return new compileResult(`while ${comparisonRes.val}:\n${highIndent}${bodyRes.val}`);
     }
 }
 
@@ -609,6 +713,27 @@ export class N_for extends Node {
         }
 
         return new compileResult(`for (${declaration} ${this.identifier.value} of ${iteratorRes.val}) {\n${bodyRes.val}\n}\n`);
+    }
+
+    compilePy (config: compileConfig) {
+        const res = new compileResult;
+
+        const iteratorRes = this.array.compileJS(config);
+        if (iteratorRes.error) return iteratorRes;
+        res.hoisted += iteratorRes.hoisted;
+
+        const bodyRes = this.body.compileJS(config);
+        if (bodyRes.error) return bodyRes;
+        res.hoisted += iteratorRes.hoisted;
+
+        // if it is global then defined it at the top
+        if (this.isGlobalId) {
+            res.hoisted += `${this.identifier.value}=None`;
+        }
+
+        res.val = `for ${this.identifier.value} in ${iteratorRes.val}:\n${bodyRes.val}`;
+
+        return res;
     }
 }
 
