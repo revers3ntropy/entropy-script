@@ -130,7 +130,9 @@ async function compile (path, outPath) {
 	}
 
 	let {error, val} = compileToJavaScript({
-		minify: process.argv.indexOf('--minify') !== -1
+		minify: process.argv.indexOf('--minify') !== -1,
+		indent: 0,
+		symbols: []
 	});
 	if (error) {
 		console.log(error.str);

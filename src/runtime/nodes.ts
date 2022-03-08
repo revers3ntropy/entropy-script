@@ -510,8 +510,10 @@ export class N_if extends Node {
     }
 
     compileJS (config: compileConfig) {
-        const indent = ' '.repeat((config.indent || 4) - 4);
-        const highIndent = ' '.repeat(config.indent || 0);
+        const indent = ' '.repeat(config.indent);
+        const highIndent = ' '.repeat(config.indent+4);
+
+        config.indent += 4;
 
         const statementRes = this.comparison.compileJS(config);
         if (statementRes.error) return statementRes;
@@ -520,18 +522,27 @@ export class N_if extends Node {
         if (ifTrueRes.error) return ifTrueRes;
 
         if (!this.ifFalse) {
-            return new compileResult(`if(${statementRes.val}){${ifTrueRes.val}`);
+            if (config.minify) {
+                return new compileResult(`if(${statementRes.val}){${ifTrueRes.val}\n}`);
+            }
+            return new compileResult(`if (${statementRes.val}) {\n${ifTrueRes.val}\n}`);
         }
 
-        const ifFalseRes = this.ifFalse.compileJS(config);
+        config.indent = highIndent.length;
+
+        let ifFalseRes = this.ifFalse.compileJS(config);
         if (ifFalseRes.error) return ifFalseRes;
+
+        if (!(this.ifFalse instanceof N_statements)) {
+            ifFalseRes.val = highIndent + ifFalseRes.val;
+        }
 
         if (config.minify) {
             return new compileResult(`if(${statementRes.val}){${ifTrueRes.val}}else{${ifFalseRes.val}}`);
         }
 
         return new compileResult(
-            `if (${statementRes.val}) {\n${ifTrueRes.val}\n${indent}} else {\n${highIndent}${ifFalseRes.val}\n${indent}}\n`);
+            `if (${statementRes.val}) {\n${ifTrueRes.val}\n${indent}} else {\n${ifFalseRes.val}\n${indent}}`);
     }
 
     compilePy (config: compileConfig) {
@@ -589,13 +600,19 @@ export class N_while extends Node {
     }
 
     compileJS (config: compileConfig) {
+
+        config.indent += 4;
+
         const comparisonRes = this.comparison.compileJS(config);
         if (comparisonRes.error) return comparisonRes;
 
         const bodyRes = this.loop.compileJS(config);
         if (bodyRes.error) return bodyRes;
 
-        return new compileResult(`while(${ comparisonRes.val }){${ bodyRes.val }}`);
+        if (config.minify) {
+            return new compileResult(`while(${comparisonRes.val}){${bodyRes.val}}`);
+        }
+        return new compileResult(`while (${comparisonRes.val}) {\n${bodyRes.val}}`);
     }
 
     compilePy (config: compileConfig) {
@@ -694,6 +711,11 @@ export class N_for extends Node {
     }
 
     compileJS (config: compileConfig) {
+
+        const indent = ' '.repeat(config.indent);
+
+        config.indent += 4;
+
         const iteratorRes = this.array.compileJS(config);
         if (iteratorRes.error) return iteratorRes;
 
@@ -709,10 +731,10 @@ export class N_for extends Node {
         }
 
         if (config.minify) {
-            return new compileResult(`for(${declaration} ${this.identifier.value} of ${iteratorRes.val}){${bodyRes.val}}`);
+            return new compileResult(`for(${declaration} ${this.identifier.value} of ${iteratorRes.val}){${bodyRes.val}\n${indent}}`);
         }
 
-        return new compileResult(`for (${declaration} ${this.identifier.value} of ${iteratorRes.val}) {\n${bodyRes.val}\n}\n`);
+        return new compileResult(`for (${declaration} ${this.identifier.value} of ${iteratorRes.val}) {\n${bodyRes.val}\n${indent}}`);
     }
 
     compilePy (config: compileConfig) {
@@ -896,11 +918,9 @@ export class N_statements extends Node {
     compileJS (config: compileConfig) {
         const res = new compileResult;
 
-        config.indent ||= 0;
-        const indent = config.indent;
+        const indent = ' '.repeat(config.indent)
 
-        res.val += ' '.repeat(indent);
-        config.indent += 4;
+        res.val += indent;
 
         for (let item of this.items) {
 
@@ -909,7 +929,7 @@ export class N_statements extends Node {
             res.val += itemRes.val + ';';
 
             if (!config.minify) {
-                res.val += '\n' + ' '.repeat(indent);
+                res.val += '\n' + indent;
             }
         }
         return res;
@@ -1086,12 +1106,22 @@ export class N_functionDefinition extends Node {
 
         for (let param of this.arguments) {
             res.val += param.name + ',';
+            if (!config.minify) {
+                res.val += ' ';
+            }
         }
-        res.val += '){';
+        if (config.minify) {
+            res.val += '){';
+        } else {
+            res.val += ') {\n';
+        }
 
+        const indent = ' '.repeat(config.indent);
+
+        config.indent += 4;
         const bodyRes = this.body.compileJS(config);
         if (bodyRes.error) return bodyRes;
-        res.val += bodyRes.val + '}';
+        res.val += `${bodyRes.val}\n${indent}}`;
         return res;
     }
 
