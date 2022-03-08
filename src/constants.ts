@@ -1,7 +1,6 @@
-import {JSModuleParams} from './built-in/module';
+import type {JSModuleParams} from './built-in/module';
 import type { Context } from './runtime/context';
-import {dict, enumDict} from './util/util';
-import {ESNamespace} from './runtime/primitiveTypes';
+import type {enumDict} from './util/util';
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -107,8 +106,6 @@ export async function refreshPerformanceNow (IS_NODE_INSTANCE: boolean) {
     }
 }
 refreshPerformanceNow(IS_NODE_INSTANCE);
-
-export const importCache: dict<ESNamespace> = {};
 
 export enum tokenType {
     NUMBER,

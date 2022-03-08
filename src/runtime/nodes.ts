@@ -2,6 +2,7 @@
  *
  */
 
+import {reportTranspileErrors} from 'ts-loader/dist/instances.js';
 import { Token } from "../parse/tokens";
 import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
@@ -24,7 +25,7 @@ import {
     Primitive,
     types
 } from "./primitiveTypes";
-import { dict, str } from '../util/util';
+import {dict, generateRandomSymbol, str} from '../util/util';
 
 export class interpretResult {
     val: Primitive = new ESUndefined();
@@ -216,10 +217,18 @@ export class N_binOp extends Node {
         const right = this.right.compilePy(config);
         if (right.error) return right;
 
-        if (config.minify) {
-            return new compileResult(`${left.val}${tokenTypeString[this.opTok.type]}${right.val}`);
+        const switchers: dict<string> = {
+            '&&': 'and',
+            '||': 'or',
+            '^': '**',
         }
-        return new compileResult(`${left.val} ${tokenTypeString[this.opTok.type]} ${right.val}`);
+
+        let op = tokenTypeString[this.opTok.type];
+        if (op in switchers) {
+            op = switchers[op];
+        }
+
+        return new compileResult(`${left.val} ${op} ${right.val}`);
     }
 }
 
@@ -548,8 +557,10 @@ export class N_if extends Node {
     compilePy (config: compileConfig) {
         const res = new compileResult;
 
-        const indent = ' '.repeat((config.indent || 4) - 4);
-        const highIndent = ' '.repeat(config.indent || 0);
+        const indent = ' '.repeat(config.indent);
+        const highIndent = ' '.repeat(config.indent+4);
+
+        config.indent += 4;
 
         const statementRes = this.comparison.compilePy(config);
         if (statementRes.error) return statementRes;
@@ -567,8 +578,12 @@ export class N_if extends Node {
         if (ifFalseRes.error) return ifFalseRes;
         res.hoisted += ifFalseRes.hoisted;
 
+        if (!(this.ifFalse instanceof N_statements)) {
+            ifFalseRes.val = highIndent + ifFalseRes.val;
+        }
+
         return new compileResult(
-            `if ${statementRes.val}:\n${highIndent}${ifTrueRes.val}\n${indent}else:\n${highIndent}${ifFalseRes.val}\n${indent}`);
+            `if ${statementRes.val}:\n${ifTrueRes.val}\n${indent}else:\n${ifFalseRes.val}\n${indent}`);
     }
 }
 
@@ -740,20 +755,20 @@ export class N_for extends Node {
     compilePy (config: compileConfig) {
         const res = new compileResult;
 
-        const iteratorRes = this.array.compileJS(config);
-        if (iteratorRes.error) return iteratorRes;
-        res.hoisted += iteratorRes.hoisted;
+        config.indent += 4;
 
-        const bodyRes = this.body.compileJS(config);
-        if (bodyRes.error) return bodyRes;
-        res.hoisted += iteratorRes.hoisted;
+        const iteratorRes = res.register(this.array, config);
+        if (res.error) return res;
+
+        const bodyRes = res.register(this.body, config);
+        if (res.error) return res;
 
         // if it is global then defined it at the top
         if (this.isGlobalId) {
             res.hoisted += `${this.identifier.value}=None`;
         }
 
-        res.val = `for ${this.identifier.value} in ${iteratorRes.val}:\n${bodyRes.val}`;
+        res.val = `for ${this.identifier.value} in ${iteratorRes}:\n${bodyRes}`;
 
         return res;
     }
@@ -918,7 +933,7 @@ export class N_statements extends Node {
     compileJS (config: compileConfig) {
         const res = new compileResult;
 
-        const indent = ' '.repeat(config.indent)
+        const indent = ' '.repeat(config.indent);
 
         res.val += indent;
 
@@ -938,11 +953,10 @@ export class N_statements extends Node {
     compilePy (config: compileConfig) {
         const res = new compileResult;
 
-        config.indent ||= 0;
-        const indent = config.indent;
+        const indent = ' '.repeat(config.indent);
 
-        res.val += ' '.repeat(indent);
-        config.indent += 4;
+
+        res.val += indent;
 
         for (let item of this.items) {
 
@@ -950,7 +964,7 @@ export class N_statements extends Node {
             if (res.error) return res;
 
             res.val += itemRes;
-            res.val += '\n' + ' '.repeat(indent);
+            res.val += '\n' + indent;
         }
         return res;
     }
@@ -1126,7 +1140,31 @@ export class N_functionDefinition extends Node {
     }
 
     compilePy (config: compileConfig) {
-        return new compileResult;
+        const res = new compileResult;
+
+        const hoistedName = generateRandomSymbol(config.symbols);
+
+        res.hoisted = `def ${hoistedName}(`;
+
+        for (let param of this.arguments) {
+            res.hoisted += param.name + ',';
+            if (!config.minify) {
+                res.hoisted += ' ';
+            }
+        }
+
+        const indent = ' '.repeat(config.indent);
+
+        config.indent += 4;
+        const body = this.body.compilePy(config);
+        if (body.error) return body;
+
+        res.hoisted += `):\n${indent}${body.val}`;
+
+        res.hoisted = body.hoisted + res.hoisted;
+        res.val = hoistedName;
+
+        return res;
     }
 }
 

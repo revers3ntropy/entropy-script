@@ -15,6 +15,9 @@ def GENERATE_PRIVATE():
         'modules': {
             'ascii': {
 
+            },
+            'time': {
+                'now': lambda : time.time_ns() / (10 ** 6)
             }
         }
     }

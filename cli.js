@@ -123,17 +123,30 @@ async function runTerminal () {
 }
 
 async function compile (path, outPath) {
-	let {compileToJavaScript, error: parseErr} = es.parse(fs.readFileSync(path).toString());
+	let {compileToJavaScript, compileToPython, error: parseErr} = es.parse(fs.readFileSync(path).toString());
 	if (parseErr) {
 		console.log(parseErr.str);
 		return;
 	}
 
-	let {error, val} = compileToJavaScript({
+	const options = {
 		minify: process.argv.indexOf('--minify') !== -1,
 		indent: 0,
 		symbols: []
-	});
+	}
+
+	let val, error;
+
+	if (process.argv.indexOf('--python') !== -1) {
+		const res = compileToPython(options);
+		val = res.val;
+		error = res.error;
+	} else {
+		const res = compileToJavaScript(options);
+		val = res.val;
+		error = res.error;
+	}
+
 	if (error) {
 		console.log(error.str);
 	}

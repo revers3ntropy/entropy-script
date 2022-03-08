@@ -7,7 +7,7 @@ import {interpretResult} from "../runtime/nodes";
 import {permissions, run} from '../index';
 import {JSModuleParams} from './module';
 import {addModuleFromObj, getModule, moduleExist} from './builtInModules';
-import { global, importCache } from "../constants";
+import { global } from "../constants";
 
 // node only built in modules
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
@@ -45,10 +45,6 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
 
         scriptPath = path.join(context.path, scriptPath);
 
-        if (scriptPath in importCache) {
-            return importCache[scriptPath];
-        }
-
         try {
             if (!fs.existsSync(scriptPath)) {
                 if (fs.existsSync('./particles/' + scriptPath)) {
@@ -70,7 +66,6 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
             env.path = exDir;
 
             const n = new ESNamespace(new ESString(scriptPath), {});
-            importCache[scriptPath] = n;
 
             const res: interpretResult = run(code, {
                 env,
