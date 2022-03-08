@@ -4,7 +4,7 @@ import * as n from '../runtime/nodes';
 import { N_functionDefinition, N_namespace, N_tryCatch, N_undefined, N_variable, Node } from '../runtime/nodes';
 import { ESError, InvalidSyntaxError } from "../errors";
 import {Position} from "../position";
-import { ESType, ESUndefined, types } from "../runtime/primitiveTypes";
+import { ESType, types } from "../runtime/primitiveTypes";
 import { uninterpretedArgument } from "../runtime/argument";
 
 export class ParseResults {
@@ -59,7 +59,7 @@ export class ParseResults {
 
 export class Parser {
     tokens: Token[];
-    currentToken: Token;
+    currentToken: Token<any>;
     tokenIdx: number;
 
     constructor (tokens: Token[]) {
@@ -70,8 +70,9 @@ export class Parser {
     }
 
     public parse (): ParseResults {
-        if (!this.currentToken || !this.tokens || (this.tokens.length === 1 && this.tokens[0].type === tt.EOF))
+        if (!this.currentToken || !this.tokens || (this.tokens.length === 1 && this.tokens[0].type === tt.EOF)) {
             return new ParseResults();
+        }
 
         const res = this.statements(true);
 
@@ -270,7 +271,7 @@ export class Parser {
         }
     }
 
-    private atomIdentifier (res: ParseResults, pos: Position, tok: Token) {
+    private atomIdentifier (res: ParseResults, pos: Position, tok: Token<string>) {
         this.advance(res);
 
         let node: Node = new n.N_variable(tok);
@@ -708,7 +709,8 @@ export class Parser {
     private addEndStatement (res: ParseResults) {
         this.tokens.splice(this.tokenIdx, 0, new Token(
             this.currentToken.pos,
-            tt.ENDSTATEMENT
+            tt.ENDSTATEMENT,
+            undefined
         ));
         this.reverse();
         this.advance(res);
@@ -972,7 +974,7 @@ export class Parser {
         const pos = this.currentToken.pos;
         let body: n.Node,
             array: n.Node,
-            identifier: Token,
+            identifier: Token<any>,
             isGlobalIdentifier = false,
             isConstIdentifier = false;
 
@@ -1032,11 +1034,12 @@ export class Parser {
         let elements: Node[] = [];
         const pos = this.currentToken.pos;
 
-        if (this.currentToken.type !== tt.OSQUARE)
+        if (this.currentToken.type !== tt.OSQUARE) {
             return res.failure(new InvalidSyntaxError(
                 pos,
                 "Expected '["
             ));
+        }
 
         this.advance(res);
 

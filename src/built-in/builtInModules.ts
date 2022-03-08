@@ -2,6 +2,7 @@ import { IS_NODE_INSTANCE, libs } from '../constants';
 import {ESError} from '../errors';
 import {wrap} from '../runtime/primitives/wrapStrip';
 import {ESSymbol} from '../runtime/symbol';
+import {dict} from '../util/util.js';
 import type {JSModule} from './module';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 
@@ -11,10 +12,11 @@ import ascii from './built-in-modules/ascii';
 import json from './built-in-modules/json';
 import dom from './built-in-modules/dom';
 import Promise from './built-in-modules/promise';
+import time from './built-in-modules/time';
 
 
 const modules: {[s: string]: JSModule} = {
-    ascii, json,
+    ascii, json
 };
 
 type modulePrimitive = ESJSBinding<{[k: string]: any}>;
@@ -24,8 +26,9 @@ const processedModules: {[s: string]: modulePrimitive} = {};
 
 export function initModules () {
 
-    processedModules['math'] = new ESJSBinding<{[p: string]: any}>(Math);
-    processedModules['Promise'] = new ESJSBinding<{[p: string]: any}>(Promise);
+    processedModules['math'] = new ESJSBinding<dict<any>>(Math);
+    processedModules['Promise'] = new ESJSBinding<dict<any>>(Promise);
+    processedModules['time'] = new ESJSBinding<dict<any>>(time(libs));
 
     if (!IS_NODE_INSTANCE) {
         const domRes = dom(libs);

@@ -24,9 +24,17 @@ Number.prototype[Symbol.iterator] = function () {
 
 const private = {
 	bims: {
-		math: Math
-	}
+		math: Math,
+		time: {
+			date: Date,
+			now: Date.now,
+		},
+	},
 };
+
+if (typeof performance !== 'undefined') {
+	private.bims.time.now = performance.now;
+}
 
 function import_ (path) {
 	if (private.bims.hasOwnProperty(path)) {

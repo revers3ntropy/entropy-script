@@ -1275,6 +1275,26 @@ export class N_indexed extends Node {
 
         return new compileResult(`${objectRes.val}[${keyRes.val}]${this.assignType||'='}${valRes.val}`);
     }
+
+    compilePy (config: compileConfig): compileResult {
+        const res = new compileResult;
+        const objectRes = res.register(this.base, config);
+        if (res.error) return res;
+
+        const keyRes = res.register(this.index, config);
+        if (res.error) return res;
+
+        if (!this.value) {
+            res.val = `${objectRes}[${keyRes}]`;
+            return res;
+        }
+
+        const valRes = res.register(this.value, config);
+        if (res.error) return res;
+
+        res.val = `${objectRes}[${keyRes}] ${this.assignType||'='} ${valRes}`;
+        return res;
+    }
 }
 
 export class N_class extends Node {
@@ -1348,13 +1368,19 @@ export class N_class extends Node {
     compileJS (config: compileConfig) {
         return new compileResult('function(){return{};}');
     }
+
+    compilePy (config: compileConfig) {
+        return new compileResult(`class ${this.name}:\n${' '.repeat(config.indent)}pass`);
+    }
 }
 
 export class N_namespace extends Node {
+
     public name: string;
-    private statements: Node;
+    private readonly statements: Node;
     public mutable: boolean;
-    constructor(pos: Position, statements: Node, name = '(anon)', mutable=false) {
+
+    constructor (pos: Position, statements: Node, name = '(anon)', mutable=false) {
         super(pos);
         this.name = name;
         this.statements = statements;
@@ -1376,6 +1402,15 @@ export class N_namespace extends Node {
         if (bodyRes.error) return bodyRes;
 
         return new compileResult(`(() => {${bodyRes.val}})()`);
+    }
+
+    compilePy (config: compileConfig) {
+        const res = new compileResult;
+        const bodyRes = res.register(this.statements, config);
+        if (res.error) return res;
+
+        res.val = `'namespace'`;
+        return res;
     }
 }
 
@@ -1417,6 +1452,21 @@ export class N_tryCatch extends Node {
         return new compileResult(`try{${bodyRes.val}}catch(${catchBlockErrorSymbolName}){${catchRes.val}}`);
     }
 
+    compilePy (config: compileConfig) {
+        const res = new compileResult;
+
+        const bodyRes = res.register(this.body, config);
+        if (res.error) return res;
+
+        const catchRes = res.register(this.catchBlock, config);
+        if (res.error) return res;
+
+        const indent = ' '.repeat(config.indent);
+        const highIndent = ' '.repeat(config.indent + 1);
+
+        res.val = `try:\n${highIndent}${bodyRes}\n${indent}except:\n${highIndent}${catchRes}`;
+        return res;
+    }
 }
 
 // --- TERMINAL NODES ---
@@ -1428,14 +1478,6 @@ export class N_number extends Node {
     }
     interpret_ (context: Context): interpretResult | ESError {
         let val = this.a.value;
-
-        if (typeof val !== 'number') {
-            return new TypeError(
-                this.pos,
-                'number',
-                typeof val
-            );
-        }
 
         const res = new interpretResult();
         res.val = new ESNumber(val);
@@ -1459,12 +1501,6 @@ export class N_string extends Node {
     }
     interpret_ (context: Context): interpretResult | ESError {
         let val = this.a.value;
-
-        if (typeof val !== 'string') return new TypeError(
-            this.pos,
-            'string',
-            typeof val
-        );
 
         const res = new interpretResult();
         res.val = new ESString(val);

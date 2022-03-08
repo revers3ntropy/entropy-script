@@ -4,7 +4,7 @@ import { ESError, IndexError } from '../../errors';
 import {Position} from '../../position';
 import { BuiltInFunction, funcProps } from '../../util/util';
 import {runtimeArgument} from '../argument';
-import type {Context} from '../context';
+import {Context} from '../context';
 import {call} from '../functionCaller';
 import {Node} from '../nodes';
 import {str} from '../../util/util';
@@ -14,7 +14,6 @@ import {ESString} from './esstring';
 import {ESType} from './estype';
 import {Primitive, types} from './primitive';
 import { wrap } from "./wrapStrip";
-
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     arguments_: runtimeArgument[];
@@ -28,14 +27,19 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         name='(anon)',
         this_: ESObject = new ESObject(),
         returnType = types.any,
-        closure = global
+        closure?: Context
     ) {
         super(func, types.function);
         this.arguments_ = arguments_;
         this.info.name = name;
         this.this_ = this_;
         this.returnType = returnType;
-        this.__closure__ = closure;
+        if (closure) {
+            this.__closure__ = closure;
+        } else {
+            this.__closure__ = new Context();
+            this.__closure__.parent = global;
+        }
 
         this.info.returnType = str(returnType);
         this.info.args = arguments_.map(arg => ({

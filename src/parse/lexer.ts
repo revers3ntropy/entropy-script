@@ -28,10 +28,10 @@ export class Lexer {
     public generate (): Token[] | ESError {
 
         if (!this.text) {
-            return [new Token(this.position, tt.EOF)];
+            return [new Token(this.position, tt.EOF, undefined)];
         }
 
-        const tokens: Token[] = [];
+        const tokens: Token<any>[] = [];
 
         while (this.currentChar !== undefined) {
             // add semi-colon after
@@ -78,7 +78,7 @@ export class Lexer {
             }
         }
 
-        tokens.push(new Token(this.position, tt.EOF));
+        tokens.push(new Token(this.position, tt.EOF, undefined));
 
         return tokens;
     }
@@ -150,7 +150,7 @@ export class Lexer {
         return new Token(posStart, tokType, idStr);
     }
 
-    private unknownChar (): Token | undefined {
+    private unknownChar (): Token<any> | undefined {
         if (this.currentChar === undefined) {
             return undefined;
         }
@@ -164,7 +164,7 @@ export class Lexer {
                         this.advance();
                         this.advance();
 
-                        return new Token(pos, tripleCharTokens[triple]);
+                        return new Token(pos, tripleCharTokens[triple], undefined);
                     }
         }
 
@@ -175,7 +175,7 @@ export class Lexer {
                         this.advance();
                         this.advance();
 
-                        return new Token(pos, doubleCharTokens[double]);
+                        return new Token(pos, doubleCharTokens[double], undefined);
                     }
         }
 
@@ -183,7 +183,7 @@ export class Lexer {
             let pos = this.position.clone;
             let val = singleCharTokens[this.currentChar];
             this.advance();
-            return new Token(pos, val);
+            return new Token(pos, val, undefined);
         }
 
         return undefined;
