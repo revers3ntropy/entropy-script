@@ -1,11 +1,14 @@
 import {ESString} from './primitives/esstring';
-import {Primitive} from './primitives/primitive';
+import type {Primitive} from './primitives/primitive';
+import type { ESType } from "./primitives/estype";
+import { types } from "./primitives/primitive";
 
 export type symbolOptions = {
     isConstant?: boolean;
     isAccessible?: boolean;
     global?: boolean;
     forceThroughConst?: boolean;
+    type?: ESType
 }
 
 export class ESSymbol {
@@ -13,12 +16,14 @@ export class ESSymbol {
     value: Primitive;
     identifier: string;
     isAccessible: boolean;
+    type: ESType;
 
     constructor (value: Primitive, identifier: string, options: symbolOptions = {}) {
         this.value = value;
         this.identifier = identifier;
         this.isConstant = options.isConstant ?? false;
         this.isAccessible = options.isAccessible ?? true;
+        this.type = options.type ?? types.any;
     }
 
     clone = () => {

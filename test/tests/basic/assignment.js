@@ -45,10 +45,11 @@ expect('InvalidSyntaxError', `
     var local mutable a = 'hi';
     let a = 1;
 `);
-expect(['hi', 1], `
-    var local mutable a = 'hi';
-    a = 1;
-`);
 expect('InvalidSyntaxError', `
     let a += 1;
+`);
+
+expect('InvalidSyntaxError', `
+    let a = 1;
+    let a = 2;
 `);

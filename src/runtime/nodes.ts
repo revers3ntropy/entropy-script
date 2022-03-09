@@ -95,7 +95,7 @@ export abstract class Node {
         }
 
         if (!(res.val instanceof ESPrimitive)) {
-            res.error = new TypeError(Position.unknown, 'Primitive', 'Native JS value', str(res.val));
+            res.error = new TypeError(Position.void, 'Primitive', 'Native JS value', str(res.val));
             res.val = new ESUndefined();
         }
 
@@ -185,6 +185,10 @@ export class N_binOp extends Node {
                 return l.__and__({context}, r);
             case tt.OR:
                 return l.__or__({context}, r);
+            case tt.APMERSAND:
+                return l.__ampersand__({context}, r);
+            case tt.PIPE:
+                return l.__pipe__({context}, r);
 
             default:
                 return new InvalidSyntaxError(
@@ -314,9 +318,9 @@ export class N_varAssign extends Node {
     interpret_(context: Context): interpretResult | ESError | Primitive {
 
         if (this.isDeclaration && context.hasOwn(this.varNameTok.value)) {
-            return new InvalidSyntaxError(this.pos, `Symbol '${this.varNameTok.value}' already exists, and cannot be redeclared`);
+            return new InvalidSyntaxError(this.pos,
+                `Symbol '${this.varNameTok.value}' already exists, and cannot be redeclared`);
         }
-
 
         const res = this.value.interpret(context);
         const typeRes = this.type.interpret(context);
@@ -348,39 +352,78 @@ export class N_varAssign extends Node {
 
 
         if (this.isDeclaration) {
-            if (this.assignType !== '=')
-                return new InvalidSyntaxError(this.pos, `Cannot declare variable with operator '${this.assignType}'`);
+            if (this.assignType !== '=') {
+                return new InvalidSyntaxError(this.pos,
+                    `Cannot declare variable with operator '${this.assignType}'`);
+            }
+
+            if (context.hasOwn(this.varNameTok.value)) {
+                return new InvalidSyntaxError(this.pos,
+                    `Cannot redeclare variable which exists in the current scope`);
+            }
+
             context.setOwn(this.varNameTok.value, res.val, {
                 global: false,
-                isConstant: this.isConstant
+                isConstant: this.isConstant,
+                type: typeRes.val
             });
             return res.val;
+        }
+
+        if (context.has(this.varNameTok.value)) {
+            const symbol = context.getSymbol(this.varNameTok.value);
+            if (symbol instanceof ESError) return symbol;
+            if (symbol) {
+                if (!symbol.type.resolve({context}, res.val.__type__).valueOf()) {
+                    return new TypeError(
+                        this.varNameTok.pos,
+                        str(symbol.type),
+                        res.val?.typeName(),
+                        str(res.val)
+                    );
+                }
+            }
         }
 
         if (this.assignType === '=') {
             // simple assign
             let value = res.val;
-            if (value === undefined)
+            if (value === undefined) {
                 value = new ESUndefined();
+            }
+
+            const type = context.getSymbol(this.varNameTok.value);
+
+            if (type instanceof ESError) {
+                return type;
+            }
+            if (!type) {
+                return new InvalidSyntaxError(this.pos,
+                    `Cannot declare variable without keyword`);
+            }
+
+            if (!type.type.resolve({context}, res.val.__type__).bool().valueOf()) {
+                return new TypeError(Position.void, type.type.__name__, res.val.__type__.__name__, str(res.val));
+            }
 
             const setRes = context.set(this.varNameTok.value, value, {
                 global: this.isGlobal,
-                isConstant: this.isConstant
+                isConstant: this.isConstant,
+                type: res.val.__type__
             });
+
             if (setRes instanceof ESError) return setRes;
 
 
         } else {
-
-            if (this.isDeclaration)
-                return new InvalidSyntaxError(this.pos, `Cannot declare variable with operator '${this.assignType}'`);
 
             // assign with modifier like *= or -=
             const currentVal = context.get(this.varNameTok.value);
             if (currentVal instanceof ESError) return currentVal;
 
             if (currentVal == undefined)
-                return new InvalidSyntaxError(this.pos, `Cannot declare variable with operator '${this.assignType}'`);
+                return new InvalidSyntaxError(this.pos,
+                    `Cannot declare variable with operator '${this.assignType}'`);
 
             let newVal: Primitive | ESError;
             let assignVal = res.val;
@@ -409,7 +452,8 @@ export class N_varAssign extends Node {
 
             let setRes = context.set(this.varNameTok.value, newVal, {
                 global: this.isGlobal,
-                isConstant: this.isConstant
+                isConstant: this.isConstant,
+                type: newVal.__type__
             });
 
             if (setRes instanceof ESError) return setRes;
@@ -1627,7 +1671,7 @@ export class N_variable extends Node {
 
 export class N_undefined extends Node {
 
-    constructor(pos = Position.unknown) {
+    constructor(pos = Position.void) {
         super(pos, true);
     }
 
@@ -1687,7 +1731,7 @@ export class N_continue extends Node {
 
 export class N_primitiveWrapper extends Node {
     value: Primitive;
-    constructor(val: Primitive, pos = Position.unknown) {
+    constructor(val: Primitive, pos = Position.void) {
         super(pos, true);
         this.value = val;
     }

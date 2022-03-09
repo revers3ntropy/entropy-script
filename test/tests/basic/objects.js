@@ -2,7 +2,7 @@ const {expect, file} = require( '../../testFramework');
 file('basic/objects');
 
 expect([{a: 1}, 2], `
-    n = {a: 1};
+    let n = {a: 1};
     n.a += 1;
 `);
 

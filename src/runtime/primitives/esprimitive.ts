@@ -81,6 +81,13 @@ export abstract class ESPrimitive <T> {
         return new InvalidOperationError('__bool__', this);
     }
 
+    public __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new InvalidOperationError('__pipe__', this);
+    }
+    public __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new InvalidOperationError('__ampersand__', this);
+    }
+
     // Properties
     public __setProperty__ (props: funcProps, key: Primitive, value: Primitive): void | ESError {
         return new InvalidOperationError('__setProperty__', this, `[${str(key)}] = ${str(value)}`);
@@ -135,7 +142,7 @@ export abstract class ESPrimitive <T> {
         const res = strip(info, props);
 
         if (typeof res !== 'object') {
-            return new TypeError(Position.unknown, 'object', this.typeName(), str(this));
+            return new TypeError(Position.void, 'object', this.typeName(), str(this));
         }
 
         this.info = {

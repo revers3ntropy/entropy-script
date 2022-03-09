@@ -11,7 +11,7 @@ expect([
         }
         
         __multiply__ (b) {
-            res = this.clone();
+            let res = this.clone();
             res.a = this.a * b.a;
             return res;
         }

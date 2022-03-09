@@ -17,7 +17,7 @@ function callNode (self: ESFunction, context: Context, params: Primitive[], fn: 
 
     if (self.returnType.resolve({ context }, res.val?.__type__ ?? types.any).valueOf() === false) {
         return new TypeError(
-            Position.unknown,
+            Position.void,
             self.returnType.__name__,
             res.val?.typeName().valueOf() || 'undefined',
             res.val?.str().valueOf(),
@@ -70,7 +70,7 @@ export function call (context: Context, self: ESFunction, params: Primitive[]): 
 
     if (!(this_ instanceof ESObject))
         return new TypeError(
-            Position.unknown,
+            Position.void,
             'object',
             typeof this_,
             this_,
@@ -89,6 +89,6 @@ export function call (context: Context, self: ESFunction, params: Primitive[]): 
         return callNative(self, newContext, params, fn);
 
     } else {
-        return new TypeError(Position.unknown, 'function', typeof fn);
+        return new TypeError(Position.void, 'function', typeof fn);
     }
 }

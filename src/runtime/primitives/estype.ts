@@ -1,4 +1,4 @@
-import { ESError, IndexError, InvalidOperationError } from '../../errors';
+import { ESError, IndexError, InvalidOperationError, TypeError } from '../../errors';
 import {createInstance} from '../instantiator';
 import {ESBoolean} from './esboolean';
 import {ESFunction} from './esfunction';
@@ -46,7 +46,7 @@ export class ESType extends ESPrimitive<undefined> {
         }
     }
 
-    clone = () => {
+    override clone = () => {
         return new ESType(
             this.primitive,
             this.__name__,
@@ -56,11 +56,11 @@ export class ESType extends ESPrimitive<undefined> {
         )
     }
 
-    isa = (props: funcProps, type: Primitive) => {
+    override isa = (props: funcProps, type: Primitive) => {
         return new ESBoolean(type === types.type);
     }
 
-    cast = (props: funcProps, type: Primitive): ESError => {
+    override cast = (props: funcProps, type: Primitive): ESError => {
         return new InvalidOperationError('cast', this);
     }
 
@@ -83,7 +83,7 @@ export class ESType extends ESPrimitive<undefined> {
         return this.__eq__(props, t);
     }
 
-    __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
+    override __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
         if (!(t instanceof ESType)) {
             return new ESBoolean();
         }
@@ -94,23 +94,57 @@ export class ESType extends ESPrimitive<undefined> {
         );
     }
 
-    __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
+    override __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
         return createInstance(this, props, params || []);
     }
 
-    str = () => new ESString(`<Type: ${this.__name__}>`);
+    override str = () => new ESString(`<Type: ${this.__name__}>`);
 
-    __bool__ = () => new ESBoolean(true);
-    bool = this.__bool__;
+    override __bool__ = () => new ESBoolean(true);
+    override bool = this.__bool__;
 
-    __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
-        if (this.self.hasOwnProperty(str(key))) {
-            const val = this.self[str(key)];
-            if (typeof val === 'function') {
-                return new ESFunction(val);
-            }
-            return wrap(val);
+    override __getProperty__ = (props: funcProps, k: Primitive): Primitive | ESError => {
+        if (!(k instanceof ESString)) {
+            return new TypeError(Position.void, 'string', k.typeName(), str(k));
         }
-        return new IndexError(Position.unknown, key.valueOf(), this);
+        const key = k.valueOf();
+        if (this.self.hasOwnProperty(key)) {
+            return wrap(this.self[str(key)], true);
+        }
+        return new IndexError(Position.void, key, this);
     };
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        if (!(n instanceof ESType)) {
+            return new TypeError(Position.void, 'type', n.typeName(), str(n));
+        }
+        return new ESTypeUnion(this, n);
+    }
+}
+
+export class ESTypeUnion extends ESType {
+
+    private readonly __left__: ESType;
+    private readonly __right__: ESType;
+
+    constructor (left: ESType, right: ESType) {
+        super(false, `(${left.__name__}) | (${right.__name__})`);
+        this.__left__ = left;
+        this.__right__ = right;
+    }
+
+    override __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
+        return new InvalidOperationError('__call__', this);
+    }
+
+    override resolve = (props: funcProps, t: ESType): ESBoolean => {
+        return new ESBoolean(
+            this.__left__.resolve(props, t).valueOf() ||
+            this.__right__.resolve(props, t).valueOf()
+        );
+    }
+
+    override clone = () => {
+        return new ESTypeUnion(this.__left__, this.__right__);
+    }
 }

@@ -13,7 +13,7 @@ const module: JSModule = {
 
     stringify: (props, json) => {
         if (!(json instanceof ESObject)) {
-            return new TypeError(Position.unknown, 'object', str(json.typeName()), str(json));
+            return new TypeError(Position.void, 'object', str(json.typeName()), str(json));
         }
 
         return new ESString(JSON.stringify(strip(json, props)));

@@ -121,7 +121,7 @@ export function run (msg: string, {
     if (!env.root.initialisedAsGlobal){
         const res = new interpretResult();
         res.error = new ESError(
-            Position.unknown,
+            Position.void,
             'Uninitialised',
             'Global context has not been initialised with global values'
         );
@@ -194,7 +194,7 @@ export function parse (code: string, {
 
     if (!res.node) {
         return {
-            error: new ESError(Position.unknown, 'Error', 'no output')
+            error: new ESError(Position.void, 'Error', 'no output')
         };
     }
 
@@ -229,7 +229,7 @@ export function parse (code: string, {
 
             if (!env.root.initialisedAsGlobal){
                 const res = new interpretResult();
-                res.error = new ESError(Position.unknown, 'Uninitialised',
+                res.error = new ESError(Position.void, 'Uninitialised',
                     'Global context has not been initialised with global values');
                 return res;
             }

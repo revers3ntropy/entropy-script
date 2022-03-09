@@ -35,7 +35,7 @@ export class Position {
         return this.idx === -2;
     }
 
-    static get unknown () {
+    static get void () {
         return new Position(-2, -2, -2, '(unknown)');
     }
 }

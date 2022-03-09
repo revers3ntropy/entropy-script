@@ -19,20 +19,20 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         this.len = values.length;
     }
 
-    cast = ({}, type: Primitive): Primitive | ESError => {
+    override cast = ({}, type: Primitive): Primitive | ESError => {
         switch (type) {
         case types.number:
             return new ESNumber(this.len);
         case types.boolean:
             return this.bool();
         default:
-            return new ESError(Position.unknown, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
+            return new ESError(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
         }
     }
 
-    str = () => new ESString(str(this.valueOf()));
+    override str = () => new ESString(str(this.valueOf()));
 
-    __eq__ = ({context}: {context: Context}, n: Primitive): ESBoolean | ESError => {
+    override __eq__ = ({context}: {context: Context}, n: Primitive): ESBoolean | ESError => {
         if (!(n instanceof ESArray)) {
             return new ESBoolean();
         }
@@ -69,24 +69,20 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return new ESBoolean(true);
     };
 
-    __add__ = ({context}: {context: Context}, n: Primitive): ESArray | ESError => {
+    override __add__ = ({context}: {context: Context}, n: Primitive): ESArray | ESError => {
         if (!(n instanceof ESArray)) {
-            return new TypeError(Position.unknown, 'array', n.typeName().valueOf(), n);
+            return new TypeError(Position.void, 'array', n.typeName().valueOf(), n);
         }
 
         return new ESArray([...this.valueOf(), ...n.valueOf()]);
     };
 
-    __bool__ = () => new ESBoolean(this.valueOf().length > 0);
-    bool = this.__bool__;
+    override __bool__ = () => new ESBoolean(this.valueOf().length > 0);
+    override bool = this.__bool__;
 
-    __getProperty__ = (props: funcProps, key: Primitive): Primitive => {
+    override __getProperty__ = (props: funcProps, key: Primitive): Primitive => {
         if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
-            const val = this.self[str(key)];
-            if (typeof val === 'function') {
-                return new ESFunction(val);
-            }
-            return wrap(val);
+            return wrap(this.self[str(key)], true);
         }
 
         if (!(key instanceof ESNumber)) {
@@ -106,7 +102,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return new ESUndefined();
     };
 
-    __setProperty__(props: funcProps, key: Primitive, value: Primitive): void {
+    override __setProperty__(props: funcProps, key: Primitive, value: Primitive): void {
         if (!(key instanceof ESNumber)) {
             return;
         }
@@ -148,7 +144,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return false;
     };
 
-    clone = (): ESArray => {
+    override clone = (): ESArray => {
         const newArr = [];
         for (let element of this.valueOf()) {
             newArr.push(element);

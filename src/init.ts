@@ -17,7 +17,7 @@ export function initialise (
 ): ESError | undefined {
     builtInFunctions['import'] = [({context}, rawUrl, callback) => {
         if (IS_NODE_INSTANCE) {
-            return new ESError(Position.unknown, 'ImportError', 'Is running in node instance but trying to run browser import function');
+            return new ESError(Position.void, 'ImportError', 'Is running in node instance but trying to run browser import function');
         }
         const url: ESString = rawUrl.str();
 
@@ -34,7 +34,7 @@ export function initialise (
                     const res: interpretResult = await run(code);
 
                     if (res.error) {
-                        printFunc(new ImportError(Position.unknown, str(url), res.error.str).str);
+                        printFunc(new ImportError(Position.void, str(url), res.error.str).str);
                         return;
                     }
 
@@ -45,7 +45,7 @@ export function initialise (
                     );
                 });
         } catch (E: any) {
-            return new ESError(Position.unknown, 'ImportError', E.toString());
+            return new ESError(Position.void, 'ImportError', E.toString());
         }
     }, {}];
 

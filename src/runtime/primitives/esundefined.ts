@@ -27,7 +27,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
         };
     }
 
-    cast = ({context}: {context: Context}, type: Primitive): Primitive | ESError => {
+    override cast = ({context}: {context: Context}, type: Primitive): Primitive | ESError => {
         switch (type) {
         case types.number:
             return new ESNumber();
@@ -50,34 +50,30 @@ export class ESUndefined extends ESPrimitive <undefined> {
             return new ESBoolean();
         default:
             if (!(type instanceof ESType)) {
-                return new ESError(Position.unknown, 'TypeError', `Cannot cast to type '${str(type.typeName())}'`);
+                return new ESError(Position.void, 'TypeError', `Cannot cast to type '${str(type.typeName())}'`);
             }
             return type.__call__({context});
         }
     }
 
-    str = () => new ESString('<Undefined>');
+    override str = () => new ESString('<Undefined>');
 
-    __eq__ = (props: funcProps, n: Primitive) =>
+    override __eq__ = (props: funcProps, n: Primitive) =>
         new ESBoolean(
             n instanceof ESUndefined ||
             typeof n === 'undefined' ||
             typeof n.valueOf() === 'undefined'
         );
 
-    __bool__ = () => new ESBoolean();
-    bool = this.__bool__;
+    override __bool__ = () => new ESBoolean();
+    override bool = this.__bool__;
 
-    clone = () => new ESUndefined();
+    override clone = () => new ESUndefined();
 
-    __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+    override __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
         if (this.self.hasOwnProperty(str(key))) {
-            const val = this.self[str(key)];
-            if (typeof val === 'function') {
-                return new ESFunction(val);
-            }
-            return wrap(val);
+            return wrap(this.self[str(key)], true);
         }
-        return new IndexError(Position.unknown, key.valueOf(), this);
+        return new IndexError(Position.void, key.valueOf(), this);
     };
 }

@@ -1,7 +1,6 @@
 import {ESError, IndexError, TypeError} from '../../errors';
 import {Position} from '../../position';
 import { dict, funcProps } from '../../util/util';
-import {Context} from '../context';
 import {ESSymbol} from '../symbol';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
@@ -21,8 +20,8 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         this.mutable = mutable;
     }
 
-    cast = ({}) => {
-        return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'namespace'`);
+    override cast = ({}) => {
+        return new ESError(Position.void, 'TypeError', `Cannot cast type 'namespace'`);
     }
 
     get name () {
@@ -33,7 +32,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         this.info.name = v.valueOf();
     }
 
-    clone = (): Primitive => {
+    override clone = (): Primitive => {
         let obj: dict<ESSymbol> = {};
         let toClone = this.valueOf();
         for (let key of Object.keys(toClone)) {
@@ -42,20 +41,20 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         return new ESNamespace(this.name, obj);
     }
 
-    str = (): ESString => {
+    override str = (): ESString => {
         const keys = Object.keys(this.valueOf());
         return new ESString(`<Namespace ${str(this.name)}${keys.length > 0 ? ': ' : ''}${keys.slice(0, 5)}${keys.length >= 5 ? '...' : ''}>`);
     }
 
-    __eq__ = (props: funcProps, n: Primitive): ESBoolean => {
+    override __eq__ = (props: funcProps, n: Primitive): ESBoolean => {
         return new ESBoolean(this === n);
     };
 
-    __bool__ = () => new ESBoolean(true);
-    bool = this.__bool__;
+    override __bool__ = () => new ESBoolean(true);
+    override bool = this.__bool__;
 
 
-    __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
         if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf())) {
             const symbol = this.valueOf()[key.valueOf()];
             if (symbol.isAccessible) {
@@ -64,29 +63,25 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         }
 
         if (!(key instanceof ESString)) {
-            return new TypeError(Position.unknown, 'string', key.typeName());
+            return new TypeError(Position.void, 'string', key.typeName());
         }
 
         if (this.self.hasOwnProperty(str(key))) {
-            const val = this.self[str(key)];
-            if (typeof val === 'function') {
-                return new ESFunction(val);
-            }
-            return wrap(val);
+            return wrap(this.self[str(key)], true);
         }
 
-        return new IndexError(Position.unknown, key.valueOf(), this.self);
+        return new IndexError(Position.void, key.valueOf(), this.self);
     };
 
-    __setProperty__(props: funcProps, key: Primitive, value: Primitive): void | ESError {
+    override __setProperty__(props: funcProps, key: Primitive, value: Primitive): void | ESError {
         if (!(key instanceof ESString)) {
-            return new TypeError(Position.unknown, 'string', key.typeName().valueOf(), str(key));
+            return new TypeError(Position.void, 'string', key.typeName().valueOf(), str(key));
         }
 
         let idx = str(key);
 
         if (!this.mutable) {
-            return new TypeError(Position.unknown, 'mutable', 'immutable', `${str(this.name)}`);
+            return new TypeError(Position.void, 'mutable', 'immutable', `${str(this.name)}`);
         }
 
         if (!(value instanceof ESPrimitive)) {
@@ -95,13 +90,13 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
 
         const symbol = this.__value__[idx];
         if (!symbol) {
-            return new ESError(Position.unknown, 'SymbolError', `Symbol ${idx} is not declared in namespace ${str(this.name)}.`);
+            return new ESError(Position.void, 'SymbolError', `Symbol ${idx} is not declared in namespace ${str(this.name)}.`);
         }
         if (symbol.isConstant) {
-            return new TypeError(Position.unknown, 'mutable', 'immutable', `${str(this.name)}[${idx}]`);
+            return new TypeError(Position.void, 'mutable', 'immutable', `${str(this.name)}[${idx}]`);
         }
         if (!symbol.isAccessible) {
-            return new TypeError(Position.unknown, 'accessible', 'inaccessible', `${str(this.name)}[${idx}]`);
+            return new TypeError(Position.void, 'accessible', 'inaccessible', `${str(this.name)}[${idx}]`);
         }
 
         symbol.value = value;

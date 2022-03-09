@@ -36,12 +36,12 @@ expect([`h'h`], `'h\\'h'`);
 // variables
 expect('InvalidSyntaxError', 'var a = 1; a = 2; var a = 1;');
 expect('ReferenceError', 'a');
-expect([1], 'global a = 1');
-expect([1], 'a = 1');
-expect([undefined], 'var a;');
-expect([1, 2], 'var a = 1; a = a + 1;');
-expect('ReferenceError', 'var a = a + 1;');
-expect([undefined, true], 'var a; a == nil;');
+expect([1], 'global b = 1');
+expect([1], 'let c = 1');
+expect([undefined], 'var d;');
+expect([1, 2], 'var e = 1; e = e + 1;');
+expect('ReferenceError', 'var f = f + 1;');
+expect([undefined, true], 'var g; g == nil;');
 expect([1, 2], `let n = 1; n = 2;`);
 expect('TypeError', `const n = 1; n = 2;`);
 expect('InvalidSyntaxError', `const n = 1; const n = 2;`);

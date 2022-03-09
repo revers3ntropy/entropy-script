@@ -36,7 +36,7 @@ export function interpretArgument (arg: uninterpretedArgument, context: Context)
     if (typeRes.val instanceof ESType)
         type = typeRes.val;
     else
-        return new TypeError(Position.unknown, 'Type', typeof typeRes.val, typeRes.val, 'Argument can\'t be undefined');
+        return new TypeError(Position.void, 'Type', typeof typeRes.val, typeRes.val, 'Argument can\'t be undefined');
 
     let defaultValue: Primitive | undefined;
     if (arg.defaultValue) {

@@ -7,14 +7,14 @@ import type {JSModule} from '../module';
 const module: JSModule = {
     asciiToChar: (props, number: Primitive) => {
         if (!(number instanceof ESNumber)) {
-            return new TypeError(Position.unknown, 'number', str(number.typeName()), str(number));
+            return new TypeError(Position.void, 'number', str(number.typeName()), str(number));
         }
         return new ESString(String.fromCharCode(number.valueOf()));
     },
 
     charToAscii: (props, char: Primitive) => {
         if (!(char instanceof ESString)) {
-            return new TypeError(Position.unknown, 'string', str(char.typeName()), str(char));
+            return new TypeError(Position.void, 'string', str(char.typeName()), str(char));
         }
         return new ESNumber(str(char).charCodeAt(0));
     },

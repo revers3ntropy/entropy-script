@@ -18,26 +18,26 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         super(val, types.object);
     }
 
-    isa = (props: funcProps, type: Primitive) => {
+    override isa = (props: funcProps, type: Primitive) => {
         if (type === types.object) {
             return new ESBoolean(true);
         }
         if (!(type instanceof ESType)) {
-            return new TypeError(Position.unknown, 'TypeError', 'type', str(type.typeName()), str(type));
+            return new TypeError(Position.void, 'TypeError', 'type', str(type.typeName()), str(type));
         }
         return this.__type__.resolve(props, type);
     }
 
-    cast = ({}, type: Primitive) => {
+    override cast = ({}, type: Primitive) => {
         switch (type) {
             case types.number:
                 return new ESNumber(this.valueOf() ? 1 : 0);
             default:
-                return new ESError(Position.unknown, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
+                return new ESError(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
         }
     }
 
-    str = () => {
+    override str = () => {
         let val = str(this.valueOf());
         // remove trailing new line
         if (val[val.length-1] === '\n')
@@ -51,7 +51,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
 
     set keys (val: ESString[]) {}
 
-    __eq__ = ({context}: {context: Context}, n: Primitive): ESBoolean | ESError => {
+    override __eq__ = ({context}: {context: Context}, n: Primitive): ESBoolean | ESError => {
         if (!(n instanceof ESObject)) {
             return new ESBoolean();
         }
@@ -89,13 +89,13 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESBoolean(true);
     };
 
-    __bool__ = () => new ESBoolean(true);
-    bool = this.__bool__;
+    override __bool__ = () => new ESBoolean(true);
+    override bool = this.__bool__;
 
-    __add__ = ({context}: {context: Context}, n: Primitive) => {
+    override __add__ = ({context}: {context: Context}, n: Primitive) => {
 
         if (!(n instanceof ESObject)) {
-            return new TypeError(Position.unknown, 'object', n.typeName().valueOf(), n);
+            return new TypeError(Position.void, 'object', n.typeName().valueOf(), n);
         }
 
         let newOb: dict<Primitive> = {};
@@ -124,7 +124,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESObject(newOb);
     };
 
-    __subtract__ = (props: funcProps, n: Primitive): Primitive | ESError => {
+    override __subtract__ = (props: funcProps, n: Primitive): Primitive | ESError => {
 
         let keysToRemove = [];
         if (n instanceof ESString) {
@@ -132,11 +132,11 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         } else if (n instanceof ESArray) {
             keysToRemove = strip(n, props);
         } else {
-            return new TypeError(Position.unknown, 'array | string', n.typeName().valueOf(), n);
+            return new TypeError(Position.void, 'array | string', n.typeName().valueOf(), n);
         }
 
         if (!Array.isArray(keysToRemove)) {
-            return new TypeError(Position.unknown, 'array | string', n.typeName().valueOf(), n);
+            return new TypeError(Position.void, 'array | string', n.typeName().valueOf(), n);
         }
 
         let newOb: dict<Primitive> = {};
@@ -155,9 +155,9 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESObject(newOb);
     }
 
-    __getProperty__ = (props: funcProps, k: Primitive): Primitive| ESError => {
+    override __getProperty__ = (props: funcProps, k: Primitive): Primitive| ESError => {
         if (!(k instanceof ESString) && !(k instanceof ESNumber)) {
-            return new TypeError(Position.unknown, 'string | number', k.typeName(), str(k));
+            return new TypeError(Position.void, 'string | number', k.typeName(), str(k));
         }
 
         const key: string | number = k.valueOf();
@@ -167,24 +167,20 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         }
 
         if (this.self.hasOwnProperty(key)) {
-            const val = this.self[key];
-            if (typeof val === 'function') {
-                return new ESFunction(val);
-            }
-            return wrap(val);
+            return wrap(this.self[str(key)], true);
         }
 
         return new ESUndefined();
     };
 
-    __setProperty__ = ({}: funcProps, key: Primitive, value: Primitive): void | ESError => {
+    override __setProperty__ = ({}: funcProps, key: Primitive, value: Primitive): void | ESError => {
         if (!(key instanceof ESString)) {
-            return new TypeError(Position.unknown, 'string', key.typeName(), str(key));
+            return new TypeError(Position.void, 'string', key.typeName(), str(key));
         }
         this.__value__[key.valueOf()] = value;
     }
 
-    hasProperty = (props: funcProps, k: Primitive): ESBoolean => {
+    override hasProperty = (props: funcProps, k: Primitive): ESBoolean => {
         const key = str(k);
         if (this.valueOf().hasOwnProperty(str(key))) {
             return new ESBoolean(true);
@@ -193,7 +189,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESBoolean(this.hasOwnProperty(key));
     };
 
-    clone = (): ESObject => {
+    override clone = (): ESObject => {
 
         const res = new ESObject();
         let obj: dict<Primitive> = {};

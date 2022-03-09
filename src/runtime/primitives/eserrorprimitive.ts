@@ -10,11 +10,11 @@ import {str} from "../../util/util";
 import { ESArray } from "./esarray";
 
 export class ESErrorPrimitive extends ESPrimitive <ESError> {
-    constructor (error: ESError = new ESError(Position.unknown, 'Unknown', 'Error not specified')) {
+    constructor (error: ESError = new ESError(Position.void, 'Unknown', 'Error not specified')) {
         super(error, types.error);
     }
 
-    __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
 
         switch (str(key)) {
 
@@ -29,27 +29,27 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
 
             default:
                 if (this.self.hasOwnProperty(str(key))) {
-                    return wrap(this.self[str(key)]);
+                    return wrap(this.self[str(key)], true);
                 }
-                return new IndexError(Position.unknown, key.valueOf(), this);
+                return new IndexError(Position.void, key.valueOf(), this);
         }
     };
 
-    cast = () =>
-        new ESError(Position.unknown, 'TypeError', `Cannot cast type 'error'`);
+    override cast = () =>
+        new ESError(Position.void, 'TypeError', `Cannot cast type 'error'`);
 
 
-    str = () =>
+    override str = () =>
         new ESString(`<Error: ${this.valueOf().str}>`);
 
-    __eq__ = (props: funcProps, n: Primitive) =>
+    override __eq__ = (props: funcProps, n: Primitive) =>
         new ESBoolean(
             n instanceof ESErrorPrimitive &&
             this.valueOf().constructor === n.valueOf().constructor
         );
 
-    __bool__ = () => new ESBoolean(true);
-    bool = this.__bool__;
+    override __bool__ = () => new ESBoolean(true);
+    override bool = this.__bool__;
 
-    clone = () => new ESErrorPrimitive(this.valueOf());
+    override clone = () => new ESErrorPrimitive(this.valueOf());
 }

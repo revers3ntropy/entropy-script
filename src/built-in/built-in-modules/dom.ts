@@ -17,7 +17,7 @@ const module: JSModuleFunc = (): JSModule | ESError => {
     const w: { [k: string]: any; } | undefined = window;
 
     if (typeof w === 'undefined' || !('$' in w)) {
-        return new ReferenceError(Position.unknown, '$ must be property of window to use dom library');
+        return new ReferenceError(Position.void, '$ must be property of window to use dom library');
     }
 
     const $: any = new ESJSBinding(w['$'], 'jquery');

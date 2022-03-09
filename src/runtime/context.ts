@@ -78,7 +78,7 @@ export class Context {
 
         if (symbol !== undefined && !symbol.isAccessible)
             return new TypeError(
-                Position.unknown,
+                Position.void,
                 'assessable',
                 'inaccessible',
                 symbol.identifier
@@ -89,7 +89,7 @@ export class Context {
             if (res instanceof ESError)
                 return res;
             if (!res)
-                return new ReferenceError(Position.unknown, identifier);
+                return new ReferenceError(Position.void, identifier);
             symbol = res;
         }
 
@@ -103,11 +103,13 @@ export class Context {
             context = this.root;
         } else {
             // searches upwards to find the identifier, and if none can be found then it assigns it to the current context
-            while (!context.hasOwn(identifier) && context.parent !== undefined)
+            while (!context.hasOwn(identifier) && context.parent !== undefined) {
                 context = context.parent;
+            }
 
-            if (!context.hasOwn(identifier))
+            if (!context.hasOwn(identifier)) {
                 context = this;
+            }
         }
         return context.setOwn(identifier, value, options);
     }
@@ -119,14 +121,15 @@ export class Context {
         }
 
         // is not global
-        if (options.global && !this.initialisedAsGlobal)
+        if (options.global && !this.initialisedAsGlobal) {
             options.global = false;
+        }
 
         if (!options.forceThroughConst) {
             let symbol = this.symbolTable[identifier];
             if (symbol?.isConstant)
                 return new TypeError(
-                    Position.unknown,
+                    Position.void,
                     'dynamic',
                     'constant',
                     identifier
@@ -235,7 +238,7 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
         // type checking
         const arg = self.arguments_[i];
         if (!(arg.type instanceof ESType)) {
-            return new TypeError(Position.unknown, 'Type', typeof arg.type, arg.type);
+            return new TypeError(Position.void, 'Type', typeof arg.type, arg.type);
         }
 
         if (params[i] instanceof ESPrimitive) {
@@ -245,7 +248,7 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
 
         const typeIncludes = arg.type.resolve({context: parent}, type).bool().valueOf();
         if (!typeIncludes) {
-            return new TypeError(Position.unknown, arg.type.__name__, type.__name__, str(value));
+            return new TypeError(Position.void, arg.type.__name__, type.__name__, str(value));
         }
 
         newContext.setOwn(arg.name, value, {

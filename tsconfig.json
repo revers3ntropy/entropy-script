@@ -7,6 +7,10 @@
         "experimentalDecorators": true,
         "noEmit": false,
         "removeComments": true,
-        "moduleResolution": "Node"
+        "moduleResolution": "Node",
+        "noImplicitAny": true,
+        "noImplicitOverride": true,
+        "noImplicitThis": true,
+
     }
 }

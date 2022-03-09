@@ -88,25 +88,25 @@ export class IndexError extends ESError {
 }
 
 export class InvalidOperationError extends ESError {
-    constructor(op: string, value: Primitive, detail: string = '', pos = Position.unknown) {
+    constructor(op: string, value: Primitive, detail: string = '', pos = Position.void) {
         super(pos,'TypeError', `Cannot perform '${op}' on value ${value?.info?.name || str(value)}: ${detail}`);
     }
 }
 
 export class InvalidRuntimeError extends ESError {
     constructor () {
-        super(Position.unknown,'InvalidRuntimeError', `Required runtime of ${IS_NODE_INSTANCE ? 'browser' : 'node'}`);
+        super(Position.void,'InvalidRuntimeError', `Required runtime of ${IS_NODE_INSTANCE ? 'browser' : 'node'}`);
     }
 }
 
 export class TestFailed extends ESError {
     constructor(detail: string) {
-        super(Position.unknown, 'TestFailed', detail);
+        super(Position.void, 'TestFailed', detail);
     }
 }
 
 export class PermissionRequiredError extends ESError {
     constructor(detail: string) {
-        super(Position.unknown, 'PermissionRequiredError', detail);
+        super(Position.void, 'PermissionRequiredError', detail);
     }
 }

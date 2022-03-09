@@ -8,6 +8,10 @@ expect([10, 10], `
 expect('TypeError', `
     const a: number = 'hi';
 `);
+expect('TypeError', `
+    let a: number = 1;
+    a = 'hi';
+`);
 expect(['<Type: myClass>', {}, {}], `
     const myClass = class {};
     let a = myClass();

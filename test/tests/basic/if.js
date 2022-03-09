@@ -10,7 +10,7 @@ expect(['00', undefined], `
 `);
 expect([false, undefined, undefined, true], `
     var result = false;
-    var output;
+    var output: any;
     if result {
         output = false;
     } else {
@@ -29,7 +29,7 @@ expect([false, undefined, undefined, true], `
     output;
 `);
 expect([undefined, undefined, false], `
-    var output;
+    var output: any;
     if true {
         output = true;
         output = false;

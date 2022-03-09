@@ -51,10 +51,10 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
                     if (fs.existsSync('particles/' + scriptPath + '/main.es')) {
                         scriptPath = 'particles/' + scriptPath + '/main.es';
                     } else {
-                        return new ESError(Position.unknown, 'ImportError', `Module '${scriptPath}' has no entry point. Requires 'main.es'.`)
+                        return new ESError(Position.void, 'ImportError', `Module '${scriptPath}' has no entry point. Requires 'main.es'.`)
                     }
                 } else {
-                    return new ESError(Position.unknown, 'ImportError', `Can't find file '${scriptPath}' to import.`)
+                    return new ESError(Position.void, 'ImportError', `Can't find file '${scriptPath}' to import.`)
                 }
             }
 
@@ -82,7 +82,7 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
             return n;
 
         } catch (E: any) {
-            return new ESError(Position.unknown, 'ImportError', E.toString());
+            return new ESError(Position.void, 'ImportError', E.toString());
         }
     },
             [{name: 'path', type: types.string}],
@@ -101,7 +101,7 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
         const encoding = str(encoding_) || 'utf-8';
 
         if (!fs.existsSync(path)) {
-            return new ImportError(Position.unknown, path);
+            return new ImportError(Position.void, path);
         }
 
         return new ESObject({

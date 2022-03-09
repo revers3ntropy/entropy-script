@@ -28,7 +28,7 @@ import {
 function dealWithExtends (context: Context, class_: ESType, instance: dict<Primitive>, this_: ESObject, callContext: Context): ESError | void {
     if (!(class_ instanceof ESType)) {
         return new TypeError(
-            Position.unknown,
+            Position.void,
             'Type',
             typeof class_,
             class_

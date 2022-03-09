@@ -51,8 +51,8 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         // TODO: info.helpLink
     }
 
-    cast = ({}, type: Primitive) => {
-        return new ESError(Position.unknown, 'TypeError', `Cannot cast type 'function'`)
+    override cast = (props: funcProps, type: Primitive) => {
+        return new ESError(Position.void, 'TypeError', `Cannot cast type 'function'`)
     }
 
     get name () {
@@ -75,32 +75,28 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     };
 
     // @ts-ignore
-    valueOf = () => this;
+    override valueOf = () => this;
 
-    str = () => new ESString(`<Func: ${this.name}>`);
+    override str = () => new ESString(`<Func: ${this.name}>`);
 
-    __eq__ = (props: funcProps, n: Primitive) => {
+    override __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESFunction))
             return new ESBoolean(false);
         return new ESBoolean(this.__value__ === n.__value__);
     };
 
-    __bool__ = () => new ESBoolean(true);
-    bool = this.__bool__;
+    override __bool__ = () => new ESBoolean(true);
+    override bool = this.__bool__;
 
-    __call__ = ({context}: funcProps, ...params: Primitive[]): ESError | Primitive => {
+    override __call__ = ({context}: funcProps, ...params: Primitive[]): ESError | Primitive => {
         this.__closure__.path = context.path;
         return call(this.__closure__, this, params);
     }
 
-    __getProperty__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+    override __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
         if (this.self.hasOwnProperty(str(key))) {
-            const val = this.self[str(key)];
-            if (typeof val === 'function') {
-                return new ESFunction(val);
-            }
-            return wrap(val);
+            return wrap(this.self[str(key)], true);
         }
-        return new IndexError(Position.unknown, key.valueOf(), this);
+        return new IndexError(Position.void, key.valueOf(), this);
     };
 }

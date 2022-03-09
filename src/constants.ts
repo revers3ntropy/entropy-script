@@ -149,8 +149,8 @@ export enum tokenType {
 
     EOF,
 
-    BITWISE_OR,
-    BITWISE_AND,
+    PIPE,
+    APMERSAND,
     BITWISE_NOT,
 }
 
@@ -197,8 +197,8 @@ export const tokenTypeString: enumDict<tokenType, string> = {
 
     [tt.EOF]: 'End of File',
 
-    [tt.BITWISE_AND]: '&',
-    [tt.BITWISE_OR]: '|',
+    [tt.APMERSAND]: '&',
+    [tt.PIPE]: '|',
     [tt.BITWISE_NOT]: '~',
 }
 
@@ -223,8 +223,8 @@ export const singleCharTokens: {[char: string]: tokenType} = {
     '>': tt.GT,
     '<': tt.LT,
     '!': tt.NOT,
-    '|': tt.BITWISE_OR,
-    '&': tt.BITWISE_AND,
+    '|': tt.PIPE,
+    '&': tt.APMERSAND,
     '~': tt.BITWISE_NOT
 };
 

@@ -25,21 +25,21 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
             try {
                 return new ESArray([...Array(min).keys()].map(n => new ESNumber(n)));
             } catch (e) {
-                return new ESError(Position.unknown, 'RangeError', `Cannot make range of length '${str(min)}'`);
+                return new ESError(Position.void, 'RangeError', `Cannot make range of length '${str(min)}'`);
             }
         }
 
         let step = 1;
 
         if (!(maxP instanceof ESNumber)) {
-            return new TypeError(Position.unknown, 'number', maxP.typeName(), str(maxP));
+            return new TypeError(Position.void, 'number', maxP.typeName(), str(maxP));
         }
 
         let max = maxP.valueOf();
 
         if (!(stepP instanceof ESUndefined)) {
             if (!(stepP instanceof ESNumber)) {
-                return new TypeError(Position.unknown, 'number', stepP.typeName(), str(stepP));
+                return new TypeError(Position.void, 'number', stepP.typeName(), str(stepP));
             }
             step = stepP.valueOf();
         }
@@ -79,11 +79,11 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
         try {
             const val: number = parseFloat(str(num));
             if (isNaN(val)) {
-                return new ESError(Position.unknown, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
+                return new ESError(Position.void, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
             }
             return new ESNumber(val);
         } catch (e) {
-            return new ESError(Position.unknown, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
+            return new ESError(Position.void, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
         }
     }, {
         args: [{
@@ -169,7 +169,7 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
     'delete': [({context}, name) => {
         const id = str(name);
         if (!context.has(id)) {
-            return new ESError(Position.unknown, 'DeleteError', `Identifier '${id}' not found in the current context`);
+            return new ESError(Position.void, 'DeleteError', `Identifier '${id}' not found in the current context`);
         }
         context.set(id, new ESUndefined());
     }, {
@@ -196,7 +196,7 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
 
     'using': [({context}, module, global_) => {
         if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding)) {
-            return new TypeError(Position.unknown, 'Namespace', str(module.typeName()));
+            return new TypeError(Position.void, 'Namespace', str(module.typeName()));
         }
 
         let global = true;
@@ -233,7 +233,7 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
 
     'sleep': [({context}, time, cb) => {
         if (!(time instanceof ESNumber)) {
-            return new TypeError(Position.unknown, 'number', str(time.typeName()), str(time));
+            return new TypeError(Position.void, 'number', str(time.typeName()), str(time));
         }
 
         sleep(time.valueOf())
@@ -250,7 +250,7 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
     }],
 
     'throw': [({context}, name, details) => {
-        return new ESError(Position.unknown, str(name), str(details));
+        return new ESError(Position.void, str(name), str(details));
     }, {
         name: 'throw',
         args: [{name: 'name', type: 'string'}, {name: 'details', type: 'string'}]

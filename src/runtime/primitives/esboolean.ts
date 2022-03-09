@@ -21,43 +21,39 @@ export class ESBoolean extends ESPrimitive <boolean> {
         };
     }
 
-    __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
         if (this.self.hasOwnProperty(str(key))) {
-            const val = this.self[str(key)];
-            if (typeof val === 'function') {
-                return new ESFunction(val);
-            }
-            return wrap(val);
+            return wrap(this.self[str(key)], true);
         }
-        return new IndexError(Position.unknown, key.valueOf(), this);
+        return new IndexError(Position.void, key.valueOf(), this);
     };
 
-    cast = (props: funcProps, type: Primitive) => {
+    override cast = (props: funcProps, type: Primitive) => {
         switch (type) {
             case types.number:
                 return new ESNumber(this.valueOf() ? 1 : 0);
             default:
-                return new ESError(Position.unknown, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
+                return new ESError(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
         }
     }
 
-    __eq__ = (props: funcProps, n: Primitive) => {
+    override __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESBoolean)) {
-            return new TypeError(Position.unknown, 'Boolean', n.typeName().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'Boolean', n.typeName().valueOf(), n.valueOf());
         }
         return new ESBoolean(this.valueOf() === n.valueOf());
     };
-    __bool__ = () => this;
+    override __bool__ = () => this;
 
-    __and__ = (props: funcProps, n: Primitive) =>
+    override __and__ = (props: funcProps, n: Primitive) =>
         new ESBoolean(this.valueOf() && n.bool().valueOf());
 
-    __or__ = (props: funcProps, n: Primitive): ESError | ESBoolean => {
+    override __or__ = (props: funcProps, n: Primitive): ESError | ESBoolean => {
         return new ESBoolean(this.valueOf() || n.bool().valueOf());
     };
 
-    str = () => new ESString(this.valueOf() ? 'true' : 'false');
-    clone = () => new ESBoolean(this.valueOf());
+    override str = () => new ESString(this.valueOf() ? 'true' : 'false');
+    override clone = () => new ESBoolean(this.valueOf());
 
-    bool = () => this;
+    override bool = () => this;
 }

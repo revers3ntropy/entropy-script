@@ -79,7 +79,7 @@ export class Parser {
         if (!res.error && this.currentToken.type !== tokenType.EOF) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken?.pos,
-                `Expected 'End of File', got token of type '${tokenTypeString[this.currentToken.type]}' of value ${this.currentToken.value}`
+                `Expected 'End of File', got token of type '${tokenTypeString[this.currentToken.type]}'`
             ));
         }
 
@@ -357,7 +357,7 @@ export class Parser {
     private power () {
          return this.binOp(
              () => this.atom(),
-             [tt.POW, tt.MOD, tt.BITWISE_AND, tt.BITWISE_OR],
+             [tt.POW, tt.MOD, tt.APMERSAND, tt.PIPE],
              () => this.factor()
          );
     }
@@ -546,6 +546,15 @@ export class Parser {
         ));
     }
 
+    private typeExpr (res: ParseResults) {
+        if (this.currentToken.type === tt.IDENTIFIER) {
+            const tok = this.currentToken;
+            this.advance(res);
+            return res.success(new N_variable(tok));
+        }
+        return this.expr();
+    }
+
     private initiateVar (res: ParseResults): ParseResults {
         let pos = this.currentToken.pos;
 
@@ -554,14 +563,20 @@ export class Parser {
         let isGlobal = false;
         let isDeclaration = false;
 
-        if (this.currentToken.type === tt.KEYWORD && ['var', 'let'].indexOf(this.currentToken.value) !== -1) {
+        if (
+            this.currentToken.type === tt.KEYWORD &&
+            ['var', 'let'].indexOf(this.currentToken.value) !== -1
+        ) {
             isDeclaration = true;
             isLocal = true;
             this.advance(res);
             if (res.error) return res;
         }
 
-        if (this.currentToken.type === tt.KEYWORD && ['global', 'local'].indexOf(this.currentToken.value) !== -1) {
+        if (
+            this.currentToken.type === tt.KEYWORD &&
+            ['global', 'local'].indexOf(this.currentToken.value) !== -1
+        ) {
             isDeclaration = true;
             if (this.currentToken.value === 'global')
                 isGlobal = true;
@@ -571,7 +586,10 @@ export class Parser {
             if (res.error) return res;
         }
 
-        if (this.currentToken.type === tt.KEYWORD && ['const', 'mutable'].indexOf(this.currentToken.value) !== -1) {
+        if (
+            this.currentToken.type === tt.KEYWORD &&
+            ['const', 'mutable'].indexOf(this.currentToken.value) !== -1
+        ) {
             isDeclaration = true;
             if (this.currentToken.value === 'const')
                 isConst = true;
@@ -582,7 +600,7 @@ export class Parser {
         if (this.currentToken.type === tt.KEYWORD) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
-                `Expected Identifier 'var', 'let', 'const', 'mutable', 'local', or 'global', not ${this.currentToken.value}`
+                `Expected variable declaration keyword, not ${this.currentToken.value}`
             ));
         }
 
@@ -603,7 +621,7 @@ export class Parser {
         if (this.currentToken.type === tt.COLON) {
             isDeclaration = true;
             this.consume(res, tt.COLON);
-            type = res.register(this.expr());
+            type = res.register(this.typeExpr(res));
         }
 
         // @ts-ignore doesn't like two different comparisons after each other with different values
@@ -766,9 +784,6 @@ export class Parser {
 
     /**
      * Gets the __name__ and __type__ of a parameter, for example `arg1: number`
-     * @param {ParseResults} res
-     * @private
-     * @returns {[string, Node] | ESError}
      */
     private parameter (res: ParseResults): uninterpretedArgument | ESError {
         let name: string;
@@ -789,7 +804,7 @@ export class Parser {
             this.consume(res, tt.COLON);
             if (res.error) return res.error;
 
-            type = res.register(this.expr());
+            type = res.register(this.typeExpr(res));
             if (res.error) return res.error;
         }
 
@@ -798,7 +813,6 @@ export class Parser {
 
     /**
      * () {} part of the function or method
-     * @private
      */
     private funcCore (): ParseResults {
         const res = new ParseResults();
@@ -843,7 +857,7 @@ export class Parser {
         if (this.currentToken.type === tt.COLON) {
             this.advance(res);
 
-            returnType = res.register(this.expr());
+            returnType = res.register(this.typeExpr(res));
             if (res.error) return res;
         }
 
@@ -927,7 +941,8 @@ export class Parser {
             const func = res.register(this.funcCore());
             if (res.error) return res;
             if (!(func instanceof N_functionDefinition)) {
-                return res.failure(new ESError(this.currentToken.pos, 'ParseError', `Tried to get function, but got ${func} instead`));
+                return res.failure(new ESError(this.currentToken.pos, 'ParseError',
+                    `Tried to get function, but got ${func} instead`));
             }
 
             func.name = methodId;
