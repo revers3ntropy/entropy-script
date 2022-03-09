@@ -3,7 +3,7 @@ import {Position} from '../../position';
 
 import {ESBoolean} from './esboolean';
 import type {ESString} from './esstring';
-import type {ESType} from './estype';
+import type {ESType} from './estype.js';
 import type {Info} from './info';
 import {NativeObj, Primitive, types} from './primitive';
 

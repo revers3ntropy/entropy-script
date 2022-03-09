@@ -1,3 +1,4 @@
+
 ###############################
 # START OF ENTROPY SCRIPT STD #
 ###############################
@@ -17,7 +18,7 @@ def GENERATE_PRIVATE():
 
             },
             'time': {
-                'now': lambda : time.time_ns() / (10 ** 6)
+                'now': lambda: time.time_ns() / (10 ** 6)
             }
         }
     }

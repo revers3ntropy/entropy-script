@@ -14,7 +14,10 @@ Number.prototype[Symbol.iterator] = function () {
 		last: this,
 		next() {
 			if (this.current <= this.last) {
-				return { done: false, value: this.current++ };
+				return {
+					done: false,
+					value: this.current++
+				};
 			} else {
 				return { done: true };
 			}
@@ -22,7 +25,7 @@ Number.prototype[Symbol.iterator] = function () {
 	};
 };
 
-const private = {
+const __private__ = {
 	bims: {
 		math: Math,
 		time: {
@@ -33,12 +36,12 @@ const private = {
 };
 
 if (typeof performance !== 'undefined') {
-	private.bims.time.now = performance.now;
+	__private__.bims.time.now = performance.now;
 }
 
 function import_ (path) {
-	if (private.bims.hasOwnProperty(path)) {
-		return private.bims[path];
+	if (__private__.bims.hasOwnProperty(path)) {
+		return __private__.bims[path];
 	}
 }
 

@@ -243,7 +243,7 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
             value = params[i];
         }
 
-        const typeIncludes = arg.type.includesType({context: parent}, type).bool().valueOf();
+        const typeIncludes = arg.type.resolve({context: parent}, type).bool().valueOf();
         if (!typeIncludes) {
             return new TypeError(Position.unknown, arg.type.__name__, type.__name__, str(value));
         }

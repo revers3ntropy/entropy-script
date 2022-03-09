@@ -12,7 +12,9 @@ import { Position } from "../../position";
 import {str} from "../../util/util";
 
 export class ESType extends ESPrimitive<undefined> {
-    readonly __isPrimitive__: boolean;
+
+    readonly primitive: boolean;
+
     readonly __name__: typeName;
     readonly __extends__: undefined | ESType;
     readonly __methods__: ESFunction[];
@@ -28,7 +30,7 @@ export class ESType extends ESPrimitive<undefined> {
     ) {
         super(undefined, types?.type);
 
-        this.__isPrimitive__ = isPrimitive;
+        this.primitive = isPrimitive;
         this.__name__ = name;
         this.info.name = name;
         this.__extends__ = __extends__;
@@ -46,7 +48,7 @@ export class ESType extends ESPrimitive<undefined> {
 
     clone = () => {
         return new ESType(
-            this.__isPrimitive__,
+            this.primitive,
             this.__name__,
             this.__methods__,
             this.__extends__,
@@ -54,41 +56,46 @@ export class ESType extends ESPrimitive<undefined> {
         )
     }
 
-    isa = ({}, type: Primitive) => {
+    isa = (props: funcProps, type: Primitive) => {
         return new ESBoolean(type === types.type);
     }
 
-    cast = ({}, type: Primitive) => new InvalidOperationError('cast', this);
+    cast = (props: funcProps, type: Primitive): ESError => {
+        return new InvalidOperationError('cast', this);
+    }
 
-    includesType = (props: funcProps, t: ESType): ESBoolean => {
+    resolve = (props: funcProps, t: ESType): ESBoolean => {
         if (
-            this.equals(props, types.any).bool().valueOf() ||
-            t.equals(props, types.any).bool().valueOf() ||
+            this.__eq__(props, types.any).bool().valueOf() ||
+            t.__eq__(props, types.any).bool().valueOf() ||
 
-            (this.__extends__?.equals(props, t).valueOf() === true) ||
-            (this.__extends__?.equals(props, types.any).valueOf() === true) ||
-            (this.__extends__?.includesType(props, t).valueOf() === true) ||
+            (this.__extends__?.__eq__(props, t).valueOf() === true) ||
+            (this.__extends__?.__eq__(props, types.any).valueOf() === true) ||
+            (this.__extends__?.resolve(props, t).valueOf() === true) ||
 
-            (t.__extends__?.equals(props, this).valueOf() === true) ||
-            (t.__extends__?.equals(props, types.any).valueOf() === true) ||
-            (t.__extends__?.includesType(props, this).valueOf() === true)
+            (t.__extends__?.__eq__(props, this).valueOf() === true) ||
+            (t.__extends__?.__eq__(props, types.any).valueOf() === true) ||
+            (t.__extends__?.resolve(props, this).valueOf() === true)
         ) {
             return new ESBoolean(true);
         }
 
-        return this.equals(props, t);
+        return this.__eq__(props, t);
     }
 
-    equals = ({}: funcProps, t: ESType): ESBoolean => {
+    __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
+        if (!(t instanceof ESType)) {
+            return new ESBoolean();
+        }
         return new ESBoolean(
             t.__name__ === this.__name__ &&
-            t.__isPrimitive__ === this.__isPrimitive__ &&
+            t.primitive === this.primitive &&
             Object.is(this.valueOf(), t.valueOf())
         );
     }
 
-    __call__ = ({ context }: funcProps, ...params: Primitive[]): ESError | Primitive => {
-        return createInstance(this, {context}, params || []);
+    __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
+        return createInstance(this, props, params || []);
     }
 
     str = () => new ESString(`<Type: ${this.__name__}>`);

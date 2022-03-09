@@ -13,7 +13,6 @@ import { Primitive, types} from './primitive';
 import {strip, wrap} from './wrapStrip';
 import { ESFunction } from "./esfunction";
 
-
 export class ESObject extends ESPrimitive <dict<Primitive>> {
     constructor (val: dict<Primitive> = {}) {
         super(val, types.object);
@@ -26,7 +25,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         if (!(type instanceof ESType)) {
             return new TypeError(Position.unknown, 'TypeError', 'type', str(type.typeName()), str(type));
         }
-        return this.__type__.includesType(props, type);
+        return this.__type__.resolve(props, type);
     }
 
     cast = ({}, type: Primitive) => {

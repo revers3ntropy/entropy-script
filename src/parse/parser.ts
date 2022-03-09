@@ -79,7 +79,7 @@ export class Parser {
         if (!res.error && this.currentToken.type !== tokenType.EOF) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken?.pos,
-                `Expected 'End of File', got token of type'${tokenTypeString[this.currentToken.type]}' of value ${this.currentToken.value}`
+                `Expected 'End of File', got token of type '${tokenTypeString[this.currentToken.type]}' of value ${this.currentToken.value}`
             ));
         }
 
@@ -169,29 +169,10 @@ export class Parser {
         const pos = this.currentToken.pos;
 
         if (this.currentToken.matches(tt.KEYWORD, 'return')) {
-            this.advance(res);
-            let expr: Node = new N_undefined(this.currentToken.pos);
-            if (this.currentToken.type !== tt.ENDSTATEMENT) {
-                let exprRes = res.register(this.expr());
-                if (!exprRes) {
-                    return res.failure(new InvalidSyntaxError(this.currentToken.pos, 'Expected end of statement'));
-                }
-                expr = exprRes;
-            }
-            return res.success(new n.N_return(pos, expr));
+            return this.returnStatement(res);
 
-            // yield has the same format as return
         } else if (this.currentToken.matches(tt.KEYWORD, 'yield')) {
-            this.advance(res);
-            let expr: Node = new N_undefined(this.currentToken.pos);
-            if (this.currentToken.type !== tt.ENDSTATEMENT) {
-                let exprRes = res.register(this.expr());
-                if (!exprRes) {
-                    return res.failure(new InvalidSyntaxError(this.currentToken.pos, 'Expected end of statement'));
-                }
-                expr = exprRes;
-            }
-            return res.success(new n.N_yield(pos, expr));
+            return this.returnStatement(res, true);
 
         } else if (this.currentToken.matches(tt.KEYWORD, 'break')) {
             this.advance(res);
@@ -210,6 +191,24 @@ export class Parser {
         }
 
         return res.success(expr);
+    }
+
+    private returnStatement (res: ParseResults, isYield = false) {
+        const pos = this.currentToken.pos;
+
+        this.advance(res);
+        let expr: Node = new N_undefined(this.currentToken.pos);
+        if (this.currentToken.type !== tt.ENDSTATEMENT) {
+            let exprRes = res.register(this.expr());
+            if (!exprRes) {
+                return res.failure(new InvalidSyntaxError(this.currentToken.pos, 'Expected end of statement'));
+            }
+            expr = exprRes;
+        }
+        if (isYield) {
+            return res.success(new n.N_yield(pos, expr));
+        }
+        return res.success(new n.N_return(pos, expr));
     }
 
     private atom () {
@@ -356,30 +355,24 @@ export class Parser {
     }
 
     private power () {
-         return this.binOp(() => this.atom(), [tokenType.POW, tokenType.MOD], () => this.factor());
-    }
-
-    private mod () {
-        return this.binOp(() => this.atom(), [tokenType.MOD], () => this.factor());
+         return this.binOp(
+             () => this.atom(),
+             [tt.POW, tt.MOD, tt.BITWISE_AND, tt.BITWISE_OR],
+             () => this.factor()
+         );
     }
 
     private factor (): ParseResults {
         const res = new ParseResults();
         const tok = this.currentToken;
 
-        switch (tok.type) {
-
-            case tt.SUB:
-            case tt.ADD:
-                this.advance(res);
-                const factor = res.register(this.factor());
-                if (res.error) return res;
-                return res.success(new n.N_unaryOp(tok.pos, factor, tok));
-            //case tt.MOD:
-              //  return this.mod();
-            default:
-                return this.power();
+        if (tok.type == tt.ADD || tok.type === tt.SUB) {
+            this.advance(res);
+            const factor = res.register(this.factor());
+            if (res.error) return res;
+            return res.success(new n.N_unaryOp(tok.pos, factor, tok));
         }
+        return this.power();
     }
 
     private term () {
@@ -462,19 +455,6 @@ export class Parser {
         }
 
         return res.success(left);
-    }
-
-    private typeExpr () {
-        const res = new ParseResults();
-
-        if (this.currentToken.type !== tt.IDENTIFIER)
-            return res.failure(new InvalidSyntaxError(this.currentToken.pos.clone, `Expected an identifier`));
-
-        let tok = this.currentToken;
-
-        this.advance(res);
-
-        return res.success(new N_variable(tok));
     }
 
     private makeFunctionCall (to: Node) {
@@ -623,7 +603,7 @@ export class Parser {
         if (this.currentToken.type === tt.COLON) {
             isDeclaration = true;
             this.consume(res, tt.COLON);
-            type = res.register(this.typeExpr());
+            type = res.register(this.expr());
         }
 
         // @ts-ignore doesn't like two different comparisons after each other with different values
@@ -764,11 +744,12 @@ export class Parser {
         let condition;
         const pos = this.currentToken.pos;
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'while'))
+        if (!this.currentToken.matches(tt.KEYWORD, 'while')) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
                 "Expected 'while'"
             ));
+        }
 
         this.advance(res);
 
@@ -808,7 +789,7 @@ export class Parser {
             this.consume(res, tt.COLON);
             if (res.error) return res.error;
 
-            type = res.register(this.typeExpr());
+            type = res.register(this.expr());
             if (res.error) return res.error;
         }
 
@@ -862,7 +843,7 @@ export class Parser {
         if (this.currentToken.type === tt.COLON) {
             this.advance(res);
 
-            returnType = res.register(this.typeExpr());
+            returnType = res.register(this.expr());
             if (res.error) return res;
         }
 
@@ -1065,16 +1046,16 @@ export class Parser {
         }
 
         // @ts-ignore
-        if (this.currentToken.type !== tt.CSQUARE)
+        if (this.currentToken.type !== tt.CSQUARE) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
                 "Expected ',' or ']'"
             ));
+        }
 
         this.advance(res);
 
         return res.success(new n.N_array(pos, elements));
-
     }
 
     private object () {
@@ -1082,11 +1063,12 @@ export class Parser {
         let properties: [Node, Node][] = [];
         const pos = this.currentToken.pos;
 
-        if (this.currentToken.type !== tt.OBRACES)
+        if (this.currentToken.type !== tt.OBRACES) {
             return res.failure(new InvalidSyntaxError(
                 pos,
                 "Expected '{"
             ));
+        }
 
         this.advance(res);
 
@@ -1126,50 +1108,57 @@ export class Parser {
                 this.advance(res);
                 key = res.register(this.expr());
                 if (res.error) return res;
-                if (this.currentToken.type !== tt.CSQUARE)
+                if (this.currentToken.type !== tt.CSQUARE) {
                     return res.failure(new InvalidSyntaxError(
                         this.currentToken.pos,
                         `Expected ']', got '${tokenTypeString[this.currentToken.type]}'`
                     ));
+                }
                 this.advance(res);
-            } else
+            } else {
                 break;
+            }
 
             if (this.currentToken.type === tt.COLON) {
                 this.advance(res);
                 value = res.register(this.expr());
                 if (res.error) return res;
 
-                if (this.currentToken.type !== tt.COMMA && this.currentToken.type !== tt.CBRACES)
+                if (this.currentToken.type !== tt.COMMA && this.currentToken.type !== tt.CBRACES) {
                     return res.failure(new InvalidSyntaxError(
                         this.currentToken.pos,
                         `Expected ',' or '}', got '${tokenTypeString[this.currentToken.type]}'`
                     ));
+                }
 
-                if (this.currentToken.type === tt.COMMA)
+                if (this.currentToken.type === tt.COMMA) {
                     this.advance(res);
+                }
 
             } else {
-                if (this.currentToken.type !== tt.COMMA && this.currentToken.type !== tt.CBRACES)
+                if (this.currentToken.type !== tt.COMMA && this.currentToken.type !== tt.CBRACES) {
                     return res.failure(new InvalidSyntaxError(
                         this.currentToken.pos,
                         `Expected ',' or '}', got '${tokenTypeString[this.currentToken.type]}'`
                     ));
+                }
 
-                if (keyType !== 'id')
+                if (keyType !== 'id') {
                     return res.failure(new InvalidSyntaxError(
                         this.currentToken.pos,
                         `You must specify a value when initialising an object literal with a key that is not an identifier.
                         Try using \`key: value\` syntax.`
                     ));
+                }
 
                 // reverse back to the identifier
                 this.reverse();
 
                 value = new n.N_variable(this.currentToken);
                 this.advance(res);
-                if (this.currentToken.type === tt.COMMA)
+                if (this.currentToken.type === tt.COMMA) {
                     this.advance(res);
+                }
             }
 
             properties.push([key, value]);
@@ -1228,7 +1217,6 @@ export class Parser {
 
         this.consume(res, tt.CBRACES);
         if (res.error) return res;
-
 
         if (this.currentToken.value !== 'catch') {
             return res.failure(new InvalidSyntaxError(this.currentToken.pos, 'try block requires catch'));

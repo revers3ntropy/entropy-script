@@ -1,8 +1,3 @@
-/**
- *
- */
-
-import {reportTranspileErrors} from 'ts-loader/dist/instances.js';
 import { Token } from "../parse/tokens";
 import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
@@ -343,7 +338,7 @@ export class N_varAssign extends Node {
             return new TypeError(this.varNameTok.pos, '~undefined', 'undefined', 'N_varAssign.interpret_');
         }
 
-        if (!typeRes.val.includesType({context}, res.val.__type__).bool().valueOf()) {
+        if (!typeRes.val.resolve({context}, res.val.__type__).bool().valueOf()) {
             return new TypeError(this.varNameTok.pos,
                 str(typeRes.val),
                 str(res.val?.typeName()),
