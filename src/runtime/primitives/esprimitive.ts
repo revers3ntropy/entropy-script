@@ -1,9 +1,9 @@
+import type {ESType} from './estype';
 import {ESError, InvalidOperationError, TypeError} from '../../errors';
-import {Position} from '../../position';
 
+import {Position} from '../../position';
 import {ESBoolean} from './esboolean';
 import type {ESString} from './esstring';
-import type {ESType, ESTypeIntersection, ESTypeUnion} from './estype';
 import type {Info} from './info';
 import type { NativeObj, Primitive} from './primitive';
 
@@ -81,12 +81,10 @@ export abstract class ESPrimitive <T> {
     }
 
     public __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
-        // @ts-ignore
-        return new ESTypeUnion(this, n);
+        return new InvalidOperationError('__pipe__', this);
     }
     public __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
-        // @ts-ignore
-        return new ESTypeIntersection(this, n);
+        return new InvalidOperationError('__ampersand__', this);
     }
 
     // Properties

@@ -1,18 +1,18 @@
+import {ESPrimitive} from './esprimitive';
 import { ESError, IndexError, InvalidOperationError, TypeError } from '../../errors';
 import {createInstance} from '../instantiator';
 import {ESBoolean} from './esboolean';
-import {ESFunction} from './esfunction';
-import {ESObject} from './esobject';
+import type {ESFunction} from './esfunction';
+import type {ESObject} from './esobject';
 import {ESString} from './esstring';
-import {ESPrimitive} from './esprimitive';
-import {Primitive, typeName} from './primitive';
-import { funcProps } from "../../util/util";
+import type {Primitive, typeName} from './primitive';
+import type { funcProps } from "../../util/util";
 import { wrap } from "./wrapStrip";
 import { Position } from "../../position";
 import {str} from "../../util/util";
 import { types } from "../../constants";
 
-export class ESType extends ESPrimitive<undefined> {
+export class ESType extends ESPrimitive <undefined> {
 
     readonly primitive: boolean;
 
@@ -116,6 +116,13 @@ export class ESType extends ESPrimitive<undefined> {
         }
         return new IndexError(Position.void, key, this);
     };
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeUnion(this, n);
+    }
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeIntersection(this, n);
+    }
 }
 
 export class ESTypeUnion extends ESType {

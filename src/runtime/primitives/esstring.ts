@@ -8,6 +8,7 @@ import {ESPrimitive} from './esprimitive';
 import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
 import { types } from "../../constants";
+import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESString extends ESPrimitive <string> {
 
@@ -118,4 +119,11 @@ export class ESString extends ESPrimitive <string> {
     }
 
     override typeCheck = this.__eq__;
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeUnion(this, n);
+    }
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeIntersection(this, n);
+    }
 }

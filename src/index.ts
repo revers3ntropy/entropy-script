@@ -14,7 +14,7 @@ import { initialise } from "./init";
 import { ESError } from "./errors";
 import { Position } from "./position";
 import { compileResult, interpretResult, Node } from "./runtime/nodes";
-import { ESArray } from "./runtime/primitiveTypes";
+import { ESArray, initPrimitiveTypes } from "./runtime/primitiveTypes";
 import { timeData } from "./util/util";
 import { Context } from "./runtime/context";
 import addNodeLibs from "./built-in/nodeLibs";
@@ -64,6 +64,8 @@ export async function init (
     context= new Context(),
     path = '',
 ): Promise<ESError | undefined> {
+
+    initPrimitiveTypes();
 
     const res = initialise(context, printFunc, inputFunc);
     if (res instanceof ESError) {

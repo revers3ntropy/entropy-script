@@ -8,6 +8,7 @@ import type {NativeObj, Primitive} from './primitive';
 import { strip, wrap } from './wrapStrip';
 import { ESFunction } from "./esfunction";
 import { types } from "../../constants";
+import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 
 export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
@@ -115,4 +116,11 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
     };
 
     override typeCheck = this.__eq__;
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeUnion(this, n);
+    }
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeIntersection(this, n);
+    }
 }

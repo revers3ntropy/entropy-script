@@ -9,6 +9,7 @@ import { wrap } from "./wrapStrip";
 import {str} from "../../util/util";
 import { ESArray } from "./esarray";
 import { types } from "../../constants";
+import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESErrorPrimitive extends ESPrimitive <ESError> {
     constructor (error: ESError = new ESError(Position.void, 'Unknown', 'Error not specified')) {
@@ -56,4 +57,11 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
     override clone = () => new ESErrorPrimitive(this.valueOf());
 
     override typeCheck = this.__eq__;
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeUnion(this, n);
+    }
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeIntersection(this, n);
+    }
 }

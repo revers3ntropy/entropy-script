@@ -7,6 +7,7 @@ import {ESString} from './esstring';
 import type {Primitive} from './primitive';
 import { wrap } from "./wrapStrip";
 import { types } from "../../constants";
+import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESBoolean extends ESPrimitive <boolean> {
     constructor (val: boolean = false) {
@@ -58,4 +59,11 @@ export class ESBoolean extends ESPrimitive <boolean> {
     override bool = () => this;
 
     override typeCheck = this.__eq__;
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeUnion(this, n);
+    }
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeIntersection(this, n);
+    }
 }

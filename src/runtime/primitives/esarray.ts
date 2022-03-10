@@ -10,6 +10,7 @@ import {ESUndefined} from './esundefined';
 import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
 import { types } from "../../constants";
+import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESArray extends ESPrimitive <Primitive[]> {
     len: number;
@@ -154,5 +155,12 @@ export class ESArray extends ESPrimitive <Primitive[]> {
             }
         }
         return new ESBoolean(true)
+    }
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeUnion(this, n);
+    }
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeIntersection(this, n);
     }
 }

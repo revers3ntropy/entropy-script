@@ -1,5 +1,5 @@
 const {expect, file} = require( '../../testFramework');
-file('typing/parameters');
+file('typing/properties');
 
 expect([{b: 'String'}, {b: 'hi'}], `
 	let myType = { b: string };
@@ -20,6 +20,6 @@ expect(['<Func>', 'hello'], `
 		};
 	};
 	
-	myFunc({c: ['hello', 'world']});
+	myFunc({c: ['hello', 'world']}).a.b;
 
 `);

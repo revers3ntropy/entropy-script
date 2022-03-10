@@ -9,6 +9,7 @@ import {str} from '../../util/util';
 import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
 import { types } from "../../constants";
+import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     public mutable: boolean;
@@ -102,4 +103,11 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     }
 
     override typeCheck = this.__eq__;
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeUnion(this, n);
+    }
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeIntersection(this, n);
+    }
 }

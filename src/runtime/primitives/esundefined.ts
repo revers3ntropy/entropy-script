@@ -8,7 +8,7 @@ import {ESFunction} from './esfunction';
 import {ESNumber} from './esnumber';
 import {ESObject} from './esobject';
 import {ESString} from './esstring';
-import {ESType} from './estype';
+import { ESType, ESTypeIntersection, ESTypeUnion } from './estype';
 import {ESPrimitive} from './esprimitive';
 import {Primitive} from './primitive';
 import { funcProps, str } from '../../util/util';
@@ -80,4 +80,11 @@ export class ESUndefined extends ESPrimitive <undefined> {
     };
 
     override typeCheck = this.__eq__;
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeUnion(this, n);
+    }
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeIntersection(this, n);
+    }
 }

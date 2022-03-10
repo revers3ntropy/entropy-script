@@ -13,6 +13,7 @@ import {ESObject} from './esobject';
 import {ESString} from './esstring';
 import type {Primitive} from './primitive';
 import { wrap } from "./wrapStrip";
+import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     arguments_: runtimeArgument[];
@@ -99,4 +100,11 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     };
 
     override typeCheck = this.__eq__;
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeUnion(this, n);
+    }
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeIntersection(this, n);
+    }
 }

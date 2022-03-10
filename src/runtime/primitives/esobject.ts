@@ -11,6 +11,7 @@ import {ESUndefined} from './esundefined';
 import type { Primitive} from './primitive';
 import {strip, wrap} from './wrapStrip';
 import { types } from "../../constants";
+import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESObject extends ESPrimitive <dict<Primitive>> {
 
@@ -199,7 +200,8 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         if (!(n instanceof ESObject)) {
             return new ESBoolean();
         }
-        if (Object.keys(this.valueOf()).length !== Object.keys(n.valueOf()).length){
+
+        if (Object.keys(this.valueOf()).length !== Object.keys(n.valueOf()).length) {
             return new ESBoolean();
         }
 
@@ -217,4 +219,11 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
 
         return new ESBoolean(true);
     };
+
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeUnion(this, n);
+    }
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+        return new ESTypeIntersection(this, n);
+    }
 }
