@@ -20,7 +20,7 @@ expect('TypeError', `
     f([10]);
 `);
 
-expect(['<Type: Concatenator>', {concat: '<Func>', str: 'hello '}, 'hello world'], `
+expect(['Concatenator', {concat: '<Func>', str: 'hello '}, 'hello world'], `
     const Concatenator = class {
         init (str1: string) {
             this.str = str1;

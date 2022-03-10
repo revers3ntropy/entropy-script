@@ -67,7 +67,7 @@ expect ([false, false, false, false, false, true, false, false, false, false], `
     a.isa(error);
 `);
 
-expect (['<Type: a>', false, false, false, false, false, true, false, false, false], `
+expect (['a', false, false, false, false, false, true, false, false, false], `
     const a = class {};
     a.isa(number);
     a.isa(string);
@@ -106,7 +106,7 @@ expect ([{}, false, false, false, false, false, false, false, true, false], `
     a.isa(error);
 `);
 
-expect (['<Type: myClass>', {}, false, false, false, false, false, false, false, true, false, true], `
+expect (['myClass', {}, false, false, false, false, false, false, false, true, false, true], `
     const myClass = class {};
     const a = myClass();
     a.isa(number);
@@ -121,4 +121,21 @@ expect (['<Type: myClass>', {}, false, false, false, false, false, false, false,
     a.isa(myClass);
 `);
 
-// error? can't really do...
+expect ([false, undefined, true], `
+    let res = false;
+    try {
+        throw();
+    } catch {
+        res =
+            !err.isa(number) && 
+            !err.isa(string) &&
+            !err.isa(function) &&
+            !err.isa(array) &&
+            !err.isa(bool) &&
+            !err.isa(type) &&
+            !err.isa(undefined) &&
+            !err.isa(object) &&
+            err.isa(error);
+    }
+    res;
+`);

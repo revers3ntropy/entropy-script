@@ -8,8 +8,6 @@ import {ESPrimitive} from './esprimitive';
 import {str} from '../../util/util';
 import {Primitive, types} from './primitive';
 import {wrap} from './wrapStrip';
-import { ESFunction } from "./esfunction";
-
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     public mutable: boolean;
@@ -101,4 +99,6 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
 
         symbol.value = value;
     }
+
+    override typeCheck = this.__eq__;
 }

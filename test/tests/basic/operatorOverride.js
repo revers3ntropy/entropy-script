@@ -2,7 +2,7 @@ const {expect, file} = require( '../../testFramework');
 file('basic/operatorOverride');
 
 expect([
-    '<Type: myClass>',
+    'myClass',
     {a: 12, __multiply__: '<Func>'}, 12
 ], `
     var myClass = class {

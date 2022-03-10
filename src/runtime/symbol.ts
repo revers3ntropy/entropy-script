@@ -1,6 +1,5 @@
 import {ESString} from './primitives/esstring';
 import type {Primitive} from './primitives/primitive';
-import type { ESType } from "./primitives/estype";
 import { types } from "./primitives/primitive";
 
 export type symbolOptions = {
@@ -8,7 +7,7 @@ export type symbolOptions = {
     isAccessible?: boolean;
     global?: boolean;
     forceThroughConst?: boolean;
-    type?: ESType
+    type?: Primitive
 }
 
 export class ESSymbol {
@@ -16,7 +15,7 @@ export class ESSymbol {
     value: Primitive;
     identifier: string;
     isAccessible: boolean;
-    type: ESType;
+    type: Primitive;
 
     constructor (value: Primitive, identifier: string, options: symbolOptions = {}) {
         this.value = value;

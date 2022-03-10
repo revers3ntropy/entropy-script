@@ -42,14 +42,17 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
     override str = () =>
         new ESString(`<Error: ${this.valueOf().str}>`);
 
-    override __eq__ = (props: funcProps, n: Primitive) =>
-        new ESBoolean(
+    override __eq__ = (props: funcProps, n: Primitive) => {
+        return new ESBoolean(
             n instanceof ESErrorPrimitive &&
             this.valueOf().constructor === n.valueOf().constructor
         );
+    }
 
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
     override clone = () => new ESErrorPrimitive(this.valueOf());
+
+    override typeCheck = this.__eq__;
 }

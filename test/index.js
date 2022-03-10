@@ -64,6 +64,6 @@ async function importAll (dir='./test/tests') {
 		console.log(err);
 	}
 
-	console.log(Index.testAll().str());
+	console.log(Index.testAll().str(process.argv.indexOf('-v') !== -1));
 })();
 

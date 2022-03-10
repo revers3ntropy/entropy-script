@@ -3,7 +3,7 @@ file('examples/vector');
 
 expect(
 	[
-		'<Type: v2>',
+		'v2',
 		{x: 0, y: 0, add: '<Func>', str: '<Func>', clone: '<Func>'},
 		{x: 3, y: 4, add: '<Func>', str: '<Func>', clone: '<Func>'},
 		'3, 4',

@@ -328,13 +328,11 @@ export class N_varAssign extends Node {
         if (res.error) return res.error;
         if (typeRes.error) return typeRes.error;
 
-        if (!typeRes.val || !(typeRes.val instanceof ESType)) {
+        if (!typeRes.val) {
             return new TypeError(
                 this.varNameTok.pos,
                 'Type',
-                typeRes.val?.typeName().valueOf() ?? 'undefined',
-                typeRes.val?.str(),
-                `@ !typeRes.val || !(typeRes.val instanceof ESType)`
+                'undefined'
             );
         }
 
@@ -342,7 +340,10 @@ export class N_varAssign extends Node {
             return new TypeError(this.varNameTok.pos, '~undefined', 'undefined', 'N_varAssign.interpret_');
         }
 
-        if (!typeRes.val.resolve({context}, res.val.__type__).bool().valueOf()) {
+        const typeCheckRes = typeRes.val.typeCheck({context}, res.val);
+        if (typeCheckRes instanceof ESError) return typeCheckRes;
+
+        if (!typeCheckRes.bool().valueOf()) {
             return new TypeError(this.varNameTok.pos,
                 str(typeRes.val),
                 str(res.val?.typeName()),
@@ -374,7 +375,7 @@ export class N_varAssign extends Node {
             const symbol = context.getSymbol(this.varNameTok.value);
             if (symbol instanceof ESError) return symbol;
             if (symbol) {
-                if (!symbol.type.resolve({context}, res.val.__type__).valueOf()) {
+                if (!symbol.type.typeCheck({context}, res.val).valueOf()) {
                     return new TypeError(
                         this.varNameTok.pos,
                         str(symbol.type),
@@ -402,8 +403,12 @@ export class N_varAssign extends Node {
                     `Cannot declare variable without keyword`);
             }
 
-            if (!type.type.resolve({context}, res.val.__type__).bool().valueOf()) {
-                return new TypeError(Position.void, type.type.__name__, res.val.__type__.__name__, str(res.val));
+            const typeCheckRes = type.type.typeCheck({context}, res.val);
+
+            if (typeCheckRes instanceof ESError) return typeCheckRes;
+
+            if (!typeCheckRes.bool().valueOf()) {
+                return new TypeError(Position.void, str(type.type), str(res.val.__type__), str(res.val));
             }
 
             const setRes = context.set(this.varNameTok.value, value, {
@@ -1142,14 +1147,6 @@ export class N_functionDefinition extends Node {
         }
         const returnTypeRes = this.returnType.interpret(context);
         if (returnTypeRes.error) return returnTypeRes.error;
-        if (!(returnTypeRes.val instanceof ESType))
-            return new TypeError(
-                this.returnType.pos,
-                'Type',
-                returnTypeRes.val?.typeName().valueOf() ?? '<Undefined>',
-                returnTypeRes.val?.str().valueOf(),
-                `On func '${this.name }' return type`
-            );
 
         return new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val, context);
     }
@@ -1409,8 +1406,7 @@ export class N_class extends Node {
     init: N_functionDefinition | undefined;
     methods: N_functionDefinition[];
     name: string;
-    extends_: Node | undefined;
-    instances: ESObject[];
+    extends_?: Node;
 
     constructor(pos: Position, methods: N_functionDefinition[], extends_?: Node, init?: N_functionDefinition, name = '<anon class>') {
         super(pos);
@@ -1418,7 +1414,6 @@ export class N_class extends Node {
         this.methods = methods;
         this.name = name;
         this.extends_ = extends_;
-        this.instances = [];
     }
 
     interpret_ (context: Context) {
@@ -1428,29 +1423,31 @@ export class N_class extends Node {
             if (res.error) {
                 return res.error;
             }
-            if (!(res.val instanceof ESFunction))
+            if (!(res.val instanceof ESFunction)) {
                 return new TypeError(
                     this.pos,
                     'Function',
                     res.val?.typeName().valueOf() || 'undefined',
                     'method on ' + this.name
                 );
+            }
             methods.push(res.val);
         }
-        let extends_;
+        let extends_ = types.object;
         if (this.extends_) {
             const extendsRes = this.extends_.interpret(context);
             if (extendsRes.error) {
                 return extendsRes.error;
             }
-            if (!(extendsRes.val instanceof ESType))
+            if (!(extendsRes.val instanceof ESType)) {
                 return new TypeError(
                     this.pos,
                     'Function',
                     extendsRes.val?.typeName().valueOf() || 'undefined',
                     'method on ' + this.name
                 );
-                extends_ = extendsRes.val;
+            }
+            extends_ = extendsRes.val;
         }
         let init;
         if (this.init) {

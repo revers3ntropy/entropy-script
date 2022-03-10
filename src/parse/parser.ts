@@ -1,7 +1,15 @@
 import {tokenType, tokenTypeString, tt, VAR_DECLARE_KEYWORDS} from '../constants';
 import {Token} from "./tokens";
 import * as n from '../runtime/nodes';
-import { N_functionDefinition, N_namespace, N_tryCatch, N_undefined, N_variable, Node } from '../runtime/nodes';
+import {
+    N_functionDefinition,
+    N_namespace,
+    N_primitiveWrapper,
+    N_tryCatch,
+    N_undefined,
+    N_variable,
+    Node,
+} from '../runtime/nodes';
 import { ESError, InvalidSyntaxError } from "../errors";
 import {Position} from "../position";
 import { ESType, types } from "../runtime/primitiveTypes";
@@ -901,13 +909,14 @@ export class Parser {
         const pos = this.currentToken.pos;
         const methods: n.N_functionDefinition[] = [];
         let init: n.N_functionDefinition | undefined;
-        let extends_: Node | undefined;
+        let extends_: n.Node = new N_primitiveWrapper(types.object);
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'class'))
+        if (!this.currentToken.matches(tt.KEYWORD, 'class')) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
                 "Expected 'class'"
             ));
+        }
         this.advance(res);
 
         if (this.currentToken.matches(tt.KEYWORD, 'extends')) {
@@ -925,7 +934,7 @@ export class Parser {
             return res.success(new n.N_class(
                 pos,
                 [],
-                undefined,
+                extends_,
                 undefined,
                 name
             ));

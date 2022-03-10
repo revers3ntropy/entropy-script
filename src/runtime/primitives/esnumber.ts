@@ -6,7 +6,6 @@ import {ESString} from './esstring';
 import {ESPrimitive} from './esprimitive';
 import { funcProps, str } from '../../util/util';
 import {Primitive, types} from './primitive';
-import { ESFunction } from "./esfunction";
 import { wrap } from "./wrapStrip";
 
 export class ESNumber extends ESPrimitive <number> {
@@ -90,4 +89,6 @@ export class ESNumber extends ESPrimitive <number> {
         }
         return new IndexError(Position.void, key.valueOf(), this);
     };
+
+    override typeCheck = this.__eq__;
 }

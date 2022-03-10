@@ -112,4 +112,6 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
     override hasProperty = (props: funcProps, key: Primitive): ESBoolean => {
         return new ESBoolean(!(this.__getProperty__(props, key) instanceof ESError));
     };
+
+    override typeCheck = this.__eq__;
 }

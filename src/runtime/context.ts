@@ -229,7 +229,7 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
     for (let i = 0; i < max; i++) {
 
         let value: Primitive = new ESUndefined();
-        let type = types.any;
+        let type: Primitive = types.any;
 
         if (!self.arguments_[i]) {
             continue;
@@ -246,9 +246,10 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
             value = params[i];
         }
 
-        const typeIncludes = arg.type.resolve({context: parent}, type).bool().valueOf();
-        if (!typeIncludes) {
-            return new TypeError(Position.void, arg.type.__name__, type.__name__, str(value));
+        const typeIncludes = arg.type.typeCheck({context: parent}, params[i]);
+        if (typeIncludes instanceof ESError) return typeIncludes;
+        if (!typeIncludes.valueOf()) {
+            return new TypeError(Position.void, arg.type.__name__, str(type), str(value));
         }
 
         newContext.setOwn(arg.name, value, {

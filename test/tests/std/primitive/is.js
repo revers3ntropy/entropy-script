@@ -29,7 +29,7 @@ expect([undefined, true, true, false], `
     a.is(undefined);
 `);
 
-expect(['<Type: Undefined>', true, true, false], `
+expect(['Undefined', true, true, false], `
     const a = undefined;
     a.is(undefined);
     a.is(a);

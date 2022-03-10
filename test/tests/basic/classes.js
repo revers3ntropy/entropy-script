@@ -1,14 +1,14 @@
 const {expect, file} = require( '../../testFramework');
 file('basic/classes');
 
-expect(['<Type: myClass>'], `
+expect(['myClass'], `
     var myClass = class {
         init () {}
         publicFunction () {}
     };
 `);
 
-expect(['<Type: myClass>'], `
+expect(['myClass'], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -16,7 +16,7 @@ expect(['<Type: myClass>'], `
     };
 `);
 
-expect(['<Type: myClass>', {a: 3}, 3], `
+expect(['myClass', {a: 3}, 3], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -27,7 +27,7 @@ expect(['<Type: myClass>', {a: 3}, 3], `
     myInstance.a;
 `);
 
-expect(['<Type: myClass>', {setA: '<Func>', a: 3}, 3, 5, 5], `
+expect(['myClass', {setA: '<Func>', a: 3}, 3, 5, 5], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -44,7 +44,7 @@ expect(['<Type: myClass>', {setA: '<Func>', a: 3}, 3, 5, 5], `
     myInstance.a;
 `);
 
-expect(['<Type: myClass>', {a: 3, setA: '<Func>', doThing: '<Func>'}, 3, 10, 10], `
+expect(['myClass', {a: 3, setA: '<Func>', doThing: '<Func>'}, 3, 10, 10], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -64,7 +64,7 @@ expect(['<Type: myClass>', {a: 3, setA: '<Func>', doThing: '<Func>'}, 3, 10, 10]
     myInstance.doThing();
     myInstance.a;
 `);
-expect(['<Type: myClass>', {a: 3, getThis: '<Func>'}, 3, {a: 3, getThis: '<Func>'}, true, true, true, false], `
+expect(['myClass', {a: 3, getThis: '<Func>'}, 3, {a: 3, getThis: '<Func>'}, true, true, true, false], `
     var myClass = class {
         init (a) {
             this.a = a;
@@ -84,7 +84,7 @@ expect(['<Type: myClass>', {a: 3, getThis: '<Func>'}, 3, {a: 3, getThis: '<Func>
     myInstance == myClass(4);
 `);
 
-expect(['<Type: parentClass>', '<Type: childClass>', {a: 2, b: 3}, 2, 3], `
+expect(['parentClass', 'childClass', {a: 2, b: 3}, 2, 3], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -101,7 +101,7 @@ expect(['<Type: parentClass>', '<Type: childClass>', {a: 2, b: 3}, 2, 3], `
     instance.b;
 `);
 
-expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', {a: 2, b: 3, c: 4}, 2, 3, 4], `
+expect(['parentClass', 'childClass', 'grandChildClass', {a: 2, b: 3, c: 4}, 2, 3, 4], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -125,7 +125,7 @@ expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', 
     instance.c;
 `);
 
-expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', '<Type: greatGrandChildClass>', {a: 2, b: 3, c: 4, d: 5}, 2, 3, 4, 5], `
+expect(['parentClass', 'childClass', 'grandChildClass', 'greatGrandChildClass', {a: 2, b: 3, c: 4, d: 5}, 2, 3, 4, 5], `
     var parentClass = class {
         init (a) {
             this.a = a;
@@ -158,7 +158,7 @@ expect(['<Type: parentClass>', '<Type: childClass>', '<Type: grandChildClass>', 
 `);
 
 // INHERITANCE
-expect(['<Type: parentClass>', '<Type: childClass>', {doThing: '<Func>', doOtherThing: '<Func>'}, 3, 2], `
+expect(['parentClass', 'childClass', {doThing: '<Func>', doOtherThing: '<Func>'}, 3, 2], `
     var parentClass = class {
         doThing () {
         	return 1;
@@ -182,7 +182,7 @@ expect(['<Type: parentClass>', '<Type: childClass>', {doThing: '<Func>', doOther
 
 
 // POLYMORPHISM
-expect(['<Type: parentClass>', '<Type: childClass>', {doThing: '<Func>', doOtherThing: '<Func>'}, true, true, true, false], `
+expect(['parentClass', 'childClass', {doThing: '<Func>', doOtherThing: '<Func>'}, true, true, true, false], `
     var parentClass = class {
         doThing () {
         	return 1;

@@ -9,7 +9,6 @@ import {ESPrimitive} from './esprimitive';
 import {ESUndefined} from './esundefined';
 import {Primitive, types} from './primitive';
 import {wrap} from './wrapStrip';
-import { ESFunction } from "./esfunction";
 
 export class ESArray extends ESPrimitive <Primitive[]> {
     len: number;
@@ -150,5 +149,20 @@ export class ESArray extends ESPrimitive <Primitive[]> {
             newArr.push(element);
         }
         return new ESArray(newArr);
+    }
+
+    override typeCheck = (props: funcProps, n: Primitive): ESBoolean | ESError => {
+        console.log(str(n));
+        if (!(n instanceof ESArray) || this.len !== n.len) {
+            return new ESBoolean();
+        }
+        for (let i = 0; i < this.__value__.length; i++) {
+            const res = this.__value__[i].typeCheck(props, n.__value__[i]);
+            if (res instanceof ESError) return res;
+            if (!res.valueOf()) {
+                return new ESBoolean();
+            }
+        }
+        return new ESBoolean(true)
     }
 }

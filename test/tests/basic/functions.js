@@ -126,7 +126,7 @@ expect(['<Func>', undefined], `
 var myFunc = func (arg) {
     return arg;
 };
-myFunc();
+myFunc(nil);
 `);
 
 expect(['<Func>', 'hello world'], `
@@ -165,7 +165,7 @@ expect(['<Func>', 'hi'], `
 
 // Closures
 expect(['<Func>', '<Func>', 'hiii'], `
-    const wrapper = func (function) {
+    const wrapper = func () {
         var a = 'hiii';
         return func () a;
     };

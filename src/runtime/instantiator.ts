@@ -103,7 +103,7 @@ export function createInstance (
                 if (params.length < 1) {
                     return new ESType();
                 } else {
-                    return new ESString(params[0].__type__.__name__);
+                    return new ESString(params[0].typeName());
                 }
             case 'String':
                 return new ESString(params[0].str().valueOf());
@@ -154,7 +154,7 @@ export function createInstance (
         type.__init__.__closure__ = newContext;
 
         const res = type.__init__.__call__({context: newContext}, ...params);
-        // return value of init is ignored
+        // the return value of init is ignored
         if (res instanceof ESError) {
             return res;
         }

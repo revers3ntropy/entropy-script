@@ -10,10 +10,9 @@ import {NativeObj, Primitive, types} from './primitive';
 import { funcProps, str } from '../../util/util';
 import {strip} from './wrapStrip';
 
-
 export abstract class ESPrimitive <T> {
     public __value__: T;
-    public __type__: ESType;
+    public __type__: Primitive;
     public info: Info;
     protected self: NativeObj = this;
 
@@ -22,8 +21,7 @@ export abstract class ESPrimitive <T> {
      * @param {ESType|false} type can ONLY be false for initialising the '__type__' ESType
      * @protected
      */
-    protected constructor (value: T, type: ESType | false = types.any) {
-        // @ts-ignore
+    protected constructor (value: T, type: Primitive | false = types.any) {
         this.__type__ = type || this;
         this.__value__ = value;
         this.info = {};
@@ -110,7 +108,7 @@ export abstract class ESPrimitive <T> {
      * @returns if this type is a subset of the type passed
      */
     public isa = (props: funcProps, type: Primitive): ESBoolean | ESError => {
-        return new ESBoolean(type === this.__type__);
+        return type.typeCheck(props, this);
     };
 
     public is = (props: funcProps, obj: Primitive): ESBoolean => {
@@ -119,7 +117,7 @@ export abstract class ESPrimitive <T> {
 
     // getters for private props
     public valueOf = (): T => this.__value__;
-    public typeName = (): string => this.__type__.__name__;
+    public typeName = (): string => str(this.__type__);
 
     // Object stuff
     public hasProperty = (props: funcProps, key: Primitive): ESBoolean =>
@@ -152,4 +150,6 @@ export abstract class ESPrimitive <T> {
 
         this.info.isBuiltIn = false;
     };
+
+    abstract typeCheck: (props: funcProps, n: Primitive) => ESBoolean | ESError;
 }

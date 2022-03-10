@@ -6,26 +6,15 @@ import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
 import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
-import {ESType} from './estype';
 import {ESPrimitive} from './esprimitive';
 import {ESUndefined} from './esundefined';
 import { Primitive, types} from './primitive';
 import {strip, wrap} from './wrapStrip';
-import { ESFunction } from "./esfunction";
 
 export class ESObject extends ESPrimitive <dict<Primitive>> {
+
     constructor (val: dict<Primitive> = {}) {
         super(val, types.object);
-    }
-
-    override isa = (props: funcProps, type: Primitive) => {
-        if (type === types.object) {
-            return new ESBoolean(true);
-        }
-        if (!(type instanceof ESType)) {
-            return new TypeError(Position.void, 'TypeError', 'type', str(type.typeName()), str(type));
-        }
-        return this.__type__.resolve(props, type);
     }
 
     override cast = ({}, type: Primitive) => {
@@ -40,8 +29,9 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
     override str = () => {
         let val = str(this.valueOf());
         // remove trailing new line
-        if (val[val.length-1] === '\n')
+        if (val[val.length-1] === '\n') {
             val = val.substr(0, val.length-1);
+        }
         return new ESString(`<ESObject ${val}>`);
     }
 
@@ -203,4 +193,6 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
 
         return res;
     }
+
+    override typeCheck = this.__eq__;
 }

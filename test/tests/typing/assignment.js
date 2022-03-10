@@ -12,7 +12,7 @@ expect('TypeError', `
     let a: number = 1;
     a = 'hi';
 `);
-expect(['<Type: myClass>', {}, {}], `
+expect(['myClass', {}, {}], `
     const myClass = class {};
     let a = myClass();
     let b: myClass = a;

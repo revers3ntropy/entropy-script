@@ -5,7 +5,6 @@ import { funcProps, str } from '../../util/util';
 import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
 import {Primitive, types} from './primitive';
-import { ESFunction } from "./esfunction";
 import { wrap } from "./wrapStrip";
 
 export class ESBoolean extends ESPrimitive <boolean> {
@@ -56,4 +55,6 @@ export class ESBoolean extends ESPrimitive <boolean> {
     override clone = () => new ESBoolean(this.valueOf());
 
     override bool = () => this;
+
+    override typeCheck = this.__eq__;
 }

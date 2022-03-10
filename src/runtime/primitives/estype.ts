@@ -64,41 +64,43 @@ export class ESType extends ESPrimitive<undefined> {
         return new InvalidOperationError('cast', this);
     }
 
-    resolve = (props: funcProps, t: ESType): ESBoolean => {
+    override typeCheck = (props: funcProps, n: Primitive): ESBoolean | ESError => {
+        if (!n) return new ESBoolean();
+        let t = n.__type__;
         if (
-            this.__eq__(props, types.any).bool().valueOf() ||
-            t.__eq__(props, types.any).bool().valueOf() ||
-
-            (this.__extends__?.__eq__(props, t).valueOf() === true) ||
-            (this.__extends__?.__eq__(props, types.any).valueOf() === true) ||
-            (this.__extends__?.resolve(props, t).valueOf() === true) ||
-
-            (t.__extends__?.__eq__(props, this).valueOf() === true) ||
-            (t.__extends__?.__eq__(props, types.any).valueOf() === true) ||
-            (t.__extends__?.resolve(props, this).valueOf() === true)
+            this === types.any ||
+            t === types.any ||
+            t === this ||
+            this.__extends__ === t ||
+            this.__extends__ === types.any ||
+            this.__extends__ === n ||
+            (this.__extends__?.typeCheck(props, n).valueOf() === true)
         ) {
             return new ESBoolean(true);
         }
 
-        return this.__eq__(props, t);
+        if (t instanceof ESType) {
+            if (
+                t.__extends__ === this ||
+                t.__extends__ === types.any ||
+                (t.__extends__?.typeCheck(props, this).valueOf() === true)
+            ) {
+                return new ESBoolean(true);
+            }
+        }
+
+        return new ESBoolean(this === t);
     }
 
     override __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
-        if (!(t instanceof ESType)) {
-            return new ESBoolean();
-        }
-        return new ESBoolean(
-            t.__name__ === this.__name__ &&
-            t.primitive === this.primitive &&
-            Object.is(this.valueOf(), t.valueOf())
-        );
+        return new ESBoolean(t === this);
     }
 
     override __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
         return createInstance(this, props, params || []);
     }
 
-    override str = () => new ESString(`<Type: ${this.__name__}>`);
+    override str = () => new ESString(this.__name__);
 
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
@@ -137,10 +139,15 @@ export class ESTypeUnion extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override resolve = (props: funcProps, t: ESType): ESBoolean => {
+    override typeCheck = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+        const leftRes = this.__left__.typeCheck(props, t);
+        const rightRes = this.__right__.typeCheck(props, t);
+        if (leftRes instanceof ESError) return leftRes;
+        if (rightRes instanceof ESError) return rightRes;
+
         return new ESBoolean(
-            this.__left__.resolve(props, t).valueOf() ||
-            this.__right__.resolve(props, t).valueOf()
+            leftRes.valueOf() ||
+            rightRes.valueOf()
         );
     }
 

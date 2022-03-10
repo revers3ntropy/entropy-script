@@ -1,3 +1,4 @@
+import {str} from '../util/util';
 import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
 import { ESError, TypeError } from "../errors";
@@ -15,10 +16,10 @@ function callNode (self: ESFunction, context: Context, params: Primitive[], fn: 
         res.funcReturn = undefined;
     }
 
-    if (self.returnType.resolve({ context }, res.val?.__type__ ?? types.any).valueOf() === false) {
+    if (self.returnType.typeCheck({ context }, res.val).valueOf() === false) {
         return new TypeError(
             Position.void,
-            self.returnType.__name__,
+            str(self.returnType),
             res.val?.typeName().valueOf() || 'undefined',
             res.val?.str().valueOf(),
             '(from function return)');

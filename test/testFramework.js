@@ -39,7 +39,7 @@ class TestResult {
         this.passed += res.passed;
     }
 
-    str () {
+    str (verbose=false) {
         return `
             ---   TEST REPORT   ---
                 ${es.colours[this.failed < 1 ? 'green' : 'red'](this.failed.toString())} tests failed
@@ -53,7 +53,7 @@ class TestResult {
                 `\n ${test.batteryName} (#${test.batteryID}${error.pos.isUnknown ? '' : ` ${error.pos.ln}:${error.pos.col}`})`
             )}
         
-            ${this.fails.map(([test, error]) =>
+            ${!verbose ? '' :this.fails.map(([test, error]) =>
                 `\n----------------- ${test.batteryName} (#${test.batteryID}): \n${error.colouredStr}\n`
             )}
         `;
@@ -196,11 +196,13 @@ function arraysSame (arr1, arr2) {
 
         } else if (item2 instanceof es.ESFunction || item2 instanceof es.ESType) {
             if (item1 !== item2.str().valueOf()) {
+                console.log(item1, item2.str().valueOf());
                 return false;
             }
 
         } else if (item1 instanceof es.ESFunction || item1 instanceof es.ESType) {
             if (item2 !== item1.str().valueOf()) {
+                console.log(item2, item1.str().valueOf());
                 return false;
             }
 
@@ -270,11 +272,11 @@ function expect (expected, from) {
                 return (name || 'Error') === expected;
             }
 
-            const res = arraysSame(expected, es.strip(result.val));
+            const res = arraysSame(expected, es.strip(result.val, {context: env}));
 
-            //* extreme debugging
+            /* extreme debugging
             if (!res) {
-                console.log('\n%%%', expected, es.str(es.strip(result.val)), '@@');
+                console.log('\n%%%', expected, es.str(es.strip(result.val, {context: env})), '@@');
             }
             //*/
 

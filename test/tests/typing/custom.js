@@ -1,7 +1,7 @@
 const {expect, file} = require( '../../testFramework');
 file('typing/custom');
 
-expect(['<Type: myType>', {}, {}], `
+expect(['myType', {}, {}], `
     const myType = class {};
     let myInstance = myType();
     let a: myType = myInstance;

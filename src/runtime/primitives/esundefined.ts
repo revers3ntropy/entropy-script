@@ -58,12 +58,13 @@ export class ESUndefined extends ESPrimitive <undefined> {
 
     override str = () => new ESString('<Undefined>');
 
-    override __eq__ = (props: funcProps, n: Primitive) =>
-        new ESBoolean(
+    override __eq__ = (props: funcProps, n: Primitive) => {
+        return new ESBoolean(
             n instanceof ESUndefined ||
             typeof n === 'undefined' ||
             typeof n.valueOf() === 'undefined'
         );
+    }
 
     override __bool__ = () => new ESBoolean();
     override bool = this.__bool__;
@@ -76,4 +77,6 @@ export class ESUndefined extends ESPrimitive <undefined> {
         }
         return new IndexError(Position.void, key.valueOf(), this);
     };
+
+    override typeCheck = this.__eq__;
 }

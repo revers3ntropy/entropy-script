@@ -11,14 +11,13 @@ import {str} from '../../util/util';
 import {ESBoolean} from './esboolean';
 import {ESObject} from './esobject';
 import {ESString} from './esstring';
-import {ESType} from './estype';
 import {Primitive, types} from './primitive';
 import { wrap } from "./wrapStrip";
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     arguments_: runtimeArgument[];
     this_: ESObject;
-    returnType: ESType;
+    returnType: Primitive;
     __closure__: Context;
 
     constructor (
@@ -26,7 +25,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         arguments_: runtimeArgument[] = [],
         name='(anon)',
         this_: ESObject = new ESObject(),
-        returnType = types.any,
+        returnType: Primitive = types.any,
         closure?: Context
     ) {
         super(func, types.function);
@@ -48,7 +47,6 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             type: arg.type.info.name,
             required: true
         }));
-        // TODO: info.helpLink
     }
 
     override cast = (props: funcProps, type: Primitive) => {
@@ -99,4 +97,6 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         }
         return new IndexError(Position.void, key.valueOf(), this);
     };
+
+    override typeCheck = this.__eq__;
 }
