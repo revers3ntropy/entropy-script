@@ -6,8 +6,9 @@ import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
 import {ESPrimitive} from './esprimitive';
 import {str} from '../../util/util';
-import {Primitive, types} from './primitive';
+import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
+import { types } from "../../constants";
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     public mutable: boolean;

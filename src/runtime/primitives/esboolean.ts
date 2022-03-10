@@ -4,8 +4,9 @@ import {ESPrimitive} from './esprimitive';
 import { funcProps, str } from '../../util/util';
 import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
-import {Primitive, types} from './primitive';
+import type {Primitive} from './primitive';
 import { wrap } from "./wrapStrip";
+import { types } from "../../constants";
 
 export class ESBoolean extends ESPrimitive <boolean> {
     constructor (val: boolean = false) {

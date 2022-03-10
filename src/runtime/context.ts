@@ -2,10 +2,11 @@ import { initialise } from "../init";
 import { ESError, TypeError, ReferenceError } from "../errors";
 import { Position } from "../position";
 import {wrap} from './primitives/wrapStrip';
-import {ESArray, ESFunction, ESPrimitive, ESType, ESUndefined, Primitive, types} from "./primitiveTypes";
+import {ESArray, ESFunction, ESPrimitive, ESUndefined, Primitive} from "./primitiveTypes";
 import {dict, str} from "../util/util";
 import {ESSymbol, symbolOptions} from './symbol';
 import chalk from "../util/colours";
+import { types } from "../constants";
 
 export class Context {
     private symbolTable: {[identifier: string]: ESSymbol} = {};
@@ -237,9 +238,6 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
 
         // type checking
         const arg = self.arguments_[i];
-        if (!(arg.type instanceof ESType)) {
-            return new TypeError(Position.void, 'Type', typeof arg.type, arg.type);
-        }
 
         if (params[i] instanceof ESPrimitive) {
             type = params[i].__type__;
@@ -249,7 +247,7 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
         const typeIncludes = arg.type.typeCheck({context: parent}, params[i]);
         if (typeIncludes instanceof ESError) return typeIncludes;
         if (!typeIncludes.valueOf()) {
-            return new TypeError(Position.void, arg.type.__name__, str(type), str(value));
+            return new TypeError(Position.void, str(arg.type), str(type), str(value));
         }
 
         newContext.setOwn(arg.name, value, {

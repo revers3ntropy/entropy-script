@@ -1,5 +1,5 @@
 import {ESPrimitive} from './esprimitive';
-import {global} from '../../constants';
+import { global, types } from '../../constants';
 import { ESError, IndexError } from '../../errors';
 import {Position} from '../../position';
 import { BuiltInFunction, funcProps } from '../../util/util';
@@ -11,7 +11,7 @@ import {str} from '../../util/util';
 import {ESBoolean} from './esboolean';
 import {ESObject} from './esobject';
 import {ESString} from './esstring';
-import {Primitive, types} from './primitive';
+import type {Primitive} from './primitive';
 import { wrap } from "./wrapStrip";
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {

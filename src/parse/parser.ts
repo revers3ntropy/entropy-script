@@ -1,4 +1,4 @@
-import {tokenType, tokenTypeString, tt, VAR_DECLARE_KEYWORDS} from '../constants';
+import { tokenType, tokenTypeString, tt, types, VAR_DECLARE_KEYWORDS } from '../constants';
 import {Token} from "./tokens";
 import * as n from '../runtime/nodes';
 import {
@@ -12,7 +12,7 @@ import {
 } from '../runtime/nodes';
 import { ESError, InvalidSyntaxError } from "../errors";
 import {Position} from "../position";
-import { ESType, types } from "../runtime/primitiveTypes";
+import { ESType } from "../runtime/primitiveTypes";
 import { uninterpretedArgument } from "../runtime/argument";
 
 export class ParseResults {
@@ -240,7 +240,7 @@ export class Parser {
                 this.advance(res);
                 const expr = res.register(this.expr());
                 if (res.error) return res;
-                if (this.currentToken.type == tt.CPAREN) {
+                if (this.currentToken.type === tt.CPAREN) {
                     this.advance(res);
                     return res.success(expr);
                 }
@@ -306,11 +306,12 @@ export class Parser {
                 case tt.DOT:
                     this.advance(res);
                     // @ts-ignore
-                    if (this.currentToken.type !== tt.IDENTIFIER)
+                    if (this.currentToken.type !== tt.IDENTIFIER) {
                         return res.failure(new InvalidSyntaxError(
                             this.currentToken.pos,
                             `Expected identifier after '.'`
                         ));
+                    }
 
                     prevNode = node;
                     node = new n.N_indexed(
@@ -402,6 +403,15 @@ export class Parser {
             return res.success(new n.N_unaryOp(opTok.pos, node, opTok));
         }
 
+        if (this.currentToken.type === tt.BITWISE_NOT) {
+            const opTok = this.currentToken;
+            this.advance(res);
+
+            let node = res.register(this.expr());
+            if (res.error) return res;
+            return res.success(new n.N_unaryOp(opTok.pos, node, opTok));
+        }
+
         let node = res.register(this.binOp(
             () => this.arithmeticExpr(),
             [tt.EQUALS, tt.NOTEQUALS, tt.GT, tt.GTE, tt.LTE, tt.LT]
@@ -470,11 +480,12 @@ export class Parser {
         let args: Node[] = [];
         const pos = this.currentToken.pos;
 
-        if (this.currentToken.type !== tt.OPAREN)
+        if (this.currentToken.type !== tt.OPAREN) {
             return res.failure(new InvalidSyntaxError(
                 pos,
                 "Expected '['"
             ));
+        }
 
         this.advance(res);
 

@@ -7,8 +7,9 @@ import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
 import {ESPrimitive} from './esprimitive';
 import {ESUndefined} from './esundefined';
-import {Primitive, types} from './primitive';
+import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
+import { types } from "../../constants";
 
 export class ESArray extends ESPrimitive <Primitive[]> {
     len: number;
@@ -120,16 +121,6 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     }
 
     // Util
-    /**
-     * Uses JS Array.prototype.splice
-     */
-    add = (props: funcProps, val: Primitive, idx: Primitive = new ESNumber(this.len - 1)) => {
-        if (!(val instanceof ESPrimitive))
-            throw 'adding non-primitive to array: ' + str(val);
-        this.len++;
-        this.__value__.splice(idx.valueOf(), 0, val);
-        return new ESNumber(this.len);
-    }
 
     /**
      * Uses JS Array.prototype.includes
@@ -152,7 +143,6 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     }
 
     override typeCheck = (props: funcProps, n: Primitive): ESBoolean | ESError => {
-        console.log(str(n));
         if (!(n instanceof ESArray) || this.len !== n.len) {
             return new ESBoolean();
         }

@@ -4,9 +4,10 @@ import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
 import {ESPrimitive} from './esprimitive';
 import { funcProps, str } from '../../util/util';
-import {NativeObj, Primitive, types} from './primitive';
+import type {NativeObj, Primitive} from './primitive';
 import { strip, wrap } from './wrapStrip';
 import { ESFunction } from "./esfunction";
+import { types } from "../../constants";
 
 
 export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {

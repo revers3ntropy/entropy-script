@@ -5,11 +5,12 @@ import {ESFunction} from './esfunction';
 import {ESObject} from './esobject';
 import {ESString} from './esstring';
 import {ESPrimitive} from './esprimitive';
-import {Primitive, types, typeName} from './primitive';
+import {Primitive, typeName} from './primitive';
 import { funcProps } from "../../util/util";
 import { wrap } from "./wrapStrip";
 import { Position } from "../../position";
 import {str} from "../../util/util";
+import { types } from "../../constants";
 
 export class ESType extends ESPrimitive<undefined> {
 
@@ -115,22 +116,15 @@ export class ESType extends ESPrimitive<undefined> {
         }
         return new IndexError(Position.void, key, this);
     };
-
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
-        if (!(n instanceof ESType)) {
-            return new TypeError(Position.void, 'type', n.typeName(), str(n));
-        }
-        return new ESTypeUnion(this, n);
-    }
 }
 
 export class ESTypeUnion extends ESType {
 
-    private readonly __left__: ESType;
-    private readonly __right__: ESType;
+    private readonly __left__: Primitive;
+    private readonly __right__: Primitive;
 
-    constructor (left: ESType, right: ESType) {
-        super(false, `(${left.__name__}) | (${right.__name__})`);
+    constructor (left: Primitive, right: Primitive) {
+        super(false, `(${str(left)}) | (${str(right)})`);
         this.__left__ = left;
         this.__right__ = right;
     }
@@ -153,5 +147,64 @@ export class ESTypeUnion extends ESType {
 
     override clone = () => {
         return new ESTypeUnion(this.__left__, this.__right__);
+    }
+}
+
+
+export class ESTypeIntersection extends ESType {
+
+    private readonly __left__: Primitive;
+    private readonly __right__: Primitive;
+
+    constructor (left: Primitive, right: Primitive) {
+        super(false, `(${str(left)}) & (${str(right)})`);
+        this.__left__ = left;
+        this.__right__ = right;
+    }
+
+    override __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
+        return new InvalidOperationError('__call__', this);
+    }
+
+    override typeCheck = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+        const leftRes = this.__left__.typeCheck(props, t);
+        const rightRes = this.__right__.typeCheck(props, t);
+        if (leftRes instanceof ESError) return leftRes;
+        if (rightRes instanceof ESError) return rightRes;
+
+        return new ESBoolean(
+            leftRes.valueOf() &&
+            rightRes.valueOf()
+        );
+    }
+
+    override clone = () => {
+        return new ESTypeIntersection(this.__left__, this.__right__);
+    }
+}
+
+export class ESTypeNot extends ESType {
+    private readonly __val__: Primitive;
+
+    constructor (type: Primitive) {
+        super(false, `~(${str(type)})`);
+        this.__val__ = type;
+    }
+
+    override __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
+        return new InvalidOperationError('__call__', this);
+    }
+
+    override typeCheck = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+        const res = this.__val__.typeCheck(props, t);
+        if (res instanceof ESError) return res;
+
+        return new ESBoolean(
+            !res.valueOf()
+        );
+    }
+
+    override clone = () => {
+        return new ESTypeNot(this.__val__);
     }
 }

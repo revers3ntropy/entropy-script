@@ -16,6 +16,3 @@ export type NativeObj = any;
 export type typeName = 'Undefined' | 'String' | 'Array' | 'Number' | 'Any' | 'Function' | 'Boolean' | 'Type' | 'Object' | string;
 
 export type Primitive = ESPrimitive<NativeObj> | ESJSBinding | ESString | ESType | ESNumber | ESUndefined | ESBoolean | ESArray | ESObject | ESFunction | ESErrorPrimitive;
-
-// global store of built-in types
-export const types: {[key: string] : ESType} = {};

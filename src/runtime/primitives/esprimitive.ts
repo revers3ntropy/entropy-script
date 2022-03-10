@@ -3,12 +3,13 @@ import {Position} from '../../position';
 
 import {ESBoolean} from './esboolean';
 import type {ESString} from './esstring';
-import type {ESType} from './estype.js';
+import type {ESType, ESTypeIntersection, ESTypeUnion} from './estype';
 import type {Info} from './info';
-import {NativeObj, Primitive, types} from './primitive';
+import type { NativeObj, Primitive} from './primitive';
 
-import { funcProps, str } from '../../util/util';
+import { type funcProps, str } from '../../util/util';
 import {strip} from './wrapStrip';
+import { types } from "../../constants";
 
 export abstract class ESPrimitive <T> {
     public __value__: T;
@@ -80,10 +81,12 @@ export abstract class ESPrimitive <T> {
     }
 
     public __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
-        return new InvalidOperationError('__pipe__', this);
+        // @ts-ignore
+        return new ESTypeUnion(this, n);
     }
     public __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
-        return new InvalidOperationError('__ampersand__', this);
+        // @ts-ignore
+        return new ESTypeIntersection(this, n);
     }
 
     // Properties

@@ -3,8 +3,8 @@ import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
 import { ESError, TypeError } from "../errors";
 import { Position } from "../position";
-import {NativeObj} from './primitives/primitive';
-import { ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive, types } from "./primitiveTypes";
+import type {NativeObj} from './primitives/primitive';
+import { ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
 
 function callNode (self: ESFunction, context: Context, params: Primitive[], fn: Node) {
 
@@ -69,7 +69,7 @@ export function call (context: Context, self: ESFunction, params: Primitive[]): 
 
     let this_ = self.this_ ?? new ESObject();
 
-    if (!(this_ instanceof ESObject))
+    if (!(this_ instanceof ESObject)) {
         return new TypeError(
             Position.void,
             'object',
@@ -77,6 +77,7 @@ export function call (context: Context, self: ESFunction, params: Primitive[]): 
             this_,
             '\'this\' must be an object'
         );
+    }
 
     let setRes = newContext.setOwn('this', this_);
     if (setRes instanceof ESError) {

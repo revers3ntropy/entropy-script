@@ -2,7 +2,7 @@ import { Token } from "../parse/tokens";
 import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
 import { Position } from "../position";
-import { catchBlockErrorSymbolName, compileConfig, now, tokenTypeString, tt } from "../constants";
+import { catchBlockErrorSymbolName, compileConfig, now, tokenTypeString, tt, types } from "../constants";
 import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument";
 import { wrap } from './primitives/wrapStrip';
 import {
@@ -17,10 +17,10 @@ import {
     ESString,
     ESType,
     ESUndefined,
-    Primitive,
-    types
+    Primitive
 } from "./primitiveTypes";
-import {dict, generateRandomSymbol, str} from '../util/util';
+import {type dict, generateRandomSymbol, str} from '../util/util';
+import { ESTypeNot } from "./primitives/estype";
 
 export class interpretResult {
     val: Primitive = new ESUndefined();
@@ -256,6 +256,8 @@ export class N_unaryOp extends Node {
                 return new ESNumber(this.opTok.type === tt.SUB ? -numVal : Math.abs(numVal));
             case tt.NOT:
                 return new ESBoolean(!res?.val?.bool().valueOf());
+            case tt.BITWISE_NOT:
+                return new ESTypeNot(res.val);
             default:
                 return new InvalidSyntaxError(
                     this.opTok.pos,
@@ -296,7 +298,7 @@ export class N_varAssign extends Node {
         isGlobal=false,
         isConstant=false,
         isDeclaration=false,
-        type: ESType | Node = types.any
+        type: Primitive | Node = types.any
     ) {
         super(pos);
         this.value = value;
@@ -306,7 +308,7 @@ export class N_varAssign extends Node {
         this.isConstant = isConstant;
         this.isDeclaration = isDeclaration;
 
-        if (type instanceof ESType) {
+        if (type instanceof ESPrimitive) {
             // wrap raw ESType in node
             this.type = new N_primitiveWrapper(type);
         } else {
@@ -1439,7 +1441,7 @@ export class N_class extends Node {
             }
             methods.push(res.val);
         }
-        let extends_ = types.object;
+        let extends_: ESType = types.object;
         if (this.extends_) {
             const extendsRes = this.extends_.interpret(context);
             if (extendsRes.error) {
@@ -1448,7 +1450,7 @@ export class N_class extends Node {
             if (!(extendsRes.val instanceof ESType)) {
                 return new TypeError(
                     this.pos,
-                    'Function',
+                    'Type',
                     extendsRes.val?.typeName().valueOf() || 'undefined',
                     'method on ' + this.name
                 );

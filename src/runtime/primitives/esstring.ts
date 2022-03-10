@@ -5,55 +5,63 @@ import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
 import {ESNumber} from './esnumber';
 import {ESPrimitive} from './esprimitive';
-import {Primitive, types} from './primitive';
+import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
+import { types } from "../../constants";
 
 export class ESString extends ESPrimitive <string> {
+
     constructor (value: string = '') {
         super(value, types.string);
     }
 
     override str = () => this;
 
-    override cast = ({}, type: Primitive): Primitive | ESError => {
+    override cast = (props: funcProps, type: Primitive): Primitive | ESError => {
         switch (type) {
-        case types.number:
-            const num = parseFloat(this.valueOf());
-            if (isNaN(num))
-                return new ESError(Position.void, 'TypeError', `This string is not a valid number`);
-            return new ESNumber(num);
-        case types.string:
-            return this;
-        case types.array:
-            return new ESArray(this.valueOf().split('').map(s => new ESString(s)));
-        default:
-            return new ESError(Position.void, 'TypeError', `Cannot cast to type '${str(type.typeName())}'`);
+            case types.number:
+                const num = parseFloat(this.valueOf());
+                if (isNaN(num)) {
+                    return new ESError(Position.void, 'TypeError', `This string is not a valid number`);
+                }
+                return new ESNumber(num);
+            case types.string:
+                return this;
+            case types.array:
+                return new ESArray(this.valueOf().split('').map(s => new ESString(s)));
+            default:
+                return new ESError(Position.void, 'TypeError', `Cannot cast to type '${ str(type.typeName()) }'`);
         }
     }
 
     override __add__ = (props: funcProps, n: Primitive) => {
-        if (!(n instanceof ESString))
+        if (!(n instanceof ESString)) {
             return new TypeError(Position.void, 'String', n.typeName().valueOf(), n.valueOf());
+        }
         return new ESString(this.valueOf() + n.valueOf());
     };
     override __multiply__ = (props: funcProps, n: Primitive) => {
-        if (!(n instanceof ESNumber))
+        if (!(n instanceof ESNumber)) {
             return new TypeError(Position.void, 'Number', n.typeName().valueOf(), n.valueOf());
+        }
         return new ESString(this.valueOf().repeat(n.valueOf()));
     };
     override __eq__ = (props: funcProps, n: Primitive) => {
-        if (!(n instanceof ESString))
+        if (!(n instanceof ESString)) {
             return new ESBoolean(false);
+        }
         return new ESBoolean(this.valueOf() === n.valueOf());
     };
     override __gt__ = (props: funcProps, n: Primitive) => {
-        if (!(n instanceof ESString))
+        if (!(n instanceof ESString)) {
             return new TypeError(Position.void, 'String', n.typeName().valueOf(), n.valueOf());
+        }
         return new ESBoolean(this.valueOf().length > n.valueOf().length);
     };
     override __lt__ = (props: funcProps, n: Primitive) => {
-        if (!(n instanceof ESString))
+        if (!(n instanceof ESString)) {
             return new TypeError(Position.void, 'String', n.typeName().valueOf(), n.valueOf());
+        }
         return new ESBoolean(this.valueOf().length < n.valueOf().length);
     };
 
@@ -64,7 +72,8 @@ export class ESString extends ESPrimitive <string> {
     len = () => {
         return new ESNumber(this.valueOf().length);
     }
-    clone = () => new ESString(this.valueOf());
+
+    override clone = () => new ESString(this.valueOf());
 
     override __getProperty__ = (props: funcProps, key: Primitive): Primitive => {
         if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
@@ -88,7 +97,7 @@ export class ESString extends ESPrimitive <string> {
         return new ESString();
     };
 
-    override __setProperty__(props: funcProps, key: Primitive, value: Primitive): void {
+    override __setProperty__ (props: funcProps, key: Primitive, value: Primitive): void {
         if (!(key instanceof ESNumber))
             return;
 

@@ -1,5 +1,6 @@
-import { ESBoolean, ESUndefined, Primitive, types } from '../runtime/primitiveTypes';
+import { ESBoolean, ESUndefined, Primitive } from '../runtime/primitiveTypes';
 import { Context } from "../runtime/context";
+import { types } from "../constants";
 
 export default function load (context: Context) {
     const globalConstants: {[k: string]: Primitive} = {

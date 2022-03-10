@@ -33,7 +33,14 @@ export {
 };
 
 export * from './runtime/primitiveTypes';
-export * from './constants';
+export {
+    VERSION,
+    global, setGlobalContext,
+    IS_NODE_INSTANCE, runningInNode,
+    compileConfig,
+    permissions, updatePermissions,
+    libs,
+    now, refreshPerformanceNow} from './constants';
 export * from './errors';
 export * from './runtime/nodes';
 export * from './util/util';

@@ -1,5 +1,5 @@
-import {types, Primitive} from './primitives/primitive';
-import {FunctionInfo} from './primitives/info';
+import type {Primitive} from './primitives/primitive';
+import type {FunctionInfo} from './primitives/info';
 
 import {ESPrimitive} from './primitives/esprimitive';
 import {ESArray} from './primitives/esarray';
@@ -13,6 +13,8 @@ import {ESType} from './primitives/estype';
 import {ESUndefined} from './primitives/esundefined';
 import {ESNamespace} from './primitives/esnamespace';
 import {ESJSBinding} from "./primitives/esjsbinding";
+
+import {types} from "../constants";
 
 export {
     ESArray,
@@ -28,7 +30,6 @@ export {
     ESNamespace,
     ESJSBinding,
 
-    types,
     Primitive,
 
     FunctionInfo

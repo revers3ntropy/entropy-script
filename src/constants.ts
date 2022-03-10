@@ -1,6 +1,10 @@
 import type {JSModuleParams} from './built-in/module';
 import type { Context } from './runtime/context';
 import type {enumDict} from './util/util';
+import type { ESType } from "./runtime/primitives/estype";
+
+// @ts-ignore
+import PACKAGE_JSON from '../package.json';
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -18,8 +22,6 @@ export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 
 export const VAR_DECLARE_KEYWORDS = ['var', 'let', 'global'];
 
-// @ts-ignore
-import PACKAGE_JSON from '../package.json';
 export const VERSION = PACKAGE_JSON['version'];
 
 export interface compileConfig {
@@ -256,8 +258,13 @@ export const primitiveMethods: string[] = [
     '__lt__',
     '__and__',
     '__or__',
+    '__pipe__',
+    '__ampersand__',
     '__bool__',
     '__setProperty__',
     '__getProperty__',
     '__call__',
 ];
+
+// global store of built-in types
+export const types: {[key: string] : ESType} = {};

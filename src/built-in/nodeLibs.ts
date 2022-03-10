@@ -1,13 +1,13 @@
 import {Position} from "../position";
 import {Context} from "../runtime/context";
 import {ESError, ImportError, PermissionRequiredError} from '../errors';
-import {ESFunction, ESNamespace, ESObject, ESString, Primitive, types} from '../runtime/primitiveTypes';
+import {ESFunction, ESNamespace, ESObject, ESString, Primitive} from '../runtime/primitiveTypes';
 import { str } from "../util/util";
 import {interpretResult} from "../runtime/nodes";
 import {permissions, run} from '../index';
 import {JSModuleParams} from './module';
 import {addModuleFromObj, getModule, moduleExist} from './builtInModules';
-import { global } from "../constants";
+import { global, types } from "../constants";
 
 // node only built in modules
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";

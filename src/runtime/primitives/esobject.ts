@@ -8,8 +8,9 @@ import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
 import {ESPrimitive} from './esprimitive';
 import {ESUndefined} from './esundefined';
-import { Primitive, types} from './primitive';
+import type { Primitive} from './primitive';
 import {strip, wrap} from './wrapStrip';
+import { types } from "../../constants";
 
 export class ESObject extends ESPrimitive <dict<Primitive>> {
 
@@ -194,5 +195,26 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return res;
     }
 
-    override typeCheck = this.__eq__;
+    override typeCheck = (props: funcProps, n: Primitive): ESBoolean | ESError => {
+        if (!(n instanceof ESObject)) {
+            return new ESBoolean();
+        }
+        if (Object.keys(this.valueOf()).length !== Object.keys(n.valueOf()).length){
+            return new ESBoolean();
+        }
+
+        for (let key of Object.keys(this.valueOf())) {
+            if (!n.valueOf().hasOwnProperty(key) || !this.valueOf().hasOwnProperty(key)) {
+                return new ESBoolean();
+            }
+            const thisType = this.valueOf()[key];
+            const nValue = n.valueOf()[key];
+
+            if (!thisType.typeCheck(props, nValue).valueOf()) {
+                return new ESBoolean();
+            }
+        }
+
+        return new ESBoolean(true);
+    };
 }

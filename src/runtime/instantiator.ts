@@ -1,9 +1,9 @@
 import {primitiveMethods} from '../constants';
 import { Context } from "./context";
-import { dict, funcProps } from '../util/util';
+import type { dict, funcProps } from '../util/util';
 import { ESError, TypeError } from "../errors";
 import { Position } from "../position";
-import {NativeObj} from './primitives/primitive';
+import type {NativeObj} from './primitives/primitive';
 import {wrap} from './primitives/wrapStrip';
 import {
     ESArray,

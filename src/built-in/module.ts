@@ -1,10 +1,10 @@
 import type {ESError} from '../errors';
 import type {Context} from '../runtime/context';
-import {NativeObj} from '../runtime/primitives/primitive';
+import type {NativeObj} from '../runtime/primitives/primitive';
 import type {Primitive} from '../runtime/primitiveTypes';
 import type {BuiltInFunction} from '../util/util';
 
-type moduleValues = number | string | moduleValues[] | Primitive | BuiltInFunction;
+export type moduleValues = number | string | moduleValues[] | Primitive | BuiltInFunction;
 
 export type JSModule = {[key: string]: moduleValues};
 

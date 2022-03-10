@@ -3,11 +3,12 @@ import { ESError, IndexError } from '../../errors';
 import {Position} from '../../position';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
-import {Primitive, types} from './primitive';
+import type {Primitive} from './primitive';
 import type { funcProps } from "../../util/util";
 import { wrap } from "./wrapStrip";
 import {str} from "../../util/util";
 import { ESArray } from "./esarray";
+import { types } from "../../constants";
 
 export class ESErrorPrimitive extends ESPrimitive <ESError> {
     constructor (error: ESError = new ESError(Position.void, 'Unknown', 'Error not specified')) {

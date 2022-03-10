@@ -10,7 +10,7 @@ import {ESPrimitive} from './esprimitive';
 import {ESString} from './esstring';
 import {ESType} from './estype';
 import {ESUndefined} from './esundefined';
-import {NativeObj, Primitive} from './primitive';
+import type {NativeObj, Primitive} from './primitive';
 import { ESJSBinding } from "./esjsbinding";
 import { funcProps } from "../../util/util";
 
