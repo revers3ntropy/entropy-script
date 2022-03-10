@@ -1,8 +1,8 @@
-const {expect, file} = require( '../../../testFramework');
+var {expect, file} = require( '../../../testFramework');
 file('std/primitive/isa');
 
 expect ([0, true, false, false, false, false, false, false, false, false], `
-    const a = 0;
+    var a = 0;
     a.isa(number);
     a.isa(string);
     a.isa(function);
@@ -16,7 +16,7 @@ expect ([0, true, false, false, false, false, false, false, false, false], `
 
 
 expect (['', false, true, false, false, false, false, false, false, false], `
-    const a = '';
+    var a = '';
     a.isa(number);
     a.isa(string);
     a.isa(function);
@@ -29,7 +29,7 @@ expect (['', false, true, false, false, false, false, false, false, false], `
 `);
 
 expect (['<Func>', false, false, true, false, false, false, false, false, false], `
-    const a = func () {};
+    var a = func () {};
     a.isa(number);
     a.isa(string);
     a.isa(function);
@@ -42,7 +42,7 @@ expect (['<Func>', false, false, true, false, false, false, false, false, false]
 `);
 
 expect ([[], false, false, false, true, false, false, false, false, false], `
-    const a = [];
+    var a = [];
     a.isa(number);
     a.isa(string);
     a.isa(function);
@@ -55,7 +55,7 @@ expect ([[], false, false, false, true, false, false, false, false, false], `
 `);
 
 expect ([false, false, false, false, false, true, false, false, false, false], `
-    const a = false;
+    var a = false;
     a.isa(number);
     a.isa(string);
     a.isa(function);
@@ -68,7 +68,7 @@ expect ([false, false, false, false, false, true, false, false, false, false], `
 `);
 
 expect (['a', false, false, false, false, false, true, false, false, false], `
-    const a = class {};
+    var a = class {};
     a.isa(number);
     a.isa(string);
     a.isa(function);
@@ -81,7 +81,7 @@ expect (['a', false, false, false, false, false, true, false, false, false], `
 `);
 
 expect ([undefined, false, false, false, false, false, false, true, false, false], `
-    const a = nil;
+    var a = nil;
     a.isa(number);
     a.isa(string);
     a.isa(function);
@@ -94,7 +94,7 @@ expect ([undefined, false, false, false, false, false, false, true, false, false
 `);
 
 expect ([{}, false, false, false, false, false, false, false, true, false], `
-    const a = {};
+    var a = {};
     a.isa(number);
     a.isa(string);
     a.isa(function);
@@ -107,8 +107,8 @@ expect ([{}, false, false, false, false, false, false, false, true, false], `
 `);
 
 expect (['myClass', {}, false, false, false, false, false, false, false, true, false, true], `
-    const myClass = class {};
-    const a = myClass();
+    var myClass = class {};
+    var a = myClass();
     a.isa(number);
     a.isa(string);
     a.isa(function);
@@ -122,7 +122,7 @@ expect (['myClass', {}, false, false, false, false, false, false, false, true, f
 `);
 
 expect ([false, undefined, true], `
-    let res = false;
+    var res = false;
     try {
         throw();
     } catch {

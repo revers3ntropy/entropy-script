@@ -51,11 +51,11 @@ expect([{a: '<Func>'}, '<Func>', 'e'], `
 
 // passing objects
 expect(['<Func>', {a: 2}, 1, 1], `
-    const changer = func (a) {
+    let changer = func (a) {
         a.a = 1;
         return a.a;
     };
-    const p = {a: 2};
+    let p = {a: 2};
     changer(p);
     p.a;
 `);
@@ -95,10 +95,3 @@ expect('TypeError', `{b: 2} - type`);
 expect('TypeError', `{b: 2} - string`);
 expect('TypeError', `{b: 2} - (func () {})`);
 expect('TypeError', `-{b: 2}`);
-
-// Circular objects
-/*expect([{}, ], `
-	a = {};
-	a.b = a;
-`);
- */

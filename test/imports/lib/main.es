@@ -1,5 +1,5 @@
-const otherLib = import('../otherLib/main.es');
+let otherLib = import('../otherLib/main.es');
 
-const doThing = func () {
+let doThing = func () {
 	return otherLib.thing;
 };

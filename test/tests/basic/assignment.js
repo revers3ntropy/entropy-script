@@ -4,7 +4,7 @@ file('basic/assignment');
 expect(['aa', 'bb', true, undefined, false], `
 let a = 'aa';
 let b = 'bb';
-let res = true;
+var res = true;
 if a == 'aa' && b != 'cc' {    
     res = false; 
 }
@@ -30,19 +30,20 @@ expect(['hello', 'hello world'], `
     n += ' world';
 `);
 
-expect(['hi'], `
-    let global const a = 'hi';
+expect(['a', 'b'], `
+    global var a = 'a';
+    global let b = 'b';
 `);
 expect('TypeError', `
-    var global const a = 'hi';
+    global a = 'hi';
     a = 1;
 `);
 expect('TypeError', `
-    var local const a = 'hi';
+    let a = 'hi';
     a = 1;
 `);
 expect('InvalidSyntaxError', `
-    var local mutable a = 'hi';
+    var a = 'hi';
     let a = 1;
 `);
 expect('InvalidSyntaxError', `

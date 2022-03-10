@@ -10,15 +10,15 @@ expect([undefined], `
 `);
 expect([undefined], `
     try {
-    	throw('');
+    	throw();
     } catch {
     	2;
     }
 `);
 expect([0, undefined, 2], `
-	a = 0;
+	var a = 0;
     try {
-    	throw('');
+    	throw();
     	a = 3;
     } catch {
     	a = 2;
@@ -26,7 +26,7 @@ expect([0, undefined, 2], `
     a;
 `);
 expect([undefined, undefined, 'CustomError - custom error details'], `
-	let a;
+	var a;
     try {
     	throw('CustomError', 'custom error details');
     	a = 'no';

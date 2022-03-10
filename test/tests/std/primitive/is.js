@@ -1,43 +1,43 @@
-const {expect, file} = require( '../../../testFramework');
+let {expect, file} = require( '../../../testFramework');
 file('std/primitive/is');
 
 expect([1, true, false, false], `
-    const a = 1;
+    let a = 1;
     a.is(a);
     a.is(1);
     a.is(2);
 `);
 
 expect(['', true, false, false], `
-    const a = '';
+    let a = '';
     a.is(a);
     a.is('');
     a.is(' ');
 `);
 
 expect([[], true, false, false], `
-    const a = [];
+    let a = [];
     a.is(a);
     a.is([]);
     a.is([a]);
 `);
 
 expect([undefined, true, true, false], `
-    const a = nil;
+    let a = nil;
     a.is(nil);
     a.is(a);
     a.is(undefined);
 `);
 
 expect(['Undefined', true, true, false], `
-    const a = undefined;
+    let a = undefined;
     a.is(undefined);
     a.is(a);
     a.is(nil);
 `);
 
 expect([{}, true, false, false], `
-    const a = {};
+    let a = {};
     a.is(a);
     a.is(a.clone());
     a.is({});

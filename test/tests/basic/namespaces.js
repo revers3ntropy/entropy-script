@@ -1,55 +1,48 @@
-const {expect, file} = require( '../../testFramework');
+let {expect, file} = require( '../../testFramework');
 file('basic/namespaces');
 
 expect([{}], `
-    const MyLib = namespace {};
+    let MyLib = namespace {};
 `);
 expect([{a: '<Symbol: a>'}, 'hi'], `
-    global const MyLib = namespace {
-        const a = 'hi';
+    global MyLib = namespace {
+        let a = 'hi';
     };
    MyLib.a;
 `);
 expect('TypeError', `
-    global const MyLib = namespace {
-        const a: number = 0;
-    };
-   MyLib.a = 1;
-`);
-expect([{a: '<Symbol: a>'}, 1, 1], `
     global MyLib = namespace {
-        mutable a: number = 0;
+        let a: number = 0;
     };
    MyLib.a = 1;
-   MyLib['a'];
 `);
 expect([
     {myClass: '<Symbol: myClass>', myFunc: '<Symbol: myFunc>', a: '<Symbol: a>'},
     'myClass', {thing: 123}, 123, 'Hello world!'
 ], `
-    global const MyLib = namespace {
-        const myClass = class {
+    global MyLib = namespace {
+        let myClass = class {
             init () {
                 this.thing = 123;
             }
         };
     
-        const myFunc = func (obj: myClass) {
+        let myFunc = func (obj: myClass) {
             return obj.thing;
         };
     
-        const a = 'Hello world!';
+        let a = 'Hello world!';
     };
     
     let myType = MyLib.myClass;
-    let const instance: myType = MyLib.myClass();
+    let instance: myType = MyLib.myClass();
     MyLib.myFunc(instance);
     MyLib.a;
 `);
 
 expect([undefined, 1], `
     using(namespace {
-        mutable a: number = 1;
+        let a: number = 1;
     });
     a;
 `);

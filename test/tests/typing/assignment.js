@@ -6,19 +6,19 @@ expect([10, 10], `
     a;
 `);
 expect('TypeError', `
-    const a: number = 'hi';
+    let a: number = 'hi';
 `);
 expect('TypeError', `
     let a: number = 1;
     a = 'hi';
 `);
 expect(['myClass', {}, {}], `
-    const myClass = class {};
+    let myClass = class {};
     let a = myClass();
     let b: myClass = a;
 `);
 expect('TypeError', `
-    const myClass = class {};
+    let myClass = class {};
     let b: myClass = 1;
 `);
 expect('TypeError', `

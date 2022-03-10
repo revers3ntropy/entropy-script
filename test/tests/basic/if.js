@@ -5,7 +5,7 @@ expect([undefined], `
     if !true && 1 || 7 + 2 {} else {}
 `);
 expect(['00', undefined], `
-    const current_char = '00';
+    let current_char = '00';
     if current_char == '>' {}
 `);
 expect([false, undefined, undefined, true], `

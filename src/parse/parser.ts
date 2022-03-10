@@ -566,41 +566,33 @@ export class Parser {
     private initiateVar (res: ParseResults): ParseResults {
         let pos = this.currentToken.pos;
 
-        let isConst = false;
-        let isLocal = false;
+        let isConst = true;
         let isGlobal = false;
         let isDeclaration = false;
 
         if (
             this.currentToken.type === tt.KEYWORD &&
-            ['var', 'let'].indexOf(this.currentToken.value) !== -1
+            this.currentToken.value === 'global'
         ) {
             isDeclaration = true;
-            isLocal = true;
+            isGlobal = true;
             this.advance(res);
             if (res.error) return res;
         }
 
         if (
             this.currentToken.type === tt.KEYWORD &&
-            ['global', 'local'].indexOf(this.currentToken.value) !== -1
+            this.currentToken.value === 'let'
         ) {
             isDeclaration = true;
-            if (this.currentToken.value === 'global')
-                isGlobal = true;
-            else
-                isLocal = true;
             this.advance(res);
             if (res.error) return res;
-        }
-
-        if (
+        } else if (
             this.currentToken.type === tt.KEYWORD &&
-            ['const', 'mutable'].indexOf(this.currentToken.value) !== -1
+            this.currentToken.value === 'var'
         ) {
             isDeclaration = true;
-            if (this.currentToken.value === 'const')
-                isConst = true;
+            isConst = false;
             this.advance(res);
             if (res.error) return res;
         }
@@ -646,7 +638,6 @@ export class Parser {
                 new n.N_undefined(this.currentToken.pos),
                 '=',
                 isGlobal,
-                isLocal,
                 // must be false ^
                 isConst,
                 isDeclaration,
@@ -677,7 +668,6 @@ export class Parser {
             expr,
             assignType,
             isGlobal,
-            isLocal,
             isConst,
             isDeclaration,
             type
@@ -797,11 +787,12 @@ export class Parser {
         let name: string;
         let type: Node = new n.N_primitiveWrapper(types.any);
 
-        if (this.currentToken.type !== tt.IDENTIFIER)
+        if (this.currentToken.type !== tt.IDENTIFIER) {
             return new InvalidSyntaxError(
                 this.currentToken.pos,
                 "Expected identifier"
             );
+        }
 
         name = this.currentToken.value;
 
@@ -837,8 +828,9 @@ export class Parser {
 
         } else {
             let param = this.parameter(res);
-            if (param instanceof ESError)
+            if (param instanceof ESError) {
                 return res.failure(param);
+            }
             args.push(param);
 
             // @ts-ignore
@@ -980,43 +972,44 @@ export class Parser {
         let body: n.Node,
             array: n.Node,
             identifier: Token<any>,
-            isGlobalIdentifier = false,
-            isConstIdentifier = false;
+            isConst = true;
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'for'))
+        if (!this.currentToken.matches(tt.KEYWORD, 'for')) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
                 "Expected 'for'"
             ));
+        }
 
         this.advance(res);
 
-        if (this.currentToken.matches(tt.KEYWORD, 'global')) {
-            isGlobalIdentifier = true;
+        if (this.currentToken.matches(tt.KEYWORD, 'var')) {
+            isConst = false;
             this.advance(res);
-        }else if (this.currentToken.matches(tt.KEYWORD, 'const')) {
-            isConstIdentifier = true;
-            this.advance(res);
-        } else if (this.currentToken.matches(tt.KEYWORD, 'var') || this.currentToken.matches(tt.KEYWORD, 'let')) {
+        } else if (this.currentToken.matches(tt.KEYWORD, 'let')) {
             this.advance(res);
         }
 
+        if (res.error) return res;
+
         // @ts-ignore - comparison again
-        if (this.currentToken.type !== tt.IDENTIFIER)
+        if (this.currentToken.type !== tt.IDENTIFIER) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
                 "Expected identifier"
             ));
+        }
 
         identifier = this.currentToken;
 
         this.advance(res);
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'in'))
+        if (!this.currentToken.matches(tt.KEYWORD, 'in')) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
                 "Expected keyword 'in"
             ));
+        }
 
         this.advance(res);
 
@@ -1030,7 +1023,7 @@ export class Parser {
         if (res.error) return res;
 
         return res.success(new n.N_for(
-            pos, body, array, identifier, isGlobalIdentifier, isConstIdentifier
+            pos, body, array, identifier, false, isConst
         ));
     }
 
@@ -1056,10 +1049,13 @@ export class Parser {
         }
 
         elements.push(res.register(this.expr()));
-        if (res.error) return res.failure(new InvalidSyntaxError(
-            this.currentToken.pos,
-            "Expected ']', 'var', 'if', 'for', 'while', number, identifier, '+', '-', '(', '[' or '!' 2"
-        ));
+
+        if (res.error) {
+            return res.failure(new InvalidSyntaxError(
+                this.currentToken.pos,
+                "Unexpected token"
+            ));
+        }
 
         // @ts-ignore
         while (this.currentToken.type === tt.COMMA) {

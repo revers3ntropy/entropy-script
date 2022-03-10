@@ -284,7 +284,6 @@ export class N_varAssign extends Node {
     varNameTok: Token<string>;
     isGlobal: boolean;
     isConstant: boolean;
-    isLocal: boolean;
     isDeclaration: boolean;
     assignType: string;
     type: Node;
@@ -295,7 +294,6 @@ export class N_varAssign extends Node {
         value: Node,
         assignType='=',
         isGlobal=false,
-        isLocal=false,
         isConstant=false,
         isDeclaration=false,
         type: ESType | Node = types.any
@@ -307,12 +305,13 @@ export class N_varAssign extends Node {
         this.assignType = assignType;
         this.isConstant = isConstant;
         this.isDeclaration = isDeclaration;
-        this.isLocal = isLocal;
 
         if (type instanceof ESType) {
             // wrap raw ESType in node
             this.type = new N_primitiveWrapper(type);
-        } else this.type = type;
+        } else {
+            this.type = type;
+        }
     }
 
     interpret_(context: Context): interpretResult | ESError | Primitive {
@@ -719,13 +718,19 @@ export class N_for extends Node {
             );
         }
 
+        if (context.has(this.identifier.value) && this.isGlobalId) {
+            return new InvalidSyntaxError(this.identifier.pos,
+                'Cannot declare global variable which exists in the current scope')
+        }
+
         function iteration (body: Node, id: string, element: Primitive, isGlobal: boolean, isConstant: boolean): 'break' | interpretResult | undefined {
             let newContext = new Context();
             newContext.parent = context;
 
             newContext.set(id, element, {
                 global: isGlobal,
-                isConstant
+                isConstant,
+                type: element.__type__
             });
 
             const res = body.interpret(newContext);
@@ -734,8 +739,9 @@ export class N_for extends Node {
                 res.shouldBreak = false;
                 return 'break';
             }
-            if (res.shouldContinue)
+            if (res.shouldContinue) {
                 res.shouldContinue = false;
+            }
         }
 
         if (array.val instanceof ESNumber || typeof array.val?.valueOf() == 'number') {

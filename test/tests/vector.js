@@ -14,7 +14,7 @@ expect(
 	],
 
 	`
-    const v2 = class {
+    let v2 = class {
         init (x: number, y: number) {
             this.x = x;
             this.y = y;

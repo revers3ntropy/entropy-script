@@ -16,7 +16,7 @@ export const stringSurrounds = ['\'', '`', '"'];
 export let IS_NODE_INSTANCE = typeof window === 'undefined';
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 
-export const VAR_DECLARE_KEYWORDS = ['var', 'let', 'global', 'mutable', 'const', 'local'];
+export const VAR_DECLARE_KEYWORDS = ['var', 'let', 'global'];
 
 // @ts-ignore
 import PACKAGE_JSON from '../package.json';

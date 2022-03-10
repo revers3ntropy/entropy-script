@@ -25,9 +25,9 @@ expect ([undefined, undefined, 2], `
     }
     output;
 `);
-expect ([undefined, 2], `
-    for global i in [0, 1, 2] {}
-    i;
+
+expect ('InvalidSyntaxError', `
+    for global i in [] {}
 `);
 expect ([undefined, undefined, 2], `
     var output;
