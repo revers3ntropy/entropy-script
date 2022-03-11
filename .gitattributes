@@ -1,3 +1,0 @@
-*/*.js linguist-detectable=false
-*/*/*.js linguist-detectable=false
-npm-package/* linguist-vendored
