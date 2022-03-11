@@ -2,9 +2,13 @@
 /grammer/
 /test/
 .gitattributes
-test.es
 /.idea/
 /src/
 build.js
+test.es
 out.js
 out.py
+tsconfig.json
+webpack.config.js
+.gitignore
+**/*.js.map

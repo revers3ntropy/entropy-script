@@ -1,4 +1,4 @@
-import {ESError, TypeError} from '../../errors';
+import { ESError, InvalidOperationError, TypeError } from '../../errors';
 import {Position} from '../../position';
 import {Context} from '../context';
 import { funcProps, str } from '../../util/util';
@@ -10,7 +10,7 @@ import {ESUndefined} from './esundefined';
 import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
 import { types } from "../../constants";
-import { ESTypeIntersection, ESTypeUnion } from "./estype";
+import { ESType, ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESArray extends ESPrimitive <Primitive[]> {
     len: number;
@@ -162,5 +162,36 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     }
     override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
         return new ESTypeIntersection(this, n);
+    }
+}
+
+export class ESTypeArray extends ESType {
+    private readonly type: Primitive;
+
+    constructor (type: Primitive) {
+        super(false, `array[${str(type)}]`);
+        this.type = type;
+    }
+
+    override __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
+        return new InvalidOperationError('__call__', this);
+    }
+
+    override typeCheck = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+        if (!(t instanceof ESArray)) {
+            return new ESBoolean();
+        }
+
+        for (const element of t.valueOf()) {
+            if (!this.type.typeCheck(props, element).valueOf()) {
+                return new ESBoolean();
+            }
+        }
+
+        return new ESBoolean(true);
+    }
+
+    override clone = () => {
+        return new ESTypeArray(this.type);
     }
 }

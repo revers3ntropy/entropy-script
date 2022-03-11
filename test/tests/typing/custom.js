@@ -12,3 +12,10 @@ expect('TypeError', `
     let myInstance = myType();
     let a: myType = 1;
 `);
+
+expect('TypeError', `
+    let parentClass = class {};
+    let childClass1 = class extends parentClass {};
+    let childClass2 = class extends parentClass {};
+    let a: childClass2 = childClass1();
+`);

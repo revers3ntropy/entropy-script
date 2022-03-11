@@ -9,6 +9,7 @@
 * `global` used sparingly
 * Naming
   * Reserved properties are written with `__dunderscores__`, and so should be not used
-  * Classes would be in `PascalCase`
-  * Functions and classes can be in `snake_case` or `camelCase`, but this should be consistent throughout the codebase
-  * Constants should be written in `SCREAMING_SNAKE_CASE`
+  * Classes, namespaces and types would be in `PascalCase`
+  * Functions and variables should be in `snake_case`
+  * Constants can be written in `SCREAMING_SNAKE_CASE`
+  * Imported modules should be in `flatcase` or `snake_case` for long names

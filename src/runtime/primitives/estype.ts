@@ -11,6 +11,7 @@ import { wrap } from "./wrapStrip";
 import { Position } from "../../position";
 import {str} from "../../util/util";
 import { types } from "../../constants";
+import { ESTypeArray } from "./esarray";
 
 export class ESType extends ESPrimitive <undefined> {
 
@@ -80,14 +81,12 @@ export class ESType extends ESPrimitive <undefined> {
             return new ESBoolean(true);
         }
 
-        if (t instanceof ESType) {
-            if (
-                t.__extends__ === this ||
-                t.__extends__ === types.any ||
-                (t.__extends__?.typeCheck(props, this).valueOf() === true)
-            ) {
-                return new ESBoolean(true);
-            }
+        if (t instanceof ESType && (
+            t.__extends__ === this ||
+            t.__extends__ === types.any ||
+            (t.__extends__?.typeCheck(props, this).valueOf() === true)
+        )) {
+            return new ESBoolean(true);
         }
 
         return new ESBoolean();
@@ -108,13 +107,16 @@ export class ESType extends ESPrimitive <undefined> {
 
     override __getProperty__ = (props: funcProps, k: Primitive): Primitive | ESError => {
         if (!(k instanceof ESString)) {
+            if (this === types.array) {
+                return new ESTypeArray(k);
+            }
             return new TypeError(Position.void, 'string', k.typeName(), str(k));
         }
         const key = k.valueOf();
         if (this.self.hasOwnProperty(key)) {
-            return wrap(this.self[str(key)], true);
+            return wrap(this.self[key], true);
         }
-        return new IndexError(Position.void, key, this);
+        return new ESTypeArray(k);
     };
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
@@ -155,6 +157,14 @@ export class ESTypeUnion extends ESType {
     override clone = () => {
         return new ESTypeUnion(this.__left__, this.__right__);
     }
+
+    override __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
+        return new ESBoolean(
+            t instanceof ESTypeUnion &&
+            this.__left__.__eq__(props, t.__left__).valueOf() === true &&
+            this.__right__.__eq__(props, t.__right__).valueOf() === true
+        );
+    }
 }
 
 
@@ -188,6 +198,15 @@ export class ESTypeIntersection extends ESType {
     override clone = () => {
         return new ESTypeIntersection(this.__left__, this.__right__);
     }
+
+
+    override __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
+        return new ESBoolean(
+            t instanceof ESTypeIntersection &&
+            this.__left__.__eq__(props, t.__left__).valueOf() === true &&
+            this.__right__.__eq__(props, t.__right__).valueOf() === true
+        );
+    }
 }
 
 export class ESTypeNot extends ESType {
@@ -213,5 +232,12 @@ export class ESTypeNot extends ESType {
 
     override clone = () => {
         return new ESTypeNot(this.__val__);
+    }
+
+    override __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
+        return new ESBoolean(
+            t instanceof ESTypeNot &&
+            this.__val__.__eq__(props, t.__val__).valueOf() === true
+        );
     }
 }

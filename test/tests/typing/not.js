@@ -36,10 +36,3 @@ expect(['parentClass', 'childClass1', 'childClass2', {}], `
     let childClass2 = class extends parentClass {};
     let a: (parentClass & (~childClass2)) = childClass1();
 `);
-
-expect('TypeError', `
-    let parentClass = class {};
-    let childClass1 = class extends parentClass {};
-    let childClass2 = class extends parentClass {};
-    let a: childClass2 = childClass1();
-`);

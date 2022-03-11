@@ -29,7 +29,8 @@ import PY_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt.py';
 
 export {
     Context,
-    colours
+    colours,
+    Position,
 };
 
 export * from './runtime/primitiveTypes';

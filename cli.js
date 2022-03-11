@@ -24,9 +24,9 @@ dotenv.config();
 const es = require('./build/latest');
 
 /**
- * Syntax: String(await askQuestion(query).
+ * Syntax: await askQuestion(query).
  * Waits for Node I/O and when the user inputs something from the command line returns the line.
- * @param query
+ * @param {string} query
  * @return {Promise<string>}
  */
 function askQuestion(query) {
@@ -65,13 +65,22 @@ async function init () {
  * @param {string} file
  */
 function runScript (file) {
+
+	if (file.substring(file.length-3) !== '.es') {
+		file = file + '.es';
+	}
+
 	if (!fs.existsSync(file)) {
-		console.log(new es.ImportError(new es.Position(0, 0, 0, 'JSES-CLI'), file, `Can't find file`).str);
+		console.log(new es.ImportError(
+			new es.Position(0, 0, 0, 'JSES-CLI'),
+			file,
+			`Can't resolve file '${file}'`
+		).str);
 		return;
 	}
-	let res = es.run(fs.readFileSync(file, 'utf-8'), {
+	let res = es.run(fs.readFileSync(file, 'utf-8').toString(), {
 		fileName: file,
-		currentDir: path.dirname(file),
+		currentDir: path.dirname(file)
 	});
 	if (res.error) {
 		console.log(res.error.str);

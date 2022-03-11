@@ -113,7 +113,13 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             }
         }
 
-        if (!this.returnType.typeCheck(props, n.returnType).valueOf()) {
+        const thisReturnVal = this.__call__(props);
+
+        if (thisReturnVal instanceof ESError) {
+            return thisReturnVal;
+        }
+
+        if (!thisReturnVal.__eq__(props, n.returnType).valueOf()) {
             return new ESBoolean();
         }
 
