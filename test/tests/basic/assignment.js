@@ -1,7 +1,7 @@
 const {expect, file} = require( '../../testFramework');
 file('basic/assignment');
 
-expect(['aa', 'bb', true, undefined, false], `
+expect(['aa', 'bb', true, false, false], `
 let a = 'aa';
 let b = 'bb';
 var res = true;

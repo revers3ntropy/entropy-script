@@ -62,7 +62,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         this.info.name = v;
     }
 
-    clone = (): ESFunction => {
+    override clone = (): ESFunction => {
         return new ESFunction(
             this.__value__,
             this.arguments_,
@@ -99,7 +99,27 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         return new IndexError(Position.void, key.valueOf(), this);
     };
 
-    override typeCheck = this.__eq__;
+    override typeCheck = (props: funcProps, n: Primitive) => {
+        if (!(n instanceof ESFunction)) {
+            return new ESBoolean();
+        }
+        if (this.arguments_.length !== n.arguments_.length) {
+            return new ESBoolean();
+        }
+
+        for (let i = 0; i < this.arguments_.length; i++) {
+            if (!this.arguments_[i].type.typeCheck(props, n.arguments_[i].type).valueOf()) {
+                return new ESBoolean();
+            }
+        }
+
+        if (!this.returnType.typeCheck(props, n.returnType).valueOf()) {
+            return new ESBoolean();
+        }
+
+        return new ESBoolean(true);
+
+    };
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
         return new ESTypeUnion(this, n);

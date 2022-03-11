@@ -11,3 +11,11 @@ expect('TypeError', `
     b = ' ';
     b = nil;
 `);
+
+expect([1], `
+    var b: (1 | 2 | 3 | 4) = 1;
+`);
+
+expect('TypeError', `
+    var b: (1 | 2 | 3 | 4) = 5;
+`);

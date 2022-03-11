@@ -548,16 +548,10 @@ export class N_if extends Node {
         if (compRes.error) return compRes;
 
         if (compRes.val?.bool().valueOf()) {
-            res = this.ifTrue.interpret(newContext);
-            // so that if statements always return a value of None
-            res.val = new ESUndefined();
-            if (res.error) return res;
+            return this.ifTrue.interpret(newContext);
 
         } else if (this.ifFalse) {
-            res = this.ifFalse.interpret(newContext);
-            // so that if statements always return a value of None
-            res.val = new ESUndefined();
-            if (res.error) return res;
+            return this.ifFalse.interpret(newContext);
         }
 
         return res;

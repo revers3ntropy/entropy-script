@@ -90,7 +90,7 @@ export class ESType extends ESPrimitive <undefined> {
             }
         }
 
-        return new ESBoolean(this === t);
+        return new ESBoolean();
     }
 
     override __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
