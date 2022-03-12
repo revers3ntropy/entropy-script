@@ -69,24 +69,23 @@ export class ESType extends ESPrimitive <undefined> {
     override typeCheck = (props: funcProps, n: Primitive): ESBoolean | ESError => {
         if (!n) return new ESBoolean();
         let t = n.__type__;
+
         if (
             this === types.any ||
             t === types.any ||
-            t === this ||
-            this.__extends__ === t ||
-            this.__extends__ === types.any ||
-            this.__extends__ === n ||
-            (this.__extends__?.typeCheck(props, n).valueOf() === true)
+            this === t
         ) {
             return new ESBoolean(true);
         }
 
-        if (t instanceof ESType && (
-            t.__extends__ === this ||
-            t.__extends__ === types.any ||
-            (t.__extends__?.typeCheck(props, this).valueOf() === true)
-        )) {
-            return new ESBoolean(true);
+        while (t instanceof ESType) {
+            if (t.__extends__?.__eq__(props, this).valueOf() === true) {
+                return new ESBoolean(true);
+            }
+            if (!t.__extends__) {
+                break;
+            }
+            t = t.__extends__;
         }
 
         return new ESBoolean();

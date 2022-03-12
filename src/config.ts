@@ -1,4 +1,5 @@
 import type { dict } from "./util/util";
+import chalk from './util/colours';
 
 export interface config {
     permissions: {
@@ -25,18 +26,25 @@ export const config = {
 function pathAsString (path: string[]) {
     let res = '[';
     for (let p of path) {
-        res += path + '][';
+        res += p + '][';
     }
-    return res.substring(0, res.length-2);
+    return res.substring(0, res.length-1);
 }
 
 function parsePartOfConfig (config: dict<any>, configJSON: dict<any>, path: string[]=[]) {
-    for (let key of Object.keys(config)) {
+    const configKeys = Object.keys(config);
+    const unknownProps = Object.keys(configJSON).filter(x => !configKeys.includes(x));
+    for (const k of unknownProps) {
+        console.error(chalk.red(`Cannot parse config`),
+            ` - unknown property config${chalk.yellow(pathAsString([...path, k]))}`);
+    }
+    for (let key of configKeys) {
         if (!configJSON.hasOwnProperty(key)) {
             continue;
         }
         if (typeof config[key] !== typeof configJSON[key]) {
-            console.log(`Cannot parse config - config${pathAsString(path)} should be of type '${typeof config[key]}'`);
+            console.error(chalk.red(`Cannot parse config`),
+                ` - config${chalk.yellow(pathAsString([...path, key]))} should be of type '${chalk.yellow(typeof config[key])}'`);
             return;
         }
         if (typeof config[key] === 'object') {

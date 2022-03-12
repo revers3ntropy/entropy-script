@@ -6,3 +6,6 @@ test.es
 out.js
 out.py
 **/*.js.map
+!build/latest.js.map
+!build/stable.js.map
+esconfig.json

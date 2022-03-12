@@ -1,3 +1,7 @@
+**/*.js.map
+build/*.js
+!build/latest.js
+!build/stable.js
 /examples/
 /grammer/
 /test/
@@ -11,4 +15,4 @@ out.py
 tsconfig.json
 webpack.config.js
 .gitignore
-**/*.js.map
+esconfig.json
