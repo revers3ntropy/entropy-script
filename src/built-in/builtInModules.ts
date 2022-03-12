@@ -2,9 +2,10 @@ import { IS_NODE_INSTANCE, libs } from '../constants';
 import {ESError} from '../errors';
 import {wrap} from '../runtime/primitives/wrapStrip';
 import {ESSymbol} from '../runtime/symbol';
-import {dict} from '../util/util.js';
 import type {JSModule} from './module';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
+import { NativeObj } from "../runtime/primitives/primitive";
+
 
 // All modules
 // make this only import required modules in the future
@@ -26,9 +27,9 @@ const processedModules: {[s: string]: modulePrimitive} = {};
 
 export function initModules () {
 
-    processedModules['math'] = new ESJSBinding<dict<any>>(Math);
-    processedModules['Promise'] = new ESJSBinding<dict<any>>(Promise);
-    processedModules['time'] = new ESJSBinding<dict<any>>(time(libs));
+    processedModules['math'] = new ESJSBinding<NativeObj>(Math);
+    processedModules['promise'] = new ESJSBinding<NativeObj>(Promise);
+    processedModules['time'] = new ESJSBinding<NativeObj>(time(libs));
 
     if (!IS_NODE_INSTANCE) {
         const domRes = dom(libs);

@@ -24,36 +24,19 @@ export const VAR_DECLARE_KEYWORDS = ['var', 'let', 'global'];
 
 export const VERSION = PACKAGE_JSON['version'];
 
+export const configFileName = 'esconfig.json';
+
+export const VALID_FILE_ENCODINGS: string[] = [
+    'utf8', 'ucs2', 'utf16le', 'latin1',
+    'ascii', 'base64', 'base64url', 'hex'
+];
+
 export interface compileConfig {
     minify: boolean,
     indent: number,
     symbols: string[]
 }
 
-export interface Permissions {
-    networking: boolean;
-    imports: boolean;
-    accessDOM: boolean;
-    useSTD: boolean;
-    fileSystem: boolean,
-
-    [k: string]: any
-}
-
-export let permissions: Permissions = {
-    networking: false,
-    imports: true,
-    accessDOM: false,
-    useSTD: true,
-    fileSystem: false,
-};
-
-export function updatePermissions (newPermissions: any) {
-    permissions = {
-        ...permissions,
-        ...newPermissions
-    };
-}
 
 export const libs: JSModuleParams = {
     print: console.log

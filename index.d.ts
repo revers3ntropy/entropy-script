@@ -468,4 +468,22 @@ declare module 'entropy-script' {
     const permissions: Permissions;
 
     function updatePermissions (newPermissions: Permissions): void;
+
+    function parseConfig (configJSON: dict<any>): void;
+
+    const config: {
+        permissions: {
+            networking: boolean;
+            imports: boolean;
+            accessDOM: boolean;
+            useSTD: boolean;
+            fileSystem: boolean,
+
+            [k: string]: any
+        }
+    };
+
+    const configFileName: string;
+
+    const VERSION: string;
 }

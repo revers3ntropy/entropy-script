@@ -4,10 +4,10 @@ import {ESError, ImportError, PermissionRequiredError} from '../errors';
 import {ESFunction, ESNamespace, ESObject, ESString, Primitive} from '../runtime/primitiveTypes';
 import { str } from "../util/util";
 import {interpretResult} from "../runtime/nodes";
-import {permissions, run} from '../index';
+import { config, run } from '../index';
 import {JSModuleParams} from './module';
 import {addModuleFromObj, getModule, moduleExist} from './builtInModules';
-import { global, types } from "../constants";
+import { global, types, VALID_FILE_ENCODINGS } from "../constants";
 
 // node only built in modules
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
@@ -29,17 +29,17 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
 
     context.set('import', new ESFunction(({context}, rawPath): ESError | Primitive | undefined => {
 
-        if (!permissions.imports) {
+        if (!config.permissions.imports) {
             return new PermissionRequiredError('Imports not allowed');
         }
 
-        if (!permissions.imports) {
+        if (!config.permissions.imports) {
             return new PermissionRequiredError('Imports not allowed');
         }
 
         let scriptPath: string = str(rawPath);
 
-        if (permissions.useSTD && moduleExist(scriptPath)) {
+        if (config.permissions.useSTD && moduleExist(scriptPath)) {
             return getModule(scriptPath);
         }
 
@@ -92,29 +92,35 @@ function addNodeLibs (options: JSModuleParams, context: Context) {
         isConstant: true
     });
 
+
+
     context.setOwn('open', new ESFunction(({context}, path_, encoding_) => {
-        if (!permissions.fileSystem) {
+        if (!config.permissions.fileSystem) {
             return new PermissionRequiredError('No access to file system');
         }
 
-        const path = str(path_);
-        const encoding = str(encoding_) || 'utf-8';
+        const filePath = str(path_);
+        let encoding = str(encoding_);
 
-        if (!fs.existsSync(path)) {
-            return new ImportError(Position.void, path);
+        if (VALID_FILE_ENCODINGS.indexOf(encoding) === -1) {
+            encoding = 'utf-8';
+        }
+
+        if (!fs.existsSync(filePath)) {
+            return new ImportError(Position.void, filePath);
         }
 
         return new ESObject({
             str: new ESFunction(({context}) => {
-                return new ESString(fs.readFileSync(context.path + path, encoding));
+                return new ESString(fs.readFileSync(path.join(context.path, filePath), encoding).toString());
             }, [], 'str', undefined, types.string),
 
             write: new ESFunction(({context}, data: Primitive) => {
-                fs.writeFileSync(context.path + path, str(data));
+                fs.writeFileSync(context.path + filePath, str(data));
             }, [{name: 'path', type: types.string}]),
 
             append: new ESFunction(({context}, data: Primitive) => {
-                fs.appendFileSync(context.path + path, str(data));
+                fs.appendFileSync(context.path + filePath, str(data));
             }, [{name: 'path', type: types.string}]),
         });
     }));

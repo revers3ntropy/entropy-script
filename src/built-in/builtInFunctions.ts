@@ -75,7 +75,7 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
         returnType: 'void'
     }],
 
-    'parseNum': [({context}, num) => {
+    'parse_num': [({context}, num) => {
         try {
             const val: number = parseFloat(str(num));
             if (isNaN(val)) {
@@ -178,15 +178,15 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
         description: 'Deletes a variable from the current context'
     }],
 
-    '__path': [({context}) => {
+    '__path__': [({context}) => {
         return new ESString(context.path);
     }, {
-        name: '__path',
+        name: '__path__',
         args: [],
         description: 'Returns the current path'
     }],
 
-    '__symbols': [({context}) => {
+    '__symbols__': [({context}) => {
         return wrap(context.keys);
     }, {
         name: '__allSymbols',

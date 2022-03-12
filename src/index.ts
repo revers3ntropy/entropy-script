@@ -39,14 +39,16 @@ export {
     global, setGlobalContext,
     IS_NODE_INSTANCE, runningInNode,
     compileConfig,
-    permissions, updatePermissions,
     libs,
-    now, refreshPerformanceNow} from './constants';
+    now, refreshPerformanceNow,
+    configFileName
+} from './constants';
 export * from './errors';
 export * from './runtime/nodes';
 export * from './util/util';
-export * from './runtime/primitives/wrapStrip';
-export * from './runtime/symbol';
+export {strip, wrap} from './runtime/primitives/wrapStrip';
+export {ESSymbol} from './runtime/symbol';
+export {parseConfig, config} from './config';
 
 /**
  * @param {(...args: any) => void} printFunc

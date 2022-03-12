@@ -1,0 +1,5 @@
+{
+    "permissions": {
+        "fileSystem": true
+    }
+}

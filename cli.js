@@ -23,6 +23,7 @@ dotenv.config();
 /** @type module:entropy-script */
 const es = require('./build/latest');
 
+
 /**
  * Syntax: await askQuestion(query).
  * Waits for Node I/O and when the user inputs something from the command line returns the line.
@@ -58,6 +59,10 @@ async function init () {
 			path
 		}
 	);
+
+	if (fs.existsSync(es.configFileName)) {
+		es.parseConfig(JSON.parse(fs.readFileSync(es.configFileName).toString()));
+	}
 }
 
 /**
