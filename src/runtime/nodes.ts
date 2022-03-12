@@ -28,6 +28,14 @@ export class interpretResult {
     funcReturn: Primitive | undefined;
     shouldBreak = false;
     shouldContinue = false;
+
+    constructor (val?: Primitive | ESError) {
+        if (val instanceof ESError) {
+            this.error = val;
+        } else if (val) {
+            this.val = val;
+        }
+    }
 }
 
 export class compileResult {
@@ -68,7 +76,7 @@ export abstract class Node {
         this.isTerminal = isTerminal;
     }
 
-    abstract interpret_ (context: Context): ESError | Primitive | interpretResult;
+    abstract interpret_ (context: Context): ESError | interpretResult;
 
     interpret (context: Context): interpretResult {
         const start = now();
@@ -95,7 +103,8 @@ export abstract class Node {
         }
 
         if (!(res.val instanceof ESPrimitive)) {
-            res.error = new TypeError(Position.void, 'Primitive', 'Native JS value', str(res.val));
+            res.error = new TypeError(Position.void, 'Primitive',
+                'Native JS value', str(res.val));
             res.val = new ESUndefined();
         }
 
@@ -127,7 +136,7 @@ export class N_binOp extends Node {
         this.right = right;
     }
 
-     interpret_(context: Context): ESError | Primitive {
+     interpret_(context: Context): ESError | interpretResult {
         const left = this.left.interpret(context);
         if (left.error) return left.error;
         const right = this.right.interpret(context);
@@ -149,46 +158,46 @@ export class N_binOp extends Node {
                 const eq = l.__eq__({context}, r);
                 if (lt instanceof ESError) return lt;
                 if (eq instanceof ESError) return eq;
-                return lt.__or__({context}, eq);
+                return new interpretResult(lt.__or__({context}, eq));
 
             } case tt.GTE: {
                 const gt = l.__gt__({context}, r);
                 const eq = l.__eq__({context}, r);
                 if (gt instanceof ESError) return gt;
                 if (eq instanceof ESError) return eq;
-                return gt.__or__({context}, eq);
+                return new interpretResult(gt.__or__({context}, eq));
 
             } case tt.NOTEQUALS: {
                 const res = l.__eq__({context}, r);
                 if (res instanceof ESError) return res;
-                return new ESBoolean(!res.bool().valueOf());
+                return new interpretResult(new ESBoolean(!res.bool().valueOf()));
 
             } case tt.ADD:
-                return l.__add__({context}, r);
+                return new interpretResult(l.__add__({context}, r));
             case tt.SUB:
-                return l.__subtract__({context}, r);
+                return new interpretResult(l.__subtract__({context}, r));
             case tt.MUL:
-                return l.__multiply__({context}, r);
+                return new interpretResult(l.__multiply__({context}, r));
             case tt.DIV:
-                return l.__divide__({context}, r);
+                return new interpretResult(l.__divide__({context}, r));
             case tt.POW:
-                return l.__pow__({context}, r);
+                return new interpretResult(l.__pow__({context}, r));
             case tt.MOD:
-                return l.__mod__({context}, r);
+                return new interpretResult(l.__mod__({context}, r));
             case tt.EQUALS:
-                return l.__eq__({context}, r);
+                return new interpretResult(l.__eq__({context}, r));
             case tt.LT:
-                return l.__lt__({context}, r);
+                return new interpretResult(l.__lt__({context}, r));
             case tt.GT:
-                return l.__gt__({context}, r);
+                return new interpretResult(l.__gt__({context}, r));
             case tt.AND:
-                return l.__and__({context}, r);
+                return new interpretResult(l.__and__({context}, r));
             case tt.OR:
-                return l.__or__({context}, r);
+                return new interpretResult(l.__or__({context}, r));
             case tt.APMERSAND:
-                return l.__ampersand__({context}, r);
+                return new interpretResult(l.__ampersand__({context}, r));
             case tt.PIPE:
-                return l.__pipe__({context}, r);
+                return new interpretResult(l.__pipe__({context}, r));
 
             default:
                 return new InvalidSyntaxError(
@@ -241,7 +250,7 @@ export class N_unaryOp extends Node {
         this.opTok = opTok;
     }
 
-    interpret_(context: Context): ESError | Primitive {
+    interpret_(context: Context): ESError | interpretResult {
         const res = this.a.interpret(context);
         if (res.error) return res.error;
 
@@ -249,15 +258,20 @@ export class N_unaryOp extends Node {
             case tt.SUB:
             case tt.ADD:
                 if (!(res.val instanceof ESNumber)) {
-                    return new TypeError(this.pos,
-                        'Number', res.val?.typeName().toString() || 'undefined_', res.val?.valueOf());
+                    return new TypeError(
+                        this.pos,
+                        'Number',
+                        res.val?.typeName().toString() || 'undefined_',
+                        res.val?.valueOf()
+                    );
                 }
                 const numVal = res.val.valueOf();
-                return new ESNumber(this.opTok.type === tt.SUB ? -numVal : Math.abs(numVal));
+                return new interpretResult(new ESNumber(
+                    this.opTok.type === tt.SUB ? -numVal : Math.abs(numVal)));
             case tt.NOT:
-                return new ESBoolean(!res?.val?.bool().valueOf());
+                return new interpretResult(new ESBoolean(!res?.val?.bool().valueOf()));
             case tt.BITWISE_NOT:
-                return new ESTypeNot(res.val);
+                return new interpretResult(new ESTypeNot(res.val));
             default:
                 return new InvalidSyntaxError(
                     this.opTok.pos,
@@ -316,7 +330,7 @@ export class N_varAssign extends Node {
         }
     }
 
-    interpret_(context: Context): interpretResult | ESError | Primitive {
+    interpret_(context: Context): interpretResult | ESError {
 
         if (this.isDeclaration && context.hasOwn(this.varNameTok.value)) {
             return new InvalidSyntaxError(this.pos,
@@ -369,7 +383,7 @@ export class N_varAssign extends Node {
                 isConstant: this.isConstant,
                 type: typeRes.val
             });
-            return res.val;
+            return new interpretResult(res.val);
         }
 
         if (context.has(this.varNameTok.value)) {
@@ -636,7 +650,7 @@ export class N_while extends Node {
         this.loop = loop;
     }
 
-    interpret_(context: Context) {
+    interpret_(context: Context): ESError | interpretResult {
         let newContext = new Context();
         newContext.parent = context;
 
@@ -650,7 +664,7 @@ export class N_while extends Node {
             if (potentialError.error) return potentialError;
             if (potentialError.shouldBreak) break;
         }
-        return new ESUndefined();
+        return new interpretResult(new ESUndefined());
     }
 
     compileJS (config: compileConfig) {
@@ -702,7 +716,7 @@ export class N_for extends Node {
         this.isConstId = isConstIdentifier;
     }
 
-    interpret_ (context: Context) {
+    interpret_ (context: Context): ESError | interpretResult {
         const array = this.array.interpret(context);
         if (array.error) return array;
 
@@ -768,7 +782,7 @@ export class N_for extends Node {
                 typeof array.val
             );
 
-        return new ESUndefined();
+        return new interpretResult(new ESUndefined());
     }
 
     compileJS (config: compileConfig) {
@@ -881,7 +895,7 @@ export class N_objectLiteral extends Node {
         this.properties = properties;
     }
 
-    interpret_ (context: Context): Primitive | ESError {
+    interpret_ (context: Context): interpretResult | ESError {
         let interpreted: dict<Primitive> = {};
 
         for (const [keyNode, valueNode] of this.properties) {
@@ -896,7 +910,7 @@ export class N_objectLiteral extends Node {
             }
         }
 
-        return new ESObject(interpreted);
+        return new interpretResult(new ESObject(interpreted));
     }
 
     compileJS (config: compileConfig) {
@@ -945,7 +959,7 @@ export class N_statements extends Node {
         this.topLevel = topLevel;
     }
 
-    interpret_ (context: Context) {
+    interpret_ (context: Context): ESError | interpretResult {
         if (!this.topLevel) {
             let last;
             for (let item of this.items) {
@@ -956,8 +970,7 @@ export class N_statements extends Node {
                 last = res.val;
             }
 
-            if (last) return last;
-            return new ESUndefined();
+            return new interpretResult(last || new ESUndefined());
         } else {
             let result = new interpretResult();
             let interpreted: Primitive[] = [];
@@ -1026,7 +1039,7 @@ export class N_functionCall extends Node {
         this.to = to;
     }
 
-    interpret_ (context: Context) {
+    interpret_ (context: Context): ESError | interpretResult {
         let { val, error } = this.to.interpret(context);
         if (error) {
             return error;
@@ -1058,7 +1071,7 @@ export class N_functionCall extends Node {
             });
         }
 
-        return res;
+        return new interpretResult(res);
     }
 
     compileJS (config: compileConfig) {
@@ -1138,7 +1151,7 @@ export class N_functionDefinition extends Node {
         this.description = description;
     }
 
-    interpret_ (context: Context): Primitive | ESError {
+    interpret_ (context: Context): interpretResult | ESError {
 
         let args: runtimeArgument[] = [];
         for (let arg of this.arguments) {
@@ -1150,7 +1163,8 @@ export class N_functionDefinition extends Node {
         const returnTypeRes = this.returnType.interpret(context);
         if (returnTypeRes.error) return returnTypeRes.error;
 
-        return new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val, context);
+        return new interpretResult(new ESFunction(
+            this.body, args, this.name, this.this_, returnTypeRes.val, context));
     }
 
     compileJS (config: compileConfig) {
@@ -1305,7 +1319,7 @@ export class N_indexed extends Node {
         this.index = index;
     }
 
-    interpret_ (context: Context) {
+    interpret_ (context: Context): ESError | interpretResult {
         let baseRes = this.base.interpret(context);
         if (baseRes.error) return baseRes;
 
@@ -1315,8 +1329,9 @@ export class N_indexed extends Node {
         const index = indexRes.val;
         const base = baseRes.val;
 
-        if (!base || !index)
-            return new ESUndefined();
+        if (!base || !index) {
+            return new interpretResult(new ESUndefined());
+        }
 
         if (this.value !== undefined) {
             let valRes = this.value.interpret(context);
@@ -1356,13 +1371,14 @@ export class N_indexed extends Node {
                 return newVal;
 
             if (!base.__setProperty__)
-                return new TypeError(this.pos, 'mutable', 'immutable', base.valueOf());
+                return new TypeError(this.pos,
+                    'mutable', 'immutable', base.valueOf());
 
             const res = base.__setProperty__({context}, index, newVal ?? new ESUndefined());
             if (res instanceof ESError)
                 return res;
         }
-        return base.__getProperty__({context}, index);
+        return new interpretResult(base.__getProperty__({context}, index));
     }
 
     compileJS (config: compileConfig) {
@@ -1418,7 +1434,7 @@ export class N_class extends Node {
         this.extends_ = extends_;
     }
 
-    interpret_ (context: Context) {
+    interpret_ (context: Context): interpretResult | ESError {
         const methods: ESFunction[] = [];
         for (let method of this.methods) {
             const res = method.interpret(context);
@@ -1468,7 +1484,8 @@ export class N_class extends Node {
             init = initRes.val;
         }
 
-        return new ESType(false, this.name, methods, extends_, init);
+        return new interpretResult(new ESType(
+            false, this.name, methods, extends_, init));
     }
 
     compileJS (config: compileConfig) {
@@ -1493,14 +1510,15 @@ export class N_namespace extends Node {
         this.mutable = mutable;
     }
 
-    interpret_ (context: Context): Primitive | interpretResult {
+    interpret_ (context: Context): ESError | interpretResult {
         const newContext = new Context();
         newContext.parent = context;
 
         const res = this.statements.interpret(newContext);
         if (res.error) return res;
 
-        return new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
+        return new interpretResult(new ESNamespace(
+            new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable));
     }
 
     compileJS (config: compileConfig) {
@@ -1532,7 +1550,7 @@ export class N_tryCatch extends Node {
         this.catchBlock = catchBlock;
     }
 
-    interpret_ (context: Context): ESError | Primitive | interpretResult {
+    interpret_ (context: Context): ESError | interpretResult {
         const res = this.body.interpret(context);
 
         if (res.error) {
@@ -1631,7 +1649,7 @@ export class N_variable extends Node {
         this.a = a;
     }
 
-    interpret_ (context: Context) {
+    interpret_ (context: Context): ESError | interpretResult {
         if (!context.has(this.a.value)) {
             return new ReferenceError(this.a.pos, this.a.value);
         }
@@ -1640,7 +1658,7 @@ export class N_variable extends Node {
         let symbol = context.getSymbol(this.a.value);
 
         if (!symbol) {
-            return new ESUndefined();
+            return new ReferenceError(this.pos, `No access to undeclared variable ${this.a.value}`);
         }
         if (symbol instanceof ESError) {
             return symbol;
@@ -1730,13 +1748,14 @@ export class N_continue extends Node {
 
 export class N_primitiveWrapper extends Node {
     value: Primitive;
+
     constructor(val: Primitive, pos = Position.void) {
         super(pos, true);
         this.value = val;
     }
 
-    public interpret_(context: Context): Primitive {
-        return this.value;
+    public interpret_(context: Context): interpretResult {
+        return new interpretResult(this.value);
     }
 
     compileJS (config: compileConfig) {

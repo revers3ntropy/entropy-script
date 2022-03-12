@@ -6,7 +6,15 @@ expect([1], `
 `);
 
 expect('TypeError', `
-    let b: (~string) = 'hi;
+    let b: (~string) = 'hi';
+`);
+
+expect([''], `
+    let b: (~~string) = '';
+`);
+
+expect('TypeError', `
+    let b: (~~string) = 1;
 `);
 
 expect(['parentClass', 'childClass1', 'childClass2', {}], `
@@ -27,12 +35,12 @@ expect('TypeError', `
     let parentClass = class {};
     let childClass1 = class extends parentClass {};
     let childClass2 = class extends parentClass {};
-    let a: (parentClass & (~childClass2)) = childClass2();
+    let a: (parentClass & ~childClass2) = childClass2();
 `);
 
 expect(['parentClass', 'childClass1', 'childClass2', {}], `
     let parentClass = class {};
     let childClass1 = class extends parentClass {};
     let childClass2 = class extends parentClass {};
-    let a: (parentClass & (~childClass2)) = childClass1();
+    let a: (parentClass & ~childClass2) = childClass1();
 `);

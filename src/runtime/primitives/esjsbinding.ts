@@ -12,24 +12,26 @@ import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 
 export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
+
     functionsTakeProps: boolean;
+
     constructor (value: T, name='<AnonNative>', functionsTakeProps=false) {
         super(value, types.object);
         this.info.name = str(name);
         this.functionsTakeProps = functionsTakeProps;
     }
 
-    override cast = (props: funcProps) => {
+    override cast = (props: funcProps): ESError | Primitive => {
         return new ESError(Position.void, 'TypeError', `Cannot cast native object`);
     };
 
-    override clone = () => new ESJSBinding<T>(this.__value__);
+    override clone = (): Primitive => new ESJSBinding<T>(this.__value__);
 
     override str = (): ESString => {
         try {
-            return new ESString(JSON.stringify(this.__value__));
+            return new ESString(`<NativeObj ${JSON.stringify(this.__value__)}>`);
         } catch (e: any) {
-            return new ESString(`${this.__value__}`);
+            return new ESString(`<NativeObj ${this.__value__}>`);
         }
     };
 
@@ -37,13 +39,13 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
         return new ESBoolean(this === n);
     };
 
-    override __bool__ = () => new ESBoolean(true);
+    override __bool__ = (): ESBoolean => new ESBoolean(true);
     override bool = this.__bool__;
 
     override __getProperty__ = (props: funcProps, k: Primitive): Primitive | ESError => {
         const key = str(k);
 
-        const val: T & { [key: string]: NativeObj } = this.valueOf();
+        const val: T & { [key: string]: NativeObj } = this.__value__;
 
         const res = val[key];
 
@@ -64,7 +66,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
         // preserve this context
         if (typeof res === 'function') {
 
-            let fTakesProps = this.functionsTakeProps;
+            const fTakesProps = this.functionsTakeProps;
 
             return new ESFunction((props: funcProps, ...args) => {
                 if (!fTakesProps) {
@@ -72,7 +74,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
                     const res = val[key](...args);
                     return wrap(res);
                 } else {
-                    return val[key](props, ...args);
+                    return wrap(val[key](props, ...args));
                 }
             });
         }

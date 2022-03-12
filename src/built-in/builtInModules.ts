@@ -4,8 +4,8 @@ import {wrap} from '../runtime/primitives/wrapStrip';
 import {ESSymbol} from '../runtime/symbol';
 import type {JSModule} from './module';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
-import { NativeObj } from "../runtime/primitives/primitive";
-
+import type { dict } from "../util/util";
+import type { NativeObj } from "../runtime/primitives/primitive";
 
 // All modules
 // make this only import required modules in the future
@@ -20,7 +20,7 @@ const modules: {[s: string]: JSModule} = {
     ascii, json
 };
 
-type modulePrimitive = ESJSBinding<{[k: string]: any}>;
+type modulePrimitive = ESJSBinding<dict<any>>;
 
 // memoize the modules for faster access
 const processedModules: {[s: string]: modulePrimitive} = {};

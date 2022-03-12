@@ -6,32 +6,24 @@ import { str } from "../util/util";
 import {interpretResult} from "../runtime/nodes";
 import { config, run } from '../index';
 import {JSModuleParams} from './module';
-import {addModuleFromObj, getModule, moduleExist} from './builtInModules';
+import { addModule, getModule, moduleExist } from './builtInModules';
 import { global, types, VALID_FILE_ENCODINGS } from "../constants";
-
-// node only built in modules
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 
 /**
  * Adds node functionality like access to files, https and more.
- * @param {JSModuleParams} options
+ * @param {JSModuleParams} libs
  * @param {Context} context
  */
-function addNodeLibs (options: JSModuleParams, context: Context) {
+function addNodeLibs (libs: JSModuleParams, context: Context) {
 
-    const { fs, path } = options;
+    const { fs, path } = libs;
 
-    for (let libName in options) {
-        if (options.hasOwnProperty(libName)) {
-            addModuleFromObj(libName, new ESJSBinding(options[libName], libName));
-        }
+    for (let libName of Object.keys(libs)) {
+        addModule(libName, new ESJSBinding(libs[libName], libName));
     }
 
     context.set('import', new ESFunction(({context}, rawPath): ESError | Primitive | undefined => {
-
-        if (!config.permissions.imports) {
-            return new PermissionRequiredError('Imports not allowed');
-        }
 
         if (!config.permissions.imports) {
             return new PermissionRequiredError('Imports not allowed');

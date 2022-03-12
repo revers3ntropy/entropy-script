@@ -47,8 +47,7 @@ function askQuestion(query) {
 async function init () {
 	await es.init(
 		console.log,
-		async (msg, cb) =>
-			cb(await askQuestion(msg).catch(console.log)),
+		async (msg, cb) => cb(await askQuestion(msg).catch(console.log)),
 		true, {
 			https,
 			http,
