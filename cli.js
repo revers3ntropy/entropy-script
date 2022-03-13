@@ -54,7 +54,6 @@ async function init () {
 			fs,
 			mysql: sql,
 			print: console.log,
-			fetch: {},
 			path
 		}
 	);
@@ -82,7 +81,17 @@ function runScript (file) {
 		).str);
 		return;
 	}
+
+	const wrappedArgv = new es.ESArray(process.argv.map(s => new es.ESString(s)));
+
+	const env = new es.Context();
+	env.parent = es.global;
+	env.setOwn('args', wrappedArgv, {
+		isConstant: true
+	});
+
 	let res = es.run(fs.readFileSync(file, 'utf-8').toString(), {
+		env,
 		fileName: file,
 		currentDir: path.dirname(file)
 	});
@@ -99,14 +108,6 @@ async function runTerminal () {
 	const input = String(await askQuestion('>>> '));
 
 	if (input === 'exit') {
-		return;
-	} else if (/run [\w_\/.]+\.es/.test(input)) {
-		runScript(input.substring(4));
-		// run breaks out of the loop, to allow inputs
-		return;
-	} else if (/run [\w_\/.]+/.test(input)) {
-		runScript(input.substring(4) + '.es');
-		// run breaks out of the loop, to allow inputs
 		return;
 	}
 
