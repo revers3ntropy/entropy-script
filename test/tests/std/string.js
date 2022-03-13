@@ -2,4 +2,6 @@ const {expect, file} = require( '../../testFramework');
 file('std/string');
 
 
-expect(['5'], 'string(5)');
+expect(['5'], 'String(5)');
+expect(['5'], `String('5')`);
+expect(['[]'], `String([])`);

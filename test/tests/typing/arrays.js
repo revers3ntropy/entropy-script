@@ -2,37 +2,37 @@ const {expect, file} = require( '../../testFramework');
 file('typing/arrays');
 
 expect([['hi']], `
-    let arr: (array[string]) = ['hi'];
+    let arr: (Array[String]) = ['hi'];
 `);
 
 expect('TypeError', `
-    let arr: (array[string]) = ['hi', 1];
+    let arr: (Array[String]) = ['hi', 1];
 `);
 
 expect('TypeError', `
-    let arr: (array[string & 'hello']) = ['hi'];
+    let arr: (Array[String & 'hello']) = ['hi'];
 `);
 
 expect([['hi', {}]], `
-    let arr: (array[string | {}]) = ['hi', {}];
+    let arr: (Array[String | {}]) = ['hi', {}];
 `);
 
 expect('TypeError', `
-    let arr: (array[string | {}]) = ['hi', {}, {b: 1}];
+    let arr: (Array[String | {}]) = ['hi', {}, {b: 1}];
 `);
 
 expect([['hi', ['hi']]], `
-    let arr: (array[string | array[string]]) = ['hi', ['hi']];
+    let arr: (Array[String | Array[String]]) = ['hi', ['hi']];
 `);
 
 expect('TypeError', `
-    let arr: (array[string | array[string]]) = ['hi', ['hi', 1]];
+    let arr: (Array[String | Array[String]]) = ['hi', ['hi', 1]];
 `);
 
 expect(['String'], `
-    let arr: (array.__type__) = string;
+    let arr: (Array.__type__) = String;
 `);
 
 expect('TypeError', `
-    let arr: (array.__type__) = '';
+    let arr: (Array.__type__) = '';
 `);

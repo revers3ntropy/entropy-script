@@ -2,14 +2,14 @@ const {expect, file} = require( '../../testFramework');
 file('typing/assignment');
 
 expect([10, 10], `
-    let a: number = 10;
+    let a: Number = 10;
     a;
 `);
 expect('TypeError', `
-    let a: number = 'hi';
+    let a: Number = 'hi';
 `);
 expect('TypeError', `
-    let a: number = 1;
+    let a: Number = 1;
     a = 'hi';
 `);
 expect(['myClass', {}, {}], `
@@ -22,11 +22,11 @@ expect('TypeError', `
     let b: myClass = 1;
 `);
 expect('TypeError', `
-    let b: string = func () 0;
+    let b: String = func () 0;
 `);
 expect('TypeError', `
-    let b: number = ['hi'];
+    let b: Number = ['hi'];
 `);
 expect('TypeError', `
-    let b: string = nil;
+    let b: String = nil;
 `);

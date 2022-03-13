@@ -1,7 +1,7 @@
 **/*.js.map
 build/*.js
-!build/latest.js
 !build/stable.js
+!build/latest.js
 /examples/
 /grammer/
 /test/

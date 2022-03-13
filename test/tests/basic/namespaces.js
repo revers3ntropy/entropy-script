@@ -12,7 +12,7 @@ expect([{a: '<Symbol: a>'}, 'hi'], `
 `);
 expect('TypeError', `
     global MyLib = namespace {
-        let a: number = 0;
+        let a: Number = 0;
     };
    MyLib.a = 1;
 `);
@@ -42,7 +42,7 @@ expect([
 
 expect([undefined, 1], `
     using(namespace {
-        let a: number = 1;
+        let a: Number = 1;
     });
     a;
 `);

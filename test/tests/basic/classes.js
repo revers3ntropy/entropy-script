@@ -201,7 +201,7 @@ expect(['parentClass', 'childClass', {doThing: '<Func>', doOtherThing: '<Func>'}
     
     var instance = childClass();
     instance.isa(childClass);
-    instance.isa(object);
+    instance.isa(Object);
     instance.isa(parentClass);
-    instance.isa(string);
+    instance.isa(String);
 `);

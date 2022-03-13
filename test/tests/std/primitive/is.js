@@ -26,12 +26,12 @@ expect([undefined, true, true, false], `
     let a = nil;
     a.is(nil);
     a.is(a);
-    a.is(undefined);
+    a.is(Undefined);
 `);
 
 expect(['Undefined', true, true, false], `
-    let a = undefined;
-    a.is(undefined);
+    let a = Undefined;
+    a.is(Undefined);
     a.is(a);
     a.is(nil);
 `);

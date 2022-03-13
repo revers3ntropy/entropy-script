@@ -3,121 +3,121 @@ file('std/primitive/isa');
 
 expect ([0, true, false, false, false, false, false, false, false, false], `
     var a = 0;
-    a.isa(number);
-    a.isa(string);
-    a.isa(function);
-    a.isa(array);
-    a.isa(bool);
-    a.isa(type);
-    a.isa(undefined);
-    a.isa(object);
-    a.isa(error);
+    a.isa(Number);
+    a.isa(String);
+    a.isa(Func);
+    a.isa(Array);
+    a.isa(Bool);
+    a.isa(Type);
+    a.isa(Undefined);
+    a.isa(Object);
+    a.isa(Error);
 `);
 
 
 expect (['', false, true, false, false, false, false, false, false, false], `
     var a = '';
-    a.isa(number);
-    a.isa(string);
-    a.isa(function);
-    a.isa(array);
-    a.isa(bool);
-    a.isa(type);
-    a.isa(undefined);
-    a.isa(object);
-    a.isa(error);
+    a.isa(Number);
+    a.isa(String);
+    a.isa(Func);
+    a.isa(Array);
+    a.isa(Bool);
+    a.isa(Type);
+    a.isa(Undefined);
+    a.isa(Object);
+    a.isa(Error);
 `);
 
 expect (['<Func>', false, false, true, false, false, false, false, false, false], `
     var a = func () {};
-    a.isa(number);
-    a.isa(string);
-    a.isa(function);
-    a.isa(array);
-    a.isa(bool);
-    a.isa(type);
-    a.isa(undefined);
-    a.isa(object);
-    a.isa(error);
+    a.isa(Number);
+    a.isa(String);
+    a.isa(Func);
+    a.isa(Array);
+    a.isa(Bool);
+    a.isa(Type);
+    a.isa(Undefined);
+    a.isa(Object);
+    a.isa(Error);
 `);
 
 expect ([[], false, false, false, true, false, false, false, false, false], `
     var a = [];
-    a.isa(number);
-    a.isa(string);
-    a.isa(function);
-    a.isa(array);
-    a.isa(bool);
-    a.isa(type);
-    a.isa(undefined);
-    a.isa(object);
-    a.isa(error);
+    a.isa(Number);
+    a.isa(String);
+    a.isa(Func);
+    a.isa(Array);
+    a.isa(Bool);
+    a.isa(Type);
+    a.isa(Undefined);
+    a.isa(Object);
+    a.isa(Error);
 `);
 
 expect ([false, false, false, false, false, true, false, false, false, false], `
     var a = false;
-    a.isa(number);
-    a.isa(string);
-    a.isa(function);
-    a.isa(array);
-    a.isa(bool);
-    a.isa(type);
-    a.isa(undefined);
-    a.isa(object);
-    a.isa(error);
+    a.isa(Number);
+    a.isa(String);
+    a.isa(Func);
+    a.isa(Array);
+    a.isa(Bool);
+    a.isa(Type);
+    a.isa(Undefined);
+    a.isa(Object);
+    a.isa(Error);
 `);
 
 expect (['a', false, false, false, false, false, true, false, false, false], `
     var a = class {};
-    a.isa(number);
-    a.isa(string);
-    a.isa(function);
-    a.isa(array);
-    a.isa(bool);
-    a.isa(type);
-    a.isa(undefined);
-    a.isa(object);
-    a.isa(error);
+    a.isa(Number);
+    a.isa(String);
+    a.isa(Func);
+    a.isa(Array);
+    a.isa(Bool);
+    a.isa(Type);
+    a.isa(Undefined);
+    a.isa(Object);
+    a.isa(Error);
 `);
 
 expect ([undefined, false, false, false, false, false, false, true, false, false], `
     var a = nil;
-    a.isa(number);
-    a.isa(string);
-    a.isa(function);
-    a.isa(array);
-    a.isa(bool);
-    a.isa(type);
-    a.isa(undefined);
-    a.isa(object);
-    a.isa(error);
+    a.isa(Number);
+    a.isa(String);
+    a.isa(Func);
+    a.isa(Array);
+    a.isa(Bool);
+    a.isa(Type);
+    a.isa(Undefined);
+    a.isa(Object);
+    a.isa(Error);
 `);
 
 expect ([{}, false, false, false, false, false, false, false, true, false], `
     var a = {};
-    a.isa(number);
-    a.isa(string);
-    a.isa(function);
-    a.isa(array);
-    a.isa(bool);
-    a.isa(type);
-    a.isa(undefined);
-    a.isa(object);
-    a.isa(error);
+    a.isa(Number);
+    a.isa(String);
+    a.isa(Func);
+    a.isa(Array);
+    a.isa(Bool);
+    a.isa(Type);
+    a.isa(Undefined);
+    a.isa(Object);
+    a.isa(Error);
 `);
 
 expect (['myClass', {}, false, false, false, false, false, false, false, true, false, true], `
     var myClass = class {};
     var a = myClass();
-    a.isa(number);
-    a.isa(string);
-    a.isa(function);
-    a.isa(array);
-    a.isa(bool);
-    a.isa(type);
-    a.isa(undefined);
-    a.isa(object);
-    a.isa(error);
+    a.isa(Number);
+    a.isa(String);
+    a.isa(Func);
+    a.isa(Array);
+    a.isa(Bool);
+    a.isa(Type);
+    a.isa(Undefined);
+    a.isa(Object);
+    a.isa(Error);
     a.isa(myClass);
 `);
 
@@ -127,15 +127,15 @@ expect ([false, undefined, true], `
         throw();
     } catch {
         res =
-            !err.isa(number) && 
-            !err.isa(string) &&
-            !err.isa(function) &&
-            !err.isa(array) &&
-            !err.isa(bool) &&
-            !err.isa(type) &&
-            !err.isa(undefined) &&
-            !err.isa(object) &&
-            err.isa(error);
+            !err.isa(Number) && 
+            !err.isa(String) &&
+            !err.isa(Func) &&
+            !err.isa(Array) &&
+            !err.isa(Bool) &&
+            !err.isa(Type) &&
+            !err.isa(Undefined) &&
+            !err.isa(Object) &&
+            err.isa(Error);
     }
     res;
 `);

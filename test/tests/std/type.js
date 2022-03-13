@@ -2,11 +2,12 @@ const {expect, file} = require( '../../testFramework');
 file('std/type');
 
 
-expect(['Number'], 'type(1.1)');
-expect(['Type'], 'type(type)');
-expect(['Type'], 'type(number)');
-expect([undefined], 'type()');
-expect(['Function'], 'type(parse_num)');
-expect(['String'], 'type("hi")');
-expect(['Object'], 'type({a: 3})');
-expect(['Array'], 'type([1, 2, 3])');
+expect(['Number'], 'Type(1.1)');
+expect(['Type'], 'Type(Type)');
+expect(['String'], 'Type(Type(Type))');
+expect(['Type'], 'Type(Number)');
+expect([undefined], 'Type()');
+expect(['Function'], 'Type(parse_num)');
+expect(['String'], 'Type("hi")');
+expect(['Object'], 'Type({a: 3})');
+expect(['Array'], 'Type([1, 2, 3])');

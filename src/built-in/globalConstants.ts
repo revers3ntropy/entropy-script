@@ -1,22 +1,25 @@
 import { ESBoolean, ESUndefined, Primitive } from '../runtime/primitiveTypes';
-import { Context } from "../runtime/context";
+import type { Context } from "../runtime/context";
 import { types } from "../constants";
+import type { dict } from "../util/util";
 
 export default function load (context: Context) {
-    const globalConstants: {[k: string]: Primitive} = {
+
+    // must be declared inside function as get import error otherwise
+    const globalConstants: dict<Primitive> = {
         'false': new ESBoolean(false),
         'true': new ESBoolean(true),
         'nil': new ESUndefined(),
-        'any': types.any,
-        'number': types.number,
-        'string': types.string,
-        'bool': types.bool,
-        'function': types.function,
-        'array': types.array,
-        'object': types.object,
-        'type': types.type,
-        'error': types.error,
-        'undefined': types.undefined
+        'Any': types.any,
+        'Number': types.number,
+        'String': types.string,
+        'Bool': types.bool,
+        'Func': types.function,
+        'Array': types.array,
+        'Object': types.object,
+        'Type': types.type,
+        'Error': types.error,
+        'Undefined': types.undefined
     };
 
     for (let constant in globalConstants) {

@@ -15,18 +15,18 @@ expect(
 
 	`
     let v2 = class {
-        init (x: number, y: number) {
+        init (x: Number, y: Number) {
             this.x = x;
             this.y = y;
         }
         
-        add (v: any): any {
+        add (v) {
             this.x += v.x;
             this.y += v.y;
             return this;
         }
         
-        str (): string {
+        str (): String {
             return this.x.str() + ', ' + this.y.str();
         }
         
