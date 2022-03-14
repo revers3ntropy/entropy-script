@@ -13,17 +13,18 @@ import { types } from "../../constants";
 import { ESType, ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESArray extends ESPrimitive <Primitive[]> {
-    len: number;
-
     constructor(values: Primitive[] = []) {
         super(values, types.array);
-        this.len = values.length;
     }
 
-    override cast = ({}, type: Primitive): Primitive | ESError => {
+    len = (props: funcProps): ESNumber => {
+        return new ESNumber(this.valueOf().length);
+    };
+
+    override cast = (props: funcProps, type: Primitive): Primitive | ESError => {
         switch (type) {
         case types.number:
-            return new ESNumber(this.len);
+            return new ESNumber(this.len(props).valueOf());
         case types.boolean:
             return this.bool();
         default:
@@ -33,16 +34,16 @@ export class ESArray extends ESPrimitive <Primitive[]> {
 
     override str = () => new ESString(str(this.valueOf()));
 
-    override __eq__ = ({context}: {context: Context}, n: Primitive): ESBoolean | ESError => {
+    override __eq__ = (props: funcProps, n: Primitive): ESBoolean | ESError => {
         if (!(n instanceof ESArray)) {
             return new ESBoolean();
         }
 
-        if (n.len !== this.len) {
+        if (n.len(props).valueOf() !== this.len(props).valueOf()) {
             return new ESBoolean();
         }
 
-        for (let i = 0; i < this.len; i++) {
+        for (let i = 0; i < this.len(props).valueOf(); i++) {
             const thisElement = this.valueOf()[i];
             const nElement = n.valueOf()[i];
 
@@ -58,10 +59,11 @@ export class ESArray extends ESPrimitive <Primitive[]> {
                 return new ESBoolean();
             }
 
-            const res = thisElement.__eq__({context}, nElement);
+            const res = thisElement.__eq__(props, nElement);
             if (res instanceof ESError) {
                 return res;
             }
+
             if (!res.valueOf()) {
                 return new ESBoolean();
             }
@@ -70,7 +72,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return new ESBoolean(true);
     };
 
-    override __add__ = ({context}: {context: Context}, n: Primitive): ESArray | ESError => {
+    override __add__ = (props: funcProps, n: Primitive): ESArray | ESError => {
         if (!(n instanceof ESArray)) {
             return new TypeError(Position.void, 'array', n.typeName().valueOf(), n);
         }
@@ -81,7 +83,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     override __bool__ = () => new ESBoolean(this.valueOf().length > 0);
     override bool = this.__bool__;
 
-    override __getProperty__ = (props: funcProps, key: Primitive): Primitive => {
+    override __get_property__ = (props: funcProps, key: Primitive): Primitive => {
         if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
             return wrap(this.self[str(key)], true);
         }
@@ -103,7 +105,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return new ESUndefined();
     };
 
-    override __setProperty__(props: funcProps, key: Primitive, value: Primitive): void {
+    override __set_property__(props: funcProps, key: Primitive, value: Primitive): void {
         if (!(key instanceof ESNumber)) {
             return;
         }
@@ -143,12 +145,12 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return new ESArray(newArr);
     }
 
-    override typeCheck = (props: funcProps, n: Primitive): ESBoolean | ESError => {
+    override type_check = (props: funcProps, n: Primitive): ESBoolean | ESError => {
         if (!(n instanceof ESArray) || this.len !== n.len) {
             return new ESBoolean();
         }
         for (let i = 0; i < this.__value__.length; i++) {
-            const res = this.__value__[i].typeCheck(props, n.__value__[i]);
+            const res = this.__value__[i].type_check(props, n.__value__[i]);
             if (res instanceof ESError) return res;
             if (!res.valueOf()) {
                 return new ESBoolean();
@@ -177,13 +179,13 @@ export class ESTypeArray extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override typeCheck = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+    override type_check = (props: funcProps, t: Primitive): ESBoolean | ESError => {
         if (!(t instanceof ESArray)) {
             return new ESBoolean();
         }
 
         for (const element of t.valueOf()) {
-            if (!this.type.typeCheck(props, element).valueOf()) {
+            if (!this.type.type_check(props, element).valueOf()) {
                 return new ESBoolean();
             }
         }

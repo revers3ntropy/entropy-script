@@ -16,7 +16,7 @@ function callNode (self: ESFunction, context: Context, params: Primitive[], fn: 
         res.funcReturn = undefined;
     }
 
-    if (self.returnType.typeCheck({ context }, res.val).valueOf() === false) {
+    if (self.returnType.type_check({ context }, res.val).valueOf() === false) {
         return new TypeError(
             Position.void,
             str(self.returnType),

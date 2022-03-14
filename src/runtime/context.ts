@@ -244,7 +244,7 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
             value = params[i];
         }
 
-        const typeIncludes = arg.type.typeCheck({context: parent}, params[i]);
+        const typeIncludes = arg.type.type_check({context: parent}, params[i]);
         if (typeIncludes instanceof ESError) return typeIncludes;
         if (!typeIncludes.valueOf()) {
             return new TypeError(Position.void, str(arg.type), str(type), str(value));

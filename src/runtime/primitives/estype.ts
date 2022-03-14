@@ -1,5 +1,5 @@
 import {ESPrimitive} from './esprimitive';
-import { ESError, IndexError, InvalidOperationError, TypeError } from '../../errors';
+import { ESError, InvalidOperationError, TypeError } from '../../errors';
 import {createInstance} from '../instantiator';
 import {ESBoolean} from './esboolean';
 import type {ESFunction} from './esfunction';
@@ -66,7 +66,7 @@ export class ESType extends ESPrimitive <undefined> {
         return new InvalidOperationError('cast', this);
     }
 
-    override typeCheck = (props: funcProps, n: Primitive): ESBoolean | ESError => {
+    override type_check = (props: funcProps, n: Primitive): ESBoolean | ESError => {
         if (!n) return new ESBoolean();
         let t = n.__type__;
 
@@ -104,7 +104,7 @@ export class ESType extends ESPrimitive <undefined> {
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __getProperty__ = (props: funcProps, k: Primitive): Primitive | ESError => {
+    override __get_property__ = (props: funcProps, k: Primitive): Primitive | ESError => {
         if (!(k instanceof ESString)) {
             if (this === types.array) {
                 return new ESTypeArray(k);
@@ -141,9 +141,9 @@ export class ESTypeUnion extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override typeCheck = (props: funcProps, t: Primitive): ESBoolean | ESError => {
-        const leftRes = this.__left__.typeCheck(props, t);
-        const rightRes = this.__right__.typeCheck(props, t);
+    override type_check = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+        const leftRes = this.__left__.type_check(props, t);
+        const rightRes = this.__right__.type_check(props, t);
         if (leftRes instanceof ESError) return leftRes;
         if (rightRes instanceof ESError) return rightRes;
 
@@ -182,9 +182,9 @@ export class ESTypeIntersection extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override typeCheck = (props: funcProps, t: Primitive): ESBoolean | ESError => {
-        const leftRes = this.__left__.typeCheck(props, t);
-        const rightRes = this.__right__.typeCheck(props, t);
+    override type_check = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+        const leftRes = this.__left__.type_check(props, t);
+        const rightRes = this.__right__.type_check(props, t);
         if (leftRes instanceof ESError) return leftRes;
         if (rightRes instanceof ESError) return rightRes;
 
@@ -220,8 +220,8 @@ export class ESTypeNot extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override typeCheck = (props: funcProps, t: Primitive): ESBoolean | ESError => {
-        const res = this.__val__.typeCheck(props, t);
+    override type_check = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+        const res = this.__val__.type_check(props, t);
         if (res instanceof ESError) return res;
 
         return new ESBoolean(

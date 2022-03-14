@@ -92,14 +92,14 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         return call(this.__closure__, this, params);
     }
 
-    override __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __get_property__ = (props: funcProps, key: Primitive): Primitive | ESError => {
         if (this.self.hasOwnProperty(str(key))) {
             return wrap(this.self[str(key)], true);
         }
         return new IndexError(Position.void, key.valueOf(), this);
     };
 
-    override typeCheck = (props: funcProps, n: Primitive) => {
+    override type_check = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESFunction)) {
             return new ESBoolean();
         }
@@ -108,7 +108,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         }
 
         for (let i = 0; i < this.arguments_.length; i++) {
-            if (!this.arguments_[i].type.typeCheck(props, n.arguments_[i].type).valueOf()) {
+            if (!this.arguments_[i].type.type_check(props, n.arguments_[i].type).valueOf()) {
                 return new ESBoolean();
             }
         }

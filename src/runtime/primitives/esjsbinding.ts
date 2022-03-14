@@ -42,7 +42,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
     override __bool__ = (): ESBoolean => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __getProperty__ = (props: funcProps, k: Primitive): Primitive | ESError => {
+    override __get_property__ = (props: funcProps, k: Primitive): Primitive | ESError => {
         const key = str(k);
 
         const val: T & { [key: string]: NativeObj } = this.__value__;
@@ -113,11 +113,11 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
         return wrap(res);
     };
 
-    override hasProperty = (props: funcProps, key: Primitive): ESBoolean => {
-        return new ESBoolean(!(this.__getProperty__(props, key) instanceof ESError));
+    override has_property = (props: funcProps, key: Primitive): ESBoolean => {
+        return new ESBoolean(!(this.__get_property__(props, key) instanceof ESError));
     };
 
-    override typeCheck = this.__eq__;
+    override type_check = this.__eq__;
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
         return new ESTypeUnion(this, n);

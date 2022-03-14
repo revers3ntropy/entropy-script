@@ -355,7 +355,7 @@ export class N_varAssign extends Node {
             return new TypeError(this.varNameTok.pos, '~undefined', 'undefined', 'N_varAssign.interpret_');
         }
 
-        const typeCheckRes = typeRes.val.typeCheck({context}, res.val);
+        const typeCheckRes = typeRes.val.type_check({context}, res.val);
         if (typeCheckRes instanceof ESError) return typeCheckRes;
 
         if (!typeCheckRes.bool().valueOf()) {
@@ -390,7 +390,7 @@ export class N_varAssign extends Node {
             const symbol = context.getSymbol(this.varNameTok.value);
             if (symbol instanceof ESError) return symbol;
             if (symbol) {
-                if (!symbol.type.typeCheck({context}, res.val).valueOf()) {
+                if (!symbol.type.type_check({context}, res.val).valueOf()) {
                     return new TypeError(
                         this.varNameTok.pos,
                         str(symbol.type),
@@ -418,7 +418,7 @@ export class N_varAssign extends Node {
                     `Cannot declare variable without keyword`);
             }
 
-            const typeCheckRes = type.type.typeCheck({context}, res.val);
+            const typeCheckRes = type.type.type_check({context}, res.val);
 
             if (typeCheckRes instanceof ESError) return typeCheckRes;
 
@@ -1337,7 +1337,7 @@ export class N_indexed extends Node {
             let valRes = this.value.interpret(context);
             if (valRes.error) return valRes;
 
-            const currentVal = wrap(base.__getProperty__({context}, index));
+            const currentVal = wrap(base.__get_property__({context}, index));
             let newVal: Primitive | ESError;
             let assignVal = valRes.val;
             this.assignType ??= '=';
@@ -1370,15 +1370,15 @@ export class N_indexed extends Node {
             if (newVal instanceof ESError)
                 return newVal;
 
-            if (!base.__setProperty__)
+            if (!base.__set_property__)
                 return new TypeError(this.pos,
                     'mutable', 'immutable', base.valueOf());
 
-            const res = base.__setProperty__({context}, index, newVal ?? new ESUndefined());
+            const res = base.__set_property__({context}, index, newVal ?? new ESUndefined());
             if (res instanceof ESError)
                 return res;
         }
-        return new interpretResult(base.__getProperty__({context}, index));
+        return new interpretResult(base.__get_property__({context}, index));
     }
 
     compileJS (config: compileConfig) {

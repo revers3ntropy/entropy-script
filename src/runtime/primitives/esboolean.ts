@@ -22,7 +22,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
         };
     }
 
-    override __getProperty__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __get_property__ = (props: funcProps, key: Primitive): Primitive | ESError => {
         if (this.self.hasOwnProperty(str(key))) {
             return wrap(this.self[str(key)], true);
         }
@@ -58,7 +58,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
 
     override bool = () => this;
 
-    override typeCheck = this.__eq__;
+    override type_check = this.__eq__;
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
         return new ESTypeUnion(this, n);

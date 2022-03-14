@@ -88,10 +88,10 @@ export abstract class ESPrimitive <T> {
     }
 
     // Properties
-    public __setProperty__ (props: funcProps, key: Primitive, value: Primitive): void | ESError {
-        return new InvalidOperationError('__setProperty__', this, `[${str(key)}] = ${str(value)}`);
+    public __set_property__ (props: funcProps, key: Primitive, value: Primitive): void | ESError {
+        return new InvalidOperationError('__set_property__', this, `[${str(key)}] = ${str(value)}`);
     }
-    public abstract __getProperty__: (props: funcProps, key: Primitive) => Primitive | ESError;
+    public abstract __get_property__: (props: funcProps, key: Primitive) => Primitive | ESError;
 
     public __call__ (props: funcProps, ...parameters: Primitive[]): ESError | Primitive {
         return new InvalidOperationError('__call__', this);
@@ -109,7 +109,7 @@ export abstract class ESPrimitive <T> {
      * @returns if this type is a subset of the type passed
      */
     public isa = (props: funcProps, type: Primitive): ESBoolean | ESError => {
-        return type.typeCheck(props, this);
+        return type.type_check(props, this);
     };
 
     public is = (props: funcProps, obj: Primitive): ESBoolean => {
@@ -121,7 +121,7 @@ export abstract class ESPrimitive <T> {
     public typeName = (): string => str(this.__type__);
 
     // Object stuff
-    public hasProperty = (props: funcProps, key: Primitive): ESBoolean =>
+    public has_property = (props: funcProps, key: Primitive): ESBoolean =>
         new ESBoolean(this.hasOwnProperty(str(key)));
 
     public describe = (props: funcProps, info: Primitive) => {
@@ -152,5 +152,5 @@ export abstract class ESPrimitive <T> {
         this.info.isBuiltIn = false;
     };
 
-    abstract typeCheck: (props: funcProps, n: Primitive) => ESBoolean | ESError;
+    abstract type_check: (props: funcProps, n: Primitive) => ESBoolean | ESError;
 }
