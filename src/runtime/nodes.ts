@@ -9,7 +9,7 @@ import {
     ESArray,
     ESBoolean,
     ESErrorPrimitive,
-    ESFunction,
+    ESFunction, ESJSBinding,
     ESNamespace,
     ESNumber,
     ESObject,
@@ -651,10 +651,10 @@ export class N_while extends Node {
     }
 
     interpret_(context: Context): ESError | interpretResult {
-        let newContext = new Context();
-        newContext.parent = context;
-
         while (true) {
+            let newContext = new Context();
+            newContext.parent = context;
+
             let shouldLoop = this.comparison.interpret(context);
             if (shouldLoop.error) return shouldLoop;
 
@@ -720,14 +720,6 @@ export class N_for extends Node {
         const array = this.array.interpret(context);
         if (array.error) return array;
 
-        if (['Array', 'Number', 'Object', 'String', 'Any'].indexOf(array.val?.typeName() || '') === -1) {
-            return new TypeError(
-                this.identifier.pos,
-                'Array | Number | Object | String',
-                typeof array.val + ' | ' + array.val?.typeName()
-            );
-        }
-
         if (context.has(this.identifier.value) && this.isGlobalId) {
             return new InvalidSyntaxError(this.identifier.pos,
                 'Cannot declare global variable which exists in the current scope')
@@ -754,24 +746,29 @@ export class N_for extends Node {
             }
         }
 
-        if (array.val instanceof ESNumber || typeof array.val?.valueOf() == 'number') {
+        if (array.val instanceof ESNumber) {
             for (let i = 0; i < array.val.valueOf(); i++) {
                 const res = iteration(this.body, this.identifier.value, new ESNumber(i), this.isGlobalId, this.isConstId);
                 if (res === 'break') break;
                 if (res && (res.error || (res.funcReturn !== undefined))) return res;
             }
 
-        } else if (array.val instanceof ESObject ||
-            (typeof array.val?.valueOf() == 'number' && !Array.isArray(array.val?.valueOf()))
-        ) {
+        } else if (array.val instanceof ESObject || array.val instanceof ESJSBinding) {
             for (let element in array.val?.valueOf()) {
                 const res = iteration(this.body, this.identifier.value, new ESString(element), this.isGlobalId, this.isConstId);
                 if (res === 'break') break;
                 if (res && (res.error || (res.funcReturn !== undefined))) return res;
             }
-        } else if (array.val instanceof ESArray || Array.isArray(array.val?.valueOf())) {
+
+        } else if (array.val instanceof ESArray) {
             for (let element of array.val?.valueOf()) {
                 const res = iteration(this.body, this.identifier.value, element, this.isGlobalId, this.isConstId);
+                if (res === 'break') break;
+                if (res && (res.error || (res.funcReturn !== undefined))) return res;
+            }
+        } else if (array.val instanceof ESString) {
+            for (let element of array.val?.valueOf()) {
+                const res = iteration(this.body, this.identifier.value, new ESString(element), this.isGlobalId, this.isConstId);
                 if (res === 'break') break;
                 if (res && (res.error || (res.funcReturn !== undefined))) return res;
             }

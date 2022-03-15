@@ -1,4 +1,4 @@
-import {ESError, IndexError, TypeError} from '../../errors';
+import { ESError, IndexError, TypeError } from '../../errors';
 import {Position} from '../../position';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
@@ -28,11 +28,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
     override clone = (): Primitive => new ESJSBinding<T>(this.__value__);
 
     override str = (): ESString => {
-        try {
-            return new ESString(`<NativeObj ${JSON.stringify(this.__value__)}>`);
-        } catch (e: any) {
-            return new ESString(`<NativeObj ${this.__value__}>`);
-        }
+        return new ESString(str(this.__value__));
     };
 
     override __eq__ = ({}: funcProps, n: Primitive): ESBoolean => {
@@ -82,6 +78,19 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
         return wrap(res);
     };
 
+    override __set_property__ (props: funcProps, k: Primitive, value: Primitive): void | ESError {
+        const key = str(k);
+
+        const val: { [key: string]: NativeObj } = this.__value__;
+
+        if (this.self.hasOwnProperty(key)) {
+            this.self[str(key)] = value;
+            return;
+        }
+
+        val[key] = strip(value, props);
+    }
+
     override __call__ = (props: funcProps, ...args: Primitive[]): ESError | Primitive => {
         if (typeof this.__value__ !== 'function') {
             return new TypeError(Position.void, 'function', typeof this.__value__, str(this));
@@ -94,14 +103,22 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
                 // @ts-ignore
                 res = new this.__value__(props, ...args);
             } catch {
-                res = this.__value__(props, ...args);
+                try {
+                    res = this.__value__(props, ...args);
+                } catch (e: any) {
+                    return new ESError(Position.void, e.name, e.toString());
+                }
             }
         } else {
             try {
                 // @ts-ignore
                 res = new this.__value__(...args.map(o => strip(o, props)));
             } catch {
-                res = this.__value__(...args.map(o => strip(o, props)));
+                try {
+                    res = this.__value__(...args.map(o => strip(o, props)));
+                } catch (e: any) {
+                    return new ESError(Position.void, e.name, e.toString());
+                }
             }
         }
 

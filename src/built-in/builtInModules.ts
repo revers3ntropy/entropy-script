@@ -1,6 +1,5 @@
 import { IS_NODE_INSTANCE, libs } from '../constants';
 import {ESError} from '../errors';
-import {wrap} from '../runtime/primitives/wrapStrip';
 import {ESSymbol} from '../runtime/symbol';
 import type {JSModule} from './module';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
@@ -16,20 +15,20 @@ import Promise from './built-in-modules/promise';
 import time from './built-in-modules/time';
 
 
-const modules: {[s: string]: JSModule} = {
-    ascii, json
-};
+const modules: {[s: string]: JSModule} = {};
 
 type modulePrimitive = ESJSBinding<dict<any>>;
 
 // memoize the modules for faster access
 const processedModules: {[s: string]: modulePrimitive} = {};
 
-export function initModules () {
+export function initModules (): void | ESError {
 
     processedModules['math'] = new ESJSBinding<NativeObj>(Math);
     processedModules['promise'] = new ESJSBinding<NativeObj>(Promise);
     processedModules['time'] = new ESJSBinding<NativeObj>(time(libs));
+    processedModules['json'] = new ESJSBinding<NativeObj>(json);
+    processedModules['ascii'] = new ESJSBinding<NativeObj>(ascii);
 
     if (!IS_NODE_INSTANCE) {
         const domRes = dom(libs);
@@ -53,17 +52,13 @@ export function processRawModule (module: modulePrimitive, name: string): module
     return new ESJSBinding(moduleDict, name);
 }
 
-export function moduleExist (name: string) {
+export function moduleExist (name: string): boolean {
     return name in modules || name in processedModules;
 }
 
-export function addModule (name: string, body: modulePrimitive) {
+export function addModule (name: string, body: modulePrimitive): void {
     modules[name] = {};
     processedModules[name] = body;
-}
-
-export function addModuleFromObj (name: string, raw: {[s: string]: any}) {
-    addModule(name, processRawModule(<modulePrimitive>wrap(raw), name));
 }
 
 export function getModule (name: string): modulePrimitive | undefined {

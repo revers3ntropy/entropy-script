@@ -46,6 +46,9 @@ export function wrap (thing: any, functionsTakeProps=false): Primitive {
 
     } else if (typeof thing === 'symbol') {
         return new ESString(String(thing));
+
+    } else if (Array.isArray(thing)) {
+        return new ESArray(thing.map(o => wrap(o, functionsTakeProps)));
     }
     // catch objects, functions and other
     return new ESJSBinding(thing, undefined, functionsTakeProps);
@@ -53,14 +56,9 @@ export function wrap (thing: any, functionsTakeProps=false): Primitive {
 
 /**
  * Returns the thing passed in its js form
- * @param {Primitive} thing
- * @param props
  */
 export function strip (thing: Primitive | undefined, props: funcProps): NativeObj {
-    if (thing == undefined) {
-        return undefined;
-
-    } else if (!(thing instanceof ESPrimitive)) {
+    if (!(thing instanceof ESPrimitive)) {
         return thing;
 
     } else if (thing instanceof ESArray) {
@@ -80,6 +78,7 @@ export function strip (thing: Primitive | undefined, props: funcProps): NativeOb
         return (...args: any[]): any => {
             const res = thing.__call__(props, ...args.map(a => wrap(a)));
             if (res instanceof ESError) {
+                console.error(res.str);
                 return res;
             }
             return strip(res, props);

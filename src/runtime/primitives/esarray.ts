@@ -146,9 +146,10 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     }
 
     override type_check = (props: funcProps, n: Primitive): ESBoolean | ESError => {
-        if (!(n instanceof ESArray) || this.len !== n.len) {
+        if (!(n instanceof ESArray) || this.len(props).valueOf() !== n.len(props).valueOf()) {
             return new ESBoolean();
         }
+
         for (let i = 0; i < this.__value__.length; i++) {
             const res = this.__value__[i].type_check(props, n.__value__[i]);
             if (res instanceof ESError) return res;
@@ -171,7 +172,7 @@ export class ESTypeArray extends ESType {
     private readonly type: Primitive;
 
     constructor (type: Primitive) {
-        super(false, `array[${str(type)}]`);
+        super(false, `Array[${str(type)}]`);
         this.type = type;
     }
 

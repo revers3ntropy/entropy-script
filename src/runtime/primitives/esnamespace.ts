@@ -20,7 +20,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         this.mutable = mutable;
     }
 
-    override cast = ({}) => {
+    override cast = (props: funcProps) => {
         return new ESError(Position.void, 'TypeError', `Cannot cast type 'namespace'`);
     }
 

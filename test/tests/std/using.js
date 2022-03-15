@@ -5,8 +5,14 @@ expect([undefined], `
     using(namespace {});
 `);
 
-expect('TypeError', `
+expect([undefined, 1], `
     using({a: 1});
+    a;
+`);
+
+expect('TypeError', `
+    using('a: 1');
+    a;
 `);
 
 expect([undefined, 0], `

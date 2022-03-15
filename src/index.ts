@@ -66,7 +66,7 @@ export async function init (
     libs: JSModuleParams = {print: console.log},
     context= new Context(),
     path = '',
-): Promise<ESError | undefined> {
+): Promise<ESError | Context> {
 
     initPrimitiveTypes();
 
@@ -92,6 +92,8 @@ export async function init (
         await refreshPerformanceNow(true);
         addNodeLibs(libs, context);
     }
+
+    return global;
 }
 
 /**

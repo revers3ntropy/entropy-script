@@ -141,8 +141,9 @@ export function str (val: any, depth = 0): string {
             break;
 
     }
-    for (let i = 0; i < depth; i++)
+    for (let i = 0; i < depth; i++) {
         result = indent(result);
+    }
     return result;
 }
 

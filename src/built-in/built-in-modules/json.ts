@@ -1,22 +1,16 @@
-import {Position} from '../../position';
+
 import {strip} from '../../runtime/primitives/wrapStrip';
-import {ESObject, ESString} from '../../runtime/primitiveTypes';
-import {JSModule} from '../module';
 import {str} from '../../util/util';
-import {TypeError} from '../../errors';
+import { global } from "../../constants";
 
-const module: JSModule = {
+const module: any = {
 
-    parse: (props, json) => {
-        return new ESObject(JSON.parse(str(json)));
+    parse: (json: any) => {
+        return JSON.parse(str(json));
     },
 
-    stringify: (props, json) => {
-        if (!(json instanceof ESObject)) {
-            return new TypeError(Position.void, 'object', str(json.typeName()), str(json));
-        }
-
-        return new ESString(JSON.stringify(strip(json, props)));
+    stringify: (json: any) => {
+        return JSON.stringify(strip(json, { context: global }));
     }
 };
 

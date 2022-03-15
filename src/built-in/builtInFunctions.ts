@@ -1,6 +1,6 @@
 import {ESError, TypeError} from "../errors";
 import {Position} from "../position";
-import { wrap } from '../runtime/primitives/wrapStrip';
+import { strip, wrap } from '../runtime/primitives/wrapStrip';
 import {
     ESArray, ESFunction, ESNamespace,
     ESNumber,
@@ -9,7 +9,7 @@ import {
     ESString, ESUndefined,
     FunctionInfo
 } from '../runtime/primitiveTypes';
-import {BuiltInFunction, indent, sleep, str} from '../util/util';
+import { BuiltInFunction, funcProps, indent, sleep, str } from '../util/util';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import chalk from "../util/colours";
 
@@ -194,33 +194,28 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
         description: 'Returns an array of the names of all symbols in the current context'
     }],
 
-    'using': [({context}, module, global_) => {
-        if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding)) {
+    'using': [(props: funcProps, module, global_) => {
+        if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding) && !(module instanceof ESObject)) {
             return new TypeError(Position.void, 'Namespace', str(module.typeName()));
         }
 
-        let global = true;
+        let {context} = props;
 
-        if (global_) {
-            if (!global_.bool().valueOf()) {
-                global = false;
-            }
-        }
+        // trust me, this works... hopefully
+        let global = !(global_ && !global_.bool().valueOf());
 
-        const values = module.valueOf();
+        let value = strip(module, props);
 
         if (global) {
             context = context.root;
         } else if (context.parent) {
+            // as new context is generated for function call, so escape to one you want the values in
             context = context.parent;
         }
 
-        for (const key of Object.keys(values)) {
-            context.setOwn(key, values[key].value, {
-                isConstant: values[key].isConstant,
-                isAccessible: values[key].isAccessible,
-                forceThroughConst: true
-            });
+        for (const key of Object.keys(value)) {
+            let res = context.setOwn(key, wrap(value[key]));
+            if (res) return res;
         }
     }, {
         name: 'using',
@@ -228,7 +223,7 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
             {name: 'module', type: 'namespace'},
             {name: 'global', type: 'bool'}
         ],
-        description: 'Adds contents of a namespace to the global context'
+        description: 'Adds contents of a namespace to the current or global context'
     }],
 
     'sleep': [({context}, time, cb) => {

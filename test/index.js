@@ -46,7 +46,7 @@ async function importAll (dir='./test/tests') {
 	await importAll();
 
 	const err = await es.init(
-		console.log,
+		(...args) => console.log('LOG: ', ...args),
 		async (msg, cb) =>
 			cb(await askQuestion(msg).catch(console.log)),
 		true, {
@@ -54,7 +54,7 @@ async function importAll (dir='./test/tests') {
 			http,
 			fs,
 			mysql: sql,
-			print: console.log,
+			print: (...args) => console.log('LOG: ', ...args),
 			fetch: {},
 			path
 		},
