@@ -1,42 +1,59 @@
-import * as es from '../../build/index';
+const entropyScriptLink = document.createElement('script');
 
-(async () => {
+entropyScriptLink.setAttribute('src', '../../build/latest.js');
 
-    const initRes = await es.init(
-        console.log,
-        (msg, cb) => cb(prompt()),
-        false, {
-            print: console.log
-        }
-    );
+document.head.appendChild(entropyScriptLink);
 
-    if (initRes) {
-        console.log(initRes.str);
+entropyScriptLink.onload = async () => {
+
+    /**
+     * Runs EntropyScript code
+     * @param {string} text
+     */
+    window.runES = (text) => {
+        es.run(text);
+    };
+
+    if ('onESLoad' in window && typeof window.onESLoad === 'function') {
+        window.onESLoad(es);
     }
 
-    let scripts = document.querySelectorAll('script[type=es]');
+    const scripts = [
+        ...document.querySelectorAll('script[type=es]'),
+        ...document.querySelectorAll('script[type=entropy-script]')
+    ];
 
-    const scriptTexts = [];
+    const res = await es.init(
+        console.log,
+        (msg, cb) => cb(prompt()),
+        false
+    );
+
+    if (res instanceof es.ESError) {
+        console.log(res.str);
+        return;
+    }
 
     for (const s of scripts) {
         const url = s.getAttribute('src');
+
         let text;
         if (url) {
             text = await (await (fetch(url))).text();
         } else {
             text = s.innerText;
         }
-        scriptTexts.push(text);
-    }
 
-    let i = 0;
-    for (const text of scriptTexts) {
+        const env = new es.Context();
+        env.parent = es.global;
+
         const res = es.run(text, {
-            fileName: scripts[i].getAttribute('src') || 'inlineES'
+            env,
+            fileName: url || 'inline',
+            currentDir: url
         });
         if (res.error) {
-            document.getElementById('error').innerHTML = res.error.str;
+            console.log(res.error.str);
         }
-        i++;
     }
-})();
+};

@@ -1,4 +1,4 @@
-import {ESError, TypeError} from "../errors";
+import { ESError, ImportError, TypeError } from "../errors";
 import {Position} from "../position";
 import { strip, wrap } from '../runtime/primitives/wrapStrip';
 import {
@@ -12,6 +12,11 @@ import {
 import { BuiltInFunction, funcProps, indent, sleep, str } from '../util/util';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import chalk from "../util/colours";
+import { IS_NODE_INSTANCE, global } from "../constants";
+import { getModule, moduleExist } from "./builtInModules";
+import { Context } from "../runtime/context";
+import { interpretResult } from "../runtime/nodes";
+import { run } from "../index";
 
 export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} = {
     'range': [({context}, minP, maxP, stepP) => {
@@ -250,4 +255,53 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
         name: 'throw',
         args: [{name: 'name', type: 'string'}, {name: 'details', type: 'string'}]
     }],
+}
+
+export function addDependencyInjectedBIFs (
+    printFunc: (...args: string[]) => void,
+    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
+) {
+    builtInFunctions['import'] = [(props: funcProps, rawUrl) => {
+        if (IS_NODE_INSTANCE) {
+            return new ESError(Position.void, 'ImportError', 'Is running in node instance but trying to run browser import function');
+        }
+        if (!(rawUrl instanceof ESString)) {
+            return new TypeError(Position.void, 'String', rawUrl.typeName(), str(rawUrl));
+        }
+        const url = str(rawUrl);
+
+        if (moduleExist(url)) {
+            return getModule(url);
+        }
+
+        return new ImportError(Position.void, url, 'Module not found. Try adding it to the pre-loaded modules.');
+    }, {
+        description: 'Loads a module. Cannot be used asynchronously, so add any modules to pre-load in the esconfig.json file.'
+    }];
+
+    builtInFunctions['print'] = [({context}, ...args) => {
+        let out = ``;
+        for (let arg of args) {
+            out += str(arg);
+        }
+        printFunc(out);
+    }, {}];
+
+    builtInFunctions['input'] = [({context}, msg, cbRaw) => {
+        inputFunc(msg.valueOf(), (msg) => {
+            let cb = cbRaw?.valueOf();
+            if (cb instanceof ESFunction) {
+                let res = cb.__call__({context},
+                    new ESString(msg)
+                );
+                if (res instanceof ESError) {
+                    console.log(res.str);
+                }
+            } else if (typeof cb === 'function') {
+                cb(msg);
+            }
+
+            return new ESString('\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.');
+        })
+    }, {}];
 }

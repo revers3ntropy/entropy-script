@@ -4,7 +4,7 @@ import {Node} from "../runtime/nodes";
 import {ESPrimitive, Primitive} from '../runtime/primitiveTypes';
 
 export type enumDict<T extends number, U> = { [k in T]: U };
-export type dict<T> = { [key in (string | number)]: T; };
+export type dict<T> = { [key in (string | number | symbol)]: T; };
 export interface timeData {
     total: number,
     lexerTotal: number,

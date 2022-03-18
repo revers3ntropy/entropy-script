@@ -41,7 +41,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
     override __get_property__ = (props: funcProps, k: Primitive): Primitive | ESError => {
         const key = str(k);
 
-        const val: T & { [key: string]: NativeObj } = this.__value__;
+        const val: any = this.__value__;
 
         const res = val[key];
 
@@ -65,13 +65,31 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
             const fTakesProps = this.functionsTakeProps;
 
             return new ESFunction((props: funcProps, ...args) => {
-                if (!fTakesProps) {
-                    args = args.map(o => strip(o, props));
-                    const res = val[key](...args);
-                    return wrap(res);
+                let res;
+                if (fTakesProps) {
+                    try {
+                        // @ts-ignore
+                        res = new val[key](props, ...args);
+                    } catch {
+                        try {
+                            res = val[key](props, ...args);
+                        } catch (e: any) {
+                            return new ESError(Position.void, e.name, e.toString());
+                        }
+                    }
                 } else {
-                    return wrap(val[key](props, ...args));
+                    try {
+                        // @ts-ignore
+                        res = new val[key](...args.map(o => strip(o, props)));
+                    } catch {
+                        try {
+                            res = val[key](...args.map(o => strip(o, props)));
+                        } catch (e: any) {
+                            return new ESError(Position.void, e.name, e.toString());
+                        }
+                    }
                 }
+                return wrap(res);
             });
         }
 

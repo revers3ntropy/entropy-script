@@ -46,5 +46,4 @@ export default class {
         this.catch_ = cb;
         return this;
     }
-
 };

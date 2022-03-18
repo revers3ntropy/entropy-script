@@ -61,7 +61,6 @@ function addNodeLibs (libs: JSModuleParams, context: Context) {
 
             const res: interpretResult = run(code, {
                 env,
-                measurePerformance: false,
                 fileName: scriptPath,
                 currentDir: exDir,
             });

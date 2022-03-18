@@ -1,4 +1,4 @@
-import { IS_NODE_INSTANCE, libs } from '../constants';
+import { global, IS_NODE_INSTANCE, libs } from '../constants';
 import {ESError} from '../errors';
 import {ESSymbol} from '../runtime/symbol';
 import type {JSModule} from './module';
@@ -11,13 +11,18 @@ import type { NativeObj } from "../runtime/primitives/primitive";
 import ascii from './built-in-modules/ascii';
 import json from './built-in-modules/json';
 import dom from './built-in-modules/dom';
-import Promise from './built-in-modules/promise';
 import time from './built-in-modules/time';
+import { Position } from "../position";
+import { Context } from "../runtime/context";
+import { ESNamespace } from "../runtime/primitives/esnamespace";
+import { ESString } from "../runtime/primitives/esstring";
+import { interpretResult } from "../runtime/nodes";
+import { run } from "../index";
 
 
 const modules: {[s: string]: JSModule} = {};
 
-type modulePrimitive = ESJSBinding<dict<any>>;
+type modulePrimitive = ESJSBinding<dict<any>> | ESNamespace;
 
 // memoize the modules for faster access
 const processedModules: {[s: string]: modulePrimitive} = {};
@@ -72,5 +77,47 @@ export function getModule (name: string): modulePrimitive | undefined {
         const processed = processRawModule(res, name);
         processedModules[name] = processed;
         return processed
+    }
+}
+
+export async function preloadModules (urls: dict<string>): Promise<ESError | undefined> {
+
+    for (const name of Object.keys(urls)) {
+
+        let url = urls[name];
+
+        if (url.substring(url.length-3) !== '.es') {
+            url = url + '.es';
+        }
+
+        try {
+            let data = await (await fetch(url)).text();
+
+            const env = new Context();
+            env.parent = global;
+
+            let splitUrl = url.split("/");
+            let scriptName = splitUrl.pop();
+            let exDir = splitUrl.join("/");
+
+            const n = new ESNamespace(new ESString(scriptName), {});
+
+            const res: interpretResult = run(data, {
+                env,
+                fileName: name,
+                currentDir: exDir,
+            });
+
+            n.__value__ = env.getSymbolTableAsDict();
+
+            if (res.error) {
+                return res.error;
+            }
+
+            processedModules[name] = n;
+
+        } catch (E: any) {
+            return new ESError(Position.void, 'ImportError', E.toString());
+        }
     }
 }

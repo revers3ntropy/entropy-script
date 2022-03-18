@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ES Web test</title>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+
+    <script defer type="module" src="include.js"></script>
+    <script type="es" src="1.es"></script>
+
+    <script>
+		window.onESLoad = (es) => {
+			es.parseConfig({
+				permissions: {
+					accessDOM: true
+				},
+                modules: {
+					'2': './2.es'
+                }
+			});
+		}
+    </script>
+</head>
+<body>
+</body>
+</html>

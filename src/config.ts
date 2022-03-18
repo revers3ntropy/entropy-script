@@ -1,5 +1,4 @@
 import type { dict } from "./util/util";
-import chalk from './util/colours';
 
 export interface config {
     permissions: {
@@ -10,8 +9,11 @@ export interface config {
         fileSystem: boolean,
 
         [k: string]: any
-    }
+    },
+    modules: dict<string>,
 }
+
+let AllowAny = Symbol('AllowAny');
 
 export const config = {
     permissions: {
@@ -20,7 +22,11 @@ export const config = {
         accessDOM: false,
         useSTD: true,
         fileSystem: false,
-    }
+    },
+    modules: {
+        // should really be boolean but resolves to true anyway, and prevents type clashes expecting strings
+        [AllowAny]: 'y'
+    },
 };
 
 function pathAsString (path: string[]) {
@@ -32,21 +38,23 @@ function pathAsString (path: string[]) {
 }
 
 function parsePartOfConfig (config: dict<any>, configJSON: dict<any>, path: string[]=[]) {
-    const configKeys = Object.keys(config);
-    const unknownProps = Object.keys(configJSON).filter(x => !configKeys.includes(x));
-    for (const k of unknownProps) {
-        console.error(chalk.red(`Cannot parse config`),
-            ` - unknown property config${chalk.yellow(pathAsString([...path, k]))}`);
-    }
-    for (let key of configKeys) {
-        if (!configJSON.hasOwnProperty(key)) {
-            continue;
+
+    if (!config[AllowAny]) {
+        const unknownProps = Object.keys(configJSON).filter(x => !(x in config));
+
+        for (const k of unknownProps) {
+            console.error(`Cannot parse config`,
+                ` - unknown property config${pathAsString([...path, k])}`);
         }
-        if (typeof config[key] !== typeof configJSON[key]) {
-            console.error(chalk.red(`Cannot parse config`),
-                ` - config${chalk.yellow(pathAsString([...path, key]))} should be of type '${chalk.yellow(typeof config[key])}'`);
+    }
+
+    for (const key of Object.keys(configJSON)) {
+        if (typeof config[key] !== typeof configJSON[key] && !config[AllowAny]) {
+            console.error(`Cannot parse config`,
+                ` - config${pathAsString([...path, key])} should be of type '${typeof config[key]}'`);
             return;
         }
+
         if (typeof config[key] === 'object') {
             parsePartOfConfig(config[key], configJSON[key], [...path, key]);
             continue;

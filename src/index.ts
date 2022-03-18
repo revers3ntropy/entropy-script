@@ -26,6 +26,8 @@ import JS_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt.js';
 
 // @ts-ignore
 import PY_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt.py';
+import { preloadModules } from "./built-in/builtInModules";
+import { config } from "./config";
 
 export {
     Context,
@@ -53,11 +55,11 @@ export {parseConfig, config} from './config';
 /**
  * @param {(...args: any) => void} printFunc
  * @param {(msg: string, cb: (...arg: any[]) => any) => void} inputFunc
- * @param {boolean} node
+ * @param {boolean} node is this running in node or not. Assumed based on existence of 'window' object
  * @param libs
  * @param {Context} context
  * @param {string} path
- * @returns {Promise<void | ESError>}
+ * @returns {Promise<Context | ESError>} error or the global context
  */
 export async function init (
     printFunc: (...args: any[]) => void = console.log,
@@ -92,6 +94,8 @@ export async function init (
         await refreshPerformanceNow(true);
         addNodeLibs(libs, context);
     }
+
+    await preloadModules(config.modules);
 
     return global;
 }

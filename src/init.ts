@@ -1,13 +1,8 @@
-import { builtInFunctions } from "./built-in/builtInFunctions";
-import {getModule, initModules, moduleExist} from './built-in/builtInModules';
+import { addDependencyInjectedBIFs, builtInFunctions } from "./built-in/builtInFunctions";
+import {initModules} from './built-in/builtInModules';
 import { Context } from "./runtime/context";
-import { ESError, ImportError } from "./errors";
-import { Position } from "./position";
-import { run } from "./index";
-import {IS_NODE_INSTANCE} from "./constants";
-import { str } from "./util/util";
-import {ESFunction, ESNamespace, ESString} from './runtime/primitiveTypes';
-import {interpretResult} from "./runtime/nodes";
+import { ESError } from "./errors";
+import {ESFunction} from './runtime/primitiveTypes';
 import loadGlobalConstants from "./built-in/globalConstants";
 
 export function initialise (
@@ -15,63 +10,7 @@ export function initialise (
     printFunc: (...args: string[]) => void,
     inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
 ): ESError | undefined {
-    builtInFunctions['import'] = [({context}, rawUrl, callback) => {
-        if (IS_NODE_INSTANCE) {
-            return new ESError(Position.void, 'ImportError', 'Is running in node instance but trying to run browser import function');
-        }
-        const url: ESString = rawUrl.str();
-
-        if (moduleExist(str(url))) {
-            return getModule(str(url));
-        }
-
-        try {
-            fetch (str(url))
-                .then(c => c.text())
-                .then (async code => {
-                    const env = new Context();
-                    env.parent = globalContext;
-                    const res: interpretResult = await run(code);
-
-                    if (res.error) {
-                        printFunc(new ImportError(Position.void, str(url), res.error.str).str);
-                        return;
-                    }
-
-                    if (!(callback instanceof ESFunction)) return;
-
-                    callback.__call__({context},
-                        new ESNamespace(url, env.getSymbolTableAsDict())
-                    );
-                });
-        } catch (E: any) {
-            return new ESError(Position.void, 'ImportError', E.toString());
-        }
-    }, {}];
-
-    builtInFunctions['print'] = [({context}, ...args) => {
-        let out = ``;
-        for (let arg of args)
-            out += str(arg);
-        printFunc(out);
-    }, {}];
-
-    builtInFunctions['input'] = [({context}, msg, cbRaw) => {
-        inputFunc(msg.valueOf(), (msg) => {
-            let cb = cbRaw?.valueOf();
-            if (cb instanceof ESFunction) {
-                let res = cb.__call__({context},
-                    new ESString(msg)
-                );
-                if (res instanceof ESError) {
-                    console.log(res.str);
-                }
-            } else if (typeof cb === 'function')
-                cb(msg);
-
-            return new ESString('\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.');
-        })
-    }, {}];
+    addDependencyInjectedBIFs(printFunc, inputFunc);
 
     for (let builtIn in builtInFunctions) {
         const fn = new ESFunction(builtInFunctions[builtIn][0], [], builtIn, undefined, undefined, globalContext);
