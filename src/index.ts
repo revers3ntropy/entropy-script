@@ -95,7 +95,10 @@ export async function init (
         addNodeLibs(libs, context);
     }
 
-    await preloadModules(config.modules);
+    let modulePreloadRes = await preloadModules(config.modules);
+    if (modulePreloadRes instanceof ESError) {
+        return modulePreloadRes;
+    }
 
     return global;
 }
