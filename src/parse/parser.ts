@@ -582,15 +582,7 @@ export class Parser {
         let isGlobal = false;
         let isDeclaration = false;
 
-        if (
-            this.currentToken.type === tt.KEYWORD &&
-            this.currentToken.value === 'global'
-        ) {
-            isDeclaration = true;
-            isGlobal = true;
-            this.advance(res);
-            if (res.error) return res;
-        }
+        // (let (global)? (var)?)? identifier(: expr)? (*|/|+|-)?= expr
 
         if (
             this.currentToken.type === tt.KEYWORD &&
@@ -599,14 +591,26 @@ export class Parser {
             isDeclaration = true;
             this.advance(res);
             if (res.error) return res;
-        } else if (
-            this.currentToken.type === tt.KEYWORD &&
-            this.currentToken.value === 'var'
-        ) {
-            isDeclaration = true;
-            isConst = false;
-            this.advance(res);
-            if (res.error) return res;
+
+            if (
+                this.currentToken.type === tt.KEYWORD &&
+                this.currentToken.value === 'global'
+            ) {
+                isDeclaration = true;
+                isGlobal = true;
+                this.advance(res);
+                if (res.error) return res;
+            }
+
+            if (
+                this.currentToken.type === tt.KEYWORD &&
+                this.currentToken.value === 'var'
+            ) {
+                isDeclaration = true;
+                isConst = false;
+                this.advance(res);
+                if (res.error) return res;
+            }
         }
 
         if (this.currentToken.type === tt.KEYWORD) {

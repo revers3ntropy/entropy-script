@@ -3,7 +3,7 @@ file('std/range');
 
 expect([[0, 1, 2]], 'range(3)');
 expect ([undefined, undefined, 2], `
-    var res;
+    let var res;
     for let i in range(3) {
         res = i;
     }

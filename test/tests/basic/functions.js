@@ -92,7 +92,7 @@ myOtherFunc();
 `);
 expect(['<Func>', 0], `
 let myFunc = func (arr) {
-    for var n in arr {
+    for n in arr {
         return n;
     }
 };
@@ -100,7 +100,7 @@ myFunc([0, 1, 2, 3]);
 `);
 expect(['<Func>', 3], `
 let myFunc = func (arr, cb) {
-    for var n in arr {
+    for n in arr {
         if (cb(n)) {
             return n;
         }
@@ -137,8 +137,8 @@ myFunc('hel', 'lo w', 'orld');
 `);
 
 expect(['<Func>'], `
-global myFunc = func () {
-	var exists = false;
+let myFunc = func () {
+	let exists = false;
 	gg = false;
 	// wont get logged as not running function
 	log('hi');

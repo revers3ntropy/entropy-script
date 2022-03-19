@@ -16,7 +16,7 @@ expect([undefined], `
     }
 `);
 expect([0, undefined, 2], `
-	var a = 0;
+	let var a = 0;
     try {
     	throw();
     	a = 3;
@@ -26,7 +26,7 @@ expect([0, undefined, 2], `
     a;
 `);
 expect([undefined, undefined, 'CustomError - custom error details'], `
-	var a;
+	let var a;
     try {
     	throw('CustomError', 'custom error details');
     	a = 'no';

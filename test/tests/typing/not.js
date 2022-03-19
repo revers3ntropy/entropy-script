@@ -2,7 +2,7 @@ const {expect, file} = require( '../../testFramework');
 file('typing/not');
 
 expect([1], `
-    var b: (~String) = 1;
+    let b: (~String) = 1;
 `);
 
 expect('TypeError', `

@@ -35,11 +35,11 @@ expect(
         }
     };
     
-    var pos = v2(0, 0);
+    let var pos = v2(0, 0);
     pos.add(v2(3, 4));
     pos.str();
     pos.clone() == pos;
-    var clone = pos.clone().add(v2(1, 1));
+    let clone = pos.clone().add(v2(1, 1));
     pos.str();
     clone.str();
 `);

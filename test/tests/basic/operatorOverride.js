@@ -5,7 +5,7 @@ expect([
     'myClass',
     {a: 12, __multiply__: '<Func>'}, 12
 ], `
-    var myClass = class {
+    let myClass = class {
         init (a) {
             this.a = a;
         }

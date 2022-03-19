@@ -2,8 +2,8 @@ const {expect, file} = require( '../../testFramework');
 file('basic/loops');
 
 expect([undefined, 0, undefined, 9, 10], `
-    var output;
-    var i = 0;
+    let var output;
+    let var i = 0;
     while i < 10 {
         output = i;
         i = i + 1;
@@ -11,7 +11,7 @@ expect([undefined, 0, undefined, 9, 10], `
     output; i;
 `);
 expect([0, undefined, 10], `
-    var i = 0;
+    let var i = 0;
     while i < 10 {
         i = i + 1;
     }
@@ -19,8 +19,8 @@ expect([0, undefined, 10], `
 `);
 
 expect ([undefined, undefined, 2], `
-    var output;
-    for var i in [0, 1, 2] {
+    let var output;
+    for i in [0, 1, 2] {
         output = i;
     }
     output;
@@ -30,21 +30,21 @@ expect ('InvalidSyntaxError', `
     for global i in [] {}
 `);
 expect ([undefined, undefined, 2], `
-    var output;
+    let var output;
     for i in [0, 1, 2] {
         output = i;
     }
     output;
 `);
 expect ([0, undefined, 3], `
-    var sum = 0;
+    let var sum = 0;
     for i in [0, 1, 2] {
         sum = sum + i;
     }
     sum;
 `);
 expect ([undefined, undefined, 2], `
-    var output;
+    let var output;
     for i in 3 {
         output = i;
     }
@@ -52,8 +52,8 @@ expect ([undefined, undefined, 2], `
 `);
 
 expect ([undefined, 0, undefined, 0, 1], `
-    var output;
-    var i_ = 0;
+    let var output;
+    let var i_ = 0;
     for i in range(3) {
         if i == 1 { break }
         output = i;
@@ -63,8 +63,8 @@ expect ([undefined, 0, undefined, 0, 1], `
     i_;
 `);
 expect ([undefined, 0,  undefined, 2, 2], `
-    var output;
-    var i_ = 0;
+    let var output;
+    let var i_ = 0;
     for i in range(3) {
         if i == 1 { 
             continue 

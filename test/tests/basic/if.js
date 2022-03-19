@@ -9,8 +9,8 @@ expect(['00', undefined], `
     if current_char == '>' {}
 `);
 expect([false, undefined, true, true], `
-    var result = false;
-    var output: Any;
+    let var result = false;
+    let var output: Any;
     if result {
         output = false;
     } else {
@@ -19,8 +19,8 @@ expect([false, undefined, true, true], `
     output;
 `);
 expect([false, undefined, true, true], `
-    var result = false;
-    var output;
+    let var result = false;
+    let var output;
     if result {
         output = false;
     } else if 1 != 6 {
@@ -29,7 +29,7 @@ expect([false, undefined, true, true], `
     output;
 `);
 expect([undefined, false, false], `
-    var output: Any;
+    let var output: Any;
     if true {
         output = true;
         output = false;

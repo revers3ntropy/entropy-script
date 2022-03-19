@@ -7,19 +7,19 @@ expect([{a: 1}, 2], `
 `);
 
 expect([{}, 1, 1, 1], `
-    var a = {};
+    let a = {};
     a['a'] = 1;
     a.a;
     a['a'];
 `);
 expect([{}, 1, 1, 1], `
-    var a = {};
+    let a = {};
     a.a = 1;
     a.a;
     a['a'];
 `);
 expect([{a: {a: 6}}, 6, 6, 6, 6, 6], `
-    var a = {a: {}};
+    let a = {a: {}};
     a.a.a = 6;
     a.a.a;
     a['a'].a;
@@ -27,22 +27,22 @@ expect([{a: {a: 6}}, 6, 6, 6, 6, 6], `
     a['a']['a'];
 `);
 expect([{a: 1}, 1], `
-    var a = {a: 1};
+    let a = {a: 1};
     a.a;
 `);
 expect([{a: 1}, 1, 1], `
-    var a = {'a': 1};
+    let a = {'a': 1};
     a['a'];
     a.a;
 `);
 expect(['a', {a: 1}, 1, 1], `
-    var b = 'a';
-    var a = {[b]: 1};
+    let b = 'a';
+    let a = {[b]: 1};
     a['a'];
     a.a;
 `);
 expect([{a: '<Func>'}, '<Func>', 'e'], `
-    var a = {a: func () {
+    let a = {a: func () {
         return 'hello world';
     }};
     a.a;

@@ -34,15 +34,20 @@ expect([`h'h`], `'h\\'h'`);
 
 
 // variables
-expect('InvalidSyntaxError', 'var a = 1; a = 2; var a = 1;');
+expect('InvalidSyntaxError', `
+	let var a = 1; 
+	a = 2; 
+	let var a = 1;
+`);
 expect('ReferenceError', 'a');
-expect([1], 'global b = 1');
+expect([1], 'let global b = 1');
 expect([1], 'let c = 1');
-expect([undefined], 'var d;');
-expect([1, 2], 'var e = 1; e = e + 1;');
-expect('ReferenceError', 'var f = f + 1;');
-expect([undefined, true], 'var g; g == nil;');
-expect([1, 2], `var n = 1; n = 2;`);
+expect([undefined], 'let var d;');
+expect([1, 2], 'let var e = 1; e = e + 1;');
+expect('ReferenceError', 'let var f = f + 1;');
+expect([undefined, true], 'let var g; g == nil;');
+expect('InvalidSyntaxError', 'let g');
+expect([1, 2], `let var n = 1; n = 2;`);
 expect('TypeError', `let n = 1; n = 2;`);
 expect('InvalidSyntaxError', `let n = 1; let n = 2;`);
 
