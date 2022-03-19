@@ -620,11 +620,43 @@ export class Parser {
             ));
         }
 
+        if (this.currentToken.type === tt.OSQUARE) {
+            this.advance(res);
+            if (res.error) return res;
 
+            let identifiers: Token<string>[] = [];
+
+            // @ts-ignore
+            while (this.currentToken.type === tt.IDENTIFIER) {
+                identifiers.push(this.currentToken);
+                this.advance(res);
+            }
+
+            this.consume(res, tt.CSQUARE);
+            if (res.error) return res;
+
+            if (!this.currentToken.matches(tt.ASSIGN, '=')) {
+                return res.failure(new InvalidSyntaxError(this.currentToken.pos, `Expected '='`))
+            }
+            this.advance(res);
+            if (res.error) return res;
+
+            let expr = res.register(this.expr());
+
+            return res.success(new n.N_arrayDestructAssign(
+                pos,
+                identifiers.map(i => i.value),
+                expr,
+                isGlobal,
+                isConst
+            ));
+        }
+
+        // @ts-ignore
         if (this.currentToken.type !== tokenType.IDENTIFIER) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
-                `Expected Identifier or Keyword`
+                `Expected Identifier, '[' or '{'`
             ));
         }
 

@@ -1,4 +1,4 @@
-import {ESError, TypeError} from '../../errors';
+import { ESError, IndexError, TypeError } from '../../errors';
 import {Position} from '../../position';
 import { dict, funcProps, str } from '../../util/util';
 import {Context} from '../context';
@@ -162,7 +162,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             return wrap(this.self[str(key)], true);
         }
 
-        return new ESUndefined();
+        return new IndexError(Position.void, str(key), this);
     };
 
     override __set_property__ = ({}: funcProps, key: Primitive, value: Primitive): void | ESError => {

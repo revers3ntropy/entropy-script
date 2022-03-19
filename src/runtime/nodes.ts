@@ -345,11 +345,6 @@ export class N_varAssign extends Node {
                 return new InvalidSyntaxError(this.pos,
                     `Cannot declare variable with operator '${ this.assignType }'`);
             }
-
-            if (context.hasOwn(this.varNameTok.value)) {
-                return new InvalidSyntaxError(this.pos,
-                    `Cannot redeclare variable which exists in the current scope`);
-            }
         }
 
         const res = this.value.interpret(context);
@@ -546,6 +541,105 @@ export class N_varAssign extends Node {
         }
 
         return res;
+    }
+}
+
+export class N_arrayDestructAssign extends Node {
+    value: Node;
+    varNames: string[];
+    isGlobal: boolean;
+    isConstant: boolean;
+
+    constructor (
+        pos: Position,
+        varNames: string[],
+        value: Node,
+        isGlobal=false,
+        isConstant=false,
+    ) {
+        super(pos);
+        this.value = value;
+        this.varNames = varNames;
+        this.isGlobal = isGlobal;
+        this.isConstant = isConstant;
+    }
+
+    interpret_(context: Context): interpretResult | ESError {
+
+        for (let varName of this.varNames) {
+            if (context.hasOwn(varName)) {
+                return new InvalidSyntaxError(this.pos,
+                    `Symbol '${varName}' already exists, and cannot be redeclared`);
+            }
+        }
+
+        const res = this.value.interpret(context);
+        if (res.error) return res.error;
+
+        if (res.val instanceof ESArray || res.val instanceof ESString) {
+
+            if (this.varNames.length > res.val.valueOf().length) {
+                return new TypeError(Position.void,
+                    `[Any * >=${this.varNames.length}]`,
+                    `[Any * <${this.varNames.length}]`, str(res.val));
+            }
+
+            let i = 0;
+            for (let varName of this.varNames) {
+                let val = res.val.valueOf()[i];
+                if (typeof val === 'string') {
+                    val = new ESString(val);
+                }
+                context.setOwn(varName, val, {
+                    global: this.isGlobal,
+                    isConstant: this.isConstant,
+                    type: res.val.__type__
+                });
+                i++;
+            }
+
+            return new interpretResult(res.val);
+        }
+
+        for (let varName of this.varNames) {
+            let objPropRes =  res.val.__get_property__({context}, new ESString(varName));
+            if (objPropRes instanceof ESError) return objPropRes;
+
+            context.setOwn(varName, objPropRes, {
+                global: this.isGlobal,
+                isConstant: this.isConstant,
+                type: res.val.__type__
+            });
+        }
+
+        return new interpretResult(res.val);
+    }
+
+    compileJS (config: compileConfig) {
+        const val = this.value.compileJS(config);
+        if (val.error) return val;
+
+        let declaration = '';
+
+        if (this.isGlobal) {
+            declaration = 'var';
+        } else if (this.isConstant) {
+            declaration = 'const';
+        } else {
+            declaration = 'let';
+        }
+
+        if (config.minify) {
+            return new compileResult(`${declaration}[${this.varNames.join(',')}]=${val.val}`);
+        }
+        return new compileResult(`${declaration} [${this.varNames.join(', ')}] = ${val.val}`);
+    }
+
+    compilePy (config: compileConfig) {
+        const val = this.value.compileJS(config);
+        if (val.error) return val;
+
+        return new compileResult(`${this.varNames.join(', ')} = ${val.val}`);
     }
 }
 
