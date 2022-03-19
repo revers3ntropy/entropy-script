@@ -20,6 +20,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     this_: ESObject;
     returnType: Primitive;
     __closure__: Context;
+    takeCallContextAsClosure: boolean;
 
     constructor (
         func: Node | BuiltInFunction = (() => {}),
@@ -27,7 +28,8 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         name='(anon)',
         this_: ESObject = new ESObject(),
         returnType: Primitive = types.any,
-        closure?: Context
+        closure?: Context,
+        takeCallContextAsClosure = false
     ) {
         super(func, types.function);
         this.arguments_ = arguments_;
@@ -40,6 +42,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             this.__closure__ = new Context();
             this.__closure__.parent = global;
         }
+        this.takeCallContextAsClosure = takeCallContextAsClosure;
 
         this.info.returnType = str(returnType);
         this.info.args = arguments_.map(arg => ({
@@ -88,8 +91,12 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     override bool = this.__bool__;
 
     override __call__ = ({context}: funcProps, ...params: Primitive[]): ESError | Primitive => {
-        this.__closure__.path = context.path;
-        return call(this.__closure__, this, params);
+        let ctx = context;
+        if (!this.takeCallContextAsClosure) {
+            ctx = this.__closure__;
+            ctx.path = context.path;
+        }
+        return call(ctx, this, params);
     }
 
     override __get_property__ = (props: funcProps, key: Primitive): Primitive | ESError => {

@@ -5,7 +5,6 @@ entropyScriptLink.setAttribute('src', '../../build/latest.js');
 document.head.appendChild(entropyScriptLink);
 
 entropyScriptLink.onload = async () => {
-
     /**
      * Runs EntropyScript code
      * @param {string} text

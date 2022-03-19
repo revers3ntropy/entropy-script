@@ -1,4 +1,4 @@
-import { ESError, ImportError, TypeError } from "../errors";
+import { ESError, ImportError, TypeError, ReferenceError } from "../errors";
 import {Position} from "../position";
 import { strip, wrap } from '../runtime/primitives/wrapStrip';
 import {
@@ -14,9 +14,6 @@ import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import chalk from "../util/colours";
 import { IS_NODE_INSTANCE, global } from "../constants";
 import { getModule, moduleExist } from "./builtInModules";
-import { Context } from "../runtime/context";
-import { interpretResult } from "../runtime/nodes";
-import { run } from "../index";
 
 export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} = {
     'range': [({context}, minP, maxP, stepP) => {
@@ -191,11 +188,23 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
         description: 'Returns the current path'
     }],
 
-    '__symbols__': [({context}) => {
+    '__symbols__': [({context}, recursive) => {
+        if (recursive.bool().valueOf()) {
+            let keys = context.keys;
+            while (context.parent) {
+                keys = context.parent.keys;
+                context = context.parent;
+            }
+            return wrap(keys);
+        }
         return wrap(context.keys);
     }, {
-        name: '__allSymbols',
-        args: [],
+        name: '__symbols',
+        args: [{
+            name: 'recursive',
+            type: 'Bool',
+            description: 'if true, returns the names of all symbols available in the current scope, if false, just the symbols declared in the current scope.'
+        }],
         description: 'Returns an array of the names of all symbols in the current context'
     }],
 
@@ -253,8 +262,36 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
         return new ESError(Position.void, str(name), str(details));
     }, {
         name: 'throw',
-        args: [{name: 'name', type: 'string'}, {name: 'details', type: 'string'}]
+        args: [{name: 'name', type: 'String'}, {name: 'details', type: 'String'}]
     }],
+
+    'typeof': [({context}, symbolPrim) => {
+        if (!(symbolPrim instanceof ESString)) {
+            return new TypeError(Position.void, 'String', symbolPrim.typeName(), str(symbolPrim));
+        }
+
+        let symbol = str(symbolPrim);
+
+        if (!context.has(symbol)) {
+            return new ReferenceError(Position.void, symbol);
+        }
+
+        let res = context.getSymbol(symbol);
+
+        if (!res) {
+            return new ReferenceError(Position.void, symbol);
+        }
+        if (res instanceof ESError) {
+            return res;
+        }
+
+        return res.type;
+    }, {
+        name: 'typeof',
+        args: [
+            {name: 'identifier', type: 'String'}
+        ]
+    }]
 }
 
 export function addDependencyInjectedBIFs (

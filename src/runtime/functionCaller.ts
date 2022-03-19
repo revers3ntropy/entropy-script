@@ -58,7 +58,9 @@ export function call (context: Context, self: ESFunction, params: Primitive[]): 
 
     // generate context
     let callContext = context;
-    context = self.__closure__;
+    if (!self.takeCallContextAsClosure) {
+        context = self.__closure__;
+    }
     context.path = callContext.path;
     const fn = self.__value__;
 

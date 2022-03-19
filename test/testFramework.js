@@ -196,13 +196,11 @@ function arraysSame (arr1, arr2) {
 
         } else if (item2 instanceof es.ESFunction || item2 instanceof es.ESType) {
             if (item1 !== item2.str().valueOf()) {
-                console.log(item1, item2.str().valueOf());
                 return false;
             }
 
         } else if (item1 instanceof es.ESFunction || item1 instanceof es.ESType) {
             if (item2 !== item1.str().valueOf()) {
-                console.log(item2, item1.str().valueOf());
                 return false;
             }
 

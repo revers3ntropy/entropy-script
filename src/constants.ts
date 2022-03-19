@@ -137,6 +137,7 @@ export enum tokenType {
     PIPE,
     APMERSAND,
     BITWISE_NOT,
+    QM
 }
 
 export let tt = tokenType;
@@ -185,6 +186,7 @@ export const tokenTypeString: enumDict<tokenType, string> = {
     [tt.APMERSAND]: '&',
     [tt.PIPE]: '|',
     [tt.BITWISE_NOT]: '~',
+    [tt.QM]: '?',
 }
 
 export const singleCharTokens: {[char: string]: tokenType} = {
@@ -210,7 +212,8 @@ export const singleCharTokens: {[char: string]: tokenType} = {
     '!': tt.NOT,
     '|': tt.PIPE,
     '&': tt.APMERSAND,
-    '~': tt.BITWISE_NOT
+    '~': tt.BITWISE_NOT,
+    '?': tt.QM
 };
 
 export const doubleCharTokens: {[char: string]: tokenType} = {
@@ -244,8 +247,8 @@ export const primitiveMethods: string[] = [
     '__pipe__',
     '__ampersand__',
     '__bool__',
-    '__setProperty__',
-    '__getProperty__',
+    '__set_property__',
+    '__get_property__',
     '__call__',
 ];
 

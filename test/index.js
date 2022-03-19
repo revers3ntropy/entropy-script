@@ -9,6 +9,8 @@ const sql = require('sync-mysql');
 const readline = require('readline');
 const path = require('path');
 
+const VERBOSE = process.argv.indexOf('-v') !== -1;
+
 /**
  * Syntax: String(await askQuestion(query).
  * Waits for Node I/O and when the user inputs something from the command line returns the line.
@@ -64,6 +66,6 @@ async function importAll (dir='./test/tests') {
 		console.log(err);
 	}
 
-	console.log(Index.testAll().str(process.argv.indexOf('-v') !== -1));
+	console.log(Index.testAll().str(VERBOSE));
 })();
 

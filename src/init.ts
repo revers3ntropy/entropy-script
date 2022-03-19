@@ -4,6 +4,7 @@ import { Context } from "./runtime/context";
 import { ESError } from "./errors";
 import {ESFunction} from './runtime/primitiveTypes';
 import loadGlobalConstants from "./built-in/globalConstants";
+import { types } from "./constants";
 
 export function initialise (
     globalContext: Context,
@@ -13,7 +14,15 @@ export function initialise (
     addDependencyInjectedBIFs(printFunc, inputFunc);
 
     for (let builtIn in builtInFunctions) {
-        const fn = new ESFunction(builtInFunctions[builtIn][0], [], builtIn, undefined, undefined, globalContext);
+        const fn = new ESFunction(
+            builtInFunctions[builtIn][0],
+            [],
+            builtIn,
+            undefined,
+            undefined,
+            globalContext,
+            true
+        );
 
         fn.info = builtInFunctions[builtIn][1];
         fn.info.name = builtIn;
@@ -22,7 +31,8 @@ export function initialise (
 
         globalContext.set(builtIn, fn, {
             global: true,
-            isConstant: true
+            isConstant: true,
+            type: types.function
         });
     }
 

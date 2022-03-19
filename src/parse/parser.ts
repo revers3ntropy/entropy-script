@@ -375,7 +375,7 @@ export class Parser {
         const res = new ParseResults();
         const tok = this.currentToken;
 
-        if (tok.type === tt.ADD || tok.type === tt.SUB || tok.type === tt.BITWISE_NOT) {
+        if (tok.type === tt.ADD || tok.type === tt.SUB || tok.type === tt.BITWISE_NOT || tok.type === tt.QM) {
             this.advance(res);
             const factor = res.register(this.factor());
             if (res.error) return res;

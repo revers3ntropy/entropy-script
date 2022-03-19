@@ -1,28 +1,34 @@
 import type { dict } from "./util/util";
 
-export interface config {
-    permissions: {
-        networking: boolean;
-        imports: boolean;
-        accessDOM: boolean;
-        useSTD: boolean;
-        fileSystem: boolean,
+export type Permissions = {
+    networking: boolean;
+    imports: boolean;
+    accessDOM: boolean;
+    useSTD: boolean;
+    fileSystem: boolean,
 
-        [k: string]: any
-    },
+    [k: string]: any
+};
+
+export interface config {
+    permissions: Permissions,
     modules: dict<string>,
 }
 
 let AllowAny = Symbol('AllowAny');
 
-export const config = {
-    permissions: {
+export function defaultPermissions (): Permissions {
+    return {
         networking: false,
         imports: true,
         accessDOM: false,
         useSTD: true,
         fileSystem: false,
-    },
+    };
+}
+
+export const config = {
+    permissions: defaultPermissions(),
     modules: {
         // should really be boolean but resolves to true anyway, and prevents type clashes expecting strings
         [AllowAny]: 'y'

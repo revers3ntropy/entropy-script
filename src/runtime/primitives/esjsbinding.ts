@@ -9,6 +9,35 @@ import { strip, wrap } from './wrapStrip';
 import { ESFunction } from "./esfunction";
 import { types } from "../../constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
+import { call } from "../functionCaller";
+
+function callBack (fTakesProps: boolean, val: any, key: any, props: funcProps, args: Primitive[]): Primitive | ESError {
+    let res;
+    if (fTakesProps) {
+        try {
+            // @ts-ignore
+            res = new val[key](props, ...args);
+        } catch {
+            try {
+                res = val[key](props, ...args);
+            } catch (e: any) {
+                return new ESError(Position.void, e.name, e.toString());
+            }
+        }
+    } else {
+        try {
+            // @ts-ignore
+            res = new val[key](...args.map(o => strip(o, props)));
+        } catch {
+            try {
+                res = val[key](...args.map(o => strip(o, props)));
+            } catch (e: any) {
+                return new ESError(Position.void, e.name, e.toString());
+            }
+        }
+    }
+    return wrap(res);
+}
 
 
 export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
@@ -64,32 +93,8 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
 
             const fTakesProps = this.functionsTakeProps;
 
-            return new ESFunction((props: funcProps, ...args) => {
-                let res;
-                if (fTakesProps) {
-                    try {
-                        // @ts-ignore
-                        res = new val[key](props, ...args);
-                    } catch {
-                        try {
-                            res = val[key](props, ...args);
-                        } catch (e: any) {
-                            return new ESError(Position.void, e.name, e.toString());
-                        }
-                    }
-                } else {
-                    try {
-                        // @ts-ignore
-                        res = new val[key](...args.map(o => strip(o, props)));
-                    } catch {
-                        try {
-                            res = val[key](...args.map(o => strip(o, props)));
-                        } catch (e: any) {
-                            return new ESError(Position.void, e.name, e.toString());
-                        }
-                    }
-                }
-                return wrap(res);
+            return new ESFunction((props, ...args) => {
+                return callBack(fTakesProps, val, key, props, args);
             });
         }
 
@@ -114,38 +119,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
             return new TypeError(Position.void, 'function', typeof this.__value__, str(this));
         }
 
-        let res;
-
-        if (this.functionsTakeProps) {
-            try {
-                // @ts-ignore
-                res = new this.__value__(props, ...args);
-            } catch {
-                try {
-                    res = this.__value__(props, ...args);
-                } catch (e: any) {
-                    return new ESError(Position.void, e.name, e.toString());
-                }
-            }
-        } else {
-            try {
-                // @ts-ignore
-                res = new this.__value__(...args.map(o => strip(o, props)));
-            } catch {
-                try {
-                    res = this.__value__(...args.map(o => strip(o, props)));
-                } catch (e: any) {
-                    return new ESError(Position.void, e.name, e.toString());
-                }
-            }
-        }
-
-
-        if (res instanceof ESPrimitive) {
-            return res;
-        }
-
-        return wrap(res);
+       return callBack(this.functionsTakeProps, this, '__value__', props, args);
     };
 
     override has_property = (props: funcProps, key: Primitive): ESBoolean => {

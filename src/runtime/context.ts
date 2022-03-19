@@ -7,13 +7,16 @@ import {dict, str} from "../util/util";
 import {ESSymbol, symbolOptions} from './symbol';
 import chalk from "../util/colours";
 import { types } from "../constants";
+import { defaultPermissions, Permissions } from "../config";
 
 export class Context {
-    private symbolTable: {[identifier: string]: ESSymbol} = {};
+    private symbolTable: dict<ESSymbol> = {};
     private parent_: Context | undefined;
 
     public initialisedAsGlobal = false;
     public deleted = false;
+
+    public permissions_: Permissions | undefined;
 
     public path_ = '';
 
@@ -37,6 +40,20 @@ export class Context {
             return;
         }
         this.parent_ = val;
+    }
+
+    get permissions (): Permissions {
+        if (this.permissions_) {
+            return this.permissions_
+        }
+        if (this.parent) {
+            return this.parent.permissions;
+        }
+        return defaultPermissions();
+    }
+
+    set permissions (val) {
+        this.permissions_ = val;
     }
 
     has (identifier?: string): boolean {
@@ -75,22 +92,22 @@ export class Context {
     }
 
     getSymbol (identifier: string): undefined | ESSymbol | ESError {
-        let symbol = this.symbolTable[identifier];
+        let symbol: ESSymbol | undefined = this.symbolTable[identifier];
 
-        if (symbol !== undefined && !symbol.isAccessible)
+        if (symbol && !symbol.isAccessible) {
             return new TypeError(
                 Position.void,
                 'assessable',
                 'inaccessible',
                 symbol.identifier
             );
+        }
 
-        if (symbol === undefined && this.parent) {
+        if (!symbol && this.parent) {
             let res = this.parent.getSymbol(identifier);
-            if (res instanceof ESError)
+            if (res instanceof ESError) {
                 return res;
-            if (!res)
-                return new ReferenceError(Position.void, identifier);
+            }
             symbol = res;
         }
 

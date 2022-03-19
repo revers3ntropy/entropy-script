@@ -20,7 +20,7 @@ import {
     Primitive
 } from "./primitiveTypes";
 import {type dict, generateRandomSymbol, str} from '../util/util';
-import { ESTypeNot } from "./primitives/estype";
+import { ESTypeNot, ESTypeUnion } from "./primitives/estype";
 
 export class interpretResult {
     val: Primitive = new ESUndefined();
@@ -272,6 +272,9 @@ export class N_unaryOp extends Node {
                 return new interpretResult(new ESBoolean(!res?.val?.bool().valueOf()));
             case tt.BITWISE_NOT:
                 return new interpretResult(new ESTypeNot(res.val));
+            case tt.QM:
+                return new interpretResult(new ESTypeUnion(types.undefined, res.val));
+
             default:
                 return new InvalidSyntaxError(
                     this.opTok.pos,
@@ -332,9 +335,21 @@ export class N_varAssign extends Node {
 
     interpret_(context: Context): interpretResult | ESError {
 
-        if (this.isDeclaration && context.hasOwn(this.varNameTok.value)) {
-            return new InvalidSyntaxError(this.pos,
-                `Symbol '${this.varNameTok.value}' already exists, and cannot be redeclared`);
+        if (this.isDeclaration) {
+            if (context.hasOwn(this.varNameTok.value)) {
+                return new InvalidSyntaxError(this.pos,
+                    `Symbol '${ this.varNameTok.value }' already exists, and cannot be redeclared`);
+            }
+
+            if (this.assignType !== '=') {
+                return new InvalidSyntaxError(this.pos,
+                    `Cannot declare variable with operator '${ this.assignType }'`);
+            }
+
+            if (context.hasOwn(this.varNameTok.value)) {
+                return new InvalidSyntaxError(this.pos,
+                    `Cannot redeclare variable which exists in the current scope`);
+            }
         }
 
         const res = this.value.interpret(context);
@@ -368,16 +383,6 @@ export class N_varAssign extends Node {
 
 
         if (this.isDeclaration) {
-            if (this.assignType !== '=') {
-                return new InvalidSyntaxError(this.pos,
-                    `Cannot declare variable with operator '${this.assignType}'`);
-            }
-
-            if (context.hasOwn(this.varNameTok.value)) {
-                return new InvalidSyntaxError(this.pos,
-                    `Cannot redeclare variable which exists in the current scope`);
-            }
-
             context.setOwn(this.varNameTok.value, res.val, {
                 global: false,
                 isConstant: this.isConstant,
@@ -388,7 +393,9 @@ export class N_varAssign extends Node {
 
         if (context.has(this.varNameTok.value)) {
             const symbol = context.getSymbol(this.varNameTok.value);
-            if (symbol instanceof ESError) return symbol;
+            if (symbol instanceof ESError) {
+                return symbol;
+            }
             if (symbol) {
                 if (!symbol.type.type_check({context}, res.val).valueOf()) {
                     return new TypeError(
@@ -429,11 +436,12 @@ export class N_varAssign extends Node {
             const setRes = context.set(this.varNameTok.value, value, {
                 global: this.isGlobal,
                 isConstant: this.isConstant,
-                type: res.val.__type__
+                type: type.type
             });
 
-            if (setRes instanceof ESError) return setRes;
-
+            if (setRes instanceof ESError) {
+                return setRes;
+            }
 
         } else {
 
@@ -1063,7 +1071,8 @@ export class N_functionCall extends Node {
             res.traceback.push({
                 position: this.pos,
                 // do the best we can to recreate line,
-                // giving some extra info as well as it is the interpreted arguments so variables values not names
+                // giving some extra info as well as it is the interpreted arguments so
+                // variables values not names
                 line: `${val.info.name || '<AnonFunction>'}(${params.map(str).join(', ')})`
             });
         }

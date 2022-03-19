@@ -9,13 +9,23 @@
     <script type="es">
         using(import('dom'));
 
-        const div = $('#myDiv');
+        let div = $('#myDiv');
 
         div.html('hello world!');
         div.css({ color: 'green' });
 
         div.click(func () div.html('You clicked me!'));
 
+    </script>
+
+    <script>
+		window.onESLoad = (es) => {
+			es.parseConfig({
+				permissions: {
+					accessDOM: true
+				}
+			});
+		}
     </script>
 </head>
 <body>
