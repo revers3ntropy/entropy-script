@@ -1,13 +1,13 @@
-const ascii = import('ascii');
+let ascii = import('ascii');
 
-const interpret = func (code: string) {
-    const cells = [];
-    let pointer = 0;
+let interpret = func (code: string) {
+    let cells = [];
+    let var pointer = 0;
 
-    let code_idx = 0;
-    const end = code.len();
+    let var code_idx = 0;
+    let end = code.len();
 
-    const step = func () {
+    let step = func () {
         let current_char = code[code_idx];
 
         if current_char == '>' {
@@ -47,7 +47,7 @@ const interpret = func (code: string) {
             if cells[pointer] == undefined || cells[pointer] == 0 {
                 print('skip to end');
                 // skip to matching closing bracket
-                let opens = 0;
+                let var opens = 0;
                 while opens > 0 || current_char != ']' {
                     code_idx += 1;
                     current_char = code[code_idx];
@@ -57,7 +57,7 @@ const interpret = func (code: string) {
             }
 
         } else if current_char == ']' {
-            let opens = 0;
+            let var opens = 0;
             while opens > 0 || current_char != '[' {
                 code_idx -= 1;
                 current_char = code[code_idx];
@@ -76,7 +76,7 @@ const interpret = func (code: string) {
 
 const main = func () {"
     input('Program path: ', func (path: string) {
-        const file = open(path, 'utf-8').str();
+        let file = open(path, 'utf-8').str();
         interpret(file);
     });";
     interpret(open('examples/hello_world.b', 'utf-8').str());

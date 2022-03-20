@@ -1,10 +1,10 @@
-now = import('time').now;
+let now = import('time').now;
 
-const main = func () {
+let main = func () {
     for i in range(1, 1001) {
 
-        div3 = i % 3 == 0;
-        div5 = i % 5 == 0;
+        let div3 = i % 3 == 0;
+        let div5 = i % 5 == 0;
 
         if div3 && div5 {
             print('fizzbuzz');

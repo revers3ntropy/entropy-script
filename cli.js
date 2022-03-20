@@ -23,7 +23,6 @@ dotenv.config();
 /** @type module:entropy-script */
 const es = require('./build/latest');
 
-
 /**
  * Syntax: await askQuestion(query).
  * Waits for Node I/O and when the user inputs something from the command line returns the line.

@@ -1,4 +1,4 @@
-const airportsTXT = [
+let airportsTXT = [
     ['JFK', 'John F Kennedy International', 5326, 5486],
     ['ORY', 'Paris-Orly', 629, 379],
     ['MAD', 'Adolfo Suarez Madrid-Barajas', 1428, 1151],
@@ -9,26 +9,26 @@ const airportsTXT = [
 list_of_airports = [];
 
 // inputted data:
-const uk_airport = '';
-const overseas_airport = '';
-const airplane_type = -1;
-const first_seats = 0;
-const first_price = 0;
-const standard_price = 0;
+let uk_airport = '';
+let overseas_airport = '';
+let airplane_type = -1;
+let first_seats = 0;
+let first_price = 0;
+let standard_price = 0;
 
 // setting the types of airplanes as ints for use in the data dict:
-const medium_narrow = 0;
-const large_narrow = 1;
-const medium_wide = 2;
+let medium_narrow = 0;
+let large_narrow = 1;
+let medium_wide = 2;
 
 // variables for each type of airplane
-const running_cost = 0;
-const max_range = 1;
-const max_capacity = 2;
-const min_first_class = 3;
+let running_cost = 0;
+let max_range = 1;
+let max_capacity = 2;
+let min_first_class = 3;
 
 // fixed data for each type of airplane
-const airplane_types_data = {
+let airplane_types_data = {
     [medium_narrow]: {
         [running_cost]: 8,
         [max_range]: 2650,
@@ -49,7 +49,7 @@ const airplane_types_data = {
     }
 };
 
-const Airplane = class {
+let Airplane = class {
     init (airplane_type) {
         type_data = airplane_types_data[airplane_type];
 
@@ -60,7 +60,7 @@ const Airplane = class {
     }
 };
 
-const Airport = class {
+let Airport = class {
     init (data) {
         this.code = data[0];
         this.name = data[1];
@@ -69,14 +69,14 @@ const Airport = class {
     }
 };
 
-const initialise = func () {
+let initialise = func () {
     for data in airportsTXT {
         list_of_airports.add(Airport(data));
     }
 };
 
 // menu.py
-const clear_data = func () {
+let clear_data = func () {
     uk_airport = '';
     overseas_airport = nil;
     airplane_type = 0;
@@ -85,9 +85,9 @@ const clear_data = func () {
     standard_price = 0;
 };
 
-const VALID_UK_CODES = ['LPL', 'BOH'];
+let VALID_UK_CODES = ['LPL', 'BOH'];
 
-const enter_airport_details = func () {
+let enter_airport_details = func () {
     // for entering the UK airport code
 
     input('UK airport code (either LPL or BOH): ', func (uk_airport) {
@@ -104,7 +104,7 @@ const enter_airport_details = func () {
         var get_overseas_airport = func () {
             input('Overseas airport code: ', func (overseas_airport) {
                 // loops through all the possible airport codes, and checks to see if the code matches
-                let valid = false;
+                let var valid = false;
                 for i in list_of_airports {
                     if i.code == overseas_airport {
                         valid = true;
@@ -126,9 +126,9 @@ const enter_airport_details = func () {
     });
 };
 
-const VALID_AIRPLANE_TYPES = ['medium narrow', 'large narrow', 'medium wide'];
+let VALID_AIRPLANE_TYPES = ['medium narrow', 'large narrow', 'medium wide'];
 
-const enter_flight_details = func () {
+let enter_flight_details = func () {
     input('Type of aircraft to be used: ', func (response) {
 		print(response);
         if !VALID_AIRPLANE_TYPES.contains(response) {
@@ -146,7 +146,7 @@ const enter_flight_details = func () {
             airplane_type = medium_wide;
 	    }
 
-        let aircraft_data = airplane_types_data[airplane_type];
+        let var aircraft_data = airplane_types_data[airplane_type];
 
         print('The running cost per km is ' + str(aircraft_data[running_cost]));
         print('The maximum range in km is ' + str(aircraft_data[max_range]));
@@ -154,7 +154,7 @@ const enter_flight_details = func () {
         print('The minimum first class seats is ' + str(aircraft_data[min_first_class]));
 
 
-        let get_first_class_seats = func () {
+        let var get_first_class_seats = func () {
             input('How many first class seats?', func (first_class_seats) {
                 if (first_class_seats < 0) {
                     main_menu();
@@ -179,7 +179,7 @@ const enter_flight_details = func () {
     });
 };
 
-const calculate_cost = func () {
+let calculate_cost = func () {
     if uk_airport == "" || overseas_airport == nil {
         print('Sorry, please enter flight details first');
         main_menu();
@@ -195,7 +195,7 @@ const calculate_cost = func () {
     }
     airplane_max = airplane_types_data[airplane_type][max_range];
 
-    let airport_dist;
+    let var airport_dist;
     if uk_airport == 'LJL'{
 		airport_dist = overseas_airport.dist_LJL;
    	} else {
@@ -208,7 +208,7 @@ const calculate_cost = func () {
         return;
     }
 
-    let get_first_class_seats = func () {
+    let var get_first_class_seats = func () {
         input('Please enter the price of a first class seat', func (price) {
             price = parseNum(price);
             if (!price && price != undefined) || price < 0 {
@@ -217,7 +217,7 @@ const calculate_cost = func () {
                 return;
             }
 
-            let get_standard_seats = func () {
+            let var get_standard_seats = func () {
                 input('Please enter the price of a standard class seat', func (price) {
                     price = parseNum(price);
                     if (!price && price != undefined) || price < 0 {
@@ -226,11 +226,11 @@ const calculate_cost = func () {
                         return;
                     }
 
-                    const standard_seats = airplane_types_data[airplane_type][max_capacity] - first_seats * 2;
-                    const cost_per_seat = parseNum(airplane_types_data[airplane_type][running_cost]) * airport_dist / 100;
-                    const cost = cost_per_seat * (first_seats + standard_seats);
-                    const income = first_seats * first_price + standard_seats * standard_price;
-                    const profit = income - cost;
+                    let standard_seats = airplane_types_data[airplane_type][max_capacity] - first_seats * 2;
+                    let cost_per_seat = parseNum(airplane_types_data[airplane_type][running_cost]) * airport_dist / 100;
+                    let cost = cost_per_seat * (first_seats + standard_seats);
+                    let income = first_seats * first_price + standard_seats * standard_price;
+                    let profit = income - cost;
 
                     print('The flight costs ' + cost_per_seat + ' per seat.');
                     print('The flight costs ' + cost + ' in total.');
@@ -248,7 +248,7 @@ const calculate_cost = func () {
 
 // end menu.py
 
-const main_menu = func () {
+let main_menu = func () {
     print('What would you like to do?');
     input("You can 'calculate flight profit', 'enter airport details', 'enter flight details', 'clear data' or 'quit'\n", func (option) {
         if (option == 'quit') {}

@@ -1,6 +1,6 @@
-const Promise = import('Promise');
+let Promise = import('Promise');
 
-myPromise = Promise(func (resolve, throw) {
+let myPromise = Promise(func (resolve, throw) {
     sleep(2000, func () {
         throw('failed');
         resolve('hello world');

@@ -100,13 +100,7 @@ export function str (val: any, depth = 0): string {
                 }
                 result += ']';
             } else {
-                try {
-                    result += val.constructor.name;
-                } catch (e) {
-                    result += 'UNKNOWN_CONSTRUCTOR';
-                }
-
-                result += ': {\n';
+                result += '{\n';
                 let i = 0;
                 for (let item in val) {
                     i++;
@@ -122,18 +116,10 @@ export function str (val: any, depth = 0): string {
             }
             break;
 
-        case 'string':
-            result = `'${val}'`;
-            break;
-
         case "bigint":
         case "number":
         case "boolean":
             result = `${val}`;
-            break;
-
-        case "undefined":
-            result = '<NativeUndefined>';
             break;
 
         case "function":

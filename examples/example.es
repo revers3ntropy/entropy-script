@@ -11,7 +11,7 @@ for i in 3 {
 // 0, 1, 2
 // accessing i would give error
 
-for global i in [0, 1, 2] {
+for i in [0, 1, 2] {
 	print(i);
 }
     // 0, 1, 2

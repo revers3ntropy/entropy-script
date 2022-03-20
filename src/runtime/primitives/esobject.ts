@@ -34,7 +34,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         if (val[val.length-1] === '\n') {
             val = val.substr(0, val.length-1);
         }
-        return new ESString(`<ESObject ${val}>`);
+        return new ESString(val);
     }
 
     get keys (): ESString[] {
@@ -87,7 +87,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
     override __add__ = ({context}: {context: Context}, n: Primitive) => {
 
         if (!(n instanceof ESObject)) {
-            return new TypeError(Position.void, 'object', n.typeName().valueOf(), n);
+            return new TypeError(Position.void, 'Object', n.typeName().valueOf(), n);
         }
 
         let newOb: dict<Primitive> = {};
@@ -124,11 +124,11 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         } else if (n instanceof ESArray) {
             keysToRemove = strip(n, props);
         } else {
-            return new TypeError(Position.void, 'array | string', n.typeName().valueOf(), n);
+            return new TypeError(Position.void, 'Array | String', n.typeName().valueOf(), n);
         }
 
         if (!Array.isArray(keysToRemove)) {
-            return new TypeError(Position.void, 'array | string', n.typeName().valueOf(), n);
+            return new TypeError(Position.void, 'Array | String', n.typeName().valueOf(), n);
         }
 
         let newOb: dict<Primitive> = {};
@@ -149,7 +149,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
 
     override __get_property__ = (props: funcProps, k: Primitive): Primitive| ESError => {
         if (!(k instanceof ESString) && !(k instanceof ESNumber)) {
-            return new TypeError(Position.void, 'string | number', k.typeName(), str(k));
+            return new TypeError(Position.void, 'String | Number', k.typeName(), str(k));
         }
 
         const key: string | number = k.valueOf();
@@ -167,7 +167,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
 
     override __set_property__ = ({}: funcProps, key: Primitive, value: Primitive): void | ESError => {
         if (!(key instanceof ESString)) {
-            return new TypeError(Position.void, 'string', key.typeName(), str(key));
+            return new TypeError(Position.void, 'String', key.typeName(), str(key));
         }
         this.__value__[key.valueOf()] = value;
     }
