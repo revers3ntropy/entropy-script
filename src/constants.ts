@@ -1,6 +1,6 @@
 import type {JSModuleParams} from './built-in/module';
 import type { Context } from './runtime/context';
-import type {enumDict} from './util/util';
+import type { dict, enumDict } from './util/util';
 import type { ESType } from "./runtime/primitives/estype";
 
 // @ts-ignore
@@ -253,4 +253,4 @@ export const primitiveMethods: string[] = [
 ];
 
 // global store of built-in types
-export const types: {[key: string] : ESType} = {};
+export const types: dict<ESType> = {};

@@ -547,12 +547,14 @@ export class N_varAssign extends Node {
 export class N_arrayDestructAssign extends Node {
     value: Node;
     varNames: string[];
+    types: Node[];
     isGlobal: boolean;
     isConstant: boolean;
 
     constructor (
         pos: Position,
         varNames: string[],
+        types: Node[],
         value: Node,
         isGlobal=false,
         isConstant=false,
@@ -560,6 +562,7 @@ export class N_arrayDestructAssign extends Node {
         super(pos);
         this.value = value;
         this.varNames = varNames;
+        this.types = types;
         this.isGlobal = isGlobal;
         this.isConstant = isConstant;
     }
@@ -578,6 +581,7 @@ export class N_arrayDestructAssign extends Node {
 
         if (res.val instanceof ESArray || res.val instanceof ESString) {
 
+            // TODO: be smarter about this due to possibly undefined types
             if (this.varNames.length > res.val.valueOf().length) {
                 return new TypeError(Position.void,
                     `[Any * >=${this.varNames.length}]`,
@@ -586,10 +590,22 @@ export class N_arrayDestructAssign extends Node {
 
             let i = 0;
             for (let varName of this.varNames) {
-                let val = res.val.valueOf()[i];
+                let val: Primitive | string = res.val.valueOf()[i];
+                // for doing strings
                 if (typeof val === 'string') {
                     val = new ESString(val);
                 }
+
+                let typeRes = this.types[i].interpret(context);
+                if (typeRes.error) return typeRes;
+
+                let typeCheckRes = typeRes.val.type_check({context}, val);
+                if (typeCheckRes instanceof ESError) return typeCheckRes;
+
+                if (!typeCheckRes.bool().valueOf()) {
+                    return new TypeError(Position.void, str(typeRes.val), val.typeName(), str(val));
+                }
+
                 context.setOwn(varName, val, {
                     global: this.isGlobal,
                     isConstant: this.isConstant,
@@ -601,15 +617,27 @@ export class N_arrayDestructAssign extends Node {
             return new interpretResult(res.val);
         }
 
+        let i = 0;
         for (let varName of this.varNames) {
             let objPropRes =  res.val.__get_property__({context}, new ESString(varName));
             if (objPropRes instanceof ESError) return objPropRes;
+
+            let typeRes = this.types[i].interpret(context);
+            if (typeRes.error) return typeRes;
+
+            let typeCheckRes = typeRes.val.type_check({context}, objPropRes);
+            if (typeCheckRes instanceof ESError) return typeCheckRes;
+
+            if (!typeCheckRes.bool().valueOf()) {
+                return new TypeError(Position.void, str(typeRes.val), objPropRes.typeName(), str(objPropRes));
+            }
 
             context.setOwn(varName, objPropRes, {
                 global: this.isGlobal,
                 isConstant: this.isConstant,
                 type: res.val.__type__
             });
+            i++;
         }
 
         return new interpretResult(res.val);

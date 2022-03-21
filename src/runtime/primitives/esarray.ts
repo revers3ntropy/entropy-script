@@ -1,14 +1,13 @@
 import { ESError, InvalidOperationError, TypeError } from '../../errors';
-import {Position} from '../../position';
-import {Context} from '../context';
+import { Position } from '../../position';
 import { funcProps, str } from '../../util/util';
-import {ESBoolean} from './esboolean';
-import {ESNumber} from './esnumber';
-import {ESString} from './esstring';
-import {ESPrimitive} from './esprimitive';
-import {ESUndefined} from './esundefined';
-import type {Primitive} from './primitive';
-import {wrap} from './wrapStrip';
+import { ESBoolean } from './esboolean';
+import { ESNumber } from './esnumber';
+import { ESString } from './esstring';
+import { ESPrimitive } from './esprimitive';
+import { ESUndefined } from './esundefined';
+import type { Primitive } from './primitive';
+import { wrap } from './wrapStrip';
 import { types } from "../../constants";
 import { ESType, ESTypeIntersection, ESTypeUnion } from "./estype";
 
@@ -170,6 +169,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
 
 export class ESTypeArray extends ESType {
     private readonly type: Primitive;
+    private numElements: number = -1;
 
     constructor (type: Primitive) {
         super(false, `Array[${str(type)}]`);
@@ -185,6 +185,14 @@ export class ESTypeArray extends ESType {
             return new ESBoolean();
         }
 
+        if (this.numElements >= 0) {
+            if (t.valueOf().length !== this.numElements) {
+                return new TypeError(Position.void,
+                    `Array[${str(this.type)}][${this.numElements}]`,
+                    `Array[Any][${t.valueOf().length}]`);
+            }
+        }
+
         for (const element of t.valueOf()) {
             if (!this.type.type_check(props, element).valueOf()) {
                 return new ESBoolean();
@@ -196,5 +204,19 @@ export class ESTypeArray extends ESType {
 
     override clone = () => {
         return new ESTypeArray(this.type);
+    }
+
+    override __get_property__ = (props: funcProps, key: Primitive) => {
+        if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
+            return wrap(this.self[str(key)], true);
+        }
+
+        if (!(key instanceof ESNumber)) {
+            return new TypeError(Position.void, 'Number', key.typeName(), str(key));
+        }
+
+        this.numElements = key.valueOf();
+
+        return this;
     }
 }

@@ -14,6 +14,7 @@ import { ESError, InvalidSyntaxError } from "../errors";
 import {Position} from "../position";
 import { ESType } from "../runtime/primitiveTypes";
 import { uninterpretedArgument } from "../runtime/argument";
+import c from "../util/colours";
 
 export class ParseResults {
     node: n.Node | undefined;
@@ -575,6 +576,88 @@ export class Parser {
         return this.expr();
     }
 
+    private destructuring (pos: Position, isConst: boolean, isGlobal: boolean): ParseResults {
+        const res = new ParseResults();
+
+        this.advance(res);
+        if (res.error) return res;
+
+        let identifiers: Token<string>[] = [];
+        let typeNodes: Node[] = [];
+
+        // @ts-ignore
+        if (this.currentToken.type === tt.CSQUARE) {
+            // empty
+            this.consume(res, tt.CSQUARE);
+
+            if (!this.currentToken.matches(tt.ASSIGN, '=')) {
+                return res.failure(new InvalidSyntaxError(this.currentToken.pos, `Expected '='`))
+            }
+
+            this.consume(res, tt.ASSIGN);
+
+            let expr = res.register(this.expr());
+            if (res.error) return res;
+
+            return res.success(new n.N_arrayDestructAssign(
+                pos,
+                [],
+                [],
+                expr,
+                isGlobal,
+                isConst
+            ));
+
+        }
+
+        while (true) {
+            // @ts-ignore
+            if (this.currentToken.type !== tt.IDENTIFIER) {
+                return res.failure(new InvalidSyntaxError(this.currentToken.pos, `Expected identifier`));
+            }
+
+            identifiers.push(this.currentToken);
+            this.advance(res);
+
+            // @ts-ignore
+            if (this.currentToken.type === tt.COLON) {
+                this.consume(res, tt.COLON);
+                let tRes = res.register(this.typeExpr(res));
+                if (res.error) return res;
+                typeNodes.push(tRes);
+            } else {
+                typeNodes.push(new N_primitiveWrapper(types.any));
+            }
+
+            // @ts-ignore
+            if (this.currentToken.type === tt.CSQUARE) {
+                this.consume(res, tt.CSQUARE);
+                break;
+            }
+            this.consume(res, tt.COMMA);
+            if (res.error) return res;
+        }
+
+
+        if (!this.currentToken.matches(tt.ASSIGN, '=')) {
+            return res.failure(new InvalidSyntaxError(this.currentToken.pos, `Expected '='`))
+        }
+
+        this.consume(res, tt.ASSIGN);
+
+        let expr = res.register(this.expr());
+        if (res.error) return res;
+
+        return res.success(new n.N_arrayDestructAssign(
+            pos,
+            identifiers.map(i => i.value),
+            typeNodes,
+            expr,
+            isGlobal,
+            isConst
+        ));
+    }
+
     private initiateVar (res: ParseResults): ParseResults {
         let pos = this.currentToken.pos;
 
@@ -621,35 +704,7 @@ export class Parser {
         }
 
         if (this.currentToken.type === tt.OSQUARE) {
-            this.advance(res);
-            if (res.error) return res;
-
-            let identifiers: Token<string>[] = [];
-
-            // @ts-ignore
-            while (this.currentToken.type === tt.IDENTIFIER) {
-                identifiers.push(this.currentToken);
-                this.advance(res);
-            }
-
-            this.consume(res, tt.CSQUARE);
-            if (res.error) return res;
-
-            if (!this.currentToken.matches(tt.ASSIGN, '=')) {
-                return res.failure(new InvalidSyntaxError(this.currentToken.pos, `Expected '='`))
-            }
-            this.advance(res);
-            if (res.error) return res;
-
-            let expr = res.register(this.expr());
-
-            return res.success(new n.N_arrayDestructAssign(
-                pos,
-                identifiers.map(i => i.value),
-                expr,
-                isGlobal,
-                isConst
-            ));
+            return this.destructuring(pos, isConst, isGlobal);
         }
 
         // @ts-ignore
@@ -930,11 +985,12 @@ export class Parser {
     private funcExpr (): ParseResults {
         const res = new ParseResults();
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'func'))
+        if (!this.currentToken.matches(tt.KEYWORD, 'func')) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
                 "Expected 'func'"
             ));
+        }
 
         this.advance(res);
 

@@ -1,5 +1,5 @@
 import { initialise } from "../init";
-import { ESError, TypeError, ReferenceError } from "../errors";
+import { ESError, TypeError } from "../errors";
 import { Position } from "../position";
 import {wrap} from './primitives/wrapStrip';
 import {ESArray, ESFunction, ESPrimitive, ESUndefined, Primitive} from "./primitiveTypes";
@@ -224,10 +224,12 @@ export class Context {
         for (let key in this.symbolTable) {
             const symbol = this.symbolTable[key];
             let out = key;
-            if (symbol.isConstant)
+            if (symbol.isConstant) {
                 out += ' (CONST)';
-            if (!symbol.isAccessible)
+            }
+            if (!symbol.isAccessible) {
                 out += ' (INACCESSIBLE)';
+            }
             out += ': ';
             out += str(this.symbolTable[key].value);
             console.log(out);
