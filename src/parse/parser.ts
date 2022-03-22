@@ -1,5 +1,4 @@
 import { tokenType, tokenTypeString, tt, types, VAR_DECLARE_KEYWORDS } from '../constants';
-import {str} from '../util/util';
 import {Token} from "./tokens";
 import * as n from '../runtime/nodes';
 import {
@@ -15,56 +14,7 @@ import { ESError, InvalidSyntaxError } from "../errors";
 import {Position} from "../position";
 import { ESType } from "../runtime/primitiveTypes";
 import { uninterpretedArgument } from "../runtime/argument";
-
-export class ParseResults {
-    node: n.Node | undefined;
-    error: ESError | undefined;
-
-    reverseCount: number;
-    lastRegisteredAdvanceCount: number;
-    advanceCount: number;
-
-    constructor () {
-        this.advanceCount = 0;
-        this.lastRegisteredAdvanceCount = 0;
-        this.reverseCount = 0;
-    }
-
-    registerAdvance (): void {
-        this.advanceCount = 1;
-        this.lastRegisteredAdvanceCount++;
-    }
-
-    register (res: ParseResults): n.Node {
-        this.lastRegisteredAdvanceCount = res.advanceCount;
-        this.advanceCount += res.advanceCount;
-        if (res.error) {
-            this.error = res.error;
-        }
-        if (!res.node) {
-            return new N_undefined();
-        }
-        return res.node;
-    }
-
-    tryRegister (res: ParseResults) {
-        if (res.error) {
-            this.reverseCount += res.advanceCount;
-            return;
-        }
-        return this.register(res);
-    }
-
-    success (node: n.Node): ParseResults {
-        this.node = node;
-        return this;
-    }
-
-    failure (error: ESError): ParseResults {
-        this.error = error;
-        return this;
-    }
-}
+import { ParseResults } from "./parseResults";
 
 export class Parser {
     tokens: Token[];
@@ -576,11 +526,14 @@ export class Parser {
         return this.expr();
     }
 
-    private destructuring (pos: Position, isConst: boolean, isGlobal: boolean): ParseResults {
+    /**
+     * [(IDENTIFIER(:EXPR)?,)*(IDENTIFIER(:EXPR)?)?]
+     */
+    private destructuring (): [Token<string>[], Node[]] | ESError {
         const res = new ParseResults();
 
         this.advance(res);
-        if (res.error) return res;
+        if (res.error) return res.error;
 
         let identifiers: Token<string>[] = [];
         let typeNodes: Node[] = [];
@@ -590,30 +543,16 @@ export class Parser {
             // empty
             this.consume(res, tt.CSQUARE);
 
-            if (!this.currentToken.matches(tt.ASSIGN, '=')) {
-                return res.failure(new InvalidSyntaxError(this.currentToken.pos, `Expected '='`))
-            }
-
-            this.consume(res, tt.ASSIGN);
-
-            let expr = res.register(this.expr());
-            if (res.error) return res;
-
-            return res.success(new n.N_arrayDestructAssign(
-                pos,
-                [],
-                [],
-                expr,
-                isGlobal,
-                isConst
-            ));
-
+            return [
+                identifiers,
+                typeNodes
+            ];
         }
 
         while (true) {
             // @ts-ignore
             if (this.currentToken.type !== tt.IDENTIFIER) {
-                return res.failure(new InvalidSyntaxError(this.currentToken.pos, `Expected identifier`));
+                return new InvalidSyntaxError(this.currentToken.pos, `Expected identifier`);
             }
 
             identifiers.push(this.currentToken);
@@ -623,7 +562,7 @@ export class Parser {
             if (this.currentToken.type === tt.COLON) {
                 this.consume(res, tt.COLON);
                 let tRes = res.register(this.typeExpr(res));
-                if (res.error) return res;
+                if (res.error) return res.error;
                 typeNodes.push(tRes);
             } else {
                 typeNodes.push(new N_primitiveWrapper(types.any));
@@ -635,29 +574,18 @@ export class Parser {
                 break;
             }
             this.consume(res, tt.COMMA);
-            if (res.error) return res;
+            if (res.error) return res.error;
         }
 
-
-        if (!this.currentToken.matches(tt.ASSIGN, '=')) {
-            return res.failure(new InvalidSyntaxError(this.currentToken.pos, `Expected '='`))
-        }
-
-        this.consume(res, tt.ASSIGN);
-
-        let expr = res.register(this.expr());
-        if (res.error) return res;
-
-        return res.success(new n.N_arrayDestructAssign(
-            pos,
-            identifiers.map(i => i.value),
-            typeNodes,
-            expr,
-            isGlobal,
-            isConst
-        ));
+        return [
+            identifiers,
+            typeNodes
+        ];
     }
 
+    /**
+     *  (let (global)? (var)?)? identifier(: expr)? (*|/|+|-)?= expr
+     */
     private initiateVar (res: ParseResults): ParseResults {
         let pos = this.currentToken.pos;
 
@@ -665,7 +593,6 @@ export class Parser {
         let isGlobal = false;
         let isDeclaration = false;
 
-        // (let (global)? (var)?)? identifier(: expr)? (*|/|+|-)?= expr
 
         if (
             this.currentToken.type === tt.KEYWORD &&
@@ -704,7 +631,22 @@ export class Parser {
         }
 
         if (this.currentToken.type === tt.OSQUARE) {
-            return this.destructuring(pos, isConst, isGlobal);
+            let descructRes = this.destructuring();
+            if (descructRes instanceof ESError) {
+                return res.failure(descructRes);
+            }
+            let [names, types] = descructRes;
+
+            if (!this.currentToken.matches(tt.ASSIGN, '=')) {
+                return res.failure(new InvalidSyntaxError(pos, `Expected '='`));
+            }
+            this.consume(res, tt.ASSIGN);
+
+            let expr = res.register(this.expr());
+            if (res.error) return res;
+
+            return res.success(new n.N_arrayDestructAssign(pos, names.map(x => x.value), types, expr, isGlobal, isConst));
+
         }
 
         // @ts-ignore
@@ -984,7 +926,6 @@ export class Parser {
 
     private funcExpr (): ParseResults {
         const res = new ParseResults();
-        let name: string | undefined;
 
         if (!this.currentToken.matches(tt.KEYWORD, 'func')) {
             return res.failure(new InvalidSyntaxError(
@@ -994,24 +935,9 @@ export class Parser {
         }
 
         this.advance(res);
-        
-        if (this.currentToken.type === tt.IDENTIFIER) {
-            name = this.currentToken.value;
-            this.advance(res);
-        }
 
         const func = res.register(this.funcCore());
         if (res.error) return res;
-        
-        if (name !== undefined) {
-            if (!(func instanceof N_functionDefinition)) {
-                console.error('expected function');
-                throw 'expected function';
-            }
-
-            func.name = name;
-            func.isDeclaration = true;
-        }
 
         return res.success(func);
     }
@@ -1022,7 +948,6 @@ export class Parser {
         const methods: n.N_functionDefinition[] = [];
         let init: n.N_functionDefinition | undefined;
         let extends_: n.Node = new N_primitiveWrapper(types.object);
-        let identifier: string | undefined;
 
         if (!this.currentToken.matches(tt.KEYWORD, 'class')) {
             return res.failure(new InvalidSyntaxError(
@@ -1031,12 +956,6 @@ export class Parser {
             ));
         }
         this.advance(res);
-
-        if (this.currentToken.type === tt.IDENTIFIER) {
-            identifier = this.currentToken.value;
-            name = identifier;
-            this.advance(res);
-        }
 
         if (this.currentToken.matches(tt.KEYWORD, 'extends')) {
             this.advance(res);
@@ -1048,7 +967,6 @@ export class Parser {
         this.consume(res, tt.OBRACES);
         if (res.error) return res;
 
-
         if (this.currentToken.type === tt.CBRACES) {
             this.advance(res);
             return res.success(new n.N_class(
@@ -1056,8 +974,7 @@ export class Parser {
                 [],
                 extends_,
                 undefined,
-                name,
-                identifier !== undefined
+                name
             ));
         }
 
