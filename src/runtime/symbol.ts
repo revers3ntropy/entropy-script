@@ -22,7 +22,7 @@ export class ESSymbol {
         this.identifier = identifier;
         this.isConstant = options.isConstant ?? false;
         this.isAccessible = options.isAccessible ?? true;
-        this.type = options.type ?? types.any;
+        this.type = options.type ?? value.__type__;
     }
 
     clone = () => {

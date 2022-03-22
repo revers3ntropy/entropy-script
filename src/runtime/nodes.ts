@@ -1260,6 +1260,7 @@ export class N_functionDefinition extends Node {
     this_: ESObject;
     returnType: Node;
     description: string;
+    isDeclaration = false;
 
     constructor(
         pos: Position,
@@ -1291,8 +1292,20 @@ export class N_functionDefinition extends Node {
         const returnTypeRes = this.returnType.interpret(context);
         if (returnTypeRes.error) return returnTypeRes.error;
 
-        return new interpretResult(new ESFunction(
-            this.body, args, this.name, this.this_, returnTypeRes.val, context));
+        let funcPrim = new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val, context);
+
+        if (this.isDeclaration) {
+            if (context.hasOwn(this.name)) {
+                return new InvalidSyntaxError(Position.void, `Cannot redeclare symbol '${this.name}'`);
+            }
+
+            context.setOwn(this.name, funcPrim, {
+                isConstant: true,
+                type: types.function
+            });
+        }
+
+        return new interpretResult(funcPrim);
     }
 
     compileJS (config: compileConfig) {
@@ -1553,13 +1566,15 @@ export class N_class extends Node {
     methods: N_functionDefinition[];
     name: string;
     extends_?: Node;
+    isDeclaration: boolean;
 
-    constructor(pos: Position, methods: N_functionDefinition[], extends_?: Node, init?: N_functionDefinition, name = '<anon class>') {
+    constructor(pos: Position, methods: N_functionDefinition[], extends_?: Node, init?: N_functionDefinition, name = '<anon class>', isDeclaration=false) {
         super(pos);
         this.init = init;
         this.methods = methods;
         this.name = name;
         this.extends_ = extends_;
+        this.isDeclaration = isDeclaration;
     }
 
     interpret_ (context: Context): interpretResult | ESError {
@@ -1612,8 +1627,20 @@ export class N_class extends Node {
             init = initRes.val;
         }
 
-        return new interpretResult(new ESType(
-            false, this.name, methods, extends_, init));
+        let typePrim = new ESType(false, this.name, methods, extends_, init)
+
+        if (this.isDeclaration) {
+            if (context.hasOwn(this.name)) {
+                return new InvalidSyntaxError(Position.void, `Cannot redeclare symbol '${this.name}'`);
+            }
+
+            context.setOwn(this.name, typePrim, {
+                isConstant: true,
+                type: types.type
+            });
+        }
+
+        return new interpretResult(typePrim);
     }
 
     compileJS (config: compileConfig) {

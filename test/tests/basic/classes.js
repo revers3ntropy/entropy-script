@@ -9,6 +9,15 @@ expect(['myClass'], `
 `);
 
 expect(['myClass'], `
+    class myClass {};
+`);
+
+expect(['myClass', {}], `
+    class myClass {};
+    myClass();
+`);
+
+expect(['myClass'], `
     let myClass = class {
         init (a) {
             this.a = a;

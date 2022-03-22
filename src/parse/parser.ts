@@ -1,4 +1,5 @@
 import { tokenType, tokenTypeString, tt, types, VAR_DECLARE_KEYWORDS } from '../constants';
+import {str} from '../util/util';
 import {Token} from "./tokens";
 import * as n from '../runtime/nodes';
 import {
@@ -14,7 +15,6 @@ import { ESError, InvalidSyntaxError } from "../errors";
 import {Position} from "../position";
 import { ESType } from "../runtime/primitiveTypes";
 import { uninterpretedArgument } from "../runtime/argument";
-import c from "../util/colours";
 
 export class ParseResults {
     node: n.Node | undefined;
@@ -984,6 +984,7 @@ export class Parser {
 
     private funcExpr (): ParseResults {
         const res = new ParseResults();
+        let name: string | undefined;
 
         if (!this.currentToken.matches(tt.KEYWORD, 'func')) {
             return res.failure(new InvalidSyntaxError(
@@ -993,9 +994,24 @@ export class Parser {
         }
 
         this.advance(res);
+        
+        if (this.currentToken.type === tt.IDENTIFIER) {
+            name = this.currentToken.value;
+            this.advance(res);
+        }
 
         const func = res.register(this.funcCore());
         if (res.error) return res;
+        
+        if (name !== undefined) {
+            if (!(func instanceof N_functionDefinition)) {
+                console.error('expected function');
+                throw 'expected function';
+            }
+
+            func.name = name;
+            func.isDeclaration = true;
+        }
 
         return res.success(func);
     }
@@ -1006,6 +1022,7 @@ export class Parser {
         const methods: n.N_functionDefinition[] = [];
         let init: n.N_functionDefinition | undefined;
         let extends_: n.Node = new N_primitiveWrapper(types.object);
+        let identifier: string | undefined;
 
         if (!this.currentToken.matches(tt.KEYWORD, 'class')) {
             return res.failure(new InvalidSyntaxError(
@@ -1014,6 +1031,12 @@ export class Parser {
             ));
         }
         this.advance(res);
+
+        if (this.currentToken.type === tt.IDENTIFIER) {
+            identifier = this.currentToken.value;
+            name = identifier;
+            this.advance(res);
+        }
 
         if (this.currentToken.matches(tt.KEYWORD, 'extends')) {
             this.advance(res);
@@ -1025,6 +1048,7 @@ export class Parser {
         this.consume(res, tt.OBRACES);
         if (res.error) return res;
 
+
         if (this.currentToken.type === tt.CBRACES) {
             this.advance(res);
             return res.success(new n.N_class(
@@ -1032,7 +1056,8 @@ export class Parser {
                 [],
                 extends_,
                 undefined,
-                name
+                name,
+                identifier !== undefined
             ));
         }
 

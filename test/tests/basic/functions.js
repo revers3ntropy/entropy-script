@@ -1,6 +1,25 @@
 const {expect, file} = require( '../../testFramework');
 file('basic/functions');
 
+expect(['<Func>'], `
+func () {};
+`);
+
+expect(['<Func>'], `
+let myFunc = func () {};
+`);
+
+expect(['<Func>'], `
+func myFunc () {};
+`);
+
+expect(['<Func>', 1], `
+func myFunc () {
+    return 1;
+};
+myFunc();
+`);
+
 expect(['<Func>', 1], `
 let myFunc = func () {
     let a = 2 - 1;
