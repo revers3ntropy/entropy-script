@@ -1,11 +1,7 @@
 /node_modules/
 /package-lock.json
 /.idea/
-/npm-package/
 test.es
 out.js
 out.py
-**/*.js.map
-!build/latest.js.map
-!build/stable.js.map
 esconfig.json
