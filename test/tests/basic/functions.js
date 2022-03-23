@@ -39,6 +39,10 @@ myFunc(func () {
 });
 `);
 
+expect('InvalidSyntaxError', `
+func (a, a) {};
+`);
+
 
 // recursion
 expect(['<Func>', 3], `
@@ -202,4 +206,58 @@ expect(['<Func>', 'hello world'], `
     };
     
     wrapper(func (v) v()());
+`);
+
+// Default arguments
+
+expect(['<Func>', 1, 3], `
+    func myFunc (a=1): Number {
+        return a;
+    };
+    myFunc();
+    myFunc(3);
+`);
+
+expect(['<Func>', 1, 3], `
+    func myFunc (a: Number = 1): Number {
+        return a;
+    };
+    myFunc();
+    myFunc(3);
+`);
+
+expect('TypeError', `
+    func myFunc (a: Number = 'hi'): Number {
+        return a;
+    };
+    myFunc();
+    myFunc(3);
+`);
+
+expect('TypeError', `
+    func myFunc (a: Number = 2): Number {
+        return a;
+    };
+    myFunc('hi');
+`);
+
+expect('InvalidSyntaxError', `
+    func myFunc (a: Number = 2, b): Number {
+        return a;
+    };
+    myFunc('hi');
+`);
+
+expect('InvalidSyntaxError', `
+    func myFunc (a, b: Number = 2, c: ?String): Number {
+        return [a, b];
+    };
+    myFunc('hi');
+`);
+
+expect('InvalidSyntaxError', `
+    func myFunc (b, b: Number = 2, c: ?String): Number {
+        return a;
+    };
+    myFunc('hi');
 `);

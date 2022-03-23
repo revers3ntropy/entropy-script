@@ -831,6 +831,7 @@ export class Parser {
     private parameter (res: ParseResults): uninterpretedArgument | ESError {
         let name: string;
         let type: Node = new n.N_primitiveWrapper(types.any);
+        let defaultValue: Node | undefined;
 
         if (this.currentToken.type !== tt.IDENTIFIER) {
             return new InvalidSyntaxError(
@@ -852,7 +853,19 @@ export class Parser {
             if (res.error) return res.error;
         }
 
-        return { name, type };
+        if (this.currentToken.matches(tt.ASSIGN, '=')) {
+            this.consume(res, tt.ASSIGN);
+            if (res.error) return res.error;
+
+            defaultValue = res.register(this.expr());
+            if (res.error) return res.error;
+        }
+
+        return {
+            name,
+            type,
+            defaultValue
+        };
     }
 
     /**
@@ -878,13 +891,29 @@ export class Parser {
             }
             args.push(param);
 
+            let usingDefault = args[0].defaultValue !== undefined;
+
             // @ts-ignore
             while (this.currentToken.type === tt.COMMA) {
                 this.advance(res);
 
+                let paramStart = this.currentToken.pos;
+
                 let param = this.parameter(res);
-                if (param instanceof ESError)
+                if (param instanceof ESError) {
                     return res.failure(param);
+                }
+                if (args.filter(a => a.name === param.name).length) {
+                    return res.failure(new InvalidSyntaxError(
+                        paramStart, `Cannot have two parameters with the same name`));
+                }
+                if (usingDefault && !param.defaultValue) {
+                    return res.failure(new InvalidSyntaxError(
+                        this.currentToken.pos, 'Must use default parameter here'));
+                }
+                if (!usingDefault && param.defaultValue) {
+                    usingDefault = true;
+                }
                 args.push(param);
             }
 
@@ -951,10 +980,9 @@ export class Parser {
 
         if (!this.currentToken.matches(tt.KEYWORD, 'class')) {
             return res.failure(new InvalidSyntaxError(
-                this.currentToken.pos,
-                "Expected 'class'"
-            ));
+                this.currentToken.pos, "Expected 'class'"));
         }
+
         this.advance(res);
 
         if (this.currentToken.matches(tt.KEYWORD, 'extends')) {
@@ -978,10 +1006,8 @@ export class Parser {
             ));
         }
 
-        while (true) {
-            if (this.currentToken.type !== tt.IDENTIFIER) {
-                break;
-            }
+        while (this.currentToken.type === tt.IDENTIFIER) {
+
             let methodId = this.currentToken.value;
             this.advance(res);
 

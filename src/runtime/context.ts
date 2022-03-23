@@ -263,6 +263,13 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
             value = params[i];
         }
 
+        if (arg.defaultValue && params.length <= i) {
+            newContext.setOwn(arg.name, arg.defaultValue, {
+                forceThroughConst: true
+            });
+            continue;
+        }
+
         const typeIncludes = arg.type.type_check({context: parent}, params[i]);
         if (typeIncludes instanceof ESError) return typeIncludes;
         if (!typeIncludes.valueOf()) {

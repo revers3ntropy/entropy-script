@@ -229,9 +229,7 @@ export const doubleCharTokens: {[char: string]: tokenType} = {
     '||': tt.OR
 };
 
-export const tripleCharTokens: {[char: string]: tokenType} = {
-
-};
+export const tripleCharTokens: {[char: string]: tokenType} = {};
 
 export const primitiveMethods: string[] = [
     '__add__',
