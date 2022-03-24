@@ -1,5 +1,5 @@
 import { ESError, InvalidOperationError, TypeError } from '../../errors';
-import { Position } from '../../position';
+import Position from '../../position';
 import { funcProps, str } from '../../util/util';
 import { ESBoolean } from './esboolean';
 import { ESNumber } from './esnumber';

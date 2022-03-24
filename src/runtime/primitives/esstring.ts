@@ -1,5 +1,5 @@
 import {ESError, TypeError} from '../../errors';
-import {Position} from '../../position';
+import Position from '../../position';
 import { funcProps, str } from '../../util/util';
 import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';

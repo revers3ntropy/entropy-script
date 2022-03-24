@@ -1,7 +1,7 @@
 import { Lexer } from "./parse/lexer";
 import { Parser } from "./parse/parser";
 import {
-    type compileConfig,
+    compileConfig,
     global,
     libs as allLibs,
     now,
@@ -12,7 +12,7 @@ import {
 } from "./constants";
 import { initialise } from "./init";
 import { ESError } from "./errors";
-import { Position } from "./position";
+import Position from "./position";
 import { compileResult, interpretResult, Node } from "./runtime/nodes";
 import { ESArray, initPrimitiveTypes } from "./runtime/primitiveTypes";
 import { timeData } from "./util/util";

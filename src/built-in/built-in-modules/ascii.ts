@@ -1,5 +1,5 @@
 import {TypeError} from '../../errors';
-import {Position} from '../../position';
+import Position from '../../position';
 import { ESNumber, ESString, Primitive} from '../../runtime/primitiveTypes';
 import {str} from '../../util/util';
 import type {JSModule} from '../module';

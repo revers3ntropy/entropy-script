@@ -1,6 +1,6 @@
 import { initialise } from "../init";
 import { ESError, TypeError } from "../errors";
-import { Position } from "../position";
+import Position from "../position";
 import {wrap} from './primitives/wrapStrip';
 import {ESArray, ESFunction, ESPrimitive, ESUndefined, Primitive} from "./primitiveTypes";
 import {dict, str} from "../util/util";

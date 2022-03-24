@@ -1,13 +1,13 @@
 import type {ESType} from './estype';
 import {ESError, InvalidOperationError, TypeError} from '../../errors';
 
-import {Position} from '../../position';
+import Position from '../../position';
 import {ESBoolean} from './esboolean';
 import type {ESString} from './esstring';
 import type {Info} from './info';
 import type { NativeObj, Primitive} from './primitive';
 
-import { type funcProps, str } from '../../util/util';
+import { funcProps, str } from '../../util/util';
 import {strip} from './wrapStrip';
 import { types } from "../../constants";
 

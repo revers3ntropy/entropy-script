@@ -1,4 +1,3 @@
-
 import {strip} from '../../runtime/primitives/wrapStrip';
 import {str} from '../../util/util';
 import { global } from "../../constants";

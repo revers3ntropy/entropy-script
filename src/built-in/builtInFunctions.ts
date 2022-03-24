@@ -1,5 +1,5 @@
 import { ESError, ImportError, TypeError, ReferenceError } from "../errors";
-import {Position} from "../position";
+import Position from "../position";
 import { strip, wrap } from '../runtime/primitives/wrapStrip';
 import {
     ESArray, ESFunction, ESNamespace,

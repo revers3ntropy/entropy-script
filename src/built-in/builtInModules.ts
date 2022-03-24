@@ -12,7 +12,8 @@ import ascii from './built-in-modules/ascii';
 import json from './built-in-modules/json';
 import dom from './built-in-modules/dom';
 import time from './built-in-modules/time';
-import { Position } from "../position";
+
+import Position from "../position";
 import { Context } from "../runtime/context";
 import { ESNamespace } from "../runtime/primitives/esnamespace";
 import { ESString } from "../runtime/primitives/esstring";

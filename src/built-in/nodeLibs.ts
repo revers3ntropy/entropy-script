@@ -1,4 +1,4 @@
-import {Position} from "../position";
+import Position from "../position";
 import {Context} from "../runtime/context";
 import {ESError, ImportError, PermissionRequiredError} from '../errors';
 import {ESFunction, ESNamespace, ESObject, ESString, Primitive} from '../runtime/primitiveTypes';

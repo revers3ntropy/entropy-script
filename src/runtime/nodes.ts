@@ -1,7 +1,7 @@
 import { Token } from "../parse/tokens";
 import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
-import { Position } from "../position";
+import Position from "../position";
 import { catchBlockErrorSymbolName, compileConfig, now, tokenTypeString, tt, types } from "../constants";
 import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument";
 import { wrap } from './primitives/wrapStrip';
@@ -19,7 +19,7 @@ import {
     ESUndefined,
     Primitive
 } from "./primitiveTypes";
-import {type dict, generateRandomSymbol, str} from '../util/util';
+import {dict, generateRandomSymbol, str} from '../util/util';
 import { ESTypeNot, ESTypeUnion } from "./primitives/estype";
 
 export class interpretResult {

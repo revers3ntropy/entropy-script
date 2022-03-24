@@ -1,5 +1,5 @@
 import { ESError, IndexError, TypeError } from '../../errors';
-import {Position} from '../../position';
+import Position from '../../position';
 import {ESPrimitive} from './esprimitive';
 import { funcProps, str } from '../../util/util';
 import {ESNumber} from './esnumber';

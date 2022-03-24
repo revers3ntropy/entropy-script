@@ -1,5 +1,5 @@
 import { ESError, IndexError, TypeError } from '../../errors';
-import {Position} from '../../position';
+import Position from '../../position';
 import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';

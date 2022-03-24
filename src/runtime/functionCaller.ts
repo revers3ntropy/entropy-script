@@ -2,7 +2,7 @@ import {str} from '../util/util';
 import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
 import { ESError, TypeError } from "../errors";
-import { Position } from "../position";
+import Position from "../position";
 import type {NativeObj} from './primitives/primitive';
 import { ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
 

@@ -1,5 +1,5 @@
 import { ESError, IndexError, TypeError } from '../../errors';
-import {Position} from '../../position';
+import Position from '../../position';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
 import {ESPrimitive} from './esprimitive';
@@ -9,7 +9,6 @@ import { strip, wrap } from './wrapStrip';
 import { ESFunction } from "./esfunction";
 import { types } from "../../constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
-import { call } from "../functionCaller";
 
 function callBack (fTakesProps: boolean, val: any, key: any, props: funcProps, args: Primitive[]): Primitive | ESError {
     let res;

@@ -1,5 +1,5 @@
 import { ESError, IndexError, TypeError } from '../../errors';
-import {Position} from '../../position';
+import Position from '../../position';
 import { dict, funcProps, str } from '../../util/util';
 import {Context} from '../context';
 import {ESArray} from './esarray';
@@ -7,7 +7,6 @@ import {ESBoolean} from './esboolean';
 import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
 import {ESPrimitive} from './esprimitive';
-import {ESUndefined} from './esundefined';
 import type { Primitive} from './primitive';
 import {strip, wrap} from './wrapStrip';
 import { types } from "../../constants";

@@ -1,6 +1,6 @@
 import {ESPrimitive} from './esprimitive';
 import { ESError, IndexError } from '../../errors';
-import {Position} from '../../position';
+import Position from '../../position';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
 import type {Primitive} from './primitive';

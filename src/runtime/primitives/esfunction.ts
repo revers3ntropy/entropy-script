@@ -1,7 +1,7 @@
 import {ESPrimitive} from './esprimitive';
 import { global, types } from '../../constants';
 import { ESError, IndexError } from '../../errors';
-import {Position} from '../../position';
+import Position from '../../position';
 import { BuiltInFunction, funcProps } from '../../util/util';
 import {runtimeArgument} from '../argument';
 import {Context} from '../context';

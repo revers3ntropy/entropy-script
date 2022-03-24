@@ -1,5 +1,5 @@
 import {IS_NODE_INSTANCE} from './constants';
-import {Position} from "./position";
+import Position from "./position";
 import {Primitive} from './runtime/primitives/primitive';
 import {str} from "./util/util";
 import chalk from "./util/colours";

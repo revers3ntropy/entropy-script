@@ -3,7 +3,7 @@ import {ESError, InvalidRuntimeError, PermissionRequiredError, TypeError} from '
 import { JSModule, JSModuleFunc } from '../module';
 import { ESJSBinding } from "../../runtime/primitives/esjsbinding";
 import { config } from "../../config";
-import { Position } from "../../position";
+import Position from "../../position";
 
 const module: JSModuleFunc = (): JSModule | ESError => {
 

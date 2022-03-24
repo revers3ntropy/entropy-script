@@ -2,7 +2,7 @@ import {primitiveMethods} from '../constants';
 import { Context } from "./context";
 import type { dict, funcProps } from '../util/util';
 import { ESError, TypeError } from "../errors";
-import { Position } from "../position";
+import Position from "../position";
 import type {NativeObj} from './primitives/primitive';
 import {wrap} from './primitives/wrapStrip';
 import {

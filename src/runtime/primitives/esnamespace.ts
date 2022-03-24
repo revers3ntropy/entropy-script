@@ -1,5 +1,5 @@
 import {ESError, IndexError, TypeError} from '../../errors';
-import {Position} from '../../position';
+import Position from '../../position';
 import { dict, funcProps } from '../../util/util';
 import {ESSymbol} from '../symbol';
 import {ESBoolean} from './esboolean';
