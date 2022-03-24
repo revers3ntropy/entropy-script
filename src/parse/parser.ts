@@ -1,5 +1,5 @@
 import { tokenType, tokenTypeString, tt, types, VAR_DECLARE_KEYWORDS } from '../constants';
-import {ParseResults} from './parseResults.js';
+import {ParseResults} from './parseResults';
 import {Token} from "./tokens";
 import * as n from '../runtime/nodes';
 import {

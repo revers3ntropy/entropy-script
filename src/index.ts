@@ -65,7 +65,7 @@ export async function init (
     printFunc: (...args: any[]) => void = console.log,
     inputFunc: (msg: string, cb: (...arg: any[]) => any) => void,
     node= true,
-    libs: JSModuleParams = {print: console.log},
+    libs: JSModuleParams = {},
     context= new Context(),
     path = '',
 ): Promise<ESError | Context> {
