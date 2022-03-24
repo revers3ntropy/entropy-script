@@ -110,3 +110,10 @@ export class PermissionRequiredError extends ESError {
         super(Position.void, 'PermissionRequiredError', detail);
     }
 }
+
+export class MissingNativeDependencyError extends ESError {
+    constructor(name: string) {
+        super(Position.void, 'MissingNativeDependencyError',
+            `Missing required native dependency '${name}'. This is probably an issue with the EntropyScript provider, not your code.`);
+    }
+}

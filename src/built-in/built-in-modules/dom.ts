@@ -1,11 +1,12 @@
 import {IS_NODE_INSTANCE} from '../../constants';
 import {ESError, InvalidRuntimeError, PermissionRequiredError, TypeError} from '../../errors';
-import { JSModule, JSModuleFunc } from '../module';
+import { NativeModule, NativeModuleBuilder } from '../module';
 import { ESJSBinding } from "../../runtime/primitives/esjsbinding";
 import { config } from "../../config";
 import Position from "../../position";
+import type { dict } from "../../util/util";
 
-const module: JSModuleFunc = (): JSModule | ESError => {
+const module: NativeModuleBuilder = (): NativeModule | ESError => {
 
     if (!config.permissions.accessDOM) {
         return new PermissionRequiredError('No access to DOM');
@@ -15,7 +16,7 @@ const module: JSModuleFunc = (): JSModule | ESError => {
         return new InvalidRuntimeError();
     }
 
-    const w: { [k: string]: any; } | undefined = window;
+    const w: dict<any> | undefined = window;
 
     if (typeof w === 'undefined') {
         return new TypeError(Position.void, 'Object', 'undefined', 'window', 'Window is undefined! ES expected to be in a browser.');

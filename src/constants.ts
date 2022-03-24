@@ -1,4 +1,3 @@
-import type {JSModuleParams} from './built-in/module';
 import type { Context } from './runtime/context';
 import type { dict, enumDict } from './util/util';
 import type { ESType } from "./runtime/primitives/estype";
@@ -13,7 +12,9 @@ export const multiLineCommentStart = '/*';
 export const multiLineCommentEnd = '*/';
 
 export let global: Context;
-export const setGlobalContext = (c: Context) => void (global = c);
+export const setGlobalContext = (c: Context) => {
+    global = c;
+};
 
 export const stringSurrounds = ['\'', '`', '"'];
 
@@ -37,10 +38,11 @@ export interface compileConfig {
     symbols: string[]
 }
 
+// global store of built-in types like 'String' and 'Type'
+export const types: dict<ESType> = {};
 
-export const libs: JSModuleParams = {
-    print: console.log
-};
+// global object of all native dependencies like node-fetch and fs.
+export const libs: dict<any> = {};
 
 export const catchBlockErrorSymbolName = 'err';
 
@@ -48,9 +50,6 @@ export const KEYWORDS = [
     'var',
     'let',
     'global',
-    'local',
-    'mutable',
-    'const',
 
     'if',
     'else',
@@ -69,7 +68,6 @@ export const KEYWORDS = [
     'extends',
 
     'namespace',
-    'export',
 
     'try',
     'catch'
@@ -85,7 +83,7 @@ export async function refreshPerformanceNow (IS_NODE_INSTANCE: boolean) {
             try {
                 return performance?.now();
             } catch (e) {
-                return 0;
+                return Date.now();
             }
         };
     }
@@ -249,6 +247,3 @@ export const primitiveMethods: string[] = [
     '__get_property__',
     '__call__',
 ];
-
-// global store of built-in types
-export const types: dict<ESType> = {};

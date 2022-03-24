@@ -1,4 +1,3 @@
-import { initialise } from "../init";
 import { ESError, TypeError } from "../errors";
 import Position from "../position";
 import {wrap} from './primitives/wrapStrip';
@@ -182,23 +181,6 @@ export class Context {
 
     get keys () {
         return Object.keys(this.symbolTable);
-    }
-
-    resetAsGlobal () {
-        if (!this.initialisedAsGlobal) return;
-
-        const printFunc = this.root.get('print');
-        const inputFunc = this.root.get('input');
-
-        if (!(printFunc instanceof ESPrimitive) || !(inputFunc instanceof ESPrimitive)) {
-            console.error('Error with print and input functions.');
-            return;
-        }
-
-        this.symbolTable = {};
-        this.initialisedAsGlobal = false;
-
-        initialise(this, printFunc.valueOf()?.func || console.log, inputFunc.valueOf()?.func || (() => {}));
     }
 
     clone (): Context {

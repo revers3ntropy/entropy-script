@@ -15,10 +15,9 @@ import { ESError } from "./errors";
 import Position from "./position";
 import { compileResult, interpretResult, Node } from "./runtime/nodes";
 import { ESArray, initPrimitiveTypes } from "./runtime/primitiveTypes";
-import { timeData } from "./util/util";
+import { dict, timeData } from "./util/util";
 import { Context } from "./runtime/context";
-import addNodeLibs from "./built-in/nodeLibs";
-import { JSModuleParams } from "./built-in/module";
+import addNodeBIFs from "./built-in/nodeLibs";
 import colours from './util/colours';
 
 // @ts-ignore
@@ -28,6 +27,7 @@ import JS_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt.js';
 import PY_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt.py';
 import { preloadModules } from "./built-in/builtInModules";
 import { config } from "./config";
+import { NativeObj } from "./runtime/primitives/primitive";
 
 export {
     Context,
@@ -53,46 +53,47 @@ export {ESSymbol} from './runtime/symbol';
 export {parseConfig, config} from './config';
 
 /**
- * @param {(...args: any) => void} printFunc
- * @param {(msg: string, cb: (...arg: any[]) => any) => void} inputFunc
+ * @param {(...args: any) => void} print
+ * @param {(msg: string, cb: (...arg: any[]) => any) => void} input
  * @param {boolean} node is this running in node or not. Assumed based on existence of 'window' object
- * @param libs
  * @param {Context} context
  * @param {string} path
+ * @param libs
  * @returns {Promise<Context | ESError>} error or the global context
  */
-export async function init (
-    printFunc: (...args: any[]) => void = console.log,
-    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void,
-    node= true,
-    libs: JSModuleParams = {},
-    context= new Context(),
+export async function init ({
+    print = console.log,
+    input = () => {},
+    node = true,
+    context = new Context(),
     path = '',
-): Promise<ESError | Context> {
-
-    initPrimitiveTypes();
-
-    const res = initialise(context, printFunc, inputFunc);
-    if (res instanceof ESError) {
-        return res;
-    }
+    libs = {}
+}: {
+    print?: (...args: any[]) => void,
+    input?: (msg: string, cb: (...arg: any[]) => any) => void,
+    node?: boolean,
+    context?: Context,
+    path?: string,
+    libs?: dict<[NativeObj, boolean]>
+} = {}): Promise<ESError | Context> {
 
     setGlobalContext(context);
 
-    libs['context'] ??= context;
+    initPrimitiveTypes();
+
+    const res = initialise(context, print, input, libs);
+    if (res instanceof ESError) {
+        return res;
+    }
 
     if (path) {
         context.path = path;
     }
 
-    if (libs.print) {
-        allLibs.print = libs.print;
-    }
-
     if (node) {
         runningInNode();
         await refreshPerformanceNow(true);
-        addNodeLibs(libs, context);
+        addNodeBIFs(context);
     }
 
     let modulePreloadRes = await preloadModules(config.modules);

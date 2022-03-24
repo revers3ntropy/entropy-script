@@ -1,23 +1,20 @@
-import {TypeError} from '../../errors';
-import Position from '../../position';
-import { ESNumber, ESString, Primitive} from '../../runtime/primitiveTypes';
 import {str} from '../../util/util';
-import type {JSModule} from '../module';
+import { NativeModuleBuilder } from "../module";
 
-const module: JSModule = {
-    asciiToChar: (props, number: Primitive) => {
-        if (!(number instanceof ESNumber)) {
-            return new TypeError(Position.void, 'number', str(number.typeName()), str(number));
+const module: NativeModuleBuilder = () => ({
+    asciiToChar: (num: any) => {
+        if (typeof num !== 'number') {
+            throw new TypeError(`number`);
         }
-        return new ESString(String.fromCharCode(number.valueOf()));
+        return String.fromCharCode(num);
     },
 
-    charToAscii: (props, char: Primitive) => {
-        if (!(char instanceof ESString)) {
-            return new TypeError(Position.void, 'string', str(char.typeName()), str(char));
+    charToAscii: (char: any) => {
+        if (typeof char !== 'number') {
+            throw new TypeError(`number`);
         }
-        return new ESNumber(str(char).charCodeAt(0));
+        return str(char).charCodeAt(0);
     },
-};
+});
 
 export default module;

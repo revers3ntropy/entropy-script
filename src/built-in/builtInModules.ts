@@ -1,10 +1,8 @@
 import { global, IS_NODE_INSTANCE, libs } from '../constants';
 import {ESError} from '../errors';
-import {ESSymbol} from '../runtime/symbol';
-import type {JSModule} from './module';
+import type {NativeModuleBuilder} from './module';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import type { dict } from "../util/util";
-import type { NativeObj } from "../runtime/primitives/primitive";
 
 // All modules
 // make this only import required modules in the future
@@ -20,63 +18,42 @@ import { ESString } from "../runtime/primitives/esstring";
 import { interpretResult } from "../runtime/nodes";
 import { run } from "../index";
 
+type modulePrimitive = ESJSBinding<any> | ESNamespace;
 
-const modules: {[s: string]: JSModule} = {};
-
-type modulePrimitive = ESJSBinding<dict<any>> | ESNamespace;
+const BIMs: dict<NativeModuleBuilder> = {
+    ascii,
+    json,
+    time,
+};
 
 // memoize the modules for faster access
-const processedModules: {[s: string]: modulePrimitive} = {};
+const initialisedModules: dict<modulePrimitive> = {};
 
 export function initModules (): void | ESError {
-
-    processedModules['math'] = new ESJSBinding<NativeObj>(Math);
-    processedModules['promise'] = new ESJSBinding<NativeObj>(Promise);
-    processedModules['time'] = new ESJSBinding<NativeObj>(time(libs));
-    processedModules['json'] = new ESJSBinding<NativeObj>(json);
-    processedModules['ascii'] = new ESJSBinding<NativeObj>(ascii);
-
     if (!IS_NODE_INSTANCE) {
-        const domRes = dom(libs);
-        if (!(domRes instanceof ESError)) {
-            modules['dom'] = domRes;
-        } else {
-            return domRes;
-        }
+        BIMs['dom'] = dom;
     }
-}
-
-export function processRawModule (module: modulePrimitive, name: string): modulePrimitive {
-    const moduleDict: {[s: string]: ESSymbol} = {};
-
-    const moduleRaw = module.valueOf();
-
-    for (const key of Object.keys(moduleRaw)) {
-        moduleDict[key] = new ESSymbol(moduleRaw[key], key);
-    }
-
-    return new ESJSBinding(moduleDict, name);
 }
 
 export function moduleExist (name: string): boolean {
-    return name in modules || name in processedModules;
+    return name in BIMs || name in initialisedModules;
 }
 
 export function addModule (name: string, body: modulePrimitive): void {
-    modules[name] = {};
-    processedModules[name] = body;
+    initialisedModules[name] = body;
 }
 
-export function getModule (name: string): modulePrimitive | undefined {
+export function getModule (name: string): modulePrimitive | undefined | ESError {
 
-    if (name in processedModules) {
-        return processedModules[name];
+    if (name in initialisedModules) {
+        return initialisedModules[name];
     }
 
-    if (name in modules) {
-        const res = new ESJSBinding(modules[name]);
-        const processed = processRawModule(res, name);
-        processedModules[name] = processed;
+    if (name in BIMs) {
+        const res = BIMs[name](libs);
+        if (res instanceof ESError) return res;
+        const processed = new ESJSBinding(res, name);
+        initialisedModules[name] = processed;
         return processed
     }
 }
@@ -115,7 +92,7 @@ export async function preloadModules (urls: dict<string>): Promise<ESError | und
                 return res.error;
             }
 
-            processedModules[name] = n;
+            initialisedModules[name] = n;
 
         } catch (E: any) {
             return new ESError(Position.void, 'ImportError', E.toString());

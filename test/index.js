@@ -47,20 +47,18 @@ async function importAll (dir='./test/tests') {
 
 	await importAll();
 
-	const err = await es.init(
-		(...args) => console.log('LOG: ', ...args),
-		async (msg, cb) =>
+	const err = await es.init({
+		print: (...args) => console.log('LOG: ', ...args),
+		input: async (msg, cb) =>
 			cb(await askQuestion(msg).catch(console.log)),
-		true, {
-			https,
-			http,
-			fs,
-			mysql: sql,
-			print: (...args) => console.log('LOG: ', ...args),
-			fetch: {},
-			path
-		},
-	);
+		libs: {
+			https: [https, true],
+			http: [http, true],
+			fs: [fs, true],
+			mysql: [sql, true],
+			path: [path, true]
+		}
+	});
 
 	if (err) {
 		console.log(err);

@@ -17,8 +17,6 @@ const fs = require('fs');
 const sql = require('sync-mysql');
 const readline = require('readline');
 const path = require('path');
-const dotenv = require('dotenv');
-dotenv.config();
 
 /** @type module:entropy-script */
 const es = require('./build/latest');
@@ -44,18 +42,21 @@ function askQuestion(query) {
  * @return {Promise<void>}
  */
 async function init () {
-	await es.init(
-		console.log,
-		async (msg, cb) => cb(await askQuestion(msg).catch(console.log)),
-		true, {
+	let err = await es.init({
+		print: console.log,
+		input: async (msg, cb) => cb(await askQuestion(msg).catch(console.log)),
+		libs: {
 			https,
 			http,
 			fs,
 			mysql: sql,
-			print: console.log,
 			path
 		}
-	);
+	});
+
+	if (err) {
+		console.log(err.str);
+	}
 
 	if (fs.existsSync(es.configFileName)) {
 		es.parseConfig(JSON.parse(fs.readFileSync(es.configFileName).toString()));

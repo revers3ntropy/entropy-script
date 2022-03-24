@@ -1,16 +1,12 @@
-import {strip} from '../../runtime/primitives/wrapStrip';
 import {str} from '../../util/util';
-import { global } from "../../constants";
+import { NativeModuleBuilder } from "../module";
 
-const module: any = {
-
+const module: NativeModuleBuilder = () => ({
     parse: (json: any) => {
         return JSON.parse(str(json));
     },
 
-    stringify: (json: any) => {
-        return JSON.stringify(strip(json, { context: global }));
-    }
-};
+    stringify: JSON.stringify
+});
 
 export default module;
