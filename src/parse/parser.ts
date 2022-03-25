@@ -1305,8 +1305,16 @@ export class Parser {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
+        let name: string | undefined;
+
         this.consume(res, tt.KEYWORD);
         if (res.error) return res;
+
+        if (this.currentToken.type === tt.IDENTIFIER) {
+            name = this.currentToken.value;
+            this.advance(res);
+        }
+
         this.consume(res, tt.OBRACES);
         if (res.error) return res;
 
@@ -1321,7 +1329,7 @@ export class Parser {
         this.consume(res, tt.CBRACES);
         if (res.error) return res;
 
-        return res.success(new n.N_namespace(pos, statements));
+        return res.success(new n.N_namespace(pos, statements, name, false));
     }
 
     private tryCatch (): ParseResults {

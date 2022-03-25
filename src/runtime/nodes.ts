@@ -1657,12 +1657,14 @@ export class N_namespace extends Node {
     public name: string;
     private readonly statements: Node;
     public mutable: boolean;
+    private readonly isDeclaration: boolean;
 
-    constructor (pos: Position, statements: Node, name = '(anon)', mutable=false) {
+    constructor (pos: Position, statements: Node, name = '(anon)', mutable=false, isDeclaration=false) {
         super(pos);
         this.name = name;
         this.statements = statements;
         this.mutable = mutable;
+        this.isDeclaration = isDeclaration;
     }
 
     interpret_ (context: Context): ESError | interpretResult {
@@ -1672,8 +1674,17 @@ export class N_namespace extends Node {
         const res = this.statements.interpret(newContext);
         if (res.error) return res;
 
-        return new interpretResult(new ESNamespace(
-            new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable));
+        let n = new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
+
+        if (this.isDeclaration) {
+            if (context.hasOwn(this.name)) {
+                return new InvalidSyntaxError(Position.void, `Cannot redeclare symbol '${this.name}'`);
+            }
+
+            context.setOwn(this.name, n);
+        }
+
+        return new interpretResult(n);
     }
 
     compileJS (config: compileConfig) {

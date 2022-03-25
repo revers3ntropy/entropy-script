@@ -4,6 +4,9 @@ file('basic/namespaces');
 expect([{}], `
     let MyLib = namespace {};
 `);
+expect([{}], `
+    namespace myLib {};
+`);
 expect([{a: '<Symbol: a>'}, 'hi'], `
     let global MyLib = namespace {
         let a = 'hi';
