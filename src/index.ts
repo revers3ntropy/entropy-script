@@ -8,7 +8,7 @@ import {
     runningInNode,
     setGlobalContext,
     VERSION
-} from "./constants";
+} from "./util/constants.js";
 import { ESError } from "./errors";
 import Position from "./position";
 import { compileResult, interpretResult, Node } from "./runtime/nodes";
@@ -39,7 +39,7 @@ export {
     libs,
     now, refreshPerformanceNow,
     configFileName
-} from './constants';
+} from './util/constants.js';
 export * from './errors';
 export * from './runtime/nodes';
 export * from './util/util';

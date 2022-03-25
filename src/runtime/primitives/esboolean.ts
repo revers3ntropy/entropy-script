@@ -6,7 +6,7 @@ import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
 import type {Primitive} from './primitive';
 import { wrap } from "./wrapStrip";
-import { types } from "../../constants";
+import { types } from "../../util/constants.js";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESBoolean extends ESPrimitive <boolean> {

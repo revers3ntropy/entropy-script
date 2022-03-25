@@ -1,4 +1,4 @@
-import {global} from '../constants';
+import {global} from '../util/constants.js';
 import {run} from '../index';
 import Position from '../position';
 import {Context} from '../runtime/context';

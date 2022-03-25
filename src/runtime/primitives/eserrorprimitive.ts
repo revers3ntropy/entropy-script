@@ -8,7 +8,7 @@ import type { funcProps } from "../../util/util";
 import { wrap } from "./wrapStrip";
 import {str} from "../../util/util";
 import { ESArray } from "./esarray";
-import { types } from "../../constants";
+import { types } from "../../util/constants.js";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESErrorPrimitive extends ESPrimitive <ESError> {

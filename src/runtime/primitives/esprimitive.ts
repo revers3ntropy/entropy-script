@@ -9,7 +9,7 @@ import type { NativeObj, Primitive} from './primitive';
 
 import { funcProps, str } from '../../util/util';
 import {strip} from './wrapStrip';
-import { types } from "../../constants";
+import { types } from "../../util/constants.js";
 
 export abstract class ESPrimitive <T> {
     public __value__: T;

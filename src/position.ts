@@ -1,5 +1,4 @@
 export default class Position {
-
     file: string;
     idx: number;
     ln: number;

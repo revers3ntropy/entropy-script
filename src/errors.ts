@@ -1,4 +1,4 @@
-import {IS_NODE_INSTANCE} from './constants';
+import {IS_NODE_INSTANCE} from './util/constants.js';
 import Position from "./position";
 import {Primitive} from './runtime/primitives/primitive';
 import {str} from "./util/util";

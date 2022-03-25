@@ -1,4 +1,4 @@
-import {primitiveMethods} from '../constants';
+import {primitiveMethods} from '../util/constants.js';
 import { Context } from "./context";
 import type { dict, funcProps } from '../util/util';
 import { ESError, TypeError } from "../errors";

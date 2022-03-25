@@ -10,7 +10,7 @@ import type { funcProps } from "../../util/util";
 import { wrap } from "./wrapStrip";
 import Position from "../../position";
 import {str} from "../../util/util";
-import { types } from "../../constants";
+import { types } from "../../util/constants.js";
 import { ESTypeArray } from "./esarray";
 
 export class ESType extends ESPrimitive <undefined> {

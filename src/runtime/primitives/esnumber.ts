@@ -7,7 +7,7 @@ import {ESPrimitive} from './esprimitive';
 import { funcProps, str } from '../../util/util';
 import type {Primitive} from './primitive';
 import { wrap } from "./wrapStrip";
-import { types } from "../../constants";
+import { types } from "../../util/constants.js";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESNumber extends ESPrimitive <number> {

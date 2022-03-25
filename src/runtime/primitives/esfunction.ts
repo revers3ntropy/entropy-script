@@ -1,5 +1,5 @@
 import {ESPrimitive} from './esprimitive';
-import { global, types } from '../../constants';
+import { global, types } from '../../util/constants.js';
 import { ESError, IndexError } from '../../errors';
 import Position from '../../position';
 import { BuiltInFunction, funcProps } from '../../util/util';

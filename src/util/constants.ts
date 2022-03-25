@@ -1,9 +1,9 @@
-import type { Context } from './runtime/context';
-import type { dict, enumDict } from './util/util';
-import type { ESType } from "./runtime/primitives/estype";
+import type { Context } from '../runtime/context.js';
+import type { dict, enumDict } from './util.js';
+import type { ESType } from "../runtime/primitives/estype.js";
 
 // @ts-ignore
-import PACKAGE_JSON from '../package.json';
+import PACKAGE_JSON from '../../package.json';
 
 export const digits = '0123456789';
 export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
