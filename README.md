@@ -7,6 +7,6 @@ Install with `npm i -g entropy-script`.
 
 Run a script with `entropy-script <filename>.es` or `jses <filename>.es`.
 
-See [the docs](https://entropygames.io/entropy-script).
+See [the docs](https://entropygames.io/entropy-script/docs).
 
 Can be used with programmatically with JavaScript and TypeScript.
