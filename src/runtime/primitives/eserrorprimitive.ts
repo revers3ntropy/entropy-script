@@ -30,8 +30,8 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
                         .map(s => new ESString(`${s.position.str} : ${s.line}`)));
 
             default:
-                if (this.self.hasOwnProperty(str(key))) {
-                    return wrap(this.self[str(key)], true);
+                if (this._.hasOwnProperty(str(key))) {
+                    return wrap(this._[str(key)], true);
                 }
                 return new IndexError(Position.void, key.valueOf(), this);
         }
@@ -47,7 +47,7 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
     override __eq__ = (props: funcProps, n: Primitive) => {
         return new ESBoolean(
             n instanceof ESErrorPrimitive &&
-            this.valueOf().constructor === n.valueOf().constructor
+            this.valueOf().name === n.valueOf().name
         );
     }
 

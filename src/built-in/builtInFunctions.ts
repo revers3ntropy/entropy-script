@@ -114,7 +114,7 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
                 console.log('Invalid arg not primitive: ' + str(thing));
                 return;
             }
-            const info = thing.info;
+            const info = thing.__info__;
             out += `${chalk.yellow(`Help on '${info.name || '(anonymous)'}'`)}:
     
     ${chalk.yellow('Value')}: ${indent(indent(str(thing)))}
@@ -170,10 +170,8 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
 
     'delete': [({context}, name) => {
         const id = str(name);
-        if (!context.has(id)) {
-            return new ESError(Position.void, 'DeleteError', `Identifier '${id}' not found in the current context`);
-        }
-        context.set(id, new ESUndefined());
+        let res = context.remove(id);
+        if (res instanceof ESError) return res;
     }, {
         name: 'delete',
         args: [{name: 'identifier', type: 'string'}],

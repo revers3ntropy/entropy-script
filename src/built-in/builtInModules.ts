@@ -10,6 +10,7 @@ import ascii from './built-in-modules/ascii';
 import json from './built-in-modules/json';
 import dom from './built-in-modules/dom';
 import time from './built-in-modules/time';
+import regex from "./built-in-modules/regex";
 
 import { ESNamespace } from "../runtime/primitives/esnamespace";
 
@@ -19,6 +20,7 @@ const BIMs: dict<NativeModuleBuilder> = {
     ascii,
     json,
     time,
+    regex
 };
 
 // memoize the modules for faster access

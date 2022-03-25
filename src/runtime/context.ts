@@ -1,4 +1,4 @@
-import { ESError, TypeError } from "../errors";
+import { ESError, ReferenceError, TypeError } from "../errors";
 import Position from "../position";
 import {wrap} from './primitives/wrapStrip';
 import {ESArray, ESFunction, ESPrimitive, ESUndefined, Primitive} from "./primitiveTypes";
@@ -156,8 +156,15 @@ export class Context {
         this.symbolTable[identifier] = new ESSymbol(value, identifier, options);
     }
 
-    remove (identifier: string) {
-        delete this.symbolTable[identifier];
+    remove (identifier: string): ESError | true {
+        if (this.hasOwn(identifier)) {
+            delete this.symbolTable[identifier];
+            return true;
+        } else if (this.parent) {
+            return this.parent.remove(identifier);
+        } else {
+            return new ReferenceError(Position.void, identifier);
+        }
     }
 
     clear () {
@@ -226,19 +233,19 @@ export function generateESFunctionCallContext (params: Primitive[], self: ESFunc
     const newContext = new Context();
     newContext.parent = parent;
 
-    let max = Math.max(params.length, self.arguments_.length);
+    let max = Math.max(params.length, self.__args__.length);
 
     for (let i = 0; i < max; i++) {
 
         let value: Primitive = new ESUndefined();
         let type: Primitive = types.any;
 
-        if (!self.arguments_[i]) {
+        if (!self.__args__[i]) {
             continue;
         }
 
         // type checking
-        const arg = self.arguments_[i];
+        const arg = self.__args__[i];
 
         if (params[i] instanceof ESPrimitive) {
             type = params[i].__type__;

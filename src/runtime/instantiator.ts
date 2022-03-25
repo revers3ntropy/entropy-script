@@ -52,7 +52,7 @@ function dealWithExtends (context: Context, class_: ESType, instance: dict<Primi
             return;
         }
 
-        initFunc.this_ = this_;
+        initFunc.__this__ = this_;
         initFunc.__closure__ = newContext;
 
         const res_ = initFunc.__call__({context: newContext}, ...args);
@@ -91,7 +91,7 @@ export function createInstance (
     on: dict<Primitive> = {}
 ): ESError | Primitive {
 
-    if (type.primitive) {
+    if (type.__primitive__) {
         // make sure we have at least one arg
         if (params.length < 1) {
             return new ESUndefined();
@@ -137,7 +137,7 @@ export function createInstance (
 
     for (let method of type.__methods__) {
         const methodClone = method.clone();
-        methodClone.this_ = instance;
+        methodClone.__this__ = instance;
 
         on[method.name] = methodClone;
 
@@ -148,7 +148,7 @@ export function createInstance (
     }
 
     if (runInit && type.__init__) {
-        type.__init__.this_ = instance;
+        type.__init__.__this__ = instance;
 
         // newContext, which inherits from the current closure
         type.__init__.__closure__ = newContext;

@@ -16,9 +16,9 @@ import { wrap } from "./wrapStrip";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
-    arguments_: runtimeArgument[];
-    this_: ESObject;
-    returnType: Primitive;
+    __args__: runtimeArgument[];
+    __this__: ESObject;
+    __returns__: Primitive;
     __closure__: Context;
     takeCallContextAsClosure: boolean;
 
@@ -32,10 +32,10 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         takeCallContextAsClosure = false
     ) {
         super(func, types.function);
-        this.arguments_ = arguments_;
-        this.info.name = name;
-        this.this_ = this_;
-        this.returnType = returnType;
+        this.__args__ = arguments_;
+        this.__info__.name = name;
+        this.__this__ = this_;
+        this.__returns__ = returnType;
         if (closure) {
             this.__closure__ = closure;
         } else {
@@ -44,11 +44,11 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         }
         this.takeCallContextAsClosure = takeCallContextAsClosure;
 
-        this.info.returnType = str(returnType);
-        this.info.args = arguments_.map(arg => ({
+        this.__info__.returnType = str(returnType);
+        this.__info__.args = arguments_.map(arg => ({
             name: arg.name,
             defaultValue: str(arg.defaultValue),
-            type: arg.type.info.name,
+            type: arg.type.__info__.name,
             required: true
         }));
     }
@@ -58,20 +58,20 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     }
 
     get name () {
-        return this.info.name ?? '(anonymous)';
+        return this.__info__.name ?? '(anonymous)';
     }
 
     set name (v: string) {
-        this.info.name = v;
+        this.__info__.name = v;
     }
 
     override clone = (): ESFunction => {
         return new ESFunction(
             this.__value__,
-            this.arguments_,
+            this.__args__,
             this.name,
-            this.this_,
-            this.returnType,
+            this.__this__,
+            this.__returns__,
             this.__closure__
         );
     };
@@ -100,8 +100,8 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     }
 
     override __get_property__ = (props: funcProps, key: Primitive): Primitive | ESError => {
-        if (this.self.hasOwnProperty(str(key))) {
-            return wrap(this.self[str(key)], true);
+        if (this._.hasOwnProperty(str(key))) {
+            return wrap(this._[str(key)], true);
         }
         return new IndexError(Position.void, key.valueOf(), this);
     };
@@ -110,12 +110,12 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         if (!(n instanceof ESFunction)) {
             return new ESBoolean();
         }
-        if (this.arguments_.length !== n.arguments_.length) {
+        if (this.__args__.length !== n.__args__.length) {
             return new ESBoolean();
         }
 
-        for (let i = 0; i < this.arguments_.length; i++) {
-            if (!this.arguments_[i].type.type_check(props, n.arguments_[i].type).valueOf()) {
+        for (let i = 0; i < this.__args__.length; i++) {
+            if (!this.__args__[i].type.type_check(props, n.__args__[i].type).valueOf()) {
                 return new ESBoolean();
             }
         }
@@ -126,7 +126,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             return thisReturnVal;
         }
 
-        if (!thisReturnVal.__eq__(props, n.returnType).valueOf()) {
+        if (!thisReturnVal.__eq__(props, n.__returns__).valueOf()) {
             return new ESBoolean();
         }
 

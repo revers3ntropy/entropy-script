@@ -15,7 +15,7 @@ import { ESTypeArray } from "./esarray";
 
 export class ESType extends ESPrimitive <undefined> {
 
-    readonly primitive: boolean;
+    readonly __primitive__: boolean;
 
     readonly __name__: typeName;
     readonly __extends__: undefined | ESType;
@@ -32,9 +32,9 @@ export class ESType extends ESPrimitive <undefined> {
     ) {
         super(undefined, types?.type);
 
-        this.primitive = isPrimitive;
+        this.__primitive__ = isPrimitive;
         this.__name__ = name;
-        this.info.name = name;
+        this.__info__.name = name;
         this.__extends__ = __extends__;
         this.__methods__ = __methods__;
 
@@ -50,7 +50,7 @@ export class ESType extends ESPrimitive <undefined> {
 
     override clone = () => {
         return new ESType(
-            this.primitive,
+            this.__primitive__,
             this.__name__,
             this.__methods__,
             this.__extends__,
@@ -112,8 +112,8 @@ export class ESType extends ESPrimitive <undefined> {
             return new TypeError(Position.void, 'string', k.typeName(), str(k));
         }
         const key = k.valueOf();
-        if (this.self.hasOwnProperty(key)) {
-            return wrap(this.self[key], true);
+        if (this._.hasOwnProperty(key)) {
+            return wrap(this._[key], true);
         }
         return new ESTypeArray(k);
     };

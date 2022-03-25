@@ -13,7 +13,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
     constructor (val: boolean = false) {
         super(Boolean(val), types.bool);
 
-        this.info = {
+        this.__info__ = {
             name: str(val),
             description: `Boolean global constant which evaluates to ${str(val)}, the opposite of ${str(!val)}`,
             file: 'built-in',
@@ -23,8 +23,8 @@ export class ESBoolean extends ESPrimitive <boolean> {
     }
 
     override __get_property__ = (props: funcProps, key: Primitive): Primitive | ESError => {
-        if (this.self.hasOwnProperty(str(key))) {
-            return wrap(this.self[str(key)], true);
+        if (this._.hasOwnProperty(str(key))) {
+            return wrap(this._[str(key)], true);
         }
         return new IndexError(Position.void, key.valueOf(), this);
     };

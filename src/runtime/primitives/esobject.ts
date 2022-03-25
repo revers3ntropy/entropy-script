@@ -157,8 +157,8 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             return this.valueOf()[key];
         }
 
-        if (this.self.hasOwnProperty(key)) {
-            return wrap(this.self[str(key)], true);
+        if (this._.hasOwnProperty(key)) {
+            return wrap(this._[str(key)], true);
         }
 
         return new IndexError(Position.void, str(key), this);

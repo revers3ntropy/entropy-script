@@ -7,7 +7,6 @@ const path = require('path');
  * @param {Context} env
  * @returns {boolean | ESError}
  */
-
 class TestResult {
     failed = 0;
     passed = 0;

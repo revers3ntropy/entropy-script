@@ -20,7 +20,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
         super(undefined, types.undefined);
 
         // define the same info for every instance
-        this.info = {
+        this.__info__ = {
             name: 'undefined',
             description: 'Not defined, not a value.',
             file: 'built-in',
@@ -73,8 +73,8 @@ export class ESUndefined extends ESPrimitive <undefined> {
     override clone = () => new ESUndefined();
 
     override __get_property__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
-        if (this.self.hasOwnProperty(str(key))) {
-            return wrap(this.self[str(key)], true);
+        if (this._.hasOwnProperty(str(key))) {
+            return wrap(this._[str(key)], true);
         }
         return new IndexError(Position.void, key.valueOf(), this);
     };

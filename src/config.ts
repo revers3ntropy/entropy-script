@@ -12,7 +12,7 @@ export type Permissions = {
 
 export interface config {
     permissions: Permissions,
-    modules: dict<string>,
+    modules: dict<string|any>,
 }
 
 let AllowAny = Symbol('AllowAny');

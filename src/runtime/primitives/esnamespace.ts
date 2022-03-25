@@ -12,12 +12,12 @@ import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
-    public mutable: boolean;
+    public __mutable__: boolean;
 
     constructor (name: ESString, value: dict<ESSymbol>, mutable=false) {
         super(value, types.object);
-        this.info.name = str(name);
-        this.mutable = mutable;
+        this.__info__.name = str(name);
+        this.__mutable__ = mutable;
     }
 
     override cast = (props: funcProps) => {
@@ -25,11 +25,11 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     }
 
     get name () {
-        return new ESString(this.info.name);
+        return new ESString(this.__info__.name);
     }
 
     set name (v: ESString) {
-        this.info.name = v.valueOf();
+        this.__info__.name = v.valueOf();
     }
 
     override clone = (): Primitive => {
@@ -66,11 +66,11 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
             return new TypeError(Position.void, 'string', key.typeName());
         }
 
-        if (this.self.hasOwnProperty(str(key))) {
-            return wrap(this.self[str(key)], true);
+        if (this._.hasOwnProperty(str(key))) {
+            return wrap(this._[str(key)], true);
         }
 
-        return new IndexError(Position.void, key.valueOf(), this.self);
+        return new IndexError(Position.void, key.valueOf(), this._);
     };
 
     override __set_property__(props: funcProps, key: Primitive, value: Primitive): void | ESError {
@@ -80,7 +80,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
 
         let idx = str(key);
 
-        if (!this.mutable) {
+        if (!this.__mutable__) {
             return new TypeError(Position.void, 'mutable', 'immutable', `${str(this.name)}`);
         }
 

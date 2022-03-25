@@ -33,8 +33,11 @@ export default async function init ({
     initPrimitiveTypes();
 
     for (let k of Object.keys(libs)) {
+        if (!Array.isArray(libs[k]) || libs[k].length !== 2) {
+            throw `lib ${k} is not of type [any, boolean]`;
+        }
         let [lib, exposed] = libs[k];
-        if (exposed) {
+        if (exposed === true) {
             addModule(k, new ESJSBinding(lib));
         }
         globalLibs[k] = lib;
@@ -53,10 +56,10 @@ export default async function init ({
             true
         );
 
-        fn.info = builtInFunctions[builtIn][1];
-        fn.info.name = builtIn;
-        fn.info.isBuiltIn = true;
-        fn.info.file = 'builtin';
+        fn.__info__ = builtInFunctions[builtIn][1];
+        fn.__info__.name = builtIn;
+        fn.__info__.isBuiltIn = true;
+        fn.__info__.file = 'builtin';
 
         context.set(builtIn, fn, {
             global: true,

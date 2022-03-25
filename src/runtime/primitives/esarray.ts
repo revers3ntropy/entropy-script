@@ -83,8 +83,8 @@ export class ESArray extends ESPrimitive <Primitive[]> {
     override bool = this.__bool__;
 
     override __get_property__ = (props: funcProps, key: Primitive): Primitive => {
-        if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
-            return wrap(this.self[str(key)], true);
+        if (key instanceof ESString && this._.hasOwnProperty(str(key))) {
+            return wrap(this._[str(key)], true);
         }
 
         if (!(key instanceof ESNumber)) {
@@ -207,8 +207,8 @@ export class ESTypeArray extends ESType {
     }
 
     override __get_property__ = (props: funcProps, key: Primitive) => {
-        if (key instanceof ESString && this.self.hasOwnProperty(str(key))) {
-            return wrap(this.self[str(key)], true);
+        if (key instanceof ESString && this._.hasOwnProperty(str(key))) {
+            return wrap(this._[str(key)], true);
         }
 
         if (!(key instanceof ESNumber)) {

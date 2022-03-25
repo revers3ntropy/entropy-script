@@ -1,5 +1,5 @@
 import {global} from '../util/constants';
-import {run} from '../index';
+import { ESJSBinding, run } from '../index';
 import Position from '../position';
 import {Context} from '../runtime/context';
 import {interpretResult} from '../runtime/nodes';
@@ -14,11 +14,15 @@ export type NativeModuleBuilder = (dependencies: dict<any>) => NativeModule | ES
 
 let loadedURls: dict<modulePrimitive> = {};
 
-export async function preloadModules (urls: dict<string>): Promise<ESError | undefined> {
+export async function preloadModules (urls: dict<any>): Promise<ESError | undefined> {
 
     for (const name of Object.keys(urls)) {
 
         let url = urls[name];
+
+        if (typeof url !== 'string') {
+            addModule(name, new ESJSBinding(url));
+        }
 
         if (url in loadedURls) {
             addModule(name, loadedURls[url]);

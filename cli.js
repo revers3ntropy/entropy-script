@@ -173,15 +173,14 @@ async function main () {
 
 	const compileIdx = process.argv.indexOf('-compile');
 	if (compileIdx !== -1) {
-		compile(process.argv[compileIdx+1], process.argv[compileIdx+2]);
-		return;
+		return compile(process.argv[compileIdx+1], process.argv[compileIdx+2]);
 	}
 
 	if (process.argv.length === 2) {
-		runTerminal();
-	} else {
-		runScript(process.argv[2]);
+		return runTerminal();
 	}
+
+	runScript(process.argv[2]);
 }
 
 main();

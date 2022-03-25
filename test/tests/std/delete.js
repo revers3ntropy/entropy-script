@@ -1,26 +1,25 @@
 const {expect, file} = require( '../../testFramework');
 file('std/delete');
 
-/*
+
 expect('ReferenceError', `
-	const a = 0;
-	delete(a);
+	let a = 0;
+	delete('a');
 	a;
 `);
 expect('ReferenceError', `
-	const a = 0;
-	const f = func () delete(a);
+	let a = 0;
+	func f () delete('a');
 	f();
 	a;
 `);
 
 expect([0, '<Func>', undefined, 0], `
-	const a = 0;
-	const f = func () {
+	let a = 0;
+	func f () {
 	    let a = 0;
-        delete(a);
+        delete('a');
     };
 	f();
 	a;
 `);
- */

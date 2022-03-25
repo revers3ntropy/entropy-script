@@ -14,8 +14,8 @@ import { types } from "../../util/constants";
 export abstract class ESPrimitive <T> {
     public __value__: T;
     public __type__: Primitive;
-    public info: Info;
-    protected self: NativeObj = this;
+    public __info__: Info;
+    protected _: NativeObj = this;
 
     /**
      * @param value
@@ -25,7 +25,7 @@ export abstract class ESPrimitive <T> {
     protected constructor (value: T, type: Primitive | false = types.any) {
         this.__type__ = type || this;
         this.__value__ = value;
-        this.info = {};
+        this.__info__ = {};
     }
 
     // casting
@@ -125,16 +125,16 @@ export abstract class ESPrimitive <T> {
         new ESBoolean(this.hasOwnProperty(str(key)));
 
     public describe = (props: funcProps, info: Primitive) => {
-        if (this.info.isBuiltIn) {
+        if (this.__info__.isBuiltIn) {
             return;
         }
 
-        this.info.description = str(info);
+        this.__info__.description = str(info);
     };
 
     public detail = (props: funcProps, info: Primitive) => {
 
-        if (this.info.isBuiltIn) {
+        if (this.__info__.isBuiltIn) {
             return;
         }
 
@@ -144,12 +144,12 @@ export abstract class ESPrimitive <T> {
             return new TypeError(Position.void, 'object', this.typeName(), str(this));
         }
 
-        this.info = {
-            ...this.info,
+        this.__info__ = {
+            ...this.__info__,
             ...res
         };
 
-        this.info.isBuiltIn = false;
+        this.__info__.isBuiltIn = false;
     };
 
     abstract type_check: (props: funcProps, n: Primitive) => ESBoolean | ESError;

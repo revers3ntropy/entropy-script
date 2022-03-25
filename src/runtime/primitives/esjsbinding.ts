@@ -45,7 +45,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
 
     constructor (value: T, name='<AnonNative>', functionsTakeProps=false) {
         super(value, types.object);
-        this.info.name = str(name);
+        this.__info__.name = str(name);
         this.functionsTakeProps = functionsTakeProps;
     }
 
@@ -76,8 +76,8 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
         if (res === undefined) {
 
             // check on self after confirming it doesn't exist on the native value
-            if (this.self.hasOwnProperty(key)) {
-                return wrap(this.self[str(key)], true);
+            if (this._.hasOwnProperty(key)) {
+                return wrap(this._[str(key)], true);
             }
 
             return new IndexError(Position.void, key, this);
@@ -105,8 +105,8 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
 
         const val: { [key: string]: NativeObj } = this.__value__;
 
-        if (this.self.hasOwnProperty(key)) {
-            this.self[str(key)] = value;
+        if (this._.hasOwnProperty(key)) {
+            this._[str(key)] = value;
             return;
         }
 

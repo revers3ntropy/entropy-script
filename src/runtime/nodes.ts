@@ -108,7 +108,7 @@ export abstract class Node {
             res.val = new ESUndefined();
         }
 
-        res.val.info.file ||= this.pos.file;
+        res.val.__info__.file ||= this.pos.file;
 
         Node.interprets++;
         let time = now() - start;
@@ -483,8 +483,8 @@ export class N_varAssign extends Node {
             res.val = newVal;
         }
 
-        if (res.val.info.name === '(anonymous)' || !res.val.info.name) {
-            res.val.info.name = this.varNameTok.value;
+        if (res.val.__info__.name === '(anonymous)' || !res.val.__info__.name) {
+            res.val.__info__.name = this.varNameTok.value;
         }
 
         return res;
@@ -884,7 +884,7 @@ export class N_for extends Node {
             }
 
         } else if (array.val instanceof ESObject || array.val instanceof ESJSBinding) {
-            for (let element in array.val?.valueOf()) {
+            for (let element of Object.keys(array.val?.valueOf())) {
                 const res = iteration(this.body, this.identifier.value, new ESString(element), this.isGlobalId, this.isConstId);
                 if (res === 'break') break;
                 if (res && (res.error || (res.funcReturn !== undefined))) return res;
@@ -1195,7 +1195,7 @@ export class N_functionCall extends Node {
                 // do the best we can to recreate line,
                 // giving some extra info as well as it is the interpreted arguments so
                 // variables values not names
-                line: `${val.info.name || '<AnonFunction>'}(${params.map(str).join(', ')})`
+                line: `${val.__info__.name || '<AnonFunction>'}(${params.map(str).join(', ')})`
             });
         }
 

@@ -86,8 +86,8 @@ export class ESNumber extends ESPrimitive <number> {
     override clone = (): ESNumber => new ESNumber(this.valueOf());
 
     override __get_property__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
-        if (this.self.hasOwnProperty(str(key))) {
-            return wrap(this.self[str(key)], true);
+        if (this._.hasOwnProperty(str(key))) {
+            return wrap(this._[str(key)], true);
         }
         return new IndexError(Position.void, key.valueOf(), this);
     };
