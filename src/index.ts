@@ -3,31 +3,26 @@ import { Parser } from "./parse/parser";
 import {
     compileConfig,
     global,
-    libs as allLibs,
     now,
     refreshPerformanceNow,
     runningInNode,
     setGlobalContext,
     VERSION
 } from "./constants";
-import { initialise } from "./init";
 import { ESError } from "./errors";
 import Position from "./position";
 import { compileResult, interpretResult, Node } from "./runtime/nodes";
-import { ESArray, initPrimitiveTypes } from "./runtime/primitiveTypes";
-import { dict, timeData } from "./util/util";
+import { ESArray } from "./runtime/primitiveTypes";
+import type { timeData } from "./util/util";
 import { Context } from "./runtime/context";
-import addNodeBIFs from "./built-in/nodeLibs";
 import colours from './util/colours';
 
 // @ts-ignore
 import JS_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt.js';
-
 // @ts-ignore
 import PY_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt.py';
-import { preloadModules } from "./built-in/builtInModules";
+
 import { config } from "./config";
-import { NativeObj } from "./runtime/primitives/primitive";
 
 export {
     Context,
@@ -51,58 +46,11 @@ export * from './util/util';
 export {strip, wrap} from './runtime/primitives/wrapStrip';
 export {ESSymbol} from './runtime/symbol';
 export {parseConfig, config} from './config';
+import init from './init';
 
-/**
- * @param {(...args: any) => void} print
- * @param {(msg: string, cb: (...arg: any[]) => any) => void} input
- * @param {boolean} node is this running in node or not. Assumed based on existence of 'window' object
- * @param {Context} context
- * @param {string} path
- * @param libs
- * @returns {Promise<Context | ESError>} error or the global context
- */
-export async function init ({
-    print = console.log,
-    input = () => {},
-    node = true,
-    context = new Context(),
-    path = '',
-    libs = {}
-}: {
-    print?: (...args: any[]) => void,
-    input?: (msg: string, cb: (...arg: any[]) => any) => void,
-    node?: boolean,
-    context?: Context,
-    path?: string,
-    libs?: dict<[NativeObj, boolean]>
-} = {}): Promise<ESError | Context> {
-
-    setGlobalContext(context);
-
-    initPrimitiveTypes();
-
-    const res = initialise(context, print, input, libs);
-    if (res instanceof ESError) {
-        return res;
-    }
-
-    if (path) {
-        context.path = path;
-    }
-
-    if (node) {
-        runningInNode();
-        await refreshPerformanceNow(true);
-        addNodeBIFs(context);
-    }
-
-    let modulePreloadRes = await preloadModules(config.modules);
-    if (modulePreloadRes instanceof ESError) {
-        return modulePreloadRes;
-    }
-
-    return global;
-}
+export {
+    init
+};
 
 /**
  * @param {string} msg

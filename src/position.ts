@@ -1,10 +1,11 @@
 export default class Position {
+
     file: string;
     idx: number;
     ln: number;
     col: number;
 
-    constructor (idx: number, ln: number, col: number, file: string='(unknown)') {
+    constructor (idx: number, ln: number, col: number, file: string = '(unknown)') {
         this.idx = idx;
         this.ln = ln;
         this.col = col;

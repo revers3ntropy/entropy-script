@@ -83,13 +83,14 @@ export class Parser {
         this.clearEndStatements(res);
 
         const firstStatement = res.register(this.statement());
-        if (!firstStatement) {
-            return res;
-        }
-        statements.push(firstStatement);
         if (res.error) {
             return res;
         }
+        if (!firstStatement) {
+            return res;
+        }
+
+        statements.push(firstStatement);
 
         let moreStatements = true;
 
@@ -103,12 +104,12 @@ export class Parser {
             if (newLineCount === 0) {
                 moreStatements = false;
             }
-
             if (!moreStatements) {
                 break;
             }
 
             const statement = res.tryRegister(this.statement());
+            if (res.error) return res;
             if (!statement) {
                 this.reverse(res.reverseCount);
                 continue;
@@ -140,8 +141,15 @@ export class Parser {
         } else if (this.currentToken.matches(tt.KEYWORD, 'continue')) {
             this.advance(res);
             return res.success(new n.N_continue(pos));
+
         } else if (this.currentToken.matches(tt.KEYWORD, 'try')) {
             return this.tryCatch();
+
+        } else if (this.currentToken.matches(tokenType.KEYWORD, 'while')) {
+            return this.whileExpr();
+
+        } else if (this.currentToken.matches(tokenType.KEYWORD, 'for')) {
+            return this.forExpr();
         }
 
         const expr = res.register(this.expr());
@@ -381,15 +389,6 @@ export class Parser {
 
         if (this.currentToken.type === tt.KEYWORD && VAR_DECLARE_KEYWORDS.indexOf(this.currentToken.value) !== -1) {
             return this.initiateVar(res);
-
-        } else if (this.currentToken.matches(tokenType.KEYWORD, 'if')) {
-            return this.ifExpr();
-
-        } else if (this.currentToken.matches(tokenType.KEYWORD, 'while')) {
-            return this.whileExpr();
-
-        } else if (this.currentToken.matches(tokenType.KEYWORD, 'for')) {
-            return this.forExpr();
 
         } else if (this.currentToken.matches(tokenType.KEYWORD, 'func')) {
             return this.funcExpr();
