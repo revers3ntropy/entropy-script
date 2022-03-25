@@ -1,4 +1,4 @@
-import {now} from '../../util/constants.js';
+import {now} from '../../util/constants';
 import type {NativeModuleBuilder } from '../module';
 
 const module: NativeModuleBuilder = () => ({

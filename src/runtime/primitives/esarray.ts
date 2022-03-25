@@ -8,7 +8,7 @@ import { ESPrimitive } from './esprimitive';
 import { ESUndefined } from './esundefined';
 import type { Primitive } from './primitive';
 import { wrap } from './wrapStrip';
-import { types } from "../../util/constants.js";
+import { types } from "../../util/constants";
 import { ESType, ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESArray extends ESPrimitive <Primitive[]> {

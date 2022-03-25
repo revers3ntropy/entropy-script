@@ -7,7 +7,7 @@ import {ESNumber} from './esnumber';
 import {ESPrimitive} from './esprimitive';
 import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
-import { types } from "../../util/constants.js";
+import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESString extends ESPrimitive <string> {

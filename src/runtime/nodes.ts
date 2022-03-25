@@ -2,7 +2,7 @@ import { Token } from "../parse/tokens";
 import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
 import Position from "../position";
-import { catchBlockErrorSymbolName, compileConfig, now, tokenTypeString, tt, types } from "../util/constants.js";
+import { catchBlockErrorSymbolName, compileConfig, now, tokenTypeString, tt, types } from "../util/constants";
 import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument";
 import { wrap } from './primitives/wrapStrip';
 import {

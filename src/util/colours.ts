@@ -1,4 +1,4 @@
-import { IS_NODE_INSTANCE } from "./constants.js";
+import { IS_NODE_INSTANCE } from "./constants";
 
 const codes: {[k: string]: number} = {
     red: 31,

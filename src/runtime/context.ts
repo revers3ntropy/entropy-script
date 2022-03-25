@@ -5,7 +5,7 @@ import {ESArray, ESFunction, ESPrimitive, ESUndefined, Primitive} from "./primit
 import {dict, str} from "../util/util";
 import {ESSymbol, symbolOptions} from './symbol';
 import chalk from "../util/colours";
-import { types } from "../util/constants.js";
+import { types } from "../util/constants";
 import { defaultPermissions, Permissions } from "../config";
 
 export class Context {

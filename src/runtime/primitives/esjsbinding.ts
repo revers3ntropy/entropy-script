@@ -7,7 +7,7 @@ import { funcProps, str } from '../../util/util';
 import type {NativeObj, Primitive} from './primitive';
 import { strip, wrap } from './wrapStrip';
 import { ESFunction } from "./esfunction";
-import { types } from "../../util/constants.js";
+import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 function callBack (fTakesProps: boolean, val: any, key: any, props: funcProps, args: Primitive[]): Primitive | ESError {

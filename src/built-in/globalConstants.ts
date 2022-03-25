@@ -1,6 +1,6 @@
 import { ESBoolean, ESUndefined, Primitive } from '../runtime/primitiveTypes';
 import type { Context } from "../runtime/context";
-import { types } from "../util/constants.js";
+import { types } from "../util/constants";
 import type { dict } from "../util/util";
 
 export default function load (context: Context) {

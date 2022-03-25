@@ -6,7 +6,7 @@ import { funcProps, str } from "../util/util";
 import {interpretResult} from "../runtime/nodes";
 import { config, libs, run } from '../index';
 import { getModule, moduleExist } from './builtInModules';
-import { global, types, VALID_FILE_ENCODINGS } from "../util/constants.js";
+import { global, types, VALID_FILE_ENCODINGS } from "../util/constants";
 
 const open = (props: funcProps, path_: Primitive, encoding_: Primitive) => {
     if (!config.permissions.fileSystem) {

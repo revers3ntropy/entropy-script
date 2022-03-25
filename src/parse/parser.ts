@@ -1,4 +1,4 @@
-import { tokenType, tokenTypeString, tt, types, VAR_DECLARE_KEYWORDS } from '../util/constants.js';
+import { tokenType, tokenTypeString, tt, types, VAR_DECLARE_KEYWORDS } from '../util/constants';
 import {ParseResults} from './parseResults';
 import {Token} from "./tokens";
 import * as n from '../runtime/nodes';

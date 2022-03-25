@@ -12,7 +12,7 @@ import {
 import { BuiltInFunction, funcProps, indent, sleep, str } from '../util/util';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import chalk from "../util/colours";
-import { IS_NODE_INSTANCE, global } from "../util/constants.js";
+import { IS_NODE_INSTANCE, global } from "../util/constants";
 import { getModule, moduleExist } from "./builtInModules";
 
 export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} = {

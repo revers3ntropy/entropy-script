@@ -1,4 +1,4 @@
-import {IS_NODE_INSTANCE} from '../../util/constants.js';
+import {IS_NODE_INSTANCE} from '../../util/constants';
 import {ESError, InvalidRuntimeError, PermissionRequiredError, TypeError} from '../../errors';
 import { NativeModule, NativeModuleBuilder } from '../module';
 import { ESJSBinding } from "../../runtime/primitives/esjsbinding";

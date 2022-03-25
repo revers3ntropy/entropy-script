@@ -8,7 +8,7 @@ import {
     runningInNode,
     setGlobalContext,
     VERSION
-} from "./util/constants.js";
+} from "./util/constants";
 import { ESError } from "./errors";
 import Position from "./position";
 import { compileResult, interpretResult, Node } from "./runtime/nodes";
@@ -18,38 +18,37 @@ import { Context } from "./runtime/context";
 import colours from './util/colours';
 
 // @ts-ignore
-import JS_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt.js';
+import JS_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt';
 // @ts-ignore
 import PY_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt.py';
 
 import { config } from "./config";
 
-export {
-    Context,
-    colours,
-    Position,
-};
-
 export * from './runtime/primitiveTypes';
 export {
-    VERSION,
-    global, setGlobalContext,
-    IS_NODE_INSTANCE, runningInNode,
-    compileConfig,
+    IS_NODE_INSTANCE,
     libs,
-    now, refreshPerformanceNow,
     configFileName
-} from './util/constants.js';
+} from './util/constants';
 export * from './errors';
 export * from './runtime/nodes';
 export * from './util/util';
 export {strip, wrap} from './runtime/primitives/wrapStrip';
 export {ESSymbol} from './runtime/symbol';
-export {parseConfig, config} from './config';
+export {parseConfig} from './config';
 import init from './init';
 
 export {
-    init
+    init,
+    VERSION,
+    global, setGlobalContext,
+    now, refreshPerformanceNow,
+    compileConfig,
+    runningInNode,
+    config,
+    Context,
+    colours,
+    Position,
 };
 
 /**

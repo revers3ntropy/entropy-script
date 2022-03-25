@@ -7,10 +7,10 @@ import { Context } from "./runtime/context";
 import { ESError } from "./errors";
 import {ESFunction, ESJSBinding, initPrimitiveTypes} from './runtime/primitiveTypes';
 import loadGlobalConstants from "./built-in/globalConstants";
-import {global, refreshPerformanceNow, runningInNode, setGlobalContext, types} from './util/constants.js';
+import {global, refreshPerformanceNow, runningInNode, setGlobalContext, types} from './util/constants';
 import { dict } from "./util/util";
 import { NativeObj } from "./runtime/primitives/primitive";
-import {libs as globalLibs} from "./util/constants.js";
+import {libs as globalLibs} from "./util/constants";
 
 export default async function init ({
   print = console.log,

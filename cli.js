@@ -46,11 +46,11 @@ async function init () {
 		print: console.log,
 		input: async (msg, cb) => cb(await askQuestion(msg).catch(console.log)),
 		libs: {
-			https,
-			http,
-			fs,
-			mysql: sql,
-			path
+			https: [https, true],
+			http: [http, true],
+			fs: [fs, true],
+			mysql: [sql, true],
+			path: [path, true]
 		}
 	});
 

@@ -5,3 +5,4 @@ test.es
 out.js
 out.py
 esconfig.json
+/build/

@@ -9,7 +9,7 @@ import {ESString} from './esstring';
 import {ESPrimitive} from './esprimitive';
 import type { Primitive} from './primitive';
 import {strip, wrap} from './wrapStrip';
-import { types } from "../../util/constants.js";
+import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESObject extends ESPrimitive <dict<Primitive>> {

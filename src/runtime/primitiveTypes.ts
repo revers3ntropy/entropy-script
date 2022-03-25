@@ -14,7 +14,7 @@ import {ESUndefined} from './primitives/esundefined';
 import {ESNamespace} from './primitives/esnamespace';
 import {ESJSBinding} from "./primitives/esjsbinding";
 
-import {types} from "../util/constants.js";
+import {types} from "../util/constants";
 
 export {
     ESArray,

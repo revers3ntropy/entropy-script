@@ -1,4 +1,4 @@
-const {Test: Index} = require('./testFramework');
+const {Test} = require('./testFramework.js');
 
 // libs for ES
 const es = require("../build/latest.js");
@@ -60,10 +60,12 @@ async function importAll (dir='./test/tests') {
 		}
 	});
 
-	if (err) {
+	if (err instanceof es.ESError) {
+		console.log('ERROR RUNNING TESTS:');
 		console.log(err);
+		return;
 	}
 
-	console.log(Index.testAll().str(VERBOSE));
+	console.log(Test.testAll().str(VERBOSE));
 })();
 

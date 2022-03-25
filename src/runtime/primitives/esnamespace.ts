@@ -8,7 +8,7 @@ import {ESPrimitive} from './esprimitive';
 import {str} from '../../util/util';
 import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
-import { types } from "../../util/constants.js";
+import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {

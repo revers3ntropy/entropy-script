@@ -5,7 +5,7 @@ import {
     KEYWORDS, multiLineCommentEnd, multiLineCommentStart, singleCharTokens,
     singleLineComment,
     stringSurrounds, tripleCharTokens, tt,
-} from '../util/constants.js';
+} from '../util/constants';
 import {ESError, IllegalCharError} from "../errors";
 import {Token} from "./tokens";
 

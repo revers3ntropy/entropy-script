@@ -1,4 +1,4 @@
-import { global, IS_NODE_INSTANCE, libs } from '../util/constants.js';
+import { global, IS_NODE_INSTANCE, libs } from '../util/constants';
 import {ESError} from '../errors';
 import type {NativeModuleBuilder} from './module';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";

@@ -14,10 +14,19 @@ function run (cmd) {
 
 const WP_LOG_FILE = 'webpack-log.txt';
 
+if (!fs.existsSync('build')) {
+	fs.mkdirSync('build');
+}
+
 (async () => {
 
 	await run (`touch ${WP_LOG_FILE}`);
 	await run(`webpack --config webpack.config.js > ${WP_LOG_FILE}`);
+
+	if (!fs.existsSync(`build/${version}.js`)) {
+		console.log(String(fs.readFileSync(WP_LOG_FILE)));
+		return;
+	}
 
 	await run(`cp build/${version}.js build/latest.js`);
 	fs.writeFileSync(

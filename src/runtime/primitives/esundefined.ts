@@ -13,7 +13,7 @@ import {ESPrimitive} from './esprimitive';
 import {Primitive} from './primitive';
 import { funcProps, str } from '../../util/util';
 import { wrap } from "./wrapStrip";
-import { types } from "../../util/constants.js";
+import { types } from "../../util/constants";
 
 export class ESUndefined extends ESPrimitive <undefined> {
     constructor () {
