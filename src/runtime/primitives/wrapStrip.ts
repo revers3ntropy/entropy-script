@@ -1,4 +1,4 @@
-import {ESError} from '../../errors';
+import {Error} from '../../errors';
 import {ESSymbol} from '../symbol';
 import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
@@ -26,7 +26,7 @@ export function wrap (thing: any, functionsTakeProps=false): Primitive {
     } else if (thing === undefined || thing === null) {
         return new ESUndefined();
 
-    } else if (thing instanceof ESError) {
+    } else if (thing instanceof Error) {
         return new ESErrorPrimitive(thing);
 
     } else if (thing instanceof ESSymbol) {
@@ -77,7 +77,7 @@ export function strip (thing: Primitive | undefined, props: funcProps): NativeOb
     } else if (thing instanceof ESFunction) {
         return (...args: any[]): any => {
             const res = thing.__call__(props, ...args.map(a => wrap(a)));
-            if (res instanceof ESError) {
+            if (res instanceof Error) {
                 console.error(res.str);
                 return res;
             }

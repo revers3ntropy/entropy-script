@@ -4,7 +4,7 @@ import {preloadModules} from './built-in/module';
 import addNodeBIFs from './built-in/nodeLibs';
 import {config} from './config';
 import { Context } from "./runtime/context";
-import { ESError } from "./errors";
+import { Error } from "./errors";
 import { ESFunction, ESJSBinding, ESUndefined, initPrimitiveTypes } from './runtime/primitiveTypes';
 import loadGlobalConstants from "./built-in/globalConstants";
 import {global, refreshPerformanceNow, runningInNode, setGlobalContext, types} from './util/constants';
@@ -27,7 +27,7 @@ export default async function init ({
     context?: Context,
     path?: string,
     libs?: dict<[NativeObj, boolean]>
-} = {}): Promise<ESError | Context> {
+} = {}): Promise<Error | Context> {
 
     setGlobalContext(context);
 
@@ -105,7 +105,7 @@ export default async function init ({
     }
 
     let modulePreloadRes = await preloadModules(config.modules);
-    if (modulePreloadRes instanceof ESError) {
+    if (modulePreloadRes instanceof Error) {
         return modulePreloadRes;
     }
 

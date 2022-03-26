@@ -17,6 +17,13 @@ expect(['myClass', {}], `
     myClass();
 `);
 
+expect(['myClass', {}], `
+    class myClass {
+    	init() {}
+    };
+    myClass();
+`);
+
 expect(['myClass'], `
     let myClass = class {
         init (a) {

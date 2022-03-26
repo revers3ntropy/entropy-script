@@ -3,7 +3,7 @@
  */
 declare module 'entropy-script' {
 
-    type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | ESError | Primitive | Promise<void>;
+    type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | Error | Primitive | Promise<void>;
 
     /**
      * The argument which has been populated with Primitive values
@@ -16,9 +16,9 @@ declare module 'entropy-script' {
 
     export class compileResult {
         val: string;
-        error: ESError | undefined;
+        error: Error | undefined;
 
-        constructor (val?: string | ESError);
+        constructor (val?: string | Error);
     }
 
     const global: Context;
@@ -54,17 +54,17 @@ declare module 'entropy-script' {
 
         hasOwn (identifier: string): boolean;
 
-        get (identifier: string): Primitive | ESError | undefined;
+        get (identifier: string): Primitive | Error | undefined;
 
         getRawSymbolTableAsDict (): dict<Primitive>;
 
         getSymbolTableAsDict (): dict<ESSymbol>;
 
-        getSymbol (identifier: string): undefined | ESSymbol | ESError;
+        getSymbol (identifier: string): undefined | ESSymbol | Error;
 
-        set (identifier: string, value: Primitive, options?: symbolOptions): void | ESError;
+        set (identifier: string, value: Primitive, options?: symbolOptions): void | Error;
 
-        setOwn (identifier: string, value: Primitive, options?: symbolOptions): void | ESError;
+        setOwn (identifier: string, value: Primitive, options?: symbolOptions): void | Error;
 
         remove (identifier: string): void;
 
@@ -112,7 +112,7 @@ declare module 'entropy-script' {
         forceThroughConst?: boolean;
     }
 
-    class ESError {
+    class Error {
         name: string;
         details: string;
         pos: Position;
@@ -164,7 +164,7 @@ declare module 'entropy-script' {
 
     interface interpretResult {
         val: Primitive;
-        error: ESError | undefined;
+        error: Error | undefined;
         funcReturn: Primitive | undefined;
         shouldBreak: boolean;
         shouldContinue: boolean;
@@ -200,7 +200,7 @@ declare module 'entropy-script' {
         libs?: JSModuleParams,
         context?: Context,
         path?: string,
-    ): Promise<ESError | undefined>;
+    ): Promise<Error | undefined>;
 
     function run (msg: string, args: {
         env: Context | undefined,
@@ -213,7 +213,7 @@ declare module 'entropy-script' {
         fileName?: string,
         currentDir?: string
     }): {
-        error?: ESError
+        error?: Error
         compileToJavaScript?: (outfile: string) => compileResult;
         interpret?: (env?: Context) => interpretResult;
     }
@@ -249,41 +249,45 @@ declare module 'entropy-script' {
     abstract class ESPrimitive<T> {
         __value__: T;
         __type__: ESType;
-        info: Info;
-        protected self: NativeObj;
+        __info__: Info;
+        protected _: NativeObj;
 
         protected constructor (value: T, type?: ESType);
 
         str: () => ESString;
-        cast: (props: funcProps, type: Primitive) => Primitive | ESError;
+        cast: (props: funcProps, type: Primitive) => Primitive | Error;
 
-        __add__ (props: funcProps, n: Primitive): Primitive | ESError;
+        __add__ (props: funcProps, n: Primitive): Primitive | Error;
 
-        __subtract__ (props: funcProps, n: Primitive): Primitive | ESError;
+        __subtract__ (props: funcProps, n: Primitive): Primitive | Error;
 
-        __multiply__ (props: funcProps, n: Primitive): Primitive | ESError;
+        __multiply__ (props: funcProps, n: Primitive): Primitive | Error;
 
-        __divide__ (props: funcProps, n: Primitive): Primitive | ESError;
+        __divide__ (props: funcProps, n: Primitive): Primitive | Error;
 
-        __pow__ (props: funcProps, n: Primitive): Primitive | ESError;
+        __pow__ (props: funcProps, n: Primitive): Primitive | Error;
 
-        __eq__ (props: funcProps, n: Primitive): ESBoolean | ESError;
+        __eq__ (props: funcProps, n: Primitive): ESBoolean | Error;
 
-        __gt__ (props: funcProps, n: Primitive): ESBoolean | ESError;
+        __gt__ (props: funcProps, n: Primitive): ESBoolean | Error;
 
-        __lt__ (props: funcProps, n: Primitive): ESBoolean | ESError;
+        __lt__ (props: funcProps, n: Primitive): ESBoolean | Error;
 
-        __and__ (props: funcProps, n: Primitive): ESBoolean | ESError;
+        __and__ (props: funcProps, n: Primitive): ESBoolean | Error;
 
-        __or__ (props: funcProps, n: Primitive): ESBoolean | ESError;
+        __or__ (props: funcProps, n: Primitive): ESBoolean | Error;
 
-        __bool__ (props: funcProps): ESBoolean | ESError;
+        __bool__ (props: funcProps): ESBoolean | Error;
 
-        __setProperty__ (props: funcProps, key: Primitive, value: Primitive): void | ESError;
+        __set__ (props: funcProps, key: Primitive, value: Primitive): void | Error;
 
-        __getProperty__: (props: funcProps, key: Primitive) => Primitive | ESError;
+        __get__: (props: funcProps, key: Primitive) => Primitive | Error;
 
-        __call__ (props: funcProps, ...parameters: Primitive[]): ESError | Primitive;
+        __call__ (props: funcProps, ...parameters: Primitive[]): Error | Primitive;
+
+        __iter__ (props: funcProps): Error | Primitive;
+
+        __next__ (props: funcProps): Error | Primitive;
 
         bool (): ESBoolean;
 
@@ -296,7 +300,7 @@ declare module 'entropy-script' {
         /**
          * @returns if this type is a subset of the type passed
          */
-        isa: (props: funcProps, type: Primitive) => ESBoolean | ESError;
+        isa: (props: funcProps, type: Primitive) => ESBoolean | Error;
         is: (props: funcProps, obj: Primitive) => ESBoolean;
         valueOf: () => T;
         typeName: () => string;
@@ -328,13 +332,14 @@ declare module 'entropy-script' {
         constructor (val?: boolean);
     }
 
-    class ESErrorPrimitive extends ESPrimitive <ESError> {
-        constructor (error?: ESError);
+    class ESErrorPrimitive extends ESPrimitive <Error> {
+        constructor (error?: Error);
     }
 
     class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
-        arguments_: runtimeArgument[];
-        this_: ESObject;
+        __args__: runtimeArgument[];
+        __kwargs__: dict<runtimeArgument>;
+        __this__: ESObject;
         returnType: ESType;
         __closure__: Context;
 
@@ -413,44 +418,44 @@ declare module 'entropy-script' {
 
         protected constructor (pos: Position, isTerminal?: boolean);
 
-        abstract interpret_ (context: Context): ESError | Primitive | interpretResult;
+        abstract interpret_ (context: Context): Error | Primitive | interpretResult;
 
         interpret (context: Context): interpretResult;
     }
 
-    class IllegalCharError extends ESError {
+    class IllegalCharError extends Error {
         constructor (pos: Position, char: string);
     }
 
-    class ExpectedCharError extends ESError {
+    class ExpectedCharError extends Error {
         constructor (pos: Position, char: string);
     }
 
-    class TypeError extends ESError {
+    class TypeError extends Error {
         constructor (pos: Position, expectedType: string, actualType: string, value: any, detail: string);
     }
 
-    class ImportError extends ESError {
+    class ImportError extends Error {
         constructor (pos: Position, url: string, detail: string);
     }
 
-    class ReferenceError extends ESError {
+    class ReferenceError extends Error {
         constructor (pos: Position, ref: string);
     }
 
-    class IndexError extends ESError {
+    class IndexError extends Error {
         constructor (pos: Position, ref: string, object: Primitive);
     }
 
-    class InvalidOperationError extends ESError {
+    class InvalidOperationError extends Error {
         constructor (op: string, value: Primitive, detail?: string, pos?: Position);
     }
 
-    class InvalidRuntimeError extends ESError {
+    class InvalidRuntimeError extends Error {
         constructor ();
     }
 
-    class PermissionRequiredError extends ESError {
+    class PermissionRequiredError extends Error {
         constructor (detail: string);
     }
 

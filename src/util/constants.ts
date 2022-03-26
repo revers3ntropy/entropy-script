@@ -246,4 +246,6 @@ export const primitiveMethods: string[] = [
     '__set__',
     '__get__',
     '__call__',
+    '__iter__',
+    '__next__',
 ];

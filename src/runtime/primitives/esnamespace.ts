@@ -1,4 +1,4 @@
-import {ESError, IndexError, TypeError} from '../../errors';
+import {Error, IndexError, TypeError} from '../../errors';
 import Position from '../../position';
 import { dict, funcProps } from '../../util/util';
 import {ESSymbol} from '../symbol';
@@ -10,6 +10,7 @@ import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
 import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
+import { ESArray } from "./esarray";
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     public __mutable__: boolean;
@@ -21,7 +22,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     }
 
     override cast = (props: funcProps) => {
-        return new ESError(Position.void, 'TypeError', `Cannot cast type 'namespace'`);
+        return new Error(Position.void, 'TypeError', `Cannot cast type 'namespace'`);
     }
 
     get name () {
@@ -54,7 +55,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     override bool = this.__bool__;
 
 
-    override __get__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
         if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf())) {
             const symbol = this.valueOf()[key.valueOf()];
             if (symbol.isAccessible) {
@@ -73,7 +74,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         return new IndexError(Position.void, key.valueOf(), this._);
     };
 
-    override __set__(props: funcProps, key: Primitive, value: Primitive): void | ESError {
+    override __set__(props: funcProps, key: Primitive, value: Primitive): void | Error {
         if (!(key instanceof ESString)) {
             return new TypeError(Position.void, 'string', key.typeName().valueOf(), str(key));
         }
@@ -90,7 +91,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
 
         const symbol = this.__value__[idx];
         if (!symbol) {
-            return new ESError(Position.void, 'SymbolError', `Symbol ${idx} is not declared in namespace ${str(this.name)}.`);
+            return new Error(Position.void, 'SymbolError', `Symbol ${idx} is not declared in namespace ${str(this.name)}.`);
         }
         if (symbol.isConstant) {
             return new TypeError(Position.void, 'mutable', 'immutable', `${str(this.name)}[${idx}]`);
@@ -104,10 +105,15 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
 
     override type_check = this.__eq__;
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
+    }
+
+    override __iter__(props: funcProps): Error | Primitive {
+        // returns array of keys in the object
+        return new ESArray(Object.keys(this.valueOf()).map(s => new ESString(s)));
     }
 }

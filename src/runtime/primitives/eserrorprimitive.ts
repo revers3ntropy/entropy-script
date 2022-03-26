@@ -1,5 +1,5 @@
 import {ESPrimitive} from './esprimitive';
-import { ESError, IndexError } from '../../errors';
+import { Error, IndexError } from '../../errors';
 import Position from '../../position';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
@@ -11,12 +11,12 @@ import { ESArray } from "./esarray";
 import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
-export class ESErrorPrimitive extends ESPrimitive <ESError> {
-    constructor (error: ESError = new ESError(Position.void, 'Unknown', 'Error not specified')) {
+export class ESErrorPrimitive extends ESPrimitive <Error> {
+    constructor (error: Error = new Error(Position.void, 'Unknown', 'Error not specified')) {
         super(error, types.error);
     }
 
-    override __get__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
 
         switch (str(key)) {
 
@@ -38,7 +38,7 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
     };
 
     override cast = () =>
-        new ESError(Position.void, 'TypeError', `Cannot cast type 'error'`);
+        new Error(Position.void, 'TypeError', `Cannot cast type 'error'`);
 
 
     override str = () =>
@@ -58,10 +58,10 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
 
     override type_check = this.__eq__;
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 }

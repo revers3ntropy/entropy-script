@@ -60,7 +60,7 @@ async function importAll (dir='./test/tests') {
 		}
 	});
 
-	if (err instanceof es.ESError) {
+	if (err instanceof es.Error) {
 		console.log('ERROR RUNNING TESTS:');
 		console.log(err);
 		return;

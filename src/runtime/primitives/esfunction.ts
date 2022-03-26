@@ -1,6 +1,6 @@
 import {ESPrimitive} from './esprimitive';
 import { global, types } from '../../util/constants';
-import { ESError, IndexError } from '../../errors';
+import { Error, IndexError } from '../../errors';
 import Position from '../../position';
 import { BuiltInFunction, funcProps } from '../../util/util';
 import {runtimeArgument} from '../argument';
@@ -61,7 +61,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     }
 
     override cast = (props: funcProps, type: Primitive) => {
-        return new ESError(Position.void, 'TypeError', `Cannot cast type 'function'`)
+        return new Error(Position.void, 'TypeError', `Cannot cast type 'function'`)
     }
 
     get name () {
@@ -97,7 +97,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __call__ = ({context, kwargs}: funcProps, ...params: Primitive[]): ESError | Primitive => {
+    override __call__ = ({context, kwargs}: funcProps, ...params: Primitive[]): Error | Primitive => {
         let ctx = context;
         if (!this.takeCallContextAsClosure) {
             ctx = this.__closure__;
@@ -106,7 +106,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         return call(ctx, this, params, kwargs);
     }
 
-    override __get__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
@@ -129,7 +129,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
         const thisReturnVal = this.__call__(props);
 
-        if (thisReturnVal instanceof ESError) {
+        if (thisReturnVal instanceof Error) {
             return thisReturnVal;
         }
 
@@ -141,10 +141,10 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
     };
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 }

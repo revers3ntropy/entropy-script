@@ -9,7 +9,7 @@ import {
     setGlobalContext,
     VERSION
 } from "./util/constants";
-import { ESError } from "./errors";
+import { Error } from "./errors";
 import Position from "./position";
 import { compileResult, interpretResult, Node } from "./runtime/nodes";
 import { ESArray } from "./runtime/primitiveTypes";
@@ -89,7 +89,7 @@ export function run (msg: string, {
 
     if (!env.root.initialisedAsGlobal){
         const res = new interpretResult();
-        res.error = new ESError(
+        res.error = new Error(
             Position.void,
             'Uninitialised',
             'Global context has not been initialised with global values'
@@ -99,7 +99,7 @@ export function run (msg: string, {
 
     const lexer = new Lexer(msg, fileName);
     const lexerRes = lexer.generate();
-    if (lexerRes instanceof ESError) {
+    if (lexerRes instanceof Error) {
         const res_ = new interpretResult();
         res_.error = lexerRes;
         return res_;
@@ -147,7 +147,7 @@ export function parse (code: string, {
 
     const lexer = new Lexer(code, fileName);
     const lexerRes = lexer.generate();
-    if (lexerRes instanceof ESError) {
+    if (lexerRes instanceof Error) {
         return {
             error: lexerRes
         };
@@ -163,7 +163,7 @@ export function parse (code: string, {
 
     if (!res.node) {
         return {
-            error: new ESError(Position.void, 'Error', 'no output')
+            error: new Error(Position.void, 'Error', 'no output')
         };
     }
 
@@ -198,7 +198,7 @@ export function parse (code: string, {
 
             if (!env.root.initialisedAsGlobal){
                 const res = new interpretResult();
-                res.error = new ESError(Position.void, 'Uninitialised',
+                res.error = new Error(Position.void, 'Uninitialised',
                     'Global context has not been initialised with global values');
                 return res;
             }

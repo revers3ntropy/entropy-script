@@ -1,7 +1,7 @@
 import { dict, str } from '../util/util';
 import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
-import { ESError, TypeError } from "../errors";
+import { Error, TypeError } from "../errors";
 import Position from "../position";
 import type {NativeObj} from './primitives/primitive';
 import { ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
@@ -41,7 +41,7 @@ function callNative (self: ESFunction, context: Context, params: Primitive[], fn
         context, kwargs
     }, ...params);
 
-    if (res instanceof ESError || res instanceof ESPrimitive) {
+    if (res instanceof Error || res instanceof ESPrimitive) {
         return res;
     }
 
@@ -56,7 +56,7 @@ export function call (
     self: ESFunction,
     params: Primitive[] = [],
     kwargs: dict<Primitive> = {}
-): ESUndefined | ESError | ESPrimitive<NativeObj> {
+): ESUndefined | Error | ESPrimitive<NativeObj> {
 
     // generate context
     let callContext = context;
@@ -67,7 +67,7 @@ export function call (
     const fn = self.__value__;
 
     const newContext = generateESFunctionCallContext(self, params, kwargs, context);
-    if (newContext instanceof ESError) {
+    if (newContext instanceof Error) {
         return newContext;
     }
 
@@ -84,7 +84,7 @@ export function call (
     }
 
     let setRes = newContext.setOwn('this', this_);
-    if (setRes instanceof ESError) {
+    if (setRes instanceof Error) {
         return setRes;
     }
 

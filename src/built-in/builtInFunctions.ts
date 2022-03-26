@@ -1,8 +1,8 @@
-import { ESError, ImportError, TypeError, ReferenceError } from "../errors";
+import { Error, ImportError, TypeError, ReferenceError } from "../errors";
 import Position from "../position";
 import { strip, wrap } from '../runtime/primitives/wrapStrip';
 import {
-    ESArray, ESFunction, ESNamespace,
+    ESArray, ESErrorPrimitive, ESFunction, ESNamespace,
     ESNumber,
     ESObject,
     ESPrimitive,
@@ -27,7 +27,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             try {
                 return new ESArray([...Array(min).keys()].map(n => new ESNumber(n)));
             } catch (e) {
-                return new ESError(Position.void, 'RangeError', `Cannot make range of length '${str(min)}'`);
+                return new Error(Position.void, 'RangeError', `Cannot make range of length '${str(min)}'`);
             }
         }
 
@@ -83,11 +83,11 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         try {
             const val: number = parseFloat(str(num));
             if (isNaN(val)) {
-                return new ESError(Position.void, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
+                return new Error(Position.void, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
             }
             return new ESNumber(val);
         } catch (e) {
-            return new ESError(Position.void, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
+            return new Error(Position.void, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
         }
     }, {
         args: [{
@@ -174,7 +174,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
     'delete': [({context}, name) => {
         const id = str(name);
         let res = context.remove(id);
-        if (res instanceof ESError) return res;
+        if (res instanceof Error) return res;
     }, {
         name: 'delete',
         args: [{name: 'identifier', type: 'string'}],
@@ -249,7 +249,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         sleep(time.valueOf())
             .then(() => {
                 const res = cb.__call__({context});
-                if (res instanceof ESError) {
+                if (res instanceof Error) {
                     console.log(res.str);
                 }
             });
@@ -260,7 +260,10 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
     }],
 
     'throw': [({context}, name, details) => {
-        return new ESError(Position.void, str(name), str(details));
+        if (name instanceof ESErrorPrimitive) {
+            return name.valueOf();
+        }
+        return new Error(Position.void, str(name), str(details));
     }, {
         name: 'throw',
         args: [{name: 'name', type: 'String'}, {name: 'details', type: 'String'}]
@@ -282,7 +285,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         if (!res) {
             return new ReferenceError(Position.void, symbol);
         }
-        if (res instanceof ESError) {
+        if (res instanceof Error) {
             return res;
         }
 
@@ -301,7 +304,7 @@ export function addDependencyInjectedBIFs (
 ) {
     builtInFunctions['import'] = [(props: funcProps, rawUrl) => {
         if (IS_NODE_INSTANCE) {
-            return new ESError(Position.void, 'ImportError', 'Is running in node instance but trying to run browser import function');
+            return new Error(Position.void, 'ImportError', 'Is running in node instance but trying to run browser import function');
         }
         if (!(rawUrl instanceof ESString)) {
             return new TypeError(Position.void, 'String', rawUrl.typeName(), str(rawUrl));
@@ -335,7 +338,7 @@ export function addDependencyInjectedBIFs (
                 let res = cb.__call__({context},
                     new ESString(msg)
                 );
-                if (res instanceof ESError) {
+                if (res instanceof Error) {
                     console.log(res.str);
                 }
             } else if (typeof cb === 'function') {

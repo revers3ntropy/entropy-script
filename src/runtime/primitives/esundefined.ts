@@ -1,4 +1,4 @@
-import { ESError, IndexError } from '../../errors';
+import { Error, IndexError } from '../../errors';
 import Position from '../../position';
 import {Context} from '../context';
 import {ESArray} from './esarray';
@@ -28,7 +28,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
         };
     }
 
-    override cast = ({context}: {context: Context}, type: Primitive): Primitive | ESError => {
+    override cast = ({context}: {context: Context}, type: Primitive): Primitive | Error => {
         switch (type) {
         case types.number:
             return new ESNumber();
@@ -51,7 +51,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
             return new ESBoolean();
         default:
             if (!(type instanceof ESType)) {
-                return new ESError(Position.void, 'TypeError', `Cannot cast to type '${str(type.typeName())}'`);
+                return new Error(Position.void, 'TypeError', `Cannot cast to type '${str(type.typeName())}'`);
             }
             return type.__call__({context});
         }
@@ -72,7 +72,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
 
     override clone = () => new ESUndefined();
 
-    override __get__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+    override __get__ = ({}: funcProps, key: Primitive): Primitive | Error => {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
@@ -81,10 +81,10 @@ export class ESUndefined extends ESPrimitive <undefined> {
 
     override type_check = this.__eq__;
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 }

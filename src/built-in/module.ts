@@ -6,15 +6,15 @@ import {interpretResult} from '../runtime/nodes';
 import {ESNamespace} from '../runtime/primitives/esnamespace';
 import {ESString} from '../runtime/primitives/esstring';
 import type { dict } from "../util/util";
-import { ESError } from "../errors";
+import { Error } from "../errors";
 import {addModule, modulePrimitive} from './builtInModules';
 
 export type NativeModule = dict<any>;
-export type NativeModuleBuilder = (dependencies: dict<any>) => NativeModule | ESError;
+export type NativeModuleBuilder = (dependencies: dict<any>) => NativeModule | Error;
 
 let loadedURls: dict<modulePrimitive> = {};
 
-export async function preloadModules (urls: dict<any>): Promise<ESError | undefined> {
+export async function preloadModules (urls: dict<any>): Promise<Error | undefined> {
 
     for (const name of Object.keys(urls)) {
 
@@ -62,7 +62,7 @@ export async function preloadModules (urls: dict<any>): Promise<ESError | undefi
             addModule(name, n);
 
         } catch (E: any) {
-            return new ESError(Position.void, 'ImportError', E.toString());
+            return new Error(Position.void, 'ImportError', E.toString());
         }
     }
 }

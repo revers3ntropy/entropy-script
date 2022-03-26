@@ -1,4 +1,4 @@
-import { ESError, IndexError, TypeError } from '../../errors';
+import { Error, IndexError, TypeError } from '../../errors';
 import Position from '../../position';
 import {ESPrimitive} from './esprimitive';
 import { funcProps, str } from '../../util/util';
@@ -22,7 +22,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
         };
     }
 
-    override __get__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
@@ -34,7 +34,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
             case types.number:
                 return new ESNumber(this.valueOf() ? 1 : 0);
             default:
-                return new ESError(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
+                return new Error(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
         }
     }
 
@@ -49,7 +49,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
     override __and__ = (props: funcProps, n: Primitive) =>
         new ESBoolean(this.valueOf() && n.bool().valueOf());
 
-    override __or__ = (props: funcProps, n: Primitive): ESError | ESBoolean => {
+    override __or__ = (props: funcProps, n: Primitive): Error | ESBoolean => {
         return new ESBoolean(this.valueOf() || n.bool().valueOf());
     };
 
@@ -60,10 +60,10 @@ export class ESBoolean extends ESPrimitive <boolean> {
 
     override type_check = this.__eq__;
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 }

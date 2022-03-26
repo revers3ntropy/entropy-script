@@ -55,7 +55,7 @@ expect ([undefined, 0, undefined, 0, 1], `
     let var output;
     let var i_ = 0;
     for i in range(3) {
-        if i == 1 { break }
+        if i == 1 { break; }
         output = i;
         i_ = i_ + 1;
     }
@@ -67,7 +67,7 @@ expect ([undefined, 0,  undefined, 2, 2], `
     let var i_ = 0;
     for i in range(3) {
         if i == 1 { 
-            continue 
+            continue;
         }
         output = i;
         i_ = i_ + 1;
@@ -87,4 +87,30 @@ expect ('InvalidSyntaxError', `
 expect ('InvalidSyntaxError', `
     while (1)
     	output = i;
+`);
+
+// iterator override
+expect (['Iter', [], undefined, [4, 3, 2, 1, 0]], `
+    class Iter {
+    	init() {
+    		this.a = 5;
+    	}
+    	
+    	__iter__ () {
+    		return this;
+    	}
+    	
+    	__next__ () {
+    		if this.a > 0 {
+    			this.a -= 1;
+    			return this.a;
+			}
+			return EndIterator();
+    	}
+    };
+    let var nums = [];
+    for i in Iter() {
+    	nums += [i];
+    }
+    nums;
 `);

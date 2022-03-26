@@ -1,4 +1,4 @@
-import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
+import { Error, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import Position from "../position";
 import {wrap} from './primitives/wrapStrip';
 import { ESArray, ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
@@ -64,9 +64,9 @@ export class Context {
         return this.symbolTable[identifier] instanceof ESSymbol;
     }
 
-    get (identifier: string): Primitive | ESError | undefined {
+    get (identifier: string): Primitive | Error | undefined {
         let symbol = this.getSymbol(identifier);
-        if (symbol instanceof ESError || symbol == undefined) {
+        if (symbol instanceof Error || symbol == undefined) {
             return symbol;
         }
         return symbol.value;
@@ -90,7 +90,7 @@ export class Context {
         return symbols;
     }
 
-    getSymbol (identifier: string): undefined | ESSymbol | ESError {
+    getSymbol (identifier: string): undefined | ESSymbol | Error {
         let symbol: ESSymbol | undefined = this.symbolTable[identifier];
 
         if (symbol && !symbol.isAccessible) {
@@ -104,7 +104,7 @@ export class Context {
 
         if (!symbol && this.parent) {
             let res = this.parent.getSymbol(identifier);
-            if (res instanceof ESError) {
+            if (res instanceof Error) {
                 return res;
             }
             symbol = res;
@@ -131,7 +131,7 @@ export class Context {
         return context.setOwn(identifier, value, options);
     }
 
-    setOwn (identifier: string, value: Primitive, options: symbolOptions = {}): void | ESError {
+    setOwn (identifier: string, value: Primitive, options: symbolOptions = {}): void | Error {
 
         if (!(value instanceof ESPrimitive)) {
             value = wrap(value);
@@ -156,7 +156,7 @@ export class Context {
         this.symbolTable[identifier] = new ESSymbol(value, identifier, options);
     }
 
-    remove (identifier: string): ESError | true {
+    remove (identifier: string): Error | true {
         if (this.hasOwn(identifier)) {
             delete this.symbolTable[identifier];
             return true;
@@ -235,7 +235,7 @@ export function generateESFunctionCallContext (
     let parameters = self.__args__.filter(a => !a.isKwarg);
 
     if (!self.__allow_args__ && args.length > parameters.length) {
-        return new ESError(Position.void, 'TypeError',
+        return new Error(Position.void, 'TypeError',
             `Too many arguments. Expected ${parameters.length} but got ${args.length}`);
     }
 
@@ -264,7 +264,7 @@ export function generateESFunctionCallContext (
         }
 
         const typeIncludes = param.type.type_check({context: parent}, args[i]);
-        if (typeIncludes instanceof ESError) return typeIncludes;
+        if (typeIncludes instanceof Error) return typeIncludes;
         if (!typeIncludes.valueOf()) {
             return new TypeError(Position.void, str(param.type), str(type), str(value));
         }
@@ -277,7 +277,7 @@ export function generateESFunctionCallContext (
     let setRes = newContext.setOwn('args', new ESArray(args), {
         forceThroughConst: true
     });
-    if (setRes instanceof ESError) {
+    if (setRes instanceof Error) {
         return setRes;
     }
 
@@ -298,7 +298,7 @@ export function generateESFunctionCallContext (
         let type = arg.__type__;
 
         const typeIncludes = kwarg.type.type_check({context: parent}, arg);
-        if (typeIncludes instanceof ESError) return typeIncludes;
+        if (typeIncludes instanceof Error) return typeIncludes;
         if (!typeIncludes.valueOf()) {
             return new TypeError(Position.void, str(kwarg.type), str(type), str(arg));
         }
@@ -313,7 +313,7 @@ export function generateESFunctionCallContext (
     if (!self.__allow_kwargs__) {
         for (let k of Object.keys(kwargs)) {
             if (lookedAtKwargs.indexOf(k) === -1) {
-                return new ESError(Position.void, 'TypeError',
+                return new Error(Position.void, 'TypeError',
                     `Kwarg '${Object.keys(kwargs)[0]}' is not a parameter of '${self.name}'`);
             }
         }
@@ -323,7 +323,7 @@ export function generateESFunctionCallContext (
         forceThroughConst: true
     });
 
-    if (setRes instanceof ESError) {
+    if (setRes instanceof Error) {
         return setRes;
     }
 

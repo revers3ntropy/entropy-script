@@ -1,5 +1,5 @@
 import {ESPrimitive} from './esprimitive';
-import { ESError, InvalidOperationError, TypeError } from '../../errors';
+import { Error, InvalidOperationError, TypeError } from '../../errors';
 import {createInstance} from '../instantiator';
 import {ESBoolean} from './esboolean';
 import type {ESFunction} from './esfunction';
@@ -62,11 +62,11 @@ export class ESType extends ESPrimitive <undefined> {
         return new ESBoolean(type === types.type);
     }
 
-    override cast = (props: funcProps, type: Primitive): ESError => {
+    override cast = (props: funcProps, type: Primitive): Error => {
         return new InvalidOperationError('cast', this);
     }
 
-    override type_check = (props: funcProps, n: Primitive): ESBoolean | ESError => {
+    override type_check = (props: funcProps, n: Primitive): ESBoolean | Error => {
         if (!n) return new ESBoolean();
         let t = n.__type__;
 
@@ -95,7 +95,7 @@ export class ESType extends ESPrimitive <undefined> {
         return new ESBoolean(t === this);
     }
 
-    override __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
+    override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
         return createInstance(this, props, params || []);
     }
 
@@ -104,7 +104,7 @@ export class ESType extends ESPrimitive <undefined> {
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __get__ = (props: funcProps, k: Primitive): Primitive | ESError => {
+    override __get__ = (props: funcProps, k: Primitive): Primitive | Error => {
         if (!(k instanceof ESString)) {
             if (this === types.array) {
                 return new ESTypeArray(k);
@@ -118,10 +118,10 @@ export class ESType extends ESPrimitive <undefined> {
         return new ESTypeArray(k);
     };
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 }
@@ -137,15 +137,15 @@ export class ESTypeUnion extends ESType {
         this.__right__ = right;
     }
 
-    override __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
+    override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
         return new InvalidOperationError('__call__', this);
     }
 
-    override type_check = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+    override type_check = (props: funcProps, t: Primitive): ESBoolean | Error => {
         const leftRes = this.__left__.type_check(props, t);
         const rightRes = this.__right__.type_check(props, t);
-        if (leftRes instanceof ESError) return leftRes;
-        if (rightRes instanceof ESError) return rightRes;
+        if (leftRes instanceof Error) return leftRes;
+        if (rightRes instanceof Error) return rightRes;
 
         return new ESBoolean(
             leftRes.valueOf() ||
@@ -178,15 +178,15 @@ export class ESTypeIntersection extends ESType {
         this.__right__ = right;
     }
 
-    override __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
+    override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
         return new InvalidOperationError('__call__', this);
     }
 
-    override type_check = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+    override type_check = (props: funcProps, t: Primitive): ESBoolean | Error => {
         const leftRes = this.__left__.type_check(props, t);
         const rightRes = this.__right__.type_check(props, t);
-        if (leftRes instanceof ESError) return leftRes;
-        if (rightRes instanceof ESError) return rightRes;
+        if (leftRes instanceof Error) return leftRes;
+        if (rightRes instanceof Error) return rightRes;
 
         return new ESBoolean(
             leftRes.valueOf() &&
@@ -216,13 +216,13 @@ export class ESTypeNot extends ESType {
         this.__val__ = type;
     }
 
-    override __call__ = (props: funcProps, ...params: Primitive[]): ESError | Primitive => {
+    override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
         return new InvalidOperationError('__call__', this);
     }
 
-    override type_check = (props: funcProps, t: Primitive): ESBoolean | ESError => {
+    override type_check = (props: funcProps, t: Primitive): ESBoolean | Error => {
         const res = this.__val__.type_check(props, t);
-        if (res instanceof ESError) return res;
+        if (res instanceof Error) return res;
 
         return new ESBoolean(
             !res.valueOf()

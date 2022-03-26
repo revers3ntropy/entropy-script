@@ -5,18 +5,18 @@ const path = require('path');
  * @name testExecutor
  * @function
  * @param {Context} env
- * @returns {boolean | ESError}
+ * @returns {boolean | Error}
  */
 class TestResult {
     failed = 0;
     passed = 0;
-    /** @type {[Test, ESError][]}*/
+    /** @type {[Test, Error][]}*/
     fails = [];
     time = 0;
 
     /**
      * @param {Test} test
-     * @param {ESError | boolean | TestResult} res
+     * @param {Error | boolean | TestResult} res
      */
     register (test, res) {
         if (typeof res === 'boolean') {
@@ -28,7 +28,7 @@ class TestResult {
             return;
         }
 
-        if (res instanceof es.ESError) {
+        if (res instanceof es.Error) {
             this.failed++;
             this.fails.push([test, res]);
             return;

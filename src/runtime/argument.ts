@@ -1,6 +1,6 @@
 import { ESPrimitive, Primitive } from "./primitiveTypes";
 import { Context } from "./context";
-import { ESError } from "../errors";
+import { Error } from "../errors";
 import { Node } from "./nodes";
 
 /**
@@ -26,7 +26,7 @@ export interface uninterpretedArgument {
 /**
  * Converts uninterpretedArgument -> runtimeArgument
  */
-export function interpretArgument (arg: uninterpretedArgument, context: Context): runtimeArgument | ESError {
+export function interpretArgument (arg: uninterpretedArgument, context: Context): runtimeArgument | Error {
     const typeRes = arg.type.interpret(context);
     if (typeRes.error) {
         return typeRes.error;

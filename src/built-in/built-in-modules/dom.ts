@@ -1,12 +1,12 @@
 import {IS_NODE_INSTANCE} from '../../util/constants';
-import {ESError, InvalidRuntimeError, PermissionRequiredError, TypeError} from '../../errors';
+import {Error, InvalidRuntimeError, PermissionRequiredError, TypeError} from '../../errors';
 import { NativeModule, NativeModuleBuilder } from '../module';
 import { ESJSBinding } from "../../runtime/primitives/esjsbinding";
 import { config } from "../../config";
 import Position from "../../position";
 import type { dict } from "../../util/util";
 
-const module: NativeModuleBuilder = (): NativeModule | ESError => {
+const module: NativeModuleBuilder = (): NativeModule | Error => {
 
     if (!config.permissions.accessDOM) {
         return new PermissionRequiredError('No access to DOM');

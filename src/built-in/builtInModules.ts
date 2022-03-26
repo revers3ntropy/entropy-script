@@ -1,5 +1,5 @@
 import { global, IS_NODE_INSTANCE, libs } from '../util/constants';
-import {ESError} from '../errors';
+import {Error} from '../errors';
 import type {NativeModuleBuilder} from './module';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import type { dict } from "../util/util";
@@ -26,7 +26,7 @@ const BIMs: dict<NativeModuleBuilder> = {
 // memoize the modules for faster access
 const initialisedModules: dict<modulePrimitive> = {};
 
-export function initModules (): void | ESError {
+export function initModules (): void | Error {
     if (!IS_NODE_INSTANCE) {
         BIMs['dom'] = dom;
     }
@@ -40,7 +40,7 @@ export function addModule (name: string, body: modulePrimitive): void {
     initialisedModules[name] = body;
 }
 
-export function getModule (name: string): modulePrimitive | undefined | ESError {
+export function getModule (name: string): modulePrimitive | undefined | Error {
 
     if (name in initialisedModules) {
         return initialisedModules[name];
@@ -48,7 +48,7 @@ export function getModule (name: string): modulePrimitive | undefined | ESError 
 
     if (name in BIMs) {
         const res = BIMs[name](libs);
-        if (res instanceof ESError) return res;
+        if (res instanceof Error) return res;
         const processed = new ESJSBinding(res, name);
         initialisedModules[name] = processed;
         return processed

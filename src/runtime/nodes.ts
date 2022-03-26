@@ -1,5 +1,5 @@
 import { Token } from "../parse/tokens";
-import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
+import { EndIterator, Error, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
 import Position from "../position";
 import { catchBlockErrorSymbolName, compileConfig, now, tokenTypeString, tt, types } from "../util/constants";
@@ -24,13 +24,13 @@ import { ESTypeNot, ESTypeUnion } from "./primitives/estype";
 
 export class interpretResult {
     val: Primitive = new ESUndefined();
-    error: ESError | undefined;
+    error: Error | undefined;
     funcReturn: Primitive | undefined;
     shouldBreak = false;
     shouldContinue = false;
 
-    constructor (val?: Primitive | ESError) {
-        if (val instanceof ESError) {
+    constructor (val?: Primitive | Error) {
+        if (val instanceof Error) {
             this.error = val;
         } else if (val) {
             this.val = val;
@@ -42,9 +42,9 @@ export class compileResult {
     val: string = '';
     // for hoisting declarations to the start of the file, gets added after STD
     hoisted: string = '';
-    error: ESError | undefined;
+    error: Error | undefined;
 
-    constructor (val?: string | ESError) {
+    constructor (val?: string | Error) {
         if (typeof val === 'string') {
             this.val = val;
         } else if (val) {
@@ -76,14 +76,14 @@ export abstract class Node {
         this.isTerminal = isTerminal;
     }
 
-    abstract interpret_ (context: Context): ESError | interpretResult;
+    abstract interpret_ (context: Context): Error | interpretResult;
 
     interpret (context: Context): interpretResult {
         const start = now();
         const res = new interpretResult;
         const val = this.interpret_(context);
 
-        if (val instanceof ESError) {
+        if (val instanceof Error) {
             res.error = val;
         }
 
@@ -136,7 +136,7 @@ export class N_binOp extends Node {
         this.right = right;
     }
 
-     interpret_(context: Context): ESError | interpretResult {
+     interpret_(context: Context): Error | interpretResult {
         const left = this.left.interpret(context);
         if (left.error) return left.error;
         const right = this.right.interpret(context);
@@ -156,20 +156,20 @@ export class N_binOp extends Node {
             case tt.LTE: {
                 const lt = l.__lt__({context}, r);
                 const eq = l.__eq__({context}, r);
-                if (lt instanceof ESError) return lt;
-                if (eq instanceof ESError) return eq;
+                if (lt instanceof Error) return lt;
+                if (eq instanceof Error) return eq;
                 return new interpretResult(lt.__or__({context}, eq));
 
             } case tt.GTE: {
                 const gt = l.__gt__({context}, r);
                 const eq = l.__eq__({context}, r);
-                if (gt instanceof ESError) return gt;
-                if (eq instanceof ESError) return eq;
+                if (gt instanceof Error) return gt;
+                if (eq instanceof Error) return eq;
                 return new interpretResult(gt.__or__({context}, eq));
 
             } case tt.NOTEQUALS: {
                 const res = l.__eq__({context}, r);
-                if (res instanceof ESError) return res;
+                if (res instanceof Error) return res;
                 return new interpretResult(new ESBoolean(!res.bool().valueOf()));
 
             } case tt.ADD:
@@ -250,7 +250,7 @@ export class N_unaryOp extends Node {
         this.opTok = opTok;
     }
 
-    interpret_(context: Context): ESError | interpretResult {
+    interpret_(context: Context): Error | interpretResult {
         const res = this.a.interpret(context);
         if (res.error) return res.error;
 
@@ -333,7 +333,7 @@ export class N_varAssign extends Node {
         }
     }
 
-    interpret_(context: Context): interpretResult | ESError {
+    interpret_(context: Context): interpretResult | Error {
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.varNameTok.value)) {
@@ -366,7 +366,7 @@ export class N_varAssign extends Node {
         }
 
         const typeCheckRes = typeRes.val.type_check({context}, res.val);
-        if (typeCheckRes instanceof ESError) return typeCheckRes;
+        if (typeCheckRes instanceof Error) return typeCheckRes;
 
         if (!typeCheckRes.bool().valueOf()) {
             return new TypeError(this.varNameTok.pos,
@@ -388,7 +388,7 @@ export class N_varAssign extends Node {
 
         if (context.has(this.varNameTok.value)) {
             const symbol = context.getSymbol(this.varNameTok.value);
-            if (symbol instanceof ESError) {
+            if (symbol instanceof Error) {
                 return symbol;
             }
             if (symbol) {
@@ -412,7 +412,7 @@ export class N_varAssign extends Node {
 
             const type = context.getSymbol(this.varNameTok.value);
 
-            if (type instanceof ESError) {
+            if (type instanceof Error) {
                 return type;
             }
             if (!type) {
@@ -422,7 +422,7 @@ export class N_varAssign extends Node {
 
             const typeCheckRes = type.type.type_check({context}, res.val);
 
-            if (typeCheckRes instanceof ESError) return typeCheckRes;
+            if (typeCheckRes instanceof Error) return typeCheckRes;
 
             if (!typeCheckRes.bool().valueOf()) {
                 return new TypeError(Position.void, str(type.type), str(res.val.__type__), str(res.val));
@@ -434,7 +434,7 @@ export class N_varAssign extends Node {
                 type: type.type
             });
 
-            if (setRes instanceof ESError) {
+            if (setRes instanceof Error) {
                 return setRes;
             }
 
@@ -442,13 +442,13 @@ export class N_varAssign extends Node {
 
             // assign with modifier like *= or -=
             const currentVal = context.get(this.varNameTok.value);
-            if (currentVal instanceof ESError) return currentVal;
+            if (currentVal instanceof Error) return currentVal;
 
             if (currentVal == undefined)
                 return new InvalidSyntaxError(this.pos,
                     `Cannot declare variable with operator '${this.assignType}'`);
 
-            let newVal: Primitive | ESError;
+            let newVal: Primitive | Error;
             let assignVal = res.val;
 
             switch (this.assignType[0]) {
@@ -462,14 +462,14 @@ export class N_varAssign extends Node {
                     newVal = currentVal.__subtract__({context}, assignVal); break;
 
                 default:
-                    return new ESError(
+                    return new Error(
                         this.pos,
                         'AssignError',
                         `Cannot find assignType of ${this.assignType[0]}`
                     );
             }
 
-            if (newVal instanceof ESError) {
+            if (newVal instanceof Error) {
                 return newVal;
             }
 
@@ -479,7 +479,7 @@ export class N_varAssign extends Node {
                 type: newVal.__type__
             });
 
-            if (setRes instanceof ESError) return setRes;
+            if (setRes instanceof Error) return setRes;
             res.val = newVal;
         }
 
@@ -567,7 +567,7 @@ export class N_arrayDestructAssign extends Node {
         this.isConstant = isConstant;
     }
 
-    interpret_(context: Context): interpretResult | ESError {
+    interpret_(context: Context): interpretResult | Error {
 
         for (let varName of this.varNames) {
             if (context.hasOwn(varName)) {
@@ -600,7 +600,7 @@ export class N_arrayDestructAssign extends Node {
                 if (typeRes.error) return typeRes;
 
                 let typeCheckRes = typeRes.val.type_check({context}, val);
-                if (typeCheckRes instanceof ESError) return typeCheckRes;
+                if (typeCheckRes instanceof Error) return typeCheckRes;
 
                 if (!typeCheckRes.bool().valueOf()) {
                     return new TypeError(Position.void, str(typeRes.val), val.typeName(), str(val));
@@ -620,13 +620,13 @@ export class N_arrayDestructAssign extends Node {
         let i = 0;
         for (let varName of this.varNames) {
             let objPropRes =  res.val.__get__({context}, new ESString(varName));
-            if (objPropRes instanceof ESError) return objPropRes;
+            if (objPropRes instanceof Error) return objPropRes;
 
             let typeRes = this.types[i].interpret(context);
             if (typeRes.error) return typeRes;
 
             let typeCheckRes = typeRes.val.type_check({context}, objPropRes);
-            if (typeCheckRes instanceof ESError) return typeCheckRes;
+            if (typeCheckRes instanceof Error) return typeCheckRes;
 
             if (!typeCheckRes.bool().valueOf()) {
                 return new TypeError(Position.void, str(typeRes.val), objPropRes.typeName(), str(objPropRes));
@@ -780,7 +780,7 @@ export class N_while extends Node {
         this.loop = loop;
     }
 
-    interpret_(context: Context): ESError | interpretResult {
+    interpret_(context: Context): Error | interpretResult {
         while (true) {
             let newContext = new Context();
             newContext.parent = context;
@@ -846,7 +846,7 @@ export class N_for extends Node {
         this.isConstId = isConstIdentifier;
     }
 
-    interpret_ (context: Context): ESError | interpretResult {
+    interpret_ (context: Context): Error | interpretResult {
         const array = this.array.interpret(context);
         if (array.error) return array;
 
@@ -855,59 +855,38 @@ export class N_for extends Node {
                 'Cannot declare global variable which exists in the current scope')
         }
 
-        function iteration (body: Node, id: string, element: Primitive, isGlobal: boolean, isConstant: boolean): 'break' | interpretResult | undefined {
+        let iterator = array.val.__iter__({context});
+
+        if (iterator instanceof Error) return iterator;
+
+        while (true) {
+            let nextRes = iterator.__next__({context});
+            if (nextRes instanceof Error) return nextRes;
+            if (nextRes instanceof ESErrorPrimitive && nextRes.__value__ instanceof EndIterator) {
+                break;
+            }
+
             let newContext = new Context();
             newContext.parent = context;
 
-            newContext.set(id, element, {
-                global: isGlobal,
-                isConstant,
-                type: element.__type__
+            newContext.set(this.identifier.value, nextRes, {
+                global: this.isGlobalId,
+                isConstant: this.isConstId,
+                type: nextRes.__type__
             });
 
-            const res = body.interpret(newContext);
-            if (res.error || (res.funcReturn !== undefined)) return res;
-            if (res.shouldBreak) {
-                res.shouldBreak = false;
-                return 'break';
+            const bodyRes = this.body.interpret(newContext);
+            if (bodyRes.error || (bodyRes.funcReturn !== undefined)) {
+                return bodyRes;
             }
-            if (res.shouldContinue) {
-                res.shouldContinue = false;
+            if (bodyRes.shouldBreak) {
+                bodyRes.shouldBreak = false;
+                break;
+            }
+            if (bodyRes.shouldContinue) {
+                bodyRes.shouldContinue = false;
             }
         }
-
-        if (array.val instanceof ESNumber) {
-            for (let i = 0; i < array.val.valueOf(); i++) {
-                const res = iteration(this.body, this.identifier.value, new ESNumber(i), this.isGlobalId, this.isConstId);
-                if (res === 'break') break;
-                if (res && (res.error || (res.funcReturn !== undefined))) return res;
-            }
-
-        } else if (array.val instanceof ESObject || array.val instanceof ESJSBinding) {
-            for (let element of Object.keys(array.val?.valueOf())) {
-                const res = iteration(this.body, this.identifier.value, new ESString(element), this.isGlobalId, this.isConstId);
-                if (res === 'break') break;
-                if (res && (res.error || (res.funcReturn !== undefined))) return res;
-            }
-
-        } else if (array.val instanceof ESArray) {
-            for (let element of array.val?.valueOf()) {
-                const res = iteration(this.body, this.identifier.value, element, this.isGlobalId, this.isConstId);
-                if (res === 'break') break;
-                if (res && (res.error || (res.funcReturn !== undefined))) return res;
-            }
-        } else if (array.val instanceof ESString) {
-            for (let element of array.val?.valueOf()) {
-                const res = iteration(this.body, this.identifier.value, new ESString(element), this.isGlobalId, this.isConstId);
-                if (res === 'break') break;
-                if (res && (res.error || (res.funcReturn !== undefined))) return res;
-            }
-        } else
-            return new TypeError(
-                this.identifier.pos,
-                'Array | Number | Object | String',
-                typeof array.val
-            );
 
         return new interpretResult(new ESUndefined());
     }
@@ -1022,7 +1001,7 @@ export class N_objectLiteral extends Node {
         this.properties = properties;
     }
 
-    interpret_ (context: Context): interpretResult | ESError {
+    interpret_ (context: Context): interpretResult | Error {
         let interpreted: dict<Primitive> = {};
 
         for (const [keyNode, valueNode] of this.properties) {
@@ -1086,7 +1065,7 @@ export class N_statements extends Node {
         this.topLevel = topLevel;
     }
 
-    interpret_ (context: Context): ESError | interpretResult {
+    interpret_ (context: Context): Error | interpretResult {
         if (!this.topLevel) {
             let last;
             for (let item of this.items) {
@@ -1170,7 +1149,7 @@ export class N_functionCall extends Node {
         this.definiteKwargs = definiteKwargs;
     }
 
-    interpret_ (context: Context): ESError | interpretResult {
+    interpret_ (context: Context): Error | interpretResult {
         let { val, error } = this.to.interpret(context);
         if (error) {
             return error;
@@ -1224,7 +1203,7 @@ export class N_functionCall extends Node {
             kwargs
         }, ...args);
 
-        if (res instanceof ESError) {
+        if (res instanceof Error) {
             res.traceback.push({
                 position: this.pos,
                 // do the best we can to recreate line,
@@ -1317,12 +1296,12 @@ export class N_functionDefinition extends Node {
         this.description = description;
     }
 
-    interpret_ (context: Context): interpretResult | ESError {
+    interpret_ (context: Context): interpretResult | Error {
 
         let args: runtimeArgument[] = [];
         for (let arg of this.arguments) {
             const res = interpretArgument(arg, context);
-            if (res instanceof ESError)
+            if (res instanceof Error)
                 return res;
             args.push(res);
         }
@@ -1500,7 +1479,7 @@ export class N_indexed extends Node {
         this.index = index;
     }
 
-    interpret_ (context: Context): ESError | interpretResult {
+    interpret_ (context: Context): Error | interpretResult {
         let baseRes = this.base.interpret(context);
         if (baseRes.error) return baseRes;
 
@@ -1519,7 +1498,7 @@ export class N_indexed extends Node {
             if (valRes.error) return valRes;
 
             const currentVal = wrap(base.__get__({context}, index));
-            let newVal: Primitive | ESError;
+            let newVal: Primitive | Error;
             let assignVal = valRes.val;
             this.assignType ??= '=';
 
@@ -1541,14 +1520,14 @@ export class N_indexed extends Node {
                     newVal = assignVal; break;
 
                 default:
-                    return new ESError(
+                    return new Error(
                         this.pos,
                         'AssignError',
                         `Cannot find assignType of ${this.assignType[0]}`
                     );
             }
 
-            if (newVal instanceof ESError)
+            if (newVal instanceof Error)
                 return newVal;
 
             if (!base.__set__)
@@ -1556,7 +1535,7 @@ export class N_indexed extends Node {
                     'mutable', 'immutable', base.valueOf());
 
             const res = base.__set__({context}, index, newVal ?? new ESUndefined());
-            if (res instanceof ESError)
+            if (res instanceof Error)
                 return res;
         }
         return new interpretResult(base.__get__({context}, index));
@@ -1617,7 +1596,7 @@ export class N_class extends Node {
         this.isDeclaration = isDeclaration;
     }
 
-    interpret_ (context: Context): interpretResult | ESError {
+    interpret_ (context: Context): interpretResult | Error {
         const methods: ESFunction[] = [];
         for (let method of this.methods) {
             const res = method.interpret(context);
@@ -1667,7 +1646,8 @@ export class N_class extends Node {
             init = initRes.val;
         }
 
-        let typePrim = new ESType(false, this.name, methods, extends_, init)
+        let typePrim = new ESType(false, this.name, methods, extends_, init);
+
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {
@@ -1688,7 +1668,7 @@ export class N_class extends Node {
     }
 
     compilePy (config: compileConfig) {
-        return new compileResult(`class ${this.name}:\n${' '.repeat(config.indent)}pass`);
+        return new compileResult(`class ${this.name}: pass`);
     }
 }
 
@@ -1707,7 +1687,7 @@ export class N_namespace extends Node {
         this.isDeclaration = isDeclaration;
     }
 
-    interpret_ (context: Context): ESError | interpretResult {
+    interpret_ (context: Context): Error | interpretResult {
         const newContext = new Context();
         newContext.parent = context;
 
@@ -1756,7 +1736,7 @@ export class N_tryCatch extends Node {
         this.catchBlock = catchBlock;
     }
 
-    interpret_ (context: Context): ESError | interpretResult {
+    interpret_ (context: Context): Error | interpretResult {
         const res = this.body.interpret(context);
 
         if (res.error) {
@@ -1806,7 +1786,7 @@ export class N_number extends Node {
         super(pos, true);
         this.a = a;
     }
-    interpret_ (context: Context): interpretResult | ESError {
+    interpret_ (context: Context): interpretResult | Error {
         let val = this.a.value;
 
         const res = new interpretResult();
@@ -1829,7 +1809,7 @@ export class N_string extends Node {
         super(pos, true);
         this.a = a;
     }
-    interpret_ (context: Context): interpretResult | ESError {
+    interpret_ (context: Context): interpretResult | Error {
         let val = this.a.value;
 
         const res = new interpretResult();
@@ -1855,7 +1835,7 @@ export class N_variable extends Node {
         this.a = a;
     }
 
-    interpret_ (context: Context): ESError | interpretResult {
+    interpret_ (context: Context): Error | interpretResult {
         if (!context.has(this.a.value)) {
             return new ReferenceError(this.a.pos, this.a.value);
         }
@@ -1866,7 +1846,7 @@ export class N_variable extends Node {
         if (!symbol) {
             return new ReferenceError(this.pos, `No access to undeclared variable ${this.a.value}`);
         }
-        if (symbol instanceof ESError) {
+        if (symbol instanceof Error) {
             return symbol;
         }
 

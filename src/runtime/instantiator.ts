@@ -1,7 +1,7 @@
 import {primitiveMethods} from '../util/constants';
 import { Context } from "./context";
 import type { dict, funcProps } from '../util/util';
-import { ESError, TypeError } from "../errors";
+import { Error, TypeError } from "../errors";
 import Position from "../position";
 import type {NativeObj} from './primitives/primitive';
 import {wrap} from './primitives/wrapStrip';
@@ -23,9 +23,9 @@ import {
  * @param {dict<Primitive>} instance the instance to add the properties to
  * @param {ESObject} this_ the 'super' function's 'this' context
  * @param callContext
- * @returns {ESError | void}
+ * @returns {Error | void}
  */
-function dealWithExtends (context: Context, class_: ESType, instance: dict<Primitive>, this_: ESObject, callContext: Context): ESError | void {
+function dealWithExtends (context: Context, class_: ESType, instance: dict<Primitive>, this_: ESObject, callContext: Context): Error | void {
     if (!(class_ instanceof ESType)) {
         return new TypeError(
             Position.void,
@@ -41,7 +41,7 @@ function dealWithExtends (context: Context, class_: ESType, instance: dict<Primi
         // deal with next level
         if (class_.__extends__) {
             let _a = dealWithExtends(newContext, class_.__extends__, instance, this_, callContext);
-            if (_a instanceof ESError) {
+            if (_a instanceof Error) {
                 return _a;
             }
         }
@@ -56,7 +56,7 @@ function dealWithExtends (context: Context, class_: ESType, instance: dict<Primi
         initFunc.__closure__ = newContext;
 
         const res_ = initFunc.__call__({context: newContext}, ...args);
-        if (res_ instanceof ESError) {
+        if (res_ instanceof Error) {
             return res_;
         }
     }, undefined, 'super', this_);
@@ -67,13 +67,13 @@ function dealWithExtends (context: Context, class_: ESType, instance: dict<Primi
     superFunc.__args__ = class_?.__init__?.__args__ || [];
 
     let setRes = context.setOwn('super', superFunc);
-    if (setRes instanceof ESError) {
+    if (setRes instanceof Error) {
         return setRes;
     }
 
     // recurse with extended class
     const res = createInstance(class_, {context}, [], false, instance);
-    if (res instanceof ESError) {
+    if (res instanceof Error) {
         return res;
     }
 }
@@ -86,7 +86,7 @@ function dealWithExtends (context: Context, class_: ESType, instance: dict<Primi
  * @param {Primitive[]} params
  * @param {boolean} runInit
  * @param {dict<Primitive>} on
- * @returns {ESBoolean | Primitive | ESFunction | ESUndefined | ESString | ESObject | ESError | ESNumber | ESArray | ESType}
+ * @returns {ESBoolean | Primitive | ESFunction | ESUndefined | ESString | ESObject | Error | ESNumber | ESArray | ESType}
  */
 export function createInstance (
     type: ESType,
@@ -94,7 +94,7 @@ export function createInstance (
     params: Primitive[],
     runInit=true,
     on: dict<Primitive> = {}
-): ESError | Primitive {
+): Error | Primitive {
 
     if (type.__primordial__) {
         // make sure we have at least one arg
@@ -133,7 +133,7 @@ export function createInstance (
 
     if (type.__extends__) {
         let res = dealWithExtends(newContext, type.__extends__, on, instance, context);
-        if (res instanceof ESError) {
+        if (res instanceof Error) {
             return res;
         }
     }
@@ -160,7 +160,7 @@ export function createInstance (
 
         const res = type.__init__.__call__({context: newContext}, ...params);
         // the return value of init is ignored
-        if (res instanceof ESError) {
+        if (res instanceof Error) {
             return res;
         }
     }

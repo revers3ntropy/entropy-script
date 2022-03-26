@@ -6,7 +6,7 @@ import {
     singleLineComment,
     stringSurrounds, tripleCharTokens, tt,
 } from '../util/constants';
-import {ESError, IllegalCharError} from "../errors";
+import {Error, IllegalCharError} from "../errors";
 import {Token} from "./tokens";
 
 export class Lexer {
@@ -25,7 +25,7 @@ export class Lexer {
         this.currentChar = this.text[this.position.idx];
     }
 
-    public generate (): Token[] | ESError {
+    public generate (): Token[] | Error {
 
         if (!this.text) {
             return [new Token(this.position, tt.EOF, undefined)];

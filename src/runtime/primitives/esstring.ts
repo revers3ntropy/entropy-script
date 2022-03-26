@@ -1,4 +1,4 @@
-import {ESError, TypeError} from '../../errors';
+import {Error, TypeError} from '../../errors';
 import Position from '../../position';
 import { funcProps, str } from '../../util/util';
 import {ESArray} from './esarray';
@@ -18,12 +18,12 @@ export class ESString extends ESPrimitive <string> {
 
     override str = () => this;
 
-    override cast = (props: funcProps, type: Primitive): Primitive | ESError => {
+    override cast = (props: funcProps, type: Primitive): Primitive | Error => {
         switch (type) {
             case types.number:
                 const num = parseFloat(this.valueOf());
                 if (isNaN(num)) {
-                    return new ESError(Position.void, 'TypeError', `This string is not a valid number`);
+                    return new Error(Position.void, 'TypeError', `This string is not a valid number`);
                 }
                 return new ESNumber(num);
             case types.string:
@@ -31,7 +31,7 @@ export class ESString extends ESPrimitive <string> {
             case types.array:
                 return new ESArray(this.valueOf().split('').map(s => new ESString(s)));
             default:
-                return new ESError(Position.void, 'TypeError', `Cannot cast to type '${ str(type.typeName()) }'`);
+                return new Error(Position.void, 'TypeError', `Cannot cast to type '${ str(type.typeName()) }'`);
         }
     }
 
@@ -120,10 +120,15 @@ export class ESString extends ESPrimitive <string> {
 
     override type_check = this.__eq__;
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
+    }
+
+    override __iter__(props: funcProps): Error | Primitive {
+        const chars = this.valueOf().split('');
+        return new ESArray(chars.map(s => new ESString(s)));
     }
 }

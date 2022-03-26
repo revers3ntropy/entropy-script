@@ -1,6 +1,6 @@
 import Position from "../position";
 import {Context} from "../runtime/context";
-import { ESError, ImportError, MissingNativeDependencyError, PermissionRequiredError } from '../errors';
+import { Error, ImportError, MissingNativeDependencyError, PermissionRequiredError } from '../errors';
 import {ESFunction, ESNamespace, ESObject, ESString, Primitive} from '../runtime/primitiveTypes';
 import { funcProps, str } from "../util/util";
 import {interpretResult} from "../runtime/nodes";
@@ -49,7 +49,7 @@ const open = (props: funcProps, path_: Primitive, encoding_: Primitive) => {
     });
 };
 
-const import_ = (props: funcProps, rawPath: Primitive): ESError | Primitive | undefined => {
+const import_ = (props: funcProps, rawPath: Primitive): Error | Primitive | undefined => {
 
     if (!config.permissions.imports) {
         return new PermissionRequiredError('Imports not allowed');
@@ -79,10 +79,10 @@ const import_ = (props: funcProps, rawPath: Primitive): ESError | Primitive | un
                 if (fs.existsSync('particles/' + scriptPath + '/main.es')) {
                     scriptPath = 'particles/' + scriptPath + '/main.es';
                 } else {
-                    return new ESError(Position.void, 'ImportError', `Module '${scriptPath}' has no entry point. Requires 'main.es'.`)
+                    return new Error(Position.void, 'ImportError', `Module '${scriptPath}' has no entry point. Requires 'main.es'.`)
                 }
             } else {
-                return new ESError(Position.void, 'ImportError', `Can't find file '${scriptPath}' to import.`)
+                return new Error(Position.void, 'ImportError', `Can't find file '${scriptPath}' to import.`)
             }
         }
 
@@ -109,7 +109,7 @@ const import_ = (props: funcProps, rawPath: Primitive): ESError | Primitive | un
         return n;
 
     } catch (E: any) {
-        return new ESError(Position.void, 'ImportError', E.toString());
+        return new Error(Position.void, 'ImportError', E.toString());
     }
 }
 

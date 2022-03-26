@@ -11,7 +11,7 @@ import {
     N_variable,
     Node
 } from '../runtime/nodes';
-import { ESError, InvalidSyntaxError } from "../errors";
+import { Error, InvalidSyntaxError } from "../errors";
 import Position from "../position";
 import { ESType } from "../runtime/primitiveTypes";
 import { uninterpretedArgument } from "../runtime/argument";
@@ -875,7 +875,7 @@ export class Parser {
     /**
      * Gets the __name__ and __type__ of a parameter, for example `arg1: number`
      */
-    private parameter (res: ParseResults): uninterpretedArgument | ESError {
+    private parameter (res: ParseResults): uninterpretedArgument | Error {
         let name: string;
         let type: Node = new n.N_primitiveWrapper(types.any);
         let defaultValue: Node | undefined;
@@ -983,7 +983,7 @@ export class Parser {
                 }
 
                 let param = this.parameter(res);
-                if (param instanceof ESError) {
+                if (param instanceof Error) {
                     return res.failure(param);
                 }
                 if (args.filter(a => a.name === param.name).length) {
@@ -1142,7 +1142,7 @@ export class Parser {
             const func = res.register(this.funcCore());
             if (res.error) return res;
             if (!(func instanceof N_functionDefinition)) {
-                return res.failure(new ESError(this.currentToken.pos, 'ParseError',
+                return res.failure(new Error(this.currentToken.pos, 'ParseError',
                     `Tried to get function, but got ${func} instead`));
             }
 
@@ -1162,7 +1162,8 @@ export class Parser {
             methods,
             extends_,
             init,
-            name
+            name,
+            identifier !== undefined
         ));
     }
 

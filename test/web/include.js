@@ -28,7 +28,7 @@ entropyScriptLink.onload = async () => {
         false
     );
 
-    if (res instanceof es.ESError) {
+    if (res instanceof es.Error) {
         console.log(res.str);
         return;
     }

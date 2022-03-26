@@ -1,4 +1,4 @@
-import { ESError, IndexError, TypeError } from '../../errors';
+import { EndIterator, Error, IndexError, TypeError } from '../../errors';
 import Position from '../../position';
 import { dict, funcProps, str } from '../../util/util';
 import {Context} from '../context';
@@ -11,6 +11,7 @@ import type { Primitive} from './primitive';
 import {strip, wrap} from './wrapStrip';
 import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
+import { ESErrorPrimitive } from "./eserrorprimitive";
 
 export class ESObject extends ESPrimitive <dict<Primitive>> {
 
@@ -23,7 +24,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             case types.number:
                 return new ESNumber(this.valueOf() ? 1 : 0);
             default:
-                return new ESError(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
+                return new Error(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
         }
     }
 
@@ -42,7 +43,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
 
     set keys (val: ESString[]) {}
 
-    override __eq__ = ({context}: {context: Context}, n: Primitive): ESBoolean | ESError => {
+    override __eq__ = ({context}: {context: Context}, n: Primitive): ESBoolean | Error => {
         if (!(n instanceof ESObject)) {
             return new ESBoolean();
         }
@@ -69,7 +70,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             }
 
             const res = thisElement.__eq__({context}, nElement);
-            if (res instanceof ESError) {
+            if (res instanceof Error) {
                 return res;
             }
             if (!res.valueOf()) {
@@ -94,7 +95,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         for (let k of this.keys) {
             const key = k.valueOf();
             const res = this.__get__({context}, k);
-            if (res instanceof ESError) {
+            if (res instanceof Error) {
                 return res;
             }
             newOb[key] = res;
@@ -106,7 +107,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
                 continue;
             }
             const res = n.__get__({context}, k);
-            if (res instanceof ESError) {
+            if (res instanceof Error) {
                 return res;
             }
             newOb[key] = res;
@@ -115,7 +116,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESObject(newOb);
     };
 
-    override __subtract__ = (props: funcProps, n: Primitive): Primitive | ESError => {
+    override __subtract__ = (props: funcProps, n: Primitive): Primitive | Error => {
 
         let keysToRemove = [];
         if (n instanceof ESString) {
@@ -136,7 +137,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             const key = k.valueOf();
             if (keysToRemove.indexOf(key) === -1) {
                 let res = this.__get__(props, k);
-                if (res instanceof ESError) {
+                if (res instanceof Error) {
                     return res;
                 }
                 newOb[key] = res;
@@ -146,7 +147,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESObject(newOb);
     }
 
-    override __get__ = (props: funcProps, k: Primitive): Primitive| ESError => {
+    override __get__ = (props: funcProps, k: Primitive): Primitive| Error => {
         if (!(k instanceof ESString) && !(k instanceof ESNumber)) {
             return new TypeError(Position.void, 'String | Number', k.typeName(), str(k));
         }
@@ -164,7 +165,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new IndexError(Position.void, str(key), this);
     };
 
-    override __set__ = ({}: funcProps, key: Primitive, value: Primitive): void | ESError => {
+    override __set__ = ({}: funcProps, key: Primitive, value: Primitive): void | Error => {
         if (!(key instanceof ESString)) {
             return new TypeError(Position.void, 'String', key.typeName(), str(key));
         }
@@ -195,7 +196,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return res;
     }
 
-    override type_check = (props: funcProps, n: Primitive): ESBoolean | ESError => {
+    override type_check = (props: funcProps, n: Primitive): ESBoolean | Error => {
         if (!(n instanceof ESObject)) {
             return new ESBoolean();
         }
@@ -219,10 +220,15 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESBoolean(true);
     };
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | ESError {
+    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
+    }
+
+    override __iter__(props: funcProps): Error | Primitive {
+        // returns array of keys in the object
+        return new ESArray(Object.keys(this.valueOf()).map(s => new ESString(s)));
     }
 }

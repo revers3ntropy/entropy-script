@@ -1,10 +1,10 @@
 import * as n from "../runtime/nodes";
-import { ESError } from "../errors";
+import { Error } from "../errors";
 import { N_undefined } from "../runtime/nodes";
 
 export class ParseResults {
     node: n.Node | undefined;
-    error: ESError | undefined;
+    error: Error | undefined;
 
     reverseCount: number;
     lastRegisteredAdvanceCount: number;
@@ -46,7 +46,7 @@ export class ParseResults {
         return this;
     }
 
-    failure (error: ESError): ParseResults {
+    failure (error: Error): ParseResults {
         this.error = error;
         return this;
     }

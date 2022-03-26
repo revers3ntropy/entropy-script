@@ -1,4 +1,4 @@
-import {ESError} from '../errors';
+import {Error} from '../errors';
 import {Context} from '../runtime/context';
 import {Node} from "../runtime/nodes";
 import {ESPrimitive, Primitive} from '../runtime/primitiveTypes';
@@ -23,7 +23,7 @@ export interface funcProps {
     kwargs?: dict<Primitive>
 }
 
-export type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | ESError | Primitive | Promise<void>;
+export type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | Error | Primitive | Promise<void>;
 
 /**
  * @param {any} val to be turned to string. used by .str primitive method
