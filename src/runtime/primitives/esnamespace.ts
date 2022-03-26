@@ -54,7 +54,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     override bool = this.__bool__;
 
 
-    override __get_property__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __get__ = (props: funcProps, key: Primitive): Primitive | ESError => {
         if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf())) {
             const symbol = this.valueOf()[key.valueOf()];
             if (symbol.isAccessible) {
@@ -73,7 +73,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         return new IndexError(Position.void, key.valueOf(), this._);
     };
 
-    override __set_property__(props: funcProps, key: Primitive, value: Primitive): void | ESError {
+    override __set__(props: funcProps, key: Primitive, value: Primitive): void | ESError {
         if (!(key instanceof ESString)) {
             return new TypeError(Position.void, 'string', key.typeName().valueOf(), str(key));
         }

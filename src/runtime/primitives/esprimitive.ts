@@ -88,10 +88,10 @@ export abstract class ESPrimitive <T> {
     }
 
     // Properties
-    public __set_property__ (props: funcProps, key: Primitive, value: Primitive): void | ESError {
-        return new InvalidOperationError('__set_property__', this, `[${str(key)}] = ${str(value)}`);
+    public __set__ (props: funcProps, key: Primitive, value: Primitive): void | ESError {
+        return new InvalidOperationError('__set__', this, `[${str(key)}] = ${str(value)}`);
     }
-    public abstract __get_property__: (props: funcProps, key: Primitive) => Primitive | ESError;
+    public abstract __get__: (props: funcProps, key: Primitive) => Primitive | ESError;
 
     public __call__ (props: funcProps, ...parameters: Primitive[]): ESError | Primitive {
         return new InvalidOperationError('__call__', this);

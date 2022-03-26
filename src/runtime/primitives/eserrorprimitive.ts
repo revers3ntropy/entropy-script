@@ -16,7 +16,7 @@ export class ESErrorPrimitive extends ESPrimitive <ESError> {
         super(error, types.error);
     }
 
-    override __get_property__ = (props: funcProps, key: Primitive): Primitive | ESError => {
+    override __get__ = (props: funcProps, key: Primitive): Primitive | ESError => {
 
         switch (str(key)) {
 

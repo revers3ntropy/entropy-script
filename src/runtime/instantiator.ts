@@ -91,7 +91,7 @@ export function createInstance (
     on: dict<Primitive> = {}
 ): ESError | Primitive {
 
-    if (type.__primitive__) {
+    if (type.__primordial__) {
         // make sure we have at least one arg
         if (params.length < 1) {
             return new ESUndefined();

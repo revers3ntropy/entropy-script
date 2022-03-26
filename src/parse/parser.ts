@@ -1,6 +1,6 @@
 import { tokenType, tokenTypeString, tt, types, VAR_DECLARE_KEYWORDS } from '../util/constants';
-import {ParseResults} from './parseResults';
-import {Token} from "./tokens";
+import { ParseResults } from './parseResults';
+import { Token } from "./tokens";
 import * as n from '../runtime/nodes';
 import {
     N_functionDefinition,
@@ -9,12 +9,13 @@ import {
     N_tryCatch,
     N_undefined,
     N_variable,
-    Node,
+    Node
 } from '../runtime/nodes';
 import { ESError, InvalidSyntaxError } from "../errors";
 import Position from "../position";
 import { ESType } from "../runtime/primitiveTypes";
 import { uninterpretedArgument } from "../runtime/argument";
+import { dict } from "../util/util";
 
 export class Parser {
     tokens: Token[];
@@ -345,7 +346,7 @@ export class Parser {
     }
 
     private term () {
-        return this.binOp(() => this.factor(), [tt.MUL, tt.DIV]);
+        return this.binOp(() => this.factor(), [tt.ASTERIX, tt.DIV]);
     }
 
     private arithmeticExpr () {
@@ -429,13 +430,13 @@ export class Parser {
     private makeFunctionCall (to: Node) {
         const res = new ParseResults();
         let args: Node[] = [];
+        let indefiniteKwargs: Node[] = [];
+        let definiteKwargs: dict<Node> = {};
         const pos = this.currentToken.pos;
 
         if (this.currentToken.type !== tt.OPAREN) {
             return res.failure(new InvalidSyntaxError(
-                pos,
-                "Expected '['"
-            ));
+                pos, "Expected '('"));
         }
 
         this.advance(res);
@@ -443,33 +444,58 @@ export class Parser {
         // @ts-ignore
         if (this.currentToken.type === tt.CPAREN) {
             this.advance(res);
-            return res.success(new n.N_functionCall(pos, to, []));
+            return res.success(new n.N_functionCall(pos, to));
         }
 
-        args.push(res.register(this.expr()));
-        if (res.error) return res.failure(new InvalidSyntaxError(
-            this.currentToken.pos,
-            "Invalid argument"
-        ));
+        while (true) {
+            // check for kwargs
+            // @ts-ignore
+            if (this.currentToken.type === tt.ASTERIX) {
+                this.advance(res);
 
-        // @ts-ignore
-        while (this.currentToken.type === tt.COMMA) {
-            this.advance(res);
+                // @ts-ignore
+                if (this.currentToken.type === tt.ASTERIX) {
+                    // double asterix
+                    this.advance(res);
+                    indefiniteKwargs.push(res.register(this.expr()));
+                } else {
 
-            args.push(res.register(this.expr()));
-            if (res.error) return res;
+                    let name = this.currentToken.value;
+
+                    this.consume(res, tt.IDENTIFIER);
+                    if (res.error) return res;
+
+                    definiteKwargs[name] = res.register(this.expr());
+                    if (res.error) return res;
+                }
+
+            } else {
+                // normal argument
+                args.push(res.register(this.expr()));
+                if (res.error) return res;
+            }
+
+            // @ts-ignore
+            if (this.currentToken.type === tt.COMMA) {
+                this.advance(res);
+            } else {
+                // break on no more commas
+                break;
+            }
         }
 
+
         // @ts-ignore
-        if (this.currentToken.type !== tt.CPAREN)
+        if (this.currentToken.type !== tt.CPAREN) {
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
                 "Expected ',' or ')'"
             ));
+        }
 
         this.advance(res);
 
-        return res.success(new n.N_functionCall(pos, to, args));
+        return res.success(new n.N_functionCall(pos, to, args, indefiniteKwargs, definiteKwargs));
     }
 
     private makeIndex (to: Node) {
@@ -839,6 +865,14 @@ export class Parser {
         let name: string;
         let type: Node = new n.N_primitiveWrapper(types.any);
         let defaultValue: Node | undefined;
+        let isKwarg = false;
+
+        if (this.currentToken.type === tt.ASTERIX) {
+            isKwarg = true;
+            this.consume(res, tt.ASTERIX);
+        }
+
+        if (res.error) return res.error;
 
         if (this.currentToken.type !== tt.IDENTIFIER) {
             return new InvalidSyntaxError(
@@ -871,12 +905,13 @@ export class Parser {
         return {
             name,
             type,
-            defaultValue
+            defaultValue,
+            isKwarg
         };
     }
 
     /**
-     * () {} part of the function or method
+     * (a: String, *b, *c: Number=1, *, **) {}
      */
     private funcCore (): ParseResults {
         const res = new ParseResults();
@@ -892,18 +927,11 @@ export class Parser {
             this.advance(res);
 
         } else {
-            let param = this.parameter(res);
-            if (param instanceof ESError) {
-                return res.failure(param);
-            }
-            args.push(param);
 
-            let usingDefault = args[0].defaultValue !== undefined;
+            let usingDefault = false;
+            let usingKwargs = false;
 
-            // @ts-ignore
-            while (this.currentToken.type === tt.COMMA) {
-                this.advance(res);
-
+            while (true) {
                 let paramStart = this.currentToken.pos;
 
                 let param = this.parameter(res);
@@ -918,18 +946,29 @@ export class Parser {
                     return res.failure(new InvalidSyntaxError(
                         this.currentToken.pos, 'Must use default parameter here'));
                 }
+                if (usingKwargs && !param.isKwarg) {
+                    return res.failure(new InvalidSyntaxError(
+                        this.currentToken.pos, 'Must use kwarg here'));
+                }
                 if (!usingDefault && param.defaultValue) {
                     usingDefault = true;
                 }
                 args.push(param);
+
+                if (this.currentToken.type === tt.COMMA) {
+                    this.advance(res);
+                } else {
+                    break;
+                }
             }
 
             // @ts-ignore
-            if (this.currentToken.type !== tt.CPAREN)
+            if (this.currentToken.type !== tt.CPAREN) {
                 return res.failure(new InvalidSyntaxError(
                     this.currentToken.pos,
                     "Expected ',' or ')'"
                 ));
+            }
 
             this.advance(res);
         }

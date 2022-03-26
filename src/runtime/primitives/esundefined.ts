@@ -72,7 +72,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
 
     override clone = () => new ESUndefined();
 
-    override __get_property__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
+    override __get__ = ({}: funcProps, key: Primitive): Primitive | ESError => {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }

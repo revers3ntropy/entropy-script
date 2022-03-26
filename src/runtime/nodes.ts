@@ -176,7 +176,7 @@ export class N_binOp extends Node {
                 return new interpretResult(l.__add__({context}, r));
             case tt.SUB:
                 return new interpretResult(l.__subtract__({context}, r));
-            case tt.MUL:
+            case tt.ASTERIX:
                 return new interpretResult(l.__multiply__({context}, r));
             case tt.DIV:
                 return new interpretResult(l.__divide__({context}, r));
@@ -619,7 +619,7 @@ export class N_arrayDestructAssign extends Node {
 
         let i = 0;
         for (let varName of this.varNames) {
-            let objPropRes =  res.val.__get_property__({context}, new ESString(varName));
+            let objPropRes =  res.val.__get__({context}, new ESString(varName));
             if (objPropRes instanceof ESError) return objPropRes;
 
             let typeRes = this.types[i].interpret(context);
@@ -1159,11 +1159,15 @@ export class N_statements extends Node {
 export class N_functionCall extends Node {
     arguments: Node[];
     to: Node;
+    indefiniteKwargs: Node[];
+    definiteKwargs: dict<Node>;
 
-    constructor(pos: Position, to: Node, args: Node[]) {
+    constructor(pos: Position, to: Node, args: Node[] = [], indefiniteKwargs: Node[] = [], definiteKwargs: dict<Node> = {}) {
         super(pos);
         this.arguments = args;
         this.to = to;
+        this.indefiniteKwargs = indefiniteKwargs;
+        this.definiteKwargs = definiteKwargs;
     }
 
     interpret_ (context: Context): ESError | interpretResult {
@@ -1478,7 +1482,7 @@ export class N_indexed extends Node {
             let valRes = this.value.interpret(context);
             if (valRes.error) return valRes;
 
-            const currentVal = wrap(base.__get_property__({context}, index));
+            const currentVal = wrap(base.__get__({context}, index));
             let newVal: Primitive | ESError;
             let assignVal = valRes.val;
             this.assignType ??= '=';
@@ -1511,15 +1515,15 @@ export class N_indexed extends Node {
             if (newVal instanceof ESError)
                 return newVal;
 
-            if (!base.__set_property__)
+            if (!base.__set__)
                 return new TypeError(this.pos,
                     'mutable', 'immutable', base.valueOf());
 
-            const res = base.__set_property__({context}, index, newVal ?? new ESUndefined());
+            const res = base.__set__({context}, index, newVal ?? new ESUndefined());
             if (res instanceof ESError)
                 return res;
         }
-        return new interpretResult(base.__get_property__({context}, index));
+        return new interpretResult(base.__get__({context}, index));
     }
 
     compileJS (config: compileConfig) {

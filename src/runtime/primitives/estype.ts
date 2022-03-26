@@ -15,7 +15,7 @@ import { ESTypeArray } from "./esarray";
 
 export class ESType extends ESPrimitive <undefined> {
 
-    readonly __primitive__: boolean;
+    readonly __primordial__: boolean;
 
     readonly __name__: typeName;
     readonly __extends__: undefined | ESType;
@@ -32,7 +32,7 @@ export class ESType extends ESPrimitive <undefined> {
     ) {
         super(undefined, types?.type);
 
-        this.__primitive__ = isPrimitive;
+        this.__primordial__ = isPrimitive;
         this.__name__ = name;
         this.__info__.name = name;
         this.__extends__ = __extends__;
@@ -50,7 +50,7 @@ export class ESType extends ESPrimitive <undefined> {
 
     override clone = () => {
         return new ESType(
-            this.__primitive__,
+            this.__primordial__,
             this.__name__,
             this.__methods__,
             this.__extends__,
@@ -104,7 +104,7 @@ export class ESType extends ESPrimitive <undefined> {
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __get_property__ = (props: funcProps, k: Primitive): Primitive | ESError => {
+    override __get__ = (props: funcProps, k: Primitive): Primitive | ESError => {
         if (!(k instanceof ESString)) {
             if (this === types.array) {
                 return new ESTypeArray(k);

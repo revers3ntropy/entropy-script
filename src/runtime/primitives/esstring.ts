@@ -76,7 +76,7 @@ export class ESString extends ESPrimitive <string> {
 
     override clone = () => new ESString(this.valueOf());
 
-    override __get_property__ = (props: funcProps, key: Primitive): Primitive => {
+    override __get__ = (props: funcProps, key: Primitive): Primitive => {
         if (key instanceof ESString && this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
@@ -98,7 +98,7 @@ export class ESString extends ESPrimitive <string> {
         return new ESString();
     };
 
-    override __set_property__ (props: funcProps, key: Primitive, value: Primitive): void {
+    override __set__ (props: funcProps, key: Primitive, value: Primitive): void {
         if (!(key instanceof ESNumber))
             return;
 

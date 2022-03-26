@@ -19,6 +19,7 @@ export interface uninterpretedArgument {
     name: string;
     type: Node;
     defaultValue?: Node;
+    isKwarg?: boolean;
 }
 
 /**

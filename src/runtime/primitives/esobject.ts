@@ -93,7 +93,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
 
         for (let k of this.keys) {
             const key = k.valueOf();
-            const res = this.__get_property__({context}, k);
+            const res = this.__get__({context}, k);
             if (res instanceof ESError) {
                 return res;
             }
@@ -105,7 +105,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
             if (newOb.hasOwnProperty(key)) {
                 continue;
             }
-            const res = n.__get_property__({context}, k);
+            const res = n.__get__({context}, k);
             if (res instanceof ESError) {
                 return res;
             }
@@ -135,7 +135,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         for (let k of this.keys) {
             const key = k.valueOf();
             if (keysToRemove.indexOf(key) === -1) {
-                let res = this.__get_property__(props, k);
+                let res = this.__get__(props, k);
                 if (res instanceof ESError) {
                     return res;
                 }
@@ -146,7 +146,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new ESObject(newOb);
     }
 
-    override __get_property__ = (props: funcProps, k: Primitive): Primitive| ESError => {
+    override __get__ = (props: funcProps, k: Primitive): Primitive| ESError => {
         if (!(k instanceof ESString) && !(k instanceof ESNumber)) {
             return new TypeError(Position.void, 'String | Number', k.typeName(), str(k));
         }
@@ -164,7 +164,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> {
         return new IndexError(Position.void, str(key), this);
     };
 
-    override __set_property__ = ({}: funcProps, key: Primitive, value: Primitive): void | ESError => {
+    override __set__ = ({}: funcProps, key: Primitive, value: Primitive): void | ESError => {
         if (!(key instanceof ESString)) {
             return new TypeError(Position.void, 'String', key.typeName(), str(key));
         }

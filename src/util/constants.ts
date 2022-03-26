@@ -105,7 +105,7 @@ export enum tokenType {
 
     ADD,
     SUB,
-    MUL,
+    ASTERIX,
     DIV,
     POW,
     MOD,
@@ -161,7 +161,7 @@ export const tokenTypeString: enumDict<tokenType, string> = {
 
     [tt.ADD]: '+',
     [tt.SUB]: '-',
-    [tt.MUL]: '*',
+    [tt.ASTERIX]: '*',
     [tt.DIV]: '/',
     [tt.POW]: '^',
     [tt.MOD]: '%',
@@ -188,7 +188,7 @@ export const tokenTypeString: enumDict<tokenType, string> = {
 }
 
 export const singleCharTokens: {[char: string]: tokenType} = {
-    '*': tt.MUL,
+    '*': tt.ASTERIX,
     '/': tt.DIV,
     '+': tt.ADD,
     '-': tt.SUB,
@@ -243,7 +243,7 @@ export const primitiveMethods: string[] = [
     '__pipe__',
     '__ampersand__',
     '__bool__',
-    '__set_property__',
-    '__get_property__',
+    '__set__',
+    '__get__',
     '__call__',
 ];
