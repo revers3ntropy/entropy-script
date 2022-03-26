@@ -5,12 +5,13 @@ import addNodeBIFs from './built-in/nodeLibs';
 import {config} from './config';
 import { Context } from "./runtime/context";
 import { ESError } from "./errors";
-import {ESFunction, ESJSBinding, initPrimitiveTypes} from './runtime/primitiveTypes';
+import { ESFunction, ESJSBinding, ESUndefined, initPrimitiveTypes } from './runtime/primitiveTypes';
 import loadGlobalConstants from "./built-in/globalConstants";
 import {global, refreshPerformanceNow, runningInNode, setGlobalContext, types} from './util/constants';
 import { dict } from "./util/util";
 import { NativeObj } from "./runtime/primitives/primitive";
 import {libs as globalLibs} from "./util/constants";
+import { runtimeArgument } from "./runtime/argument";
 
 export default async function init ({
   print = console.log,
@@ -37,7 +38,10 @@ export default async function init ({
             throw `lib ${k} is not of type [any, boolean]`;
         }
         let [lib, exposed] = libs[k];
-        if (exposed === true) {
+        if (typeof exposed !== 'boolean') {
+            throw `lib ${k} is not of type [any, boolean]`;
+        }
+        if (exposed) {
             addModule(k, new ESJSBinding(lib));
         }
         globalLibs[k] = lib;
@@ -46,9 +50,19 @@ export default async function init ({
     addDependencyInjectedBIFs(print, input);
 
     for (let builtIn in builtInFunctions) {
+        let [rawFn, info] = builtInFunctions[builtIn];
+
+        let numArgs = info.args?.length ?? rawFn.length-1;
+        let args: runtimeArgument[] = (new Array(numArgs))
+            .fill({
+                name: 'unknown',
+                type: types.any,
+                defaultValue: new ESUndefined()
+            } as runtimeArgument);
+
         const fn = new ESFunction(
-            builtInFunctions[builtIn][0],
-            [],
+            rawFn,
+            args,
             builtIn,
             undefined,
             undefined,
@@ -56,9 +70,12 @@ export default async function init ({
             true
         );
 
-        fn.__info__ = builtInFunctions[builtIn][1];
+        if (info.allow_args) {
+            fn.__allow_args__ = true;
+        }
+        fn.__info__ = info;
         fn.__info__.name = builtIn;
-        fn.__info__.isBuiltIn = true;
+        fn.__info__.builtin = true;
         fn.__info__.file = 'builtin';
 
         context.set(builtIn, fn, {

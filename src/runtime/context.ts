@@ -1,7 +1,7 @@
-import { ESError, ReferenceError, TypeError } from "../errors";
+import { ESError, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import Position from "../position";
 import {wrap} from './primitives/wrapStrip';
-import {ESArray, ESFunction, ESPrimitive, ESUndefined, Primitive} from "./primitiveTypes";
+import { ESArray, ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
 import {dict, str} from "../util/util";
 import {ESSymbol, symbolOptions} from './symbol';
 import chalk from "../util/colours";
@@ -202,12 +202,6 @@ export class Context {
         return newContext;
     }
 
-    deepClone(): Context {
-        let clone = this.clone();
-        clone.parent = clone.parent?.deepClone();
-        return clone;
-    }
-
     log () {
         console.log('---- CONTEXT ----');
         for (let key in this.symbolTable) {
@@ -228,54 +222,111 @@ export class Context {
     }
 }
 
-export function generateESFunctionCallContext (params: Primitive[], self: ESFunction, parent: Context) {
+export function generateESFunctionCallContext (
+    self: ESFunction,
+    args: Primitive[],
+    kwargs: dict<Primitive>,
+    parent: Context
+) {
 
     const newContext = new Context();
     newContext.parent = parent;
 
-    let max = Math.max(params.length, self.__args__.length);
+    let parameters = self.__args__.filter(a => !a.isKwarg);
 
-    for (let i = 0; i < max; i++) {
+    if (!self.__allow_args__ && args.length > parameters.length) {
+        return new ESError(Position.void, 'TypeError',
+            `Too many arguments. Expected ${parameters.length} but got ${args.length}`);
+    }
+
+    for (let i = 0; i < args.length || i < parameters.length; i++) {
 
         let value: Primitive = new ESUndefined();
         let type: Primitive = types.any;
 
-        if (!self.__args__[i]) {
+        if (!parameters[i]) {
             continue;
         }
 
         // type checking
-        const arg = self.__args__[i];
+        const param = parameters[i];
 
-        if (params[i] instanceof ESPrimitive) {
-            type = params[i].__type__;
-            value = params[i];
+        if (args[i] instanceof ESPrimitive) {
+            type = args[i].__type__;
+            value = args[i];
         }
 
-        if (arg.defaultValue && params.length <= i) {
-            newContext.setOwn(arg.name, arg.defaultValue, {
+        if (param.defaultValue && args.length <= i) {
+            newContext.setOwn(param.name, param.defaultValue, {
                 forceThroughConst: true
             });
             continue;
         }
 
-        const typeIncludes = arg.type.type_check({context: parent}, params[i]);
+        const typeIncludes = param.type.type_check({context: parent}, args[i]);
         if (typeIncludes instanceof ESError) return typeIncludes;
         if (!typeIncludes.valueOf()) {
-            return new TypeError(Position.void, str(arg.type), str(type), str(value));
+            return new TypeError(Position.void, str(param.type), str(type), str(value));
         }
 
-        newContext.setOwn(arg.name, value, {
+        newContext.setOwn(param.name, value, {
             forceThroughConst: true
         });
     }
 
-    let setRes = newContext.setOwn('args', new ESArray(params), {
+    let setRes = newContext.setOwn('args', new ESArray(args), {
+        forceThroughConst: true
+    });
+    if (setRes instanceof ESError) {
+        return setRes;
+    }
+
+    let lookedAtKwargs = [];
+
+    for (let kwarg of self.__args__.filter(a => a.isKwarg)) {
+
+        let arg = kwargs[kwarg.name];
+
+        if (!arg) {
+            if (kwarg.defaultValue) {
+                arg = kwarg.defaultValue;
+            } else {
+                return new TypeError(Position.void, 'Any', 'Undefined');
+            }
+        }
+
+        let type = arg.__type__;
+
+        const typeIncludes = kwarg.type.type_check({context: parent}, arg);
+        if (typeIncludes instanceof ESError) return typeIncludes;
+        if (!typeIncludes.valueOf()) {
+            return new TypeError(Position.void, str(kwarg.type), str(type), str(arg));
+        }
+
+        newContext.setOwn(kwarg.name, arg, {
+            forceThroughConst: true
+        });
+
+        lookedAtKwargs.push(kwarg.name);
+    }
+
+    if (!self.__allow_kwargs__) {
+        for (let k of Object.keys(kwargs)) {
+            if (lookedAtKwargs.indexOf(k) === -1) {
+                return new ESError(Position.void, 'TypeError',
+                    `Kwarg '${Object.keys(kwargs)[0]}' is not a parameter of '${self.name}'`);
+            }
+        }
+    }
+
+
+    setRes = newContext.setOwn('kwargs', new ESObject(kwargs), {
         forceThroughConst: true
     });
 
     if (setRes instanceof ESError) {
         return setRes;
     }
+
     return newContext;
 }

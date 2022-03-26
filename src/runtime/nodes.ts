@@ -4,7 +4,7 @@ import { Context } from './context';
 import Position from "../position";
 import { catchBlockErrorSymbolName, compileConfig, now, tokenTypeString, tt, types } from "../util/constants";
 import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument";
-import { wrap } from './primitives/wrapStrip';
+import { strip, wrap } from './primitives/wrapStrip';
 import {
     ESArray,
     ESBoolean,
@@ -1180,6 +1180,7 @@ export class N_functionCall extends Node {
         }
 
         let params: Primitive[] = [];
+        let kwargs: dict<Primitive> = {};
 
         for (let arg of this.arguments) {
             const res = arg.interpret(context);
@@ -1191,7 +1192,32 @@ export class N_functionCall extends Node {
             }
         }
 
-        const res = val.__call__({context}, ...params);
+        for (let node of this.indefiniteKwargs) {
+            let res = node.interpret(context);
+            if (res.error) return res.error;
+            let val = res.val;
+
+            if (!(val instanceof ESNamespace) && !(val instanceof ESJSBinding) && !(val instanceof ESObject)) {
+                return new TypeError(Position.void, 'Namespace', str(val.typeName()));
+            }
+
+            let kwargPrim = strip(val, {context});
+
+            for (const key of Object.keys(kwargPrim)) {
+                kwargs[key] = kwargPrim[key];
+            }
+        }
+
+        for (const key of Object.keys(this.definiteKwargs)) {
+            let res = this.definiteKwargs[key].interpret(context);
+            if (res.error) return res.error;
+            kwargs[key] = res.val;
+        }
+
+        const res = val.__call__({
+            context,
+            kwargs
+        }, ...params);
 
         if (res instanceof ESError) {
             res.traceback.push({
@@ -1265,6 +1291,8 @@ export class N_functionDefinition extends Node {
     returnType: Node;
     description: string;
     isDeclaration = false;
+    allowArgs = false;
+    allowKwargs = false;
 
     constructor(
         pos: Position,
@@ -1297,6 +1325,9 @@ export class N_functionDefinition extends Node {
         if (returnTypeRes.error) return returnTypeRes.error;
 
         let funcPrim = new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val, context);
+
+        funcPrim.__allow_kwargs__ = this.allowKwargs;
+        funcPrim.__allow_args__ = this.allowArgs;
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {

@@ -24,7 +24,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
             name: 'undefined',
             description: 'Not defined, not a value.',
             file: 'built-in',
-            isBuiltIn: true
+            builtin: true
         };
     }
 

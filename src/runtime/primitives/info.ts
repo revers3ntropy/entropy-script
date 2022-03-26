@@ -5,7 +5,7 @@ export interface PrimitiveInfo {
     description?: string;
     file?: string;
     helpLink?: string;
-    isBuiltIn?: boolean;
+    builtin?: boolean;
 }
 
 export interface argInfo {
@@ -13,13 +13,14 @@ export interface argInfo {
     type?: string;
     description?: string;
     required?: boolean;
-    defaultValue?: string;
+    default_value?: string;
 }
 
 export interface FunctionInfo extends PrimitiveInfo {
     args?: argInfo[];
     returns?: string;
     returnType?: string;
+    allow_args?: boolean;
 }
 
 export interface ObjectInfo extends PrimitiveInfo {

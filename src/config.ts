@@ -6,9 +6,7 @@ export type Permissions = {
     accessDOM: boolean;
     useSTD: boolean;
     fileSystem: boolean,
-
-    [k: string]: any
-};
+} & dict<any>;
 
 export interface config {
     permissions: Permissions,

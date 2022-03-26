@@ -9,13 +9,13 @@ import {
     ESString, ESUndefined,
     FunctionInfo
 } from '../runtime/primitiveTypes';
-import { BuiltInFunction, funcProps, indent, sleep, str } from '../util/util';
+import { BuiltInFunction, dict, funcProps, indent, sleep, str } from '../util/util';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import chalk from "../util/colours";
 import { IS_NODE_INSTANCE, global } from "../util/constants";
 import { getModule, moduleExist } from "./builtInModules";
 
-export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} = {
+export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
     'range': [({context}, minP, maxP, stepP) => {
         if (!(minP instanceof ESNumber)) {
             return new ESArray();
@@ -57,10 +57,11 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
         return new ESArray(arr);
 
     }, {
-       args: [{
-           name: 'N',
-           type: 'Number',
-       }],
+       args: [
+           { name: 'min', type: 'Number' },
+           { name: 'max', type: 'Number' },
+           { name: 'step', type: 'Number' }
+       ],
         description: 'Generates an array of integers given N. Starts at 0 and goes to N-1. Can be used like for i in range(10) ..., similarly to python.',
         returns: 'array of numbers from 0 to N-1',
         returnType: 'number[] | RangeError'
@@ -74,7 +75,8 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
             type: 'any[]'
         }],
         description: 'Uses console.log to log all values',
-        returnType: 'void'
+        returnType: 'void',
+        allow_args: true
     }],
 
     'parse_num': [({context}, num) => {
@@ -165,7 +167,8 @@ export const builtInFunctions: {[key: string]: [BuiltInFunction, FunctionInfo]} 
              type: 'any'
         }],
         description: 'logs info on value',
-        returns: 'value passed in'
+        returns: 'value passed in',
+        allow_args: true
     }],
 
     'delete': [({context}, name) => {
@@ -311,7 +314,8 @@ export function addDependencyInjectedBIFs (
 
         return new ImportError(Position.void, url, 'Module not found. Try adding it to the pre-loaded modules.');
     }, {
-        description: 'Loads a module. Cannot be used asynchronously, so add any modules to pre-load in the esconfig.json file.'
+        description: 'Loads a module. Cannot be used asynchronously, so add any modules to pre-load in the esconfig.json file.',
+        args: [{name: 'path', type: 'String'}]
     }];
 
     builtInFunctions['print'] = [({context}, ...args) => {
@@ -320,7 +324,9 @@ export function addDependencyInjectedBIFs (
             out += str(arg);
         }
         printFunc(out);
-    }, {}];
+    }, {
+        allow_args: true
+    }];
 
     builtInFunctions['input'] = [({context}, msg, cbRaw) => {
         inputFunc(msg.valueOf(), (msg) => {
@@ -338,5 +344,7 @@ export function addDependencyInjectedBIFs (
 
             return new ESString('\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.');
         })
-    }, {}];
+    }, {
+        args: [{name: 'msg', type: 'String'}, {name: 'callback', type: 'Func'}]
+    }];
 }

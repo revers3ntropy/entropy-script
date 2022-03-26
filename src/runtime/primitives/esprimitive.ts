@@ -7,7 +7,7 @@ import type {ESString} from './esstring';
 import type {Info} from './info';
 import type { NativeObj, Primitive} from './primitive';
 
-import { funcProps, str } from '../../util/util';
+import { dict, funcProps, str } from '../../util/util';
 import {strip} from './wrapStrip';
 import { types } from "../../util/constants";
 
@@ -125,7 +125,7 @@ export abstract class ESPrimitive <T> {
         new ESBoolean(this.hasOwnProperty(str(key)));
 
     public describe = (props: funcProps, info: Primitive) => {
-        if (this.__info__.isBuiltIn) {
+        if (this.__info__.builtin) {
             return;
         }
 
@@ -134,7 +134,7 @@ export abstract class ESPrimitive <T> {
 
     public detail = (props: funcProps, info: Primitive) => {
 
-        if (this.__info__.isBuiltIn) {
+        if (this.__info__.builtin) {
             return;
         }
 
@@ -149,7 +149,7 @@ export abstract class ESPrimitive <T> {
             ...res
         };
 
-        this.__info__.isBuiltIn = false;
+        this.__info__.builtin = false;
     };
 
     abstract type_check: (props: funcProps, n: Primitive) => ESBoolean | ESError;

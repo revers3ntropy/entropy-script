@@ -140,12 +140,6 @@ let myFunc = func () {
 };
 myFunc()[2][1];
 `);
-expect(['<Func>', 'hi'], `
-let myFunc = func () {
-    return args[0];
-};
-myFunc('hi', 1, 2);
-`);
 expect(['<Func>', undefined], `
 let myFunc = func (arg) {
     return arg;
@@ -281,58 +275,59 @@ expect('InvalidSyntaxError', `
 expect('InvalidSyntaxError', `
     func myFunc (a, *a) nil;
 `);
+expect(['<Func>', [1, 2]], `
+    func myFunc (*) args;
+    myFunc(1, 2);
+`);
 
 // #40
-expect(['<Func>', [1, 2]], `
-    func myFunc (*) {
+expect('TypeError', `
+    func myFunc () {
         return args;
     };
-    
     myFunc(1, 2);
 `);
 expect(['<Func>', {a: 2}], `
-    func myFunc (**) {
-        return [kwargs];
-    };
-    
-    myFunc(a=2);
+    func myFunc (**) kwargs;
+    myFunc(*a=2);
+`);
+expect(['<Func>', {a: 2, b: 3}], `
+    func myFunc (**) kwargs;
+    myFunc(*a=2, *b=3);
 `);
 expect(['<Func>', [[1, 2], {a: 2}]], `
     func myFunc (*, **) {
         return [args, kwargs];
     };
     
-    myFunc(1, 2, a=2);
+    myFunc(1, 2, *a=2);
 `);
 
-expect(['<Func>', [1, 3, [1, 2], {a: 2, b: 3}]], `
+expect(['<Func>', [1, 4, [1, 2], {a: 3, b: 4}]], `
     func myFunc (a, *b, *, **) {
         return [a, b, args, kwargs];
     };
     
-    myFunc(1, 2, a=2, b=3);
+    myFunc(1, 2, *a=3, *b=4);
 `);
 
-expect('', `
+expect('TypeError', `
     func myFunc (a, *b, *) {
         return [a, b, args, kwargs];
     };
     
-    myFunc(1, 2, a=2, b=3);
+    myFunc(1, 2, *a=2, *b=3);
 `);
 
-expect(['<Func>', {a: 2, b: 3}], `
-    func myFunc (**) {
-        return kwargs;
-    };
-    
-    myFunc(a=2, b=3);
+expect(['<Func>', 2, 3, {a: 2, b: 3}], `
+    func myFunc (**) kwargs;
+    let a = 2;
+    let b = 3;
+    myFunc(*a, *b);
 `);
 
 expect(['<Func>', [1, 3, [1, 2], {a: 2, b: 3}]], `
-    func myFunc (a: Number, *b: Number, *, **) {
-        return [a, b, args, kwargs];
-    };
-    
+    func myFunc (a: Number, *b: Number, *, **) 
+    	[a, b, args, kwargs];
     myFunc(1, 2, *a=2, *b=3);
 `);

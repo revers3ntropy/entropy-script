@@ -92,9 +92,14 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
 
             const fTakesProps = this.functionsTakeProps;
 
-            return new ESFunction((props, ...args) => {
+            const fn = new ESFunction((props, ...args) => {
                 return callBack(fTakesProps, val, key, props, args);
             });
+
+            fn.__allow_kwargs__ = true;
+            fn.__allow_args__ = true;
+
+            return fn;
         }
 
         return wrap(res);

@@ -10,6 +10,7 @@ export interface runtimeArgument {
     name: string;
     type: Primitive;
     defaultValue?: Primitive;
+    isKwarg?: boolean;
 }
 
 /**
@@ -45,6 +46,7 @@ export function interpretArgument (arg: uninterpretedArgument, context: Context)
     return {
         name: arg.name,
         type: typeRes.val,
-        defaultValue
+        defaultValue,
+        isKwarg: arg.isKwarg
     }
 }

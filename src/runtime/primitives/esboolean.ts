@@ -17,7 +17,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
             name: str(val),
             description: `Boolean global constant which evaluates to ${str(val)}, the opposite of ${str(!val)}`,
             file: 'built-in',
-            isBuiltIn: true,
+            builtin: true,
             helpLink: 'https://en.wikipedia.org/wiki/Boolean_expression'
         };
     }

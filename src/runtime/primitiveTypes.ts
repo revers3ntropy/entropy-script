@@ -53,54 +53,54 @@ export function initPrimitiveTypes () {
         name: 'Any',
         description: 'Matches any other type',
         file: 'built-in',
-        isBuiltIn: true
+        builtin: true
     };
     types.number.__info__ = {
         name: 'Number',
         description: 'The ES Number type. Is a a double-precision 64-bit binary format IEEE 754 value, like double in Java and C#',
         file: 'built-in',
-        isBuiltIn: true
+        builtin: true
     };
     types.string.__info__ = {
         name: 'string',
         description: 'The ES String type. Holds an array of characters, and can be defined with any of \', " and `. Can be indexed like an array.',
         file: 'built-in',
-        isBuiltIn: true
+        builtin: true
     };
     types.bool.__info__ = {
         name: 'Bool',
         description: 'The ES Bool type. Exactly two instances exist, true and false.',
         file: 'built-in',
-        isBuiltIn: true
+        builtin: true
     };
     types.function.__info__ = {
         name: 'Func',
         description: 'The ES Function type. Is a block of code which executes when called and takes in 0+ parameters.',
         file: 'built-in',
-        isBuiltIn: true
+        builtin: true
     };
     types.array.__info__ = {
         name: 'Array',
         description: 'The ES Array type. Defines a set of items of any type which can be accessed by an index with [].',
         file: 'built-in',
-        isBuiltIn: true
+        builtin: true
     };
     types.object.__info__ = {
         name: 'object',
         description: 'The ES Object type. Similar to JS objects or python dictionaries.',
         file: 'built-in',
-        isBuiltIn: true
+        builtin: true
     };
     types.error.__info__ = {
         name: 'Error',
         description: 'The ES Error type. Call to throw an error.',
         file: 'built-in',
-        isBuiltIn: true
+        builtin: true
     };
     types.type.__info__ = {
         name: 'Type',
         description: 'The ES Type type. Call to get the type of a value at a string.',
         file: 'built-in',
-        isBuiltIn: true
+        builtin: true
     };
 }

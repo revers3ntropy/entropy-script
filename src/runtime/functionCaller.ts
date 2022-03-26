@@ -1,4 +1,4 @@
-import {str} from '../util/util';
+import { dict, str } from '../util/util';
 import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
 import { ESError, TypeError } from "../errors";
@@ -6,7 +6,7 @@ import Position from "../position";
 import type {NativeObj} from './primitives/primitive';
 import { ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
 
-function callNode (self: ESFunction, context: Context, params: Primitive[], fn: Node) {
+function callNode (self: ESFunction, context: Context, fn: Node) {
 
     const res = fn.interpret(context);
 
@@ -32,12 +32,13 @@ function callNode (self: ESFunction, context: Context, params: Primitive[], fn: 
     }
 }
 
-function callNative (self: ESFunction, context: Context, params: Primitive[], fn: Function) {
-    for (let i = params.length; i < fn.length; i++)
+function callNative (self: ESFunction, context: Context, params: Primitive[], fn: Function, kwargs: dict<Primitive>) {
+    for (let i = params.length; i < fn.length; i++) {
         params.push(new ESUndefined());
+    }
 
     const res = fn({
-        context
+        context, kwargs
     }, ...params);
 
     if (res instanceof ESError || res instanceof ESPrimitive) {
@@ -49,12 +50,13 @@ function callNative (self: ESFunction, context: Context, params: Primitive[], fn
 
 /**
  * Calls an ESFunction
- * @param {Context} context
- * @param {ESFunction} self
- * @param {Primitive[]} params
- * @returns {ESUndefined | TypeError | ESError | ESPrimitive<any>}
  */
-export function call (context: Context, self: ESFunction, params: Primitive[]): ESUndefined | TypeError | ESError | ESPrimitive<NativeObj> {
+export function call (
+    context: Context,
+    self: ESFunction,
+    params: Primitive[] = [],
+    kwargs: dict<Primitive> = {}
+): ESUndefined | ESError | ESPrimitive<NativeObj> {
 
     // generate context
     let callContext = context;
@@ -64,7 +66,7 @@ export function call (context: Context, self: ESFunction, params: Primitive[]): 
     context.path = callContext.path;
     const fn = self.__value__;
 
-    const newContext = generateESFunctionCallContext(params, self, context);
+    const newContext = generateESFunctionCallContext(self, params, kwargs, context);
     if (newContext instanceof ESError) {
         return newContext;
     }
@@ -87,10 +89,10 @@ export function call (context: Context, self: ESFunction, params: Primitive[]): 
     }
 
     if (fn instanceof Node) {
-        return callNode(self, newContext, params, fn);
+        return callNode(self, newContext, fn);
 
     } else if (typeof fn === 'function') {
-        return callNative(self, newContext, params, fn);
+        return callNative(self, newContext, params, fn, kwargs);
 
     } else {
         return new TypeError(Position.void, 'function', typeof fn);

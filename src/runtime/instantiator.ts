@@ -61,6 +61,11 @@ function dealWithExtends (context: Context, class_: ESType, instance: dict<Primi
         }
     }, undefined, 'super', this_);
 
+    // copy over arg details to facade 'super' function
+    superFunc.__allow_kwargs__ = class_?.__init__?.__allow_kwargs__ || false;
+    superFunc.__allow_args__ = class_?.__init__?.__allow_args__ || false;
+    superFunc.__args__ = class_?.__init__?.__args__ || [];
+
     let setRes = context.setOwn('super', superFunc);
     if (setRes instanceof ESError) {
         return setRes;

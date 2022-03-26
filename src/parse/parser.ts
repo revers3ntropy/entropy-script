@@ -19,13 +19,11 @@ import { dict } from "../util/util";
 
 export class Parser {
     tokens: Token[];
-    currentToken: Token<any>;
     tokenIdx: number;
 
     constructor (tokens: Token[]) {
         this.tokens = tokens;
         this.tokenIdx = -1;
-        this.currentToken = tokens[0];
         this.advance();
     }
 
@@ -50,13 +48,21 @@ export class Parser {
         if (res) res.registerAdvance();
 
         this.tokenIdx++;
-        this.currentToken = this.tokens[this.tokenIdx];
         return this.currentToken;
+    }
+
+    private get nextToken () {
+        if (this.tokens.length-1 >= this.tokenIdx+1) {
+            return this.tokens[this.tokenIdx+1];
+        }
+    }
+
+    private get currentToken () {
+        return this.tokens[this.tokenIdx] as Token<any>;
     }
 
     private reverse (amount = 1): Token {
         this.tokenIdx -= amount;
-        this.currentToken = this.tokens[this.tokenIdx];
         return this.currentToken;
     }
 
@@ -64,7 +70,8 @@ export class Parser {
         if (this.currentToken.type !== type)
             return res.failure(new InvalidSyntaxError(
                 this.currentToken.pos,
-                errorMsg ?? `Expected '${tokenTypeString[type]}' but got '${tokenTypeString[this.currentToken.type]}'`
+                errorMsg ??
+                `Expected '${tokenTypeString[type]}' but got '${tokenTypeString[this.currentToken.type]}'`
             ));
 
         this.advance(res);
@@ -460,13 +467,22 @@ export class Parser {
                     indefiniteKwargs.push(res.register(this.expr()));
                 } else {
 
-                    let name = this.currentToken.value;
+                    let nameTok = this.currentToken;
 
                     this.consume(res, tt.IDENTIFIER);
                     if (res.error) return res;
 
-                    definiteKwargs[name] = res.register(this.expr());
-                    if (res.error) return res;
+                    if (!this.currentToken.matches(tt.ASSIGN, '=')) {
+                        // for *a, which is the same as *a=a
+                        definiteKwargs[nameTok.value] = new N_variable(nameTok);
+                    } else {
+                        // remove '='
+                        this.advance(res);
+
+                        definiteKwargs[nameTok.value] = res.register(this.expr());
+                        if (res.error) return res;
+                    }
+
                 }
 
             } else {
@@ -504,11 +520,12 @@ export class Parser {
 
         const base = to;
 
-        if (this.currentToken.type !== tt.OSQUARE)
+        if (this.currentToken.type !== tt.OSQUARE) {
             return res.failure(new InvalidSyntaxError(
                 pos,
                 "Expected '["
             ));
+        }
 
         this.advance(res);
 
@@ -798,11 +815,10 @@ export class Parser {
 
         const pos = this.currentToken.pos;
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'if'))
+        if (!this.currentToken.matches(tt.KEYWORD, 'if')) {
             return res.failure(new InvalidSyntaxError(
-                this.currentToken.pos,
-                "Expected 'if'"
-            ));
+                this.currentToken.pos, "Expected 'if'"));
+        }
 
         this.advance(res);
 
@@ -840,9 +856,7 @@ export class Parser {
 
         if (!this.currentToken.matches(tt.KEYWORD, 'while')) {
             return res.failure(new InvalidSyntaxError(
-                this.currentToken.pos,
-                "Expected 'while'"
-            ));
+                this.currentToken.pos, "Expected 'while'"));
         }
 
         this.advance(res);
@@ -876,9 +890,7 @@ export class Parser {
 
         if (this.currentToken.type !== tt.IDENTIFIER) {
             return new InvalidSyntaxError(
-                this.currentToken.pos,
-                "Expected identifier"
-            );
+                this.currentToken.pos, "Expected identifier");
         }
 
         name = this.currentToken.value;
@@ -918,7 +930,9 @@ export class Parser {
         const pos = this.currentToken.pos;
         let body: n.Node,
             args: uninterpretedArgument[] = [],
-            returnType: Node = new n.N_primitiveWrapper(types.any);
+            returnType: Node = new n.N_primitiveWrapper(types.any),
+            allowArgs = false,
+            allowKwargs = false;
 
         this.consume(res, tt.OPAREN);
 
@@ -933,6 +947,40 @@ export class Parser {
 
             while (true) {
                 let paramStart = this.currentToken.pos;
+
+                if (this.currentToken.type === tt.ASTERIX && this.nextToken?.type !== tt.IDENTIFIER) {
+                    // must be at end, no parameters after * or ** but could have only one
+                    this.advance(res);
+                    if (this.currentToken.type === tt.ASTERIX) {
+                        allowKwargs = true;
+                        this.advance(res);
+                        break;
+                    } else {
+                        allowArgs = true;
+                    }
+
+                    // @ts-ignore
+                    if (this.currentToken.type !== tt.COMMA) {
+                        break;
+                    }
+
+                    this.advance(res);
+                    if (res.error) return res;
+
+                    // look for kwargs
+                    if (this.currentToken.type === tt.ASTERIX) {
+                        this.advance(res);
+                        if (this.currentToken.type === tt.ASTERIX) {
+                            allowKwargs = true;
+                            this.advance(res);
+                        } else {
+                            return res.failure(new InvalidSyntaxError(
+                                this.currentToken.pos, `Cannot have ** arg followed by *, try switching them around`));
+                        }
+                        if (res.error) return res;
+                        break;
+                    }
+                }
 
                 let param = this.parameter(res);
                 if (param instanceof ESError) {
@@ -950,9 +998,13 @@ export class Parser {
                     return res.failure(new InvalidSyntaxError(
                         this.currentToken.pos, 'Must use kwarg here'));
                 }
-                if (!usingDefault && param.defaultValue) {
+                if (param.defaultValue) {
                     usingDefault = true;
                 }
+                if (param.isKwarg) {
+                    usingKwargs = true;
+                }
+
                 args.push(param);
 
                 if (this.currentToken.type === tt.COMMA) {
@@ -996,7 +1048,12 @@ export class Parser {
             if (res.error) return res;
         }
 
-        return res.success(new n.N_functionDefinition(pos, body, args, returnType));
+        let fn = new n.N_functionDefinition(pos, body, args, returnType);
+
+        fn.allowKwargs = allowKwargs;
+        fn.allowArgs = allowArgs;
+
+        return res.success(fn);
     }
 
     private funcExpr (): ParseResults {
