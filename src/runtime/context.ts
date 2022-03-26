@@ -319,7 +319,6 @@ export function generateESFunctionCallContext (
         }
     }
 
-
     setRes = newContext.setOwn('kwargs', new ESObject(kwargs), {
         forceThroughConst: true
     });

@@ -1179,7 +1179,7 @@ export class N_functionCall extends Node {
             return new TypeError(this.pos, 'any', 'undefined', undefined, 'On function call');
         }
 
-        let params: Primitive[] = [];
+        let args: Primitive[] = [];
         let kwargs: dict<Primitive> = {};
 
         for (let arg of this.arguments) {
@@ -1188,7 +1188,7 @@ export class N_functionCall extends Node {
                 return res.error;
             }
             if (res.val) {
-                params.push(res.val);
+                args.push(res.val);
             }
         }
 
@@ -1197,11 +1197,16 @@ export class N_functionCall extends Node {
             if (res.error) return res.error;
             let val = res.val;
 
+            if (val instanceof ESArray) {
+                args = [...args, ...val.valueOf()];
+                continue;
+            }
+
             if (!(val instanceof ESNamespace) && !(val instanceof ESJSBinding) && !(val instanceof ESObject)) {
                 return new TypeError(Position.void, 'Namespace', str(val.typeName()));
             }
 
-            let kwargPrim = strip(val, {context});
+            let kwargPrim = val.__value__;
 
             for (const key of Object.keys(kwargPrim)) {
                 kwargs[key] = kwargPrim[key];
@@ -1217,7 +1222,7 @@ export class N_functionCall extends Node {
         const res = val.__call__({
             context,
             kwargs
-        }, ...params);
+        }, ...args);
 
         if (res instanceof ESError) {
             res.traceback.push({
@@ -1225,7 +1230,7 @@ export class N_functionCall extends Node {
                 // do the best we can to recreate line,
                 // giving some extra info as well as it is the interpreted arguments so
                 // variables values not names
-                line: `${val.__info__.name || '<AnonFunction>'}(${params.map(str).join(', ')})`
+                line: `${val.__info__.name || '<AnonFunction>'}(${args.map(str).join(', ')})`
             });
         }
 
