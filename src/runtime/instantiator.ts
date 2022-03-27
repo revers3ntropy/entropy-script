@@ -1,13 +1,13 @@
 import {primitiveMethods} from '../util/constants';
 import { Context } from "./context";
 import type { dict, funcProps } from '../util/util';
-import { Error, TypeError } from "../errors";
+import { EndIterator, Error, TypeError } from "../errors";
 import Position from "../position";
 import type {NativeObj} from './primitives/primitive';
 import {wrap} from './primitives/wrapStrip';
 import {
     ESArray,
-    ESBoolean,
+    ESBoolean, ESErrorPrimitive,
     ESFunction,
     ESNumber,
     ESObject,
@@ -15,6 +15,7 @@ import {
     ESUndefined,
     Primitive
 } from "./primitiveTypes";
+import { str } from "../util/util";
 
 /**
  * Adds the properties of a parent class to an instance of a child class
@@ -78,11 +79,53 @@ function dealWithExtends (context: Context, class_: ESType, instance: dict<Primi
     }
 }
 
+function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
+    // make sure we have at least one arg
+
+    switch (type.__name__) {
+        case 'Undefined':
+        case 'Type':
+            if (params.length < 1) {
+                return new ESType();
+            } else {
+                return new ESString(params[0]?.typeName());
+            }
+        case 'String':
+            return new ESString(str(params[0]));
+        case 'Array':
+            if (params.length < 1) {
+                return new ESArray();
+            }
+            let elements: Primitive[] = [];
+            for (let arg of params) {
+                // array from iterator
+                let iter = arg.__iter__(props);
+                if (iter instanceof Error) return iter;
+                while (true) {
+                    let nextRes = iter.__next__(props);
+                    if (nextRes instanceof Error) return nextRes;
+                    if (nextRes instanceof ESErrorPrimitive && nextRes.__value__ instanceof EndIterator) {
+                        break;
+                    }
+                    elements.push(nextRes);
+                }
+            }
+            return new ESArray(elements);
+        case 'Number':
+            return new ESNumber(params[0].valueOf());
+        case 'Function':
+            return new ESFunction(params[0].valueOf());
+        case 'Boolean':
+            return new ESBoolean(params[0].bool().valueOf());
+        default:
+            return wrap(params[0]);
+    }
+}
+
 /**
  * Instantiates an instance of a type as an object.
  * Simply adds clones of all properties and methods to an empty object
  * @param {ESType} type
- * @param {Context} context
  * @param {Primitive[]} params
  * @param {boolean} runInit
  * @param {dict<Primitive>} on
@@ -90,41 +133,17 @@ function dealWithExtends (context: Context, class_: ESType, instance: dict<Primi
  */
 export function createInstance (
     type: ESType,
-    {context}: funcProps,
+    props: funcProps,
     params: Primitive[],
     runInit=true,
     on: dict<Primitive> = {}
 ): Error | Primitive {
 
+    const {context} = props;
+
     if (type.__primordial__) {
-        // make sure we have at least one arg
-        if (params.length < 1) {
-            return new ESUndefined();
-        }
-
-        switch (type.__name__) {
-            case 'Undefined':
-            case 'Type':
-                if (params.length < 1) {
-                    return new ESType();
-                } else {
-                    return new ESString(params[0].typeName());
-                }
-            case 'String':
-                return new ESString(params[0].str().valueOf());
-            case 'Array':
-                return new ESArray(params);
-            case 'Number':
-                return new ESNumber(params[0].valueOf());
-            case 'Function':
-                return new ESFunction(params[0].valueOf());
-            case 'Boolean':
-                return new ESBoolean(params[0].bool().valueOf());
-            default:
-                return wrap(params[0]);
-        }
+        return callPrimordial(params, type, props);
     }
-
 
     const newContext = new Context();
     newContext.parent = type.__init__?.__closure__;
