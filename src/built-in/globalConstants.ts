@@ -1,4 +1,4 @@
-import { ESBoolean, ESJSBinding, ESUndefined, Primitive } from '../runtime/primitiveTypes';
+import { ESBoolean, ESJSBinding, ESNumber, ESUndefined, Primitive } from '../runtime/primitiveTypes';
 import type { Context } from "../runtime/context";
 import { types } from "../util/constants";
 import type { dict } from "../util/util";
@@ -12,6 +12,7 @@ export default function load (context: Context) {
         'false': new ESBoolean(false),
         'true': new ESBoolean(true),
         'nil': new ESUndefined(),
+        'inf': new ESNumber(Infinity),
         'Any': types.any,
         'Number': types.number,
         'String': types.string,

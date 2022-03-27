@@ -1,3 +1,5 @@
+import { NativeModuleBuilder } from "../module";
+
 type promiseCB = (
         resolve: (value: any) => void,
         error: (err: any) => void
@@ -5,20 +7,25 @@ type promiseCB = (
 
 type then = (value: any) => void;
 
-export default class {
+const module: NativeModuleBuilder = () => (class {
 
     thens: then[] = [];
     catch_: then | undefined;
     resolved = false;
 
     constructor (cb: promiseCB) {
+        if (typeof cb !== "function") {
+            return;
+        }
         cb((value) => {
             if (this.resolved) {
                 return;
             }
             this.resolved = true;
             for (let then of this.thens) {
-                then(value);
+                if (typeof then === "function") {
+                    then(value);
+                }
             }
         }, (error) => {
             if (this.resolved) {
@@ -26,7 +33,9 @@ export default class {
             }
             this.resolved = true;
             if (this.catch_) {
-                this.catch_(error);
+                if (typeof this.catch_ === "function") {
+                    this.catch_(error);
+                }
             }
         });
     }
@@ -46,4 +55,6 @@ export default class {
         this.catch_ = cb;
         return this;
     }
-};
+});
+
+export default module;

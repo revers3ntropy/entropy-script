@@ -16,6 +16,7 @@ import { ESTypeArray } from "./esarray";
 export class ESType extends ESPrimitive <undefined> {
 
     readonly __primordial__: boolean;
+    readonly __interface__: boolean;
 
     readonly __name__: typeName;
     readonly __extends__: undefined | ESType;
@@ -28,11 +29,13 @@ export class ESType extends ESPrimitive <undefined> {
         name: typeName = '(anon)',
         __methods__: ESFunction[] = [],
         __extends__?: undefined | ESType,
-        __init__?: undefined | ESFunction
+        __init__?: undefined | ESFunction,
+        isInterface= false
     ) {
         super(undefined, types?.type);
 
         this.__primordial__ = isPrimitive;
+        this.__interface__ = isInterface;
         this.__name__ = name;
         this.__info__.name = name;
         this.__extends__ = __extends__;
@@ -54,7 +57,8 @@ export class ESType extends ESPrimitive <undefined> {
             this.__name__,
             this.__methods__,
             this.__extends__,
-            this.__init__
+            this.__init__,
+            this.__interface__
         )
     }
 

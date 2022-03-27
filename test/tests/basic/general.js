@@ -25,6 +25,9 @@ expect([true], '!false');
 expect([true], '"hi" == "hi"');
 expect([true], '"hi" != "hijj"');
 
+expect([Infinity], 'inf');
+expect([-Infinity], '-inf');
+
 // multi-line statements
 expect([true, 7], '2 == 2; 2 + 5');
 

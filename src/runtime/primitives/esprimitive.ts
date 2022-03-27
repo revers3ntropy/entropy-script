@@ -6,10 +6,10 @@ import {ESBoolean} from './esboolean';
 import type {ESString} from './esstring';
 import type {Info} from './info';
 import type { NativeObj, Primitive} from './primitive';
-
-import { dict, funcProps, str } from '../../util/util';
-import {strip} from './wrapStrip';
+import { funcProps, str } from '../../util/util';
+import { strip } from './wrapStrip';
 import { types } from "../../util/constants";
+
 
 export abstract class ESPrimitive <T> {
     public __value__: T;
@@ -86,8 +86,6 @@ export abstract class ESPrimitive <T> {
     public __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new InvalidOperationError('__ampersand__', this);
     }
-
-    // Properties
     public __set__ (props: funcProps, key: Primitive, value: Primitive): void | Error {
         return new InvalidOperationError('__set__', this, `[${str(key)}] = ${str(value)}`);
     }

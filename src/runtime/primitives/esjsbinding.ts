@@ -1,4 +1,4 @@
-import { Error, IndexError, TypeError } from '../../errors';
+import { Error, IndexError, TypeError as ESTypeError } from '../../errors';
 import Position from '../../position';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
@@ -12,28 +12,36 @@ import { ESTypeIntersection, ESTypeUnion } from "./estype";
 import { ESArray } from "./esarray";
 import { ESErrorPrimitive } from "./eserrorprimitive";
 
-function callBack (fTakesProps: boolean, val: any, key: any, props: funcProps, args: Primitive[], catchErs: Boolean): Primitive | Error {
+
+function tryCall (fTakesProps: boolean, val: any, key: any, props: funcProps, args: Primitive[], catchErs: boolean): Primitive | Error {
+    if (typeof val[key] !== 'function') {
+        return new ESTypeError(Position.void, 'Func', typeof val[key], str(val[key]));
+    }
     let res;
     if (fTakesProps) {
         try {
-            // @ts-ignore
             res = new val[key](props, ...args);
-        } catch {
+        } catch (e: any) {
+            if (!(e instanceof TypeError)) {
+                return new Error(Position.void, e.name, e.toString());
+            }
             try {
                 res = val[key](props, ...args);
             } catch (e: any) {
-                return new Error(Position.void, e.name, e.toString());
+                return new Error(Position.void, '', e.toString());
             }
         }
     } else {
         try {
-            // @ts-ignore
             res = new val[key](...args.map(o => strip(o, props)));
-        } catch {
+        } catch (e: any) {
+            if (!(e instanceof TypeError)) {
+                return new Error(Position.void, e.name, e.toString());
+            }
             try {
                 res = val[key](...args.map(o => strip(o, props)));
             } catch (e: any) {
-                return new Error(Position.void, e.name, e.toString());
+                return new Error(Position.void, '', e.toString());
             }
         }
     }
@@ -57,7 +65,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
     }
 
     override cast = (props: funcProps): Error | Primitive => {
-        return new Error(Position.void, 'TypeError', `Cannot cast native object`);
+        return new Error(Position.void, 'ESTypeError', `Cannot cast native object`);
     };
 
     override clone = (): Primitive => new ESJSBinding<T>(this.__value__);
@@ -66,7 +74,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
         return new ESString(str(this.__value__));
     };
 
-    override __eq__ = ({}: funcProps, n: Primitive): ESBoolean => {
+    override __eq__ = (props: funcProps, n: Primitive): ESBoolean => {
         return new ESBoolean(this === n);
     };
 
@@ -84,7 +92,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
 
             // check on self after confirming it doesn't exist on the native value
             if (this._.hasOwnProperty(key)) {
-                return wrap(this._[str(key)], true);
+                return wrap(this._[key], true);
             }
 
             return new IndexError(Position.void, key, this);
@@ -100,7 +108,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
             const fTakesProps = this.functionsTakeProps;
 
             const fn = new ESFunction((props, ...args) => {
-                return callBack(fTakesProps, val, key, props, args, this.catchErrorsToPrimitive);
+                return tryCall(fTakesProps, val, key, props, args, this.catchErrorsToPrimitive);
             });
 
             fn.__allow_kwargs__ = true;
@@ -127,10 +135,10 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
 
     override __call__ = (props: funcProps, ...args: Primitive[]): Error | Primitive => {
         if (typeof this.__value__ !== 'function') {
-            return new TypeError(Position.void, 'function', typeof this.__value__, str(this));
+            return new ESTypeError(Position.void, 'function', typeof this.__value__, str(this));
         }
 
-       return callBack(this.functionsTakeProps, this, '__value__', props, args, this.catchErrorsToPrimitive);
+       return tryCall(this.functionsTakeProps, this, '__value__', props, args, this.catchErrorsToPrimitive);
     };
 
     override has_property = (props: funcProps, key: Primitive): ESBoolean => {
