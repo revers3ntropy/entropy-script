@@ -56,7 +56,7 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
 
     override clone = () => new ESErrorPrimitive(this.valueOf());
 
-    override type_check = this.__eq__;
+    override __includes__ = this.__eq__;
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);

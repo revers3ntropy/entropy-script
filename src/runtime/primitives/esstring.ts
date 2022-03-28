@@ -31,19 +31,19 @@ export class ESString extends ESPrimitive <string> {
             case types.array:
                 return new ESArray(this.valueOf().split('').map(s => new ESString(s)));
             default:
-                return new Error(Position.void, 'TypeError', `Cannot cast to type '${ str(type.typeName()) }'`);
+                return new Error(Position.void, 'TypeError', `Cannot cast to type '${ str(type.__type_name__()) }'`);
         }
     }
 
     override __add__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError(Position.void, 'String', n.typeName().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'String', n.__type_name__().valueOf(), n.valueOf());
         }
         return new ESString(this.valueOf() + n.valueOf());
     };
     override __multiply__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.typeName().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'Number', n.__type_name__().valueOf(), n.valueOf());
         }
         return new ESString(this.valueOf().repeat(n.valueOf()));
     };
@@ -55,13 +55,13 @@ export class ESString extends ESPrimitive <string> {
     };
     override __gt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError(Position.void, 'String', n.typeName().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'String', n.__type_name__().valueOf(), n.valueOf());
         }
         return new ESBoolean(this.valueOf().length > n.valueOf().length);
     };
     override __lt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError(Position.void, 'String', n.typeName().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'String', n.__type_name__().valueOf(), n.valueOf());
         }
         return new ESBoolean(this.valueOf().length < n.valueOf().length);
     };
@@ -118,7 +118,7 @@ export class ESString extends ESPrimitive <string> {
         this.__value__ = firstPart + strToInsert + lastPart;
     }
 
-    override type_check = this.__eq__;
+    override __includes__ = this.__eq__;
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);

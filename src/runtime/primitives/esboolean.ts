@@ -34,13 +34,13 @@ export class ESBoolean extends ESPrimitive <boolean> {
             case types.number:
                 return new ESNumber(this.valueOf() ? 1 : 0);
             default:
-                return new Error(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
+                return new Error(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.__type_name__())}'`);
         }
     }
 
     override __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESBoolean)) {
-            return new TypeError(Position.void, 'Boolean', n.typeName().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'Boolean', n.__type_name__().valueOf(), n.valueOf());
         }
         return new ESBoolean(this.valueOf() === n.valueOf());
     };
@@ -58,7 +58,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
 
     override bool = () => this;
 
-    override type_check = this.__eq__;
+    override __includes__ = this.__eq__;
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);

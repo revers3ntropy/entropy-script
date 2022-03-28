@@ -51,7 +51,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
             return new ESBoolean();
         default:
             if (!(type instanceof ESType)) {
-                return new Error(Position.void, 'TypeError', `Cannot cast to type '${str(type.typeName())}'`);
+                return new Error(Position.void, 'TypeError', `Cannot cast to type '${str(type.__type_name__())}'`);
             }
             return type.__call__({context});
         }
@@ -79,7 +79,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
         return new IndexError(Position.void, key.valueOf(), this);
     };
 
-    override type_check = this.__eq__;
+    override __includes__ = this.__eq__;
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);

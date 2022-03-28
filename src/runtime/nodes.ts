@@ -261,7 +261,7 @@ export class N_unaryOp extends Node {
                     return new TypeError(
                         this.pos,
                         'Number',
-                        res.val?.typeName().toString() || 'undefined_',
+                        res.val?.__type_name__().toString() || 'undefined_',
                         res.val?.valueOf()
                     );
                 }
@@ -365,13 +365,13 @@ export class N_varAssign extends Node {
             return new TypeError(this.varNameTok.pos, '~undefined', 'undefined', 'N_varAssign.interpret_');
         }
 
-        const typeCheckRes = typeRes.val.type_check({context}, res.val);
+        const typeCheckRes = typeRes.val.__includes__({context}, res.val);
         if (typeCheckRes instanceof Error) return typeCheckRes;
 
         if (!typeCheckRes.bool().valueOf()) {
             return new TypeError(this.varNameTok.pos,
                 str(typeRes.val),
-                str(res.val?.typeName()),
+                str(res.val?.__type_name__()),
                 str(res.val)
             );
         }
@@ -392,11 +392,11 @@ export class N_varAssign extends Node {
                 return symbol;
             }
             if (symbol) {
-                if (!symbol.type.type_check({context}, res.val).valueOf()) {
+                if (!symbol.type.__includes__({context}, res.val).valueOf()) {
                     return new TypeError(
                         this.varNameTok.pos,
                         str(symbol.type),
-                        res.val?.typeName(),
+                        res.val?.__type_name__(),
                         str(res.val)
                     );
                 }
@@ -420,7 +420,7 @@ export class N_varAssign extends Node {
                     `Cannot declare variable without keyword`);
             }
 
-            const typeCheckRes = type.type.type_check({context}, res.val);
+            const typeCheckRes = type.type.__includes__({context}, res.val);
 
             if (typeCheckRes instanceof Error) return typeCheckRes;
 
@@ -599,11 +599,11 @@ export class N_arrayDestructAssign extends Node {
                 let typeRes = this.types[i].interpret(context);
                 if (typeRes.error) return typeRes;
 
-                let typeCheckRes = typeRes.val.type_check({context}, val);
+                let typeCheckRes = typeRes.val.__includes__({context}, val);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
 
                 if (!typeCheckRes.bool().valueOf()) {
-                    return new TypeError(Position.void, str(typeRes.val), val.typeName(), str(val));
+                    return new TypeError(Position.void, str(typeRes.val), val.__type_name__(), str(val));
                 }
 
                 context.setOwn(varName, val, {
@@ -625,11 +625,11 @@ export class N_arrayDestructAssign extends Node {
             let typeRes = this.types[i].interpret(context);
             if (typeRes.error) return typeRes;
 
-            let typeCheckRes = typeRes.val.type_check({context}, objPropRes);
+            let typeCheckRes = typeRes.val.__includes__({context}, objPropRes);
             if (typeCheckRes instanceof Error) return typeCheckRes;
 
             if (!typeCheckRes.bool().valueOf()) {
-                return new TypeError(Position.void, str(typeRes.val), objPropRes.typeName(), str(objPropRes));
+                return new TypeError(Position.void, str(typeRes.val), objPropRes.__type_name__(), str(objPropRes));
             }
 
             context.setOwn(varName, objPropRes, {
@@ -1182,7 +1182,7 @@ export class N_functionCall extends Node {
             }
 
             if (!(val instanceof ESNamespace) && !(val instanceof ESJSBinding) && !(val instanceof ESObject)) {
-                return new TypeError(Position.void, 'Namespace', str(val.typeName()));
+                return new TypeError(Position.void, 'Namespace', str(val.__type_name__()));
             }
 
             let kwargPrim = val.__value__;
@@ -1607,7 +1607,7 @@ export class N_class extends Node {
                 return new TypeError(
                     this.pos,
                     'Function',
-                    res.val?.typeName().valueOf() || 'undefined',
+                    res.val?.__type_name__().valueOf() || 'undefined',
                     'method on ' + this.name
                 );
             }
@@ -1623,7 +1623,7 @@ export class N_class extends Node {
                 return new TypeError(
                     this.pos,
                     'Type',
-                    extendsRes.val?.typeName().valueOf() || 'undefined',
+                    extendsRes.val?.__type_name__().valueOf() || 'undefined',
                     'method on ' + this.name
                 );
             }
@@ -1639,7 +1639,7 @@ export class N_class extends Node {
                 return new TypeError(
                     this.pos,
                     'Function',
-                    initRes.val?.typeName().valueOf() || 'undefined',
+                    initRes.val?.__type_name__().valueOf() || 'undefined',
                     'method on ' + this.name
                 );
             }

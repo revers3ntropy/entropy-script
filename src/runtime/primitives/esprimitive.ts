@@ -115,7 +115,7 @@ export abstract class ESPrimitive <T> {
      * @returns if this type is a subset of the type passed
      */
     public isa = (props: funcProps, type: Primitive): ESBoolean | Error => {
-        return type.type_check(props, this);
+        return type.__includes__(props, this);
     };
 
     public is = (props: funcProps, obj: Primitive): ESBoolean => {
@@ -124,10 +124,10 @@ export abstract class ESPrimitive <T> {
 
     // getters for private props
     public valueOf = (): T => this.__value__;
-    public typeName = (): string => str(this.__type__);
+    public __type_name__ = (): string => str(this.__type__);
 
     // Object stuff
-    public has_property = (props: funcProps, key: Primitive): ESBoolean =>
+    public __has__ = (props: funcProps, key: Primitive): ESBoolean =>
         new ESBoolean(this.hasOwnProperty(str(key)));
 
     public describe = (props: funcProps, info: Primitive) => {
@@ -147,7 +147,7 @@ export abstract class ESPrimitive <T> {
         const res = strip(info, props);
 
         if (typeof res !== 'object') {
-            return new TypeError(Position.void, 'object', this.typeName(), str(this));
+            return new TypeError(Position.void, 'object', this.__type_name__(), str(this));
         }
 
         this.__info__ = {
@@ -158,5 +158,5 @@ export abstract class ESPrimitive <T> {
         this.__info__.builtin = false;
     };
 
-    abstract type_check: (props: funcProps, n: Primitive) => ESBoolean | Error;
+    abstract __includes__: (props: funcProps, n: Primitive) => ESBoolean | Error;
 }

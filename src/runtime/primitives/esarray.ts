@@ -76,7 +76,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
 
     override __add__ = (props: funcProps, n: Primitive): ESArray | Error => {
         if (!(n instanceof ESArray)) {
-            return new TypeError(Position.void, 'array', n.typeName().valueOf(), n);
+            return new TypeError(Position.void, 'array', n.__type_name__().valueOf(), n);
         }
 
         return new ESArray([...this.valueOf(), ...n.valueOf()]);
@@ -147,13 +147,13 @@ export class ESArray extends ESPrimitive <Primitive[]> {
         return new ESArray(newArr);
     }
 
-    override type_check = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
         if (!(n instanceof ESArray) || this.len(props).valueOf() !== n.len(props).valueOf()) {
             return new ESBoolean();
         }
 
         for (let i = 0; i < this.__value__.length; i++) {
-            const res = this.__value__[i].type_check(props, n.__value__[i]);
+            const res = this.__value__[i].__includes__(props, n.__value__[i]);
             if (res instanceof Error) return res;
             if (!res.valueOf()) {
                 return new ESBoolean();
@@ -195,7 +195,7 @@ export class ESTypeArray extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override type_check = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
         if (!(t instanceof ESArray)) {
             return new ESBoolean();
         }
@@ -209,7 +209,7 @@ export class ESTypeArray extends ESType {
         }
 
         for (const element of t.valueOf()) {
-            if (!this.type.type_check(props, element).valueOf()) {
+            if (!this.type.__includes__(props, element).valueOf()) {
                 return new ESBoolean();
             }
         }
@@ -227,7 +227,7 @@ export class ESTypeArray extends ESType {
         }
 
         if (!(key instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', key.typeName(), str(key));
+            return new TypeError(Position.void, 'Number', key.__type_name__(), str(key));
         }
 
         this.numElements = key.valueOf();

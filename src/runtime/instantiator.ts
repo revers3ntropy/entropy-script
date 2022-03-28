@@ -89,7 +89,7 @@ function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
             if (params.length < 1) {
                 return new ESType();
             } else {
-                return new ESString(params[0]?.typeName());
+                return new ESString(params[0]?.__type_name__());
             }
         case 'Str':
             return params[0].cast(props, types.string);

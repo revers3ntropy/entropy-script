@@ -66,7 +66,7 @@ export class ESType extends ESPrimitive <undefined> {
         return new InvalidOperationError('cast', this);
     }
 
-    override type_check = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
         if (!n) return new ESBoolean();
         let t = n.__type__;
 
@@ -109,7 +109,7 @@ export class ESType extends ESPrimitive <undefined> {
             if (this === types.array) {
                 return new ESTypeArray(k);
             }
-            return new TypeError(Position.void, 'string', k.typeName(), str(k));
+            return new TypeError(Position.void, 'string', k.__type_name__(), str(k));
         }
         const key = k.valueOf();
         if (this._.hasOwnProperty(key)) {
@@ -141,9 +141,9 @@ export class ESTypeUnion extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override type_check = (props: funcProps, t: Primitive): ESBoolean | Error => {
-        const leftRes = this.__left__.type_check(props, t);
-        const rightRes = this.__right__.type_check(props, t);
+    override __includes__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+        const leftRes = this.__left__.__includes__(props, t);
+        const rightRes = this.__right__.__includes__(props, t);
         if (leftRes instanceof Error) return leftRes;
         if (rightRes instanceof Error) return rightRes;
 
@@ -182,9 +182,9 @@ export class ESTypeIntersection extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override type_check = (props: funcProps, t: Primitive): ESBoolean | Error => {
-        const leftRes = this.__left__.type_check(props, t);
-        const rightRes = this.__right__.type_check(props, t);
+    override __includes__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+        const leftRes = this.__left__.__includes__(props, t);
+        const rightRes = this.__right__.__includes__(props, t);
         if (leftRes instanceof Error) return leftRes;
         if (rightRes instanceof Error) return rightRes;
 
@@ -220,8 +220,8 @@ export class ESTypeNot extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override type_check = (props: funcProps, t: Primitive): ESBoolean | Error => {
-        const res = this.__val__.type_check(props, t);
+    override __includes__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+        const res = this.__val__.__includes__(props, t);
         if (res instanceof Error) return res;
 
         return new ESBoolean(

@@ -141,11 +141,11 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
        return tryCall(this.functionsTakeProps, this, '__value__', props, args, this.catchErrorsToPrimitive);
     };
 
-    override has_property = (props: funcProps, key: Primitive): ESBoolean => {
+    override __has__ = (props: funcProps, key: Primitive): ESBoolean => {
         return new ESBoolean(!(this.__get__(props, key) instanceof Error));
     };
 
-    override type_check = this.__eq__;
+    override __includes__ = this.__eq__;
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);

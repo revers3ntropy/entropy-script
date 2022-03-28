@@ -34,14 +34,14 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         let step = 1;
 
         if (!(maxP instanceof ESNumber)) {
-            return new TypeError(Position.void, 'number', maxP.typeName(), str(maxP));
+            return new TypeError(Position.void, 'number', maxP.__type_name__(), str(maxP));
         }
 
         let max = maxP.valueOf();
 
         if (!(stepP instanceof ESUndefined)) {
             if (!(stepP instanceof ESNumber)) {
-                return new TypeError(Position.void, 'number', stepP.typeName(), str(stepP));
+                return new TypeError(Position.void, 'number', stepP.__type_name__(), str(stepP));
             }
             step = stepP.valueOf();
         }
@@ -120,7 +120,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             out += `${chalk.yellow(`Help on '${info.name || '(anonymous)'}'`)}:
     
     ${chalk.yellow('Value')}: ${indent(indent(str(thing)))}
-    ${chalk.yellow('Type')}: '${str(thing.typeName())}'
+    ${chalk.yellow('Type')}: '${str(thing.__type_name__())}'
     ${chalk.yellow('Location')}: ${info.file || chalk.yellow('(unknown)')}
     
         ${chalk.green(info.description) || `No description.`}
@@ -211,7 +211,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
 
     'using': [(props: funcProps, module, global_) => {
         if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding) && !(module instanceof ESObject)) {
-            return new TypeError(Position.void, 'Namespace', str(module.typeName()));
+            return new TypeError(Position.void, 'Namespace', str(module.__type_name__()));
         }
 
         let {context} = props;
@@ -243,7 +243,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
 
     'sleep': [({context}, time, cb) => {
         if (!(time instanceof ESNumber)) {
-            return new TypeError(Position.void, 'number', str(time.typeName()), str(time));
+            return new TypeError(Position.void, 'number', str(time.__type_name__()), str(time));
         }
 
         sleep(time.valueOf())
@@ -271,7 +271,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
 
     'typeof': [({context}, symbolPrim) => {
         if (!(symbolPrim instanceof ESString)) {
-            return new TypeError(Position.void, 'String', symbolPrim.typeName(), str(symbolPrim));
+            return new TypeError(Position.void, 'String', symbolPrim.__type_name__(), str(symbolPrim));
         }
 
         let symbol = str(symbolPrim);
@@ -302,7 +302,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             return new Error(Position.void, 'ImportError', 'Is running in node instance but trying to run browser import function');
         }
         if (!(rawUrl instanceof ESString)) {
-            return new TypeError(Position.void, 'String', rawUrl.typeName(), str(rawUrl));
+            return new TypeError(Position.void, 'String', rawUrl.__type_name__(), str(rawUrl));
         }
         const url = str(rawUrl);
 

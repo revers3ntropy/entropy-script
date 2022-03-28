@@ -64,7 +64,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         }
 
         if (!(key instanceof ESString)) {
-            return new TypeError(Position.void, 'string', key.typeName());
+            return new TypeError(Position.void, 'string', key.__type_name__());
         }
 
         if (this._.hasOwnProperty(str(key))) {
@@ -76,7 +76,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
 
     override __set__(props: funcProps, key: Primitive, value: Primitive): void | Error {
         if (!(key instanceof ESString)) {
-            return new TypeError(Position.void, 'string', key.typeName().valueOf(), str(key));
+            return new TypeError(Position.void, 'string', key.__type_name__().valueOf(), str(key));
         }
 
         let idx = str(key);
@@ -103,7 +103,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         symbol.value = value;
     }
 
-    override type_check = this.__eq__;
+    override __includes__ = this.__eq__;
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);

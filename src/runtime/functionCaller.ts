@@ -16,11 +16,11 @@ function callNode (self: ESFunction, context: Context, fn: Node) {
         res.funcReturn = undefined;
     }
 
-    if (self.__returns__.type_check({ context }, res.val).valueOf() === false) {
+    if (self.__returns__.__includes__({ context }, res.val).valueOf() === false) {
         return new TypeError(
             Position.void,
             str(self.__returns__),
-            res.val?.typeName().valueOf() || 'undefined',
+            res.val?.__type_name__().valueOf() || 'undefined',
             res.val?.str().valueOf(),
             '(from function return)');
     }
