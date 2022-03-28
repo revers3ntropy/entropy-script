@@ -1,10 +1,10 @@
 import Position from "../position";
 import {Context} from "../runtime/context";
 import { Error, ImportError, MissingNativeDependencyError, PermissionRequiredError } from '../errors';
-import {ESFunction, ESNamespace, ESObject, ESString, Primitive} from '../runtime/primitiveTypes';
+import {ESFunction, ESJSBinding, ESNamespace, ESObject, ESString, Primitive} from '../runtime/primitiveTypes';
 import { funcProps, str } from "../util/util";
 import {interpretResult} from "../runtime/nodes";
-import { config, libs, run } from '../index';
+import {config, libs, run, strip} from '../index';
 import { getModule, moduleExist } from './builtInModules';
 import { global, types, VALID_FILE_ENCODINGS } from "../util/constants";
 
@@ -48,6 +48,20 @@ const open = (props: funcProps, path_: Primitive, encoding_: Primitive) => {
         }, [{name: 'path', type: types.string}]),
     });
 };
+
+const fetch_ = (props: funcProps, ...args: Primitive[]) => {
+    if (!('node-fetch' in libs)) {
+        return new MissingNativeDependencyError('node-fetch');
+    }
+
+    if (!config.permissions.networking) {
+        return new PermissionRequiredError(`Networking not allowed but is required for 'fetch'`);
+    }
+
+    let nFetch = libs['node-fetch'].default;
+
+    return new ESJSBinding(nFetch(...args.map(a => strip(a, props))));
+}
 
 const import_ = (props: funcProps, rawPath: Primitive): Error | Primitive | undefined => {
 
@@ -134,6 +148,22 @@ function addNodeBIFs (context: Context) {
         ],
         'open', undefined, types.object
     ), {
+        forceThroughConst: true,
+        isConstant: true
+    });
+
+    context.set('fetch',
+        new ESFunction(
+            fetch_,
+            undefined,
+            'fetch',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            true,
+            true
+        ), {
         forceThroughConst: true,
         isConstant: true
     });

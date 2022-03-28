@@ -13,6 +13,7 @@ export default function load (context: Context) {
         'true': new ESBoolean(true),
         'nil': new ESUndefined(),
         'inf': new ESNumber(Infinity),
+
         'Any': types.any,
         'Number': types.number,
         'String': types.string,

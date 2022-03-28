@@ -42,6 +42,8 @@ function askQuestion(query) {
  * @return {Promise<void>}
  */
 async function init () {
+	let fetch = await import('node-fetch');
+
 	let err = await es.init({
 		print: console.log,
 		input: async (msg, cb) => cb(await askQuestion(msg).catch(console.log)),
@@ -50,7 +52,8 @@ async function init () {
 			http: [http, true],
 			fs: [fs, true],
 			mysql: [sql, true],
-			path: [path, true]
+			path: [path, true],
+			'node-fetch': [fetch, true]
 		}
 	});
 

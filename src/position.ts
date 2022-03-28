@@ -4,14 +4,14 @@ export default class Position {
     ln: number;
     col: number;
 
-    constructor (idx: number, ln: number, col: number, file: string = '(unknown)') {
+    constructor (idx: number, ln: number, col: number, file='(unknown)') {
         this.idx = idx;
         this.ln = ln;
         this.col = col;
         this.file = file;
     }
 
-    advance (currentChar= '') {
+    advance (currentChar='') {
         this.idx++;
         this.col++;
 

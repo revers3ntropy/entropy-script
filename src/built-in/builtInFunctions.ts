@@ -1,4 +1,4 @@
-import { Error, ImportError, TypeError, ReferenceError } from "../errors";
+import {Error, ImportError, TypeError, ReferenceError, InvalidRuntimeError} from '../errors';
 import Position from "../position";
 import { strip, wrap } from '../runtime/primitives/wrapStrip';
 import {
@@ -295,14 +295,9 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         args: [
             {name: 'identifier', type: 'String'}
         ]
-    }]
-}
+    }],
 
-export function addDependencyInjectedBIFs (
-    printFunc: (...args: string[]) => void,
-    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
-) {
-    builtInFunctions['import'] = [(props: funcProps, rawUrl) => {
+    'import': [(props: funcProps, rawUrl) => {
         if (IS_NODE_INSTANCE) {
             return new Error(Position.void, 'ImportError', 'Is running in node instance but trying to run browser import function');
         }
@@ -319,7 +314,28 @@ export function addDependencyInjectedBIFs (
     }, {
         description: 'Loads a module. Cannot be used asynchronously, so add any modules to pre-load in the esconfig.json file.',
         args: [{name: 'path', type: 'String'}]
-    }];
+    }],
+
+    'fetch': [
+        (props: funcProps, ...args) => {
+            if (IS_NODE_INSTANCE) {
+                return new InvalidRuntimeError();
+            }
+            // @ts-ignore
+            return new ESJSBinding(fetch(...args.map(a => strip(a, false))));
+        }, {
+            description: `Fetch data using native JS 'fetch' function`,
+            args: [
+                {name: 'input'}, {name: 'init'}
+            ]
+        }
+    ]
+}
+
+export function addDependencyInjectedBIFs (
+    printFunc: (...args: string[]) => void,
+    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
+) {
 
     builtInFunctions['print'] = [({context}, ...args) => {
         let out = ``;
@@ -333,21 +349,26 @@ export function addDependencyInjectedBIFs (
 
     builtInFunctions['input'] = [({context}, msg, cbRaw) => {
         inputFunc(msg.valueOf(), (msg) => {
-            let cb = cbRaw?.valueOf();
-            if (cb instanceof ESFunction) {
-                let res = cb.__call__({context},
-                    new ESString(msg)
-                );
-                if (res instanceof Error) {
-                    console.log(res.str);
+            return new ESJSBinding(new Promise((resolve, reject) => {
+                let cb = cbRaw?.valueOf();
+                if (cb instanceof ESFunction) {
+                    let res = cb.__call__({context},
+                        new ESString(msg)
+                    );
+                    if (res instanceof Error) {
+                        console.log(res.str);
+                        reject(res);
+                    }
+                } else if (typeof cb === 'function') {
+                    cb(msg);
                 }
-            } else if (typeof cb === 'function') {
-                cb(msg);
-            }
-
-            return new ESString('\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.');
+                resolve(msg);
+            }));
         })
     }, {
-        args: [{name: 'msg', type: 'String'}, {name: 'callback', type: 'Func'}]
+        args: [
+            {name: 'msg', type: 'String'},
+            {name: 'callback', type: 'Func'}
+        ]
     }];
 }
