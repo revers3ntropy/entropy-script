@@ -15,7 +15,7 @@ expect([{a: '<Symbol: a>'}, 'hi'], `
 `);
 expect('TypeError', `
     let global MyLib = namespace {
-        let a: Number = 0;
+        let a: Num = 0;
     };
     MyLib.a = 1;
 `);
@@ -45,7 +45,7 @@ expect([
 
 expect([undefined, 1], `
     using(namespace {
-        let a: Number = 1;
+        let a: Num = 1;
     });
     a;
 `);

@@ -1,4 +1,4 @@
-import {primitiveMethods} from '../util/constants';
+import {primitiveMethods, types} from '../util/constants';
 import { Context } from "./context";
 import type { dict, funcProps } from '../util/util';
 import { EndIterator, Error, TypeError } from "../errors";
@@ -83,16 +83,17 @@ function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
     // make sure we have at least one arg
 
     switch (type.__name__) {
-        case 'Undefined':
+        case 'Null':
+            return new ESUndefined();
         case 'Type':
             if (params.length < 1) {
                 return new ESType();
             } else {
                 return new ESString(params[0]?.typeName());
             }
-        case 'String':
-            return new ESString(str(params[0]));
-        case 'Array':
+        case 'Str':
+            return params[0].cast(props, types.string);
+        case 'Arr':
             if (params.length < 1) {
                 return new ESArray();
             }
@@ -111,12 +112,12 @@ function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
                 }
             }
             return new ESArray(elements);
-        case 'Number':
-            return new ESNumber(params[0].valueOf());
-        case 'Function':
-            return new ESFunction(params[0].valueOf());
-        case 'Boolean':
-            return new ESBoolean(params[0].bool().valueOf());
+        case 'Num':
+            return params[0].cast(props, types.number);
+        case 'Func':
+            return params[0].cast(props, types.function);
+        case 'Bool':
+            return params[0].cast(props, types.boolean);
         default:
             return wrap(params[0]);
     }

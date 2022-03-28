@@ -79,7 +79,7 @@ expect('TypeError', `{b: 2} + []`);
 expect('TypeError', `{b: 2} + ''`);
 expect('TypeError', `{b: 2} + nil`);
 expect('TypeError', `{b: 2} + Type`);
-expect('TypeError', `{b: 2} + String`);
+expect('TypeError', `{b: 2} + Str`);
 expect('TypeError', `{b: 2} + (func () {})`);
 expect('TypeError', `+{b: 2}`);
 
@@ -92,6 +92,6 @@ expect([{b: 2}], `{a: 1, b: 2} - ['a']`);
 expect('TypeError', `{b: 2} - 1`);
 expect('TypeError', `{b: 2} - nil`);
 expect('TypeError', `{b: 2} - Type`);
-expect('TypeError', `{b: 2} - String`);
+expect('TypeError', `{b: 2} - Str`);
 expect('TypeError', `{b: 2} - (func () {})`);
 expect('TypeError', `-{b: 2}`);

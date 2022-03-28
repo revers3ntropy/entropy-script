@@ -39,7 +39,7 @@ expect('TypeError', `[] + 1`);
 expect('TypeError', `[] + ''`);
 expect('TypeError', `[] + nil`);
 expect('TypeError', `[] + Type`);
-expect('TypeError', `[] + String`);
+expect('TypeError', `[] + Str`);
 expect('TypeError', `[] + (func () {})`);
 expect('TypeError', `+[]`);
 
@@ -50,6 +50,6 @@ expect('TypeError', `[] - 1`);
 expect('TypeError', `[] - ''`);
 expect('TypeError', `[] - nil`);
 expect('TypeError', `[] - Type`);
-expect('TypeError', `[] - String`);
+expect('TypeError', `[] - Str`);
 expect('TypeError', `[] - (func () {})`);
 expect('TypeError', `-[]`);

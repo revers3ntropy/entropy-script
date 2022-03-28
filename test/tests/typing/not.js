@@ -2,19 +2,19 @@ const {expect, file} = require( '../../testFramework');
 file('typing/not');
 
 expect([1], `
-    let b: (~String) = 1;
+    let b: (~Str) = 1;
 `);
 
 expect('TypeError', `
-    let b: (~String) = 'hi';
+    let b: (~Str) = 'hi';
 `);
 
 expect([''], `
-    let b: (~~String) = '';
+    let b: (~~Str) = '';
 `);
 
 expect('TypeError', `
-    let b: (~~String) = 1;
+    let b: (~~Str) = 1;
 `);
 
 expect(['parentClass', 'childClass1', 'childClass2', {}], `

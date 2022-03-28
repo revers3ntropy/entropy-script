@@ -15,15 +15,15 @@ export default function load (context: Context) {
         'inf': new ESNumber(Infinity),
 
         'Any': types.any,
-        'Number': types.number,
-        'String': types.string,
+        'Num': types.number,
+        'Str': types.string,
         'Bool': types.bool,
         'Func': types.function,
-        'Array': types.array,
-        'Object': types.object,
+        'Arr': types.array,
+        'Obj': types.object,
         'Type': types.type,
-        'Error': types.error,
-        'Undefined': types.undefined
+        'Err': types.error,
+        'Null': types.undefined
     };
 
     for (let cls of Object.keys(errors)) {

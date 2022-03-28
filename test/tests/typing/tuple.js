@@ -2,13 +2,13 @@ const {expect, file} = require( '../../testFramework');
 file('typing/tuple');
 
 expect([['hi']], `
-    let a: ([String]) = ['hi'];
+    let a: ([Str]) = ['hi'];
 `);
 
 expect('TypeError', `
-    let b: ([String]) = ['hi', 1];
+    let b: ([Str]) = ['hi', 1];
 `);
 
 expect('TypeError', `
-    let c: ([String]) = [11];
+    let c: ([Str]) = [11];
 `);

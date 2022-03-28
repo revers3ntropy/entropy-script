@@ -38,15 +38,15 @@ export {
 
 export function initPrimitiveTypes () {
     types.type      = new ESType(true, 'Type');
-    types.undefined = new ESType(true, 'Undefined');
-    types.string    = new ESType(true, 'String');
-    types.array     = new ESType(true, 'Array');
-    types.number    = new ESType(true, 'Number');
+    types.undefined = new ESType(true, 'Null');
+    types.string    = new ESType(true, 'Str');
+    types.array     = new ESType(true, 'Arr');
+    types.number    = new ESType(true, 'Num');
     types.any       = new ESType(true, 'Any');
-    types.function  = new ESType(true, 'Function');
-    types.bool      = new ESType(true, 'Boolean');
-    types.object    = new ESType(true, 'Object');
-    types.error     = new ESType(true, 'Error');
+    types.function  = new ESType(true, 'Func');
+    types.bool      = new ESType(true, 'Bool');
+    types.object    = new ESType(true, 'Obj');
+    types.error     = new ESType(true, 'Err');
 
     // Documentation for types
     types.any.__info__ = {

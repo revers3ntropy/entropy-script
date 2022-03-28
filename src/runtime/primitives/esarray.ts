@@ -27,8 +27,10 @@ export class ESArray extends ESPrimitive <Primitive[]> {
             return new ESNumber(this.len(props).valueOf());
         case types.boolean:
             return this.bool();
+        case types.string:
+            return this.str();
         default:
-            return new Error(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.typeName())}'`);
+            return new Error(Position.void, 'TypeError', `Cannot cast 'Arr' to '${str(type)}'`);
         }
     }
 

@@ -2,21 +2,21 @@ const {expect, file} = require( '../../testFramework');
 file('typing/function');
 
 expect(['<Func>', 'hi'], `
-    let myFunc: (func () String) = func (): String 'hi';
+    let myFunc: (func () Str) = func (): Str 'hi';
     myFunc();
 `);
 
 expect('TypeError', `
-    let myFunc: (func () String) = func () 'hi';
+    let myFunc: (func () Str) = func () 'hi';
     myFunc();
 `);
 
 expect('TypeError', `
-    let myFunc: (func () String) = func () 1;
+    let myFunc: (func () Str) = func () 1;
     myFunc();
 `);
 
 expect('TypeError', `
-    let myFunc: (func () String) = func (): Number 1;
+    let myFunc: (func () Str) = func (): Num 1;
     myFunc();
 `);

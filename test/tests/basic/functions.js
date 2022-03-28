@@ -207,7 +207,7 @@ expect(['<Func>', 'hello world'], `
 // Default arguments
 
 expect(['<Func>', 1, 3], `
-    func myFunc (a=1): Number {
+    func myFunc (a=1): Num {
         return a;
     };
     myFunc();
@@ -215,7 +215,7 @@ expect(['<Func>', 1, 3], `
 `);
 
 expect(['<Func>', 1, 3], `
-    func myFunc (a: Number = 1): Number {
+    func myFunc (a: Num = 1): Num {
         return a;
     };
     myFunc();
@@ -224,7 +224,7 @@ expect(['<Func>', 1, 3], `
 
 // #30
 expect('TypeError', `
-    func myFunc (a: Number = 'hi'): Number {
+    func myFunc (a: Num = 'hi'): Num {
         return a;
     };
     myFunc();
@@ -232,28 +232,28 @@ expect('TypeError', `
 `);
 
 expect('TypeError', `
-    func myFunc (a: Number = 2): Number {
+    func myFunc (a: Num = 2): Num {
         return a;
     };
     myFunc('hi');
 `);
 
 expect('InvalidSyntaxError', `
-    func myFunc (a: Number = 2, b): Number {
+    func myFunc (a: Num = 2, b): Num {
         return a;
     };
     myFunc('hi');
 `);
 
 expect('InvalidSyntaxError', `
-    func myFunc (a, b: Number = 2, c: ?String): Number {
+    func myFunc (a, b: Num = 2, c: ?Str): Num {
         return [a, b];
     };
     myFunc('hi');
 `);
 
 expect('InvalidSyntaxError', `
-    func myFunc (b, b: Number = 2, c: ?String): Number {
+    func myFunc (b, b: Num = 2, c: ?Str): Num {
         return a;
     };
     myFunc('hi');
@@ -328,12 +328,12 @@ expect(['<Func>', 2, 3, {a: 2, b: 3}], `
     myFunc(*a, *b);
 `);
 expect(['<Func>', [1, 3, [1, 2], {a: 2, b: 3}]], `
-    func myFunc (a: Number, *b: Number, *, **) 
+    func myFunc (a: Num, *b: Num, *, **) 
     	[a, b, args, kwargs];
     myFunc(1, 2, *a=2, *b=3);
 `);
 expect(['<Func>', [1, 3, [1, 2], {a: 2, b: 3}]], `
-    func myFunc (a: Number, *b: Number, *, **) 
+    func myFunc (a: Num, *b: Num, *, **) 
     	[a, b, args, kwargs];
     	
     myFunc(1, 2, **{a: 2, b: 3});
@@ -341,14 +341,14 @@ expect(['<Func>', [1, 3, [1, 2], {a: 2, b: 3}]], `
 
 // #50
 expect(['<Func>', {a: 2, b: 3}, [1, 3, [1, 2], {a: 2, b: 3}]], `
-    func myFunc (a: Number, *b: Number, *, **) 
+    func myFunc (a: Num, *b: Num, *, **) 
     	[a, b, args, kwargs];
     	
    	let a = {a: 2, b: 3};
     myFunc(1, 2, **a);
 `);
 expect(['<Func>', [1, 2], {a: 2, b: 3}, [1, 3, [1, 2], {a: 2, b: 3}]], `
-    func myFunc (a: Number, *b: Number, *, **) 
+    func myFunc (a: Num, *b: Num, *, **) 
     	[a, b, args, kwargs];
    	let a = [1, 2];
    	let b = {a: 2, b: 3};

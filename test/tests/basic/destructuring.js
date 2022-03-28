@@ -41,20 +41,20 @@ expect('IndexError', `
 `);
 
 expect([[1, 2], 1, 2], `
-    let [a: Number, b: Number] = [1, 2];
+    let [a: Num, b: Num] = [1, 2];
     a; b;
 `);
 
 expect([[1, undefined], 1, undefined], `
-    let [a: Number, b: ?Number] = [1, nil];
+    let [a: Num, b: ?Num] = [1, nil];
     a; b;
 `);
 
 expect('TypeError', `
-    let [a: Number, b: Number] = [1, 'hi'];
+    let [a: Num, b: Num] = [1, 'hi'];
     a; b;
 `);
 
 expect('TypeError', `
-    let [a: Number, b: Number] = {a: 1, b: nil};
+    let [a: Num, b: Num] = {a: 1, b: nil};
 `);

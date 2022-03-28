@@ -2,19 +2,19 @@ let {expect, file} = require( '../../testFramework');
 file('typing/parameters');
 
 expect(['<Func>', 'hello world'], `
-    let f = func (a: String, b: String) {
+    let f = func (a: Str, b: Str) {
         return a + b;
     };
     f('hello', ' world');
 `);
 expect(['<Func>', 21], `
-    let f = func (x: Number){
+    let f = func (x: Num) {
         return 2 * x + 1;
     };
     f(10);
 `);
 expect('TypeError', `
-    let f = func (x: Number) {
+    let f = func (x: Num) {
         return 2 * x + 1;
     };
     f([10]);
@@ -22,11 +22,11 @@ expect('TypeError', `
 
 expect(['Concatenator', {concat: '<Func>', str: 'hello '}, 'hello world'], `
     let Concatenator = class {
-        init (str1: String) {
+        init (str1: Str) {
             this.str = str1;
         }
         
-        concat (str2: String): String {
+        concat (str2: Str): Str {
             return this.str + str2;
         }
     };
@@ -37,7 +37,7 @@ expect(['Concatenator', {concat: '<Func>', str: 'hello '}, 'hello world'], `
 `);
 expect('TypeError', `
     let Concatenator = class {
-        init (str1: String) {
+        init (str1: Str) {
             this.str = str1;
         }
     };

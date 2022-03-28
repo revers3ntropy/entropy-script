@@ -15,7 +15,7 @@ expect(
 
 	`
     let v2 = class {
-        init (x: Number, y: Number) {
+        init (x: Num, y: Num) {
             this.x = x;
             this.y = y;
         }
@@ -26,7 +26,7 @@ expect(
             return this;
         }
         
-        str (): String {
+        str (): Str {
             return this.x.str() + ', ' + this.y.str();
         }
         
