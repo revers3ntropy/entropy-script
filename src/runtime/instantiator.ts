@@ -1,4 +1,4 @@
-import {primitiveMethods, types} from '../util/constants';
+import { primitiveMethods, types } from '../util/constants';
 import { Context } from "./context";
 import type { dict, funcProps } from '../util/util';
 import { EndIterator, Error, TypeError } from "../errors";

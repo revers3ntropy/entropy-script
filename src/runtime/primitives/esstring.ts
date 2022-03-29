@@ -9,8 +9,9 @@ import type {Primitive} from './primitive';
 import {wrap} from './wrapStrip';
 import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
+import { ESIterable } from "./esiterable";
 
-export class ESString extends ESPrimitive <string> {
+export class ESString extends ESPrimitive <string> implements ESIterable{
 
     constructor (value: string = '') {
         super(value, types.string);
@@ -21,7 +22,7 @@ export class ESString extends ESPrimitive <string> {
     override cast = (props: funcProps, type: Primitive): Primitive | Error => {
         switch (type) {
             case types.number:
-                const num = parseFloat(this.valueOf());
+                const num = parseFloat(this.__value__);
                 if (isNaN(num)) {
                     return new Error(Position.void, 'TypeError', `This string is not a valid number`);
                 }
@@ -29,52 +30,52 @@ export class ESString extends ESPrimitive <string> {
             case types.string:
                 return this;
             case types.array:
-                return new ESArray(this.valueOf().split('').map(s => new ESString(s)));
+                return new ESArray(this.__value__.split('').map(s => new ESString(s)));
             default:
-                return new Error(Position.void, 'TypeError', `Cannot cast to type '${ str(type.__type_name__()) }'`);
+                return new Error(Position.void, 'TypeError', `Cannot cast to type '${str(type.__type_name__())}'`);
         }
     }
 
     override __add__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError(Position.void, 'String', n.__type_name__().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'String', n.__type_name__(), n.__value__);
         }
-        return new ESString(this.valueOf() + n.valueOf());
+        return new ESString(this.__value__ + n.__value__);
     };
     override __multiply__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.__type_name__().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'Number', n.__type_name__(), n.__value__);
         }
-        return new ESString(this.valueOf().repeat(n.valueOf()));
+        return new ESString(this.__value__.repeat(n.__value__));
     };
     override __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
             return new ESBoolean(false);
         }
-        return new ESBoolean(this.valueOf() === n.valueOf());
+        return new ESBoolean(this.__value__ === n.__value__);
     };
     override __gt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError(Position.void, 'String', n.__type_name__().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'String', n.__type_name__(), n.__value__);
         }
-        return new ESBoolean(this.valueOf().length > n.valueOf().length);
+        return new ESBoolean(this.__value__.length > n.__value__.length);
     };
     override __lt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError(Position.void, 'String', n.__type_name__().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'String', n.__type_name__(), n.__value__);
         }
-        return new ESBoolean(this.valueOf().length < n.valueOf().length);
+        return new ESBoolean(this.__value__.length < n.__value__.length);
     };
 
-    override __bool__ = () => new ESBoolean(this.valueOf().length > 0);
+    override __bool__ = () => new ESBoolean(this.__value__.length > 0);
     override bool = this.__bool__;
 
 
     len = () => {
-        return new ESNumber(this.valueOf().length);
+        return new ESNumber(this.__value__.length);
     }
 
-    override clone = () => new ESString(this.valueOf());
+    override clone = () => new ESString(this.__value__);
 
     override __get__ = (props: funcProps, key: Primitive): Primitive => {
         if (key instanceof ESString && this._.hasOwnProperty(str(key))) {
@@ -85,14 +86,14 @@ export class ESString extends ESPrimitive <string> {
             return new ESString();
         }
 
-        let idx = key.valueOf();
+        let idx = key.__value__;
 
         while (idx < 0) {
-            idx = this.valueOf().length + idx;
+            idx = this.__value__.length + idx;
         }
 
-        if (idx < this.valueOf().length) {
-            return new ESString(this.valueOf()[idx]);
+        if (idx < this.__value__.length) {
+            return new ESString(this.__value__[idx]);
         }
 
         return new ESString();
@@ -105,12 +106,12 @@ export class ESString extends ESPrimitive <string> {
         if (!(value instanceof ESString))
             value = new ESString(str(value));
 
-        let idx = key.valueOf();
+        let idx = key.__value__;
 
         while (idx < 0)
-            idx = this.valueOf().length + idx;
+            idx = this.__value__.length + idx;
 
-        const strToInsert = value.str().valueOf();
+        const strToInsert = value.str().__value__;
 
         let firstPart = this.__value__.substr(0, idx);
         let lastPart = this.__value__.substr(idx + strToInsert.length);
@@ -128,7 +129,13 @@ export class ESString extends ESPrimitive <string> {
     }
 
     override __iter__(props: funcProps): Error | Primitive {
-        const chars = this.valueOf().split('');
+        const chars = this.__value__.split('');
         return new ESArray(chars.map(s => new ESString(s)));
+    }
+
+    override keys = () => {
+        let res: (ESNumber | ESString)[] = Object.keys(this._).map(s => new ESString(s));
+        res.push(...Object.keys(this.__value__).map(s => new ESNumber(parseInt(s))))
+        return res;
     }
 }

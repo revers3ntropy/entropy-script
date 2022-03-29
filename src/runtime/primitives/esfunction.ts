@@ -110,10 +110,10 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
-        return new IndexError(Position.void, key.valueOf(), this);
+        return new IndexError(Position.void, key.__value__, this);
     };
 
-    override __includes__ = (props: funcProps, n: Primitive) => {
+    override __includes__ = (props: funcProps, n: Primitive): Error | ESBoolean => {
         if (!(n instanceof ESFunction)) {
             return new ESBoolean();
         }
@@ -122,7 +122,9 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         }
 
         for (let i = 0; i < this.__args__.length; i++) {
-            if (!this.__args__[i].type.__includes__(props, n.__args__[i].type).valueOf()) {
+            let typeCheckRes = this.__args__[i].type.__includes__(props, n.__args__[i].type);
+            if (typeCheckRes instanceof Error) return typeCheckRes;
+            if (!typeCheckRes.__value__) {
                 return new ESBoolean();
             }
         }
@@ -132,12 +134,9 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         if (thisReturnVal instanceof Error) {
             return thisReturnVal;
         }
-
-        if (!thisReturnVal.__eq__(props, n.__returns__).valueOf()) {
-            return new ESBoolean();
-        }
-
-        return new ESBoolean(true);
+        let eqRes = thisReturnVal.__eq__(props, n.__returns__);
+        if (eqRes instanceof Error) return eqRes;
+        return new ESBoolean(eqRes.__value__);
 
     };
 
@@ -146,5 +145,9 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     }
     override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
+    }
+
+    override keys = () => {
+        return Object.keys(this).map(s => new ESString(s));
     }
 }

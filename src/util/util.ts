@@ -46,7 +46,7 @@ export function str (val: any, depth = 0): string {
     }
 
     if (val instanceof ESPrimitive) {
-        return val.str().valueOf();
+        return val.str().__value__;
     }
 
     if (val instanceof Node) {

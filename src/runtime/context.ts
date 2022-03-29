@@ -265,7 +265,7 @@ export function generateESFunctionCallContext (
 
         const typeIncludes = param.type.__includes__({context: parent}, args[i]);
         if (typeIncludes instanceof Error) return typeIncludes;
-        if (!typeIncludes.valueOf()) {
+        if (!typeIncludes.__value__) {
             return new TypeError(Position.void, str(param.type), str(type), str(value));
         }
 
@@ -299,7 +299,7 @@ export function generateESFunctionCallContext (
 
         const typeIncludes = kwarg.type.__includes__({context: parent}, arg);
         if (typeIncludes instanceof Error) return typeIncludes;
-        if (!typeIncludes.valueOf()) {
+        if (!typeIncludes.__value__) {
             return new TypeError(Position.void, str(kwarg.type), str(type), str(arg));
         }
 

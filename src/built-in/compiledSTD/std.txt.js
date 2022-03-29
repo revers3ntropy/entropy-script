@@ -50,7 +50,7 @@ function range (minP, maxP, stepP) {
 		return [];
 	}
 
-	const min = minP.valueOf();
+	const min = minP.__value__;
 
 	if (typeof maxP === 'undefined') {
 		try {
@@ -66,13 +66,13 @@ function range (minP, maxP, stepP) {
 		throw 'TypeError: Expected number';
 	}
 
-	let max = maxP.valueOf();
+	let max = maxP.__value__;
 
 	if (typeof stepP !== 'undefined') {
 		if (typeof stepP !== 'number') {
 			throw 'TypeError: Expected number';
 		}
-		step = stepP.valueOf();
+		step = stepP.__value__;
 	}
 
 	let arr = [];

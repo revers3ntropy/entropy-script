@@ -62,12 +62,12 @@ export function strip (thing: Primitive | undefined, props: funcProps): NativeOb
         return thing;
 
     } else if (thing instanceof ESArray) {
-        return thing.valueOf().map(m => strip(m, props), props);
+        return thing.__value__.map(m => strip(m, props), props);
 
     } else if (thing instanceof ESObject) {
         let val: { [key: string]: NativeObj } = {};
-        for (let key in thing.valueOf()) {
-            val[key] = strip(thing.valueOf()[key], props);
+        for (let key in thing.__value__) {
+            val[key] = strip(thing.__value__[key], props);
         }
         return val;
 
@@ -88,5 +88,5 @@ export function strip (thing: Primitive | undefined, props: funcProps): NativeOb
         return thing;
     }
 
-    return thing.valueOf();
+    return thing.__value__;
 }

@@ -82,7 +82,7 @@ class Test {
 
     /**
      * @param {Context} env
-     * @returns {boolean | ESError}
+     * @returns {boolean | Error}
      */
     run (env) {
         return this.test(env);
@@ -126,10 +126,10 @@ exports.Test = Test;
 
 function objectsSame (primary, secondary) {
     if (primary instanceof es.ESFunction || primary instanceof es.ESType || primary instanceof es.ESSymbol) {
-        return secondary === primary.str().valueOf();
+        return secondary === primary.str().__value__;
     }
     if (secondary instanceof es.ESFunction || secondary instanceof es.ESType || secondary instanceof es.ESSymbol) {
-        return primary === secondary.str().valueOf();
+        return primary === secondary.str().__value__;
     }
 
     if (typeof primary !== 'object' || typeof secondary !== 'object') {
@@ -194,12 +194,12 @@ function arraysSame (arr1, arr2) {
             }
 
         } else if (item2 instanceof es.ESFunction || item2 instanceof es.ESType) {
-            if (item1 !== item2.str().valueOf()) {
+            if (item1 !== item2.str().__value__) {
                 return false;
             }
 
         } else if (item1 instanceof es.ESFunction || item1 instanceof es.ESType) {
-            if (item2 !== item1.str().valueOf()) {
+            if (item2 !== item1.str().__value__) {
                 return false;
             }
 
@@ -271,11 +271,9 @@ function expect (expected, from) {
 
             const res = arraysSame(expected, es.strip(result.val, {context: env}));
 
-            /* extreme debugging
-            if (!res) {
+            if (!res && process.argv.indexOf('-d') !== -1) {
                 console.log('\n%%%', expected, es.str(es.strip(result.val, {context: env})), '@@');
             }
-            //*/
 
             return res;
         })();

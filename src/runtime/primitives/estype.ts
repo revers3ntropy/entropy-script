@@ -62,7 +62,7 @@ export class ESType extends ESPrimitive <undefined> {
         return new ESBoolean(type === types.type);
     }
 
-    override cast = (props: funcProps, type: Primitive): Error => {
+    override cast = () => {
         return new InvalidOperationError('cast', this);
     }
 
@@ -79,7 +79,9 @@ export class ESType extends ESPrimitive <undefined> {
         }
 
         while (t instanceof ESType) {
-            if (t.__extends__?.__eq__(props, this).valueOf() === true) {
+            let eqRes = t.__extends__?.__eq__(props, this);
+            if (eqRes instanceof Error) return eqRes;
+            if (eqRes?.__value__ === true) {
                 return new ESBoolean(true);
             }
             if (!t.__extends__) {
@@ -91,7 +93,7 @@ export class ESType extends ESPrimitive <undefined> {
         return new ESBoolean();
     }
 
-    override __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
+    override __eq__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
         return new ESBoolean(t === this);
     }
 
@@ -111,7 +113,7 @@ export class ESType extends ESPrimitive <undefined> {
             }
             return new TypeError(Position.void, 'string', k.__type_name__(), str(k));
         }
-        const key = k.valueOf();
+        const key = k.__value__;
         if (this._.hasOwnProperty(key)) {
             return wrap(this._[key], true);
         }
@@ -123,6 +125,11 @@ export class ESType extends ESPrimitive <undefined> {
     }
     override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
+    }
+
+
+    override keys = () => {
+        return Object.keys(this).map(s => new ESString(s));
     }
 }
 
@@ -137,7 +144,7 @@ export class ESTypeUnion extends ESType {
         this.__right__ = right;
     }
 
-    override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
+    override __call__ = (): Error | Primitive => {
         return new InvalidOperationError('__call__', this);
     }
 
@@ -148,21 +155,25 @@ export class ESTypeUnion extends ESType {
         if (rightRes instanceof Error) return rightRes;
 
         return new ESBoolean(
-            leftRes.valueOf() ||
-            rightRes.valueOf()
+            leftRes.__value__ ||
+            rightRes.__value__
         );
     }
 
-    override clone = () => {
+    override clone = (): ESType => {
         return new ESTypeUnion(this.__left__, this.__right__);
     }
 
-    override __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
-        return new ESBoolean(
-            t instanceof ESTypeUnion &&
-            this.__left__.__eq__(props, t.__left__).valueOf() === true &&
-            this.__right__.__eq__(props, t.__right__).valueOf() === true
-        );
+    override __eq__ = (props: funcProps, t: Primitive) => {
+        if (!(t instanceof ESTypeUnion)) return new ESBoolean();
+
+        let leftTypeCheckRes = this.__left__.__eq__(props, t.__left__);
+        if (leftTypeCheckRes instanceof Error) return leftTypeCheckRes;
+
+        let rightTypeCheckRes = this.__right__.__eq__(props, t.__right__);
+        if (rightTypeCheckRes instanceof Error) return rightTypeCheckRes;
+
+        return new ESBoolean(leftTypeCheckRes.__value__ && rightTypeCheckRes.__value__);
     }
 }
 
@@ -178,7 +189,7 @@ export class ESTypeIntersection extends ESType {
         this.__right__ = right;
     }
 
-    override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
+    override __call__ = (): Error | Primitive => {
         return new InvalidOperationError('__call__', this);
     }
 
@@ -189,8 +200,8 @@ export class ESTypeIntersection extends ESType {
         if (rightRes instanceof Error) return rightRes;
 
         return new ESBoolean(
-            leftRes.valueOf() &&
-            rightRes.valueOf()
+            leftRes.__value__ &&
+            rightRes.__value__
         );
     }
 
@@ -198,13 +209,16 @@ export class ESTypeIntersection extends ESType {
         return new ESTypeIntersection(this.__left__, this.__right__);
     }
 
+    override __eq__ = (props: funcProps, t: Primitive) => {
+        if (!(t instanceof ESTypeIntersection)) return new ESBoolean();
 
-    override __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
-        return new ESBoolean(
-            t instanceof ESTypeIntersection &&
-            this.__left__.__eq__(props, t.__left__).valueOf() === true &&
-            this.__right__.__eq__(props, t.__right__).valueOf() === true
-        );
+        let leftTypeCheckRes = this.__left__.__eq__(props, t.__left__);
+        if (leftTypeCheckRes instanceof Error) return leftTypeCheckRes;
+
+        let rightTypeCheckRes = this.__right__.__eq__(props, t.__right__);
+        if (rightTypeCheckRes instanceof Error) return rightTypeCheckRes;
+
+        return new ESBoolean(leftTypeCheckRes.__value__ && rightTypeCheckRes.__value__);
     }
 }
 
@@ -216,7 +230,7 @@ export class ESTypeNot extends ESType {
         this.__val__ = type;
     }
 
-    override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
+    override __call__ = (): Error | Primitive => {
         return new InvalidOperationError('__call__', this);
     }
 
@@ -224,19 +238,18 @@ export class ESTypeNot extends ESType {
         const res = this.__val__.__includes__(props, t);
         if (res instanceof Error) return res;
 
-        return new ESBoolean(
-            !res.valueOf()
-        );
+        return new ESBoolean(!res.__value__);
     }
 
     override clone = () => {
         return new ESTypeNot(this.__val__);
     }
 
-    override __eq__ = (props: funcProps, t: Primitive): ESBoolean => {
-        return new ESBoolean(
-            t instanceof ESTypeNot &&
-            this.__val__.__eq__(props, t.__val__).valueOf() === true
-        );
+    override __eq__ = (props: funcProps, t: Primitive) => {
+        if (!(t instanceof ESTypeNot)) return new ESBoolean();
+
+        let typeCheckRes = this.__val__.__eq__(props, t.__val__);
+        if (typeCheckRes instanceof Error) return typeCheckRes;
+        return new ESBoolean(typeCheckRes.__value__ === true);
     }
 }

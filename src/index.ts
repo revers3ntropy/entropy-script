@@ -204,6 +204,6 @@ export function parse (code: string, {
             }
 
             return res.node.interpret(env);
-        },
+        }
     };
 }

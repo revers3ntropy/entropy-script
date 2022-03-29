@@ -15,14 +15,16 @@ function callNode (self: ESFunction, context: Context, fn: Node) {
         res.val = res.funcReturn;
         res.funcReturn = undefined;
     }
-
-    if (self.__returns__.__includes__({ context }, res.val).valueOf() === false) {
+    let typeCheckRes = self.__returns__.__includes__({ context }, res.val);
+    if (typeCheckRes instanceof Error) return typeCheckRes;
+    if (typeCheckRes.__value__ === false) {
         return new TypeError(
             Position.void,
             str(self.__returns__),
-            res.val?.__type_name__().valueOf() || 'undefined',
-            res.val?.str().valueOf(),
-            '(from function return)');
+            res.val?.__type_name__() || 'undefined',
+            res.val?.str().__value__,
+            '(from function return)'
+        );
     }
 
     if (res.val) {
@@ -72,16 +74,6 @@ export function call (
     }
 
     let this_ = self.__this__ ?? new ESObject();
-
-    if (!(this_ instanceof ESObject)) {
-        return new TypeError(
-            Position.void,
-            'object',
-            typeof this_,
-            this_,
-            '\'this\' must be an object'
-        );
-    }
 
     let setRes = newContext.setOwn('this', this_);
     if (setRes instanceof Error) {

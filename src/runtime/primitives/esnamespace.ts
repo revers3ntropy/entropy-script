@@ -11,9 +11,12 @@ import {wrap} from './wrapStrip';
 import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 import { ESArray } from "./esarray";
+import { ESIterable } from "./esiterable";
+import { ESNumber } from "./esnumber";
 
-export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
+export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterable {
     public __mutable__: boolean;
+    override __iterable__ = true;
 
     constructor (name: ESString, value: dict<ESSymbol>, mutable=false) {
         super(value, types.object);
@@ -21,7 +24,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
         this.__mutable__ = mutable;
     }
 
-    override cast = (props: funcProps) => {
+    override cast = () => {
         return new Error(Position.void, 'TypeError', `Cannot cast type 'namespace'`);
     }
 
@@ -30,12 +33,12 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     }
 
     set name (v: ESString) {
-        this.__info__.name = v.valueOf();
+        this.__info__.name = v.__value__;
     }
 
     override clone = (): Primitive => {
         let obj: dict<ESSymbol> = {};
-        let toClone = this.valueOf();
+        let toClone = this.__value__;
         for (let key of Object.keys(toClone)) {
             obj[key] = toClone[key];
         }
@@ -43,7 +46,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
     }
 
     override str = (): ESString => {
-        const keys = Object.keys(this.valueOf());
+        const keys = Object.keys(this.__value__);
         return new ESString(`<Namespace ${str(this.name)}${keys.length > 0 ? ': ' : ''}${keys.slice(0, 5)}${keys.length >= 5 ? '...' : ''}>`);
     }
 
@@ -56,8 +59,8 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
 
 
     override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
-        if (key instanceof ESString && this.valueOf().hasOwnProperty(key.valueOf())) {
-            const symbol = this.valueOf()[key.valueOf()];
+        if (key instanceof ESString && this.__value__.hasOwnProperty(key.__value__)) {
+            const symbol = this.__value__[key.__value__];
             if (symbol.isAccessible) {
                 return symbol.value;
             }
@@ -71,22 +74,18 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
             return wrap(this._[str(key)], true);
         }
 
-        return new IndexError(Position.void, key.valueOf(), this._);
+        return new IndexError(Position.void, key.__value__, this._);
     };
 
     override __set__(props: funcProps, key: Primitive, value: Primitive): void | Error {
         if (!(key instanceof ESString)) {
-            return new TypeError(Position.void, 'string', key.__type_name__().valueOf(), str(key));
+            return new TypeError(Position.void, 'string', key.__type_name__(), str(key));
         }
 
         let idx = str(key);
 
         if (!this.__mutable__) {
             return new TypeError(Position.void, 'mutable', 'immutable', `${str(this.name)}`);
-        }
-
-        if (!(value instanceof ESPrimitive)) {
-            value = wrap(value);
         }
 
         const symbol = this.__value__[idx];
@@ -114,6 +113,17 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
 
     override __iter__(props: funcProps): Error | Primitive {
         // returns array of keys in the object
-        return new ESArray(Object.keys(this.valueOf()).map(s => new ESString(s)));
+        return new ESArray(Object.keys(this.__value__).map(s => new ESString(s)));
+    }
+
+    len = () => {
+        return new ESNumber(Object.keys(this.__value__).length);
+    }
+
+    override keys = () => {
+        return [
+            ...Object.keys(this),
+            ...Object.keys(this.__value__)
+        ].map(s => new ESString(s));
     }
 }

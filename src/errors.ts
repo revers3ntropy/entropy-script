@@ -51,12 +51,6 @@ export class InvalidSyntaxError extends Error {
     }
 }
 
-export class ExpectedCharError extends Error {
-    constructor(pos: Position, char: string) {
-        super(pos ?? Position.void, 'ExpectedCharError', `'${char}'`);
-    }
-}
-
 export class TypeError extends Error {
     constructor(pos: Position, expectedType: string, actualType: string, value: any = '', detail = '') {
         super(

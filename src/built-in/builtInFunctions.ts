@@ -1,4 +1,4 @@
-import {Error, ImportError, TypeError, ReferenceError, InvalidRuntimeError} from '../errors';
+import { Error, ImportError, TypeError, ReferenceError } from "../errors";
 import Position from "../position";
 import { strip, wrap } from '../runtime/primitives/wrapStrip';
 import {
@@ -14,14 +14,15 @@ import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import chalk from "../util/colours";
 import { IS_NODE_INSTANCE, global } from "../util/constants";
 import { getModule, moduleExist } from "./builtInModules";
+import { ESInterface } from "../runtime/primitives/esobject";
 
 export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
-    'range': [({context}, minP, maxP, stepP) => {
+    range: [({context}, minP, maxP, stepP) => {
         if (!(minP instanceof ESNumber)) {
             return new ESArray();
         }
 
-        const min = minP.valueOf();
+        const min = minP.__value__;
 
         if (maxP instanceof ESUndefined) {
             try {
@@ -37,13 +38,13 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             return new TypeError(Position.void, 'number', maxP.__type_name__(), str(maxP));
         }
 
-        let max = maxP.valueOf();
+        let max = maxP.__value__;
 
         if (!(stepP instanceof ESUndefined)) {
             if (!(stepP instanceof ESNumber)) {
                 return new TypeError(Position.void, 'number', stepP.__type_name__(), str(stepP));
             }
-            step = stepP.valueOf();
+            step = stepP.__value__;
         }
 
         let arr = [];
@@ -58,16 +59,16 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
 
     }, {
        args: [
-           { name: 'min', type: 'Number' },
-           { name: 'max', type: 'Number' },
-           { name: 'step', type: 'Number' }
+           { name: 'min', type: 'Num' },
+           { name: 'max', type: 'Num' },
+           { name: 'step', type: 'Num' }
        ],
         description: 'Generates an array of integers given N. Starts at 0 and goes to N-1. Can be used like for i in range(10) ..., similarly to python.',
         returns: 'array of numbers from 0 to N-1',
-        returnType: 'number[] | RangeError'
+        returnType: 'Arr[Num] | RangeError'
     }],
 
-    'log': [({context}, ...msgs) => {
+    log: [({context}, ...msgs) => {
         console.log(...msgs.map(m => str(m)));
     }, {
         args: [{
@@ -75,11 +76,11 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             type: 'any[]'
         }],
         description: 'Uses console.log to log all values',
-        returnType: 'void',
+        returnType: 'nil',
         allow_args: true
     }],
 
-    'parse_num': [({context}, num) => {
+    parse_num: [({context}, num) => {
         try {
             const val: number = parseFloat(str(num));
             if (isNaN(val)) {
@@ -92,13 +93,13 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
     }, {
         args: [{
             name: 'num',
-            type: 'any'
+            type: 'Any'
         }],
         description: `Converts a string of digits into a number. Works with decimals and integers. Calls .str() on value before using native JS 'parseFloat' function. Returns TypeError if the string can't be converted into a number.`,
         returnType: 'number | TypeError'
     }],
 
-    'help': [({context}, ...things) => {
+    help: [({context}, ...things) => {
         // I am truly disgusted by this function.
         // But I am not going to make it look better.
 
@@ -164,24 +165,24 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
     }, {
         args: [{
             name: 'value',
-             type: 'any'
+             type: 'Any'
         }],
         description: 'logs info on value',
         returns: 'value passed in',
         allow_args: true
     }],
 
-    'delete': [({context}, name) => {
+    delete: [({context}, name) => {
         const id = str(name);
         let res = context.remove(id);
         if (res instanceof Error) return res;
     }, {
         name: 'delete',
-        args: [{name: 'identifier', type: 'string'}],
+        args: [{name: 'identifier', type: 'Str'}],
         description: 'Deletes a variable from the current context'
     }],
 
-    '__path__': [({context}) => {
+    __path__: [({context}) => {
         return new ESString(context.path);
     }, {
         name: '__path__',
@@ -189,8 +190,8 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         description: 'Returns the current path'
     }],
 
-    '__symbols__': [({context}, recursive) => {
-        if (recursive.bool().valueOf()) {
+    __symbols__: [({context}, recursive) => {
+        if (recursive.bool().__value__) {
             let keys = context.keys;
             while (context.parent) {
                 keys = context.parent.keys;
@@ -209,7 +210,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         description: 'Returns an array of the names of all symbols in the current context'
     }],
 
-    'using': [(props: funcProps, module, global_) => {
+    using: [(props: funcProps, module, global_) => {
         if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding) && !(module instanceof ESObject)) {
             return new TypeError(Position.void, 'Namespace', str(module.__type_name__()));
         }
@@ -217,7 +218,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         let {context} = props;
 
         // trust me, this works... hopefully
-        let global = !(global_ && !global_.bool().valueOf());
+        let global = !(global_ && !global_.bool().__value__);
 
         let value = strip(module, props);
 
@@ -235,18 +236,18 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
     }, {
         name: 'using',
         args: [
-            {name: 'module', type: 'namespace'},
-            {name: 'global', type: 'bool'}
+            {name: 'module', type: 'Obj'},
+            {name: 'global', type: 'Bool'}
         ],
         description: 'Adds contents of a namespace to the current or global context'
     }],
 
-    'sleep': [({context}, time, cb) => {
+    sleep: [({context}, time, cb) => {
         if (!(time instanceof ESNumber)) {
             return new TypeError(Position.void, 'number', str(time.__type_name__()), str(time));
         }
 
-        sleep(time.valueOf())
+        sleep(time.__value__)
             .then(() => {
                 const res = cb.__call__({context});
                 if (res instanceof Error) {
@@ -255,23 +256,29 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             });
     }, {
         name: 'sleep',
-        args: [{name: 'n', type: 'number'}, {name: 'callback', type: 'function'}],
+        args: [
+            {name: 'time', type: 'Num'},
+            {name: 'callback', type: 'Func'}
+        ],
         description: 'Waits n milliseconds and then executes the callback'
     }],
 
-    'throw': [({context}, name, details) => {
+    throw: [({context}, name, details) => {
         if (name instanceof ESErrorPrimitive) {
-            return name.valueOf();
+            return name.__value__;
         }
         return new Error(Position.void, str(name), str(details));
     }, {
         name: 'throw',
-        args: [{name: 'name', type: 'String'}, {name: 'details', type: 'String'}]
+        args: [
+            {name: 'name', type: 'Str'},
+            {name: 'details', type: 'Str' }
+        ]
     }],
 
-    'typeof': [({context}, symbolPrim) => {
+    typeof: [({context}, symbolPrim) => {
         if (!(symbolPrim instanceof ESString)) {
-            return new TypeError(Position.void, 'String', symbolPrim.__type_name__(), str(symbolPrim));
+            return new TypeError(Position.void, 'Str', symbolPrim.__type_name__(), str(symbolPrim));
         }
 
         let symbol = str(symbolPrim);
@@ -293,11 +300,26 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
     }, {
         name: 'typeof',
         args: [
-            {name: 'identifier', type: 'String'}
+            {name: 'identifier', type: 'Str'}
         ]
     }],
 
-    'import': [(props: funcProps, rawUrl) => {
+    interface: [({context}, val) => {
+        if (!(val instanceof ESObject)) {
+            return new TypeError(Position.void, 'Obj', val.__type_name__(), str(val));
+        }
+        return new ESInterface(val.__value__);
+    }, {
+        name: 'throw',
+        args: [{name: 'value', type: 'Obj'}]
+    }],
+}
+
+export function addDependencyInjectedBIFs (
+    printFunc: (...args: string[]) => void,
+    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
+) {
+    builtInFunctions['import'] = [(props: funcProps, rawUrl) => {
         if (IS_NODE_INSTANCE) {
             return new Error(Position.void, 'ImportError', 'Is running in node instance but trying to run browser import function');
         }
@@ -314,28 +336,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
     }, {
         description: 'Loads a module. Cannot be used asynchronously, so add any modules to pre-load in the esconfig.json file.',
         args: [{name: 'path', type: 'String'}]
-    }],
-
-    'fetch': [
-        (props: funcProps, ...args) => {
-            if (IS_NODE_INSTANCE) {
-                return new InvalidRuntimeError();
-            }
-            // @ts-ignore
-            return new ESJSBinding(fetch(...args.map(a => strip(a, false))));
-        }, {
-            description: `Fetch data using native JS 'fetch' function`,
-            args: [
-                {name: 'input'}, {name: 'init'}
-            ]
-        }
-    ]
-}
-
-export function addDependencyInjectedBIFs (
-    printFunc: (...args: string[]) => void,
-    inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
-) {
+    }];
 
     builtInFunctions['print'] = [({context}, ...args) => {
         let out = ``;
@@ -348,27 +349,22 @@ export function addDependencyInjectedBIFs (
     }];
 
     builtInFunctions['input'] = [({context}, msg, cbRaw) => {
-        inputFunc(msg.valueOf(), (msg) => {
-            return new ESJSBinding(new Promise((resolve, reject) => {
-                let cb = cbRaw?.valueOf();
-                if (cb instanceof ESFunction) {
-                    let res = cb.__call__({context},
-                        new ESString(msg)
-                    );
-                    if (res instanceof Error) {
-                        console.log(res.str);
-                        reject(res);
-                    }
-                } else if (typeof cb === 'function') {
-                    cb(msg);
+        inputFunc(msg.__value__, (msg) => {
+            let cb = cbRaw?.__value__;
+            if (cb instanceof ESFunction) {
+                let res = cb.__call__({context},
+                    new ESString(msg)
+                );
+                if (res instanceof Error) {
+                    console.log(res.str);
                 }
-                resolve(msg);
-            }));
+            } else if (typeof cb === 'function') {
+                cb(msg);
+            }
+
+            return new ESString('\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.');
         })
     }, {
-        args: [
-            {name: 'msg', type: 'String'},
-            {name: 'callback', type: 'Func'}
-        ]
+        args: [{name: 'msg', type: 'String'}, {name: 'callback', type: 'Func'}]
     }];
 }

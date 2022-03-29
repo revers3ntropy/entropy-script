@@ -11,6 +11,8 @@ import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 import { ESArray } from "./esarray";
 import { ESErrorPrimitive } from "./eserrorprimitive";
+import { ESIterable } from "./esiterable";
+import { ESNumber } from './esnumber';
 
 
 function tryCall (fTakesProps: boolean, val: any, key: any, props: funcProps, args: Primitive[], catchErs: boolean): Primitive | Error {
@@ -52,12 +54,13 @@ function tryCall (fTakesProps: boolean, val: any, key: any, props: funcProps, ar
 }
 
 
-export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
+export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIterable {
 
     functionsTakeProps: boolean;
     catchErrorsToPrimitive: boolean;
+    override __iterable__ = true;
 
-    constructor (value: T, name='<AnonNative>', functionsTakeProps=false, catchErrors=false) {
+    constructor (value: T, name = '<AnonNative>', functionsTakeProps = false, catchErrors = false) {
         super(value, types.object);
         this.__info__.name = str(name);
         this.functionsTakeProps = functionsTakeProps;
@@ -91,7 +94,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
         if (res === undefined) {
 
             // check on self after confirming it doesn't exist on the native value
-            if (this._.hasOwnProperty(key)) {
+            if (this.hasOwnProperty(key)) {
                 return wrap(this._[key], true);
             }
 
@@ -141,7 +144,7 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
        return tryCall(this.functionsTakeProps, this, '__value__', props, args, this.catchErrorsToPrimitive);
     };
 
-    override __has__ = (props: funcProps, key: Primitive): ESBoolean => {
+    override has_property = (props: funcProps, key: Primitive): ESBoolean => {
         return new ESBoolean(!(this.__get__(props, key) instanceof Error));
     };
 
@@ -156,6 +159,17 @@ export class ESJSBinding<T=NativeObj> extends ESPrimitive<T> {
 
     override __iter__(props: funcProps): Error | Primitive {
         // returns array of keys in the object
-        return new ESArray(Object.keys(this.valueOf()).map(s => new ESString(s)));
+        return new ESArray(Object.keys(this.__value__).map(s => new ESString(s)));
+    }
+
+    len = () => {
+        return new ESNumber(Object.keys(this.__value__).length);
+    }
+
+    override keys = () => {
+        return [
+            ...Object.keys(this),
+            ...Object.keys(this.__value__)
+        ].map(s => new ESString(s));
     }
 }

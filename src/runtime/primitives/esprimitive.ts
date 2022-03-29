@@ -9,12 +9,14 @@ import type { NativeObj, Primitive} from './primitive';
 import { funcProps, str } from '../../util/util';
 import { strip } from './wrapStrip';
 import { types } from "../../util/constants";
+import type { ESNumber } from "./esnumber";
 
 
 export abstract class ESPrimitive <T> {
     public __value__: T;
     public __type__: Primitive;
     public __info__: Info;
+    public __iterable__ = false;
     protected _: NativeObj = this;
 
     /**
@@ -122,13 +124,15 @@ export abstract class ESPrimitive <T> {
         return new ESBoolean(obj === this);
     }
 
+    public abstract keys: (props: funcProps) => (ESString | ESNumber)[];
+
     // getters for private props
-    public valueOf = (): T => this.__value__;
     public __type_name__ = (): string => str(this.__type__);
 
     // Object stuff
-    public __has__ = (props: funcProps, key: Primitive): ESBoolean =>
-        new ESBoolean(this.hasOwnProperty(str(key)));
+    public has_property = (props: funcProps, key: Primitive): ESBoolean => {
+        return new ESBoolean(this.hasOwnProperty(str(key)));
+    }
 
     public describe = (props: funcProps, info: Primitive) => {
         if (this.__info__.builtin) {
@@ -160,3 +164,5 @@ export abstract class ESPrimitive <T> {
 
     abstract __includes__: (props: funcProps, n: Primitive) => ESBoolean | Error;
 }
+
+

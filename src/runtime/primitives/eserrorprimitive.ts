@@ -21,19 +21,19 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
         switch (str(key)) {
 
             case 'name':
-                return new ESString(this.valueOf().name);
+                return new ESString(this.__value__.name);
             case 'details':
-                return new ESString(this.valueOf().details);
+                return new ESString(this.__value__.details);
 
             case 'traceback':
-                return new ESArray(this.valueOf().traceback
+                return new ESArray(this.__value__.traceback
                         .map(s => new ESString(`${s.position.str} : ${s.line}`)));
 
             default:
                 if (this._.hasOwnProperty(str(key))) {
                     return wrap(this._[str(key)], true);
                 }
-                return new IndexError(Position.void, key.valueOf(), this);
+                return new IndexError(Position.void, key.__value__, this);
         }
     };
 
@@ -42,19 +42,19 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
 
 
     override str = () =>
-        new ESString(`<Error: ${this.valueOf().str}>`);
+        new ESString(`<Error: ${this.__value__.str}>`);
 
     override __eq__ = (props: funcProps, n: Primitive) => {
         return new ESBoolean(
             n instanceof ESErrorPrimitive &&
-            this.valueOf().name === n.valueOf().name
+            this.__value__.name === n.__value__.name
         );
     }
 
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override clone = () => new ESErrorPrimitive(this.valueOf());
+    override clone = () => new ESErrorPrimitive(this.__value__);
 
     override __includes__ = this.__eq__;
 
@@ -63,5 +63,9 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
     }
     override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
+    }
+
+    override keys = () => {
+        return [...Object.keys(this), 'name', 'traceback', 'details'].map(s => new ESString(s));
     }
 }

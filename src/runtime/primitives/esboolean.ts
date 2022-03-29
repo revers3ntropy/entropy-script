@@ -26,13 +26,13 @@ export class ESBoolean extends ESPrimitive <boolean> {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
-        return new IndexError(Position.void, key.valueOf(), this);
+        return new IndexError(Position.void, key.__value__, this);
     };
 
     override cast = (props: funcProps, type: Primitive) => {
         switch (type) {
             case types.number:
-                return new ESNumber(this.valueOf() ? 1 : 0);
+                return new ESNumber(this.__value__ ? 1 : 0);
             default:
                 return new Error(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.__type_name__())}'`);
         }
@@ -40,21 +40,21 @@ export class ESBoolean extends ESPrimitive <boolean> {
 
     override __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESBoolean)) {
-            return new TypeError(Position.void, 'Boolean', n.__type_name__().valueOf(), n.valueOf());
+            return new TypeError(Position.void, 'Boolean', n.__type_name__(), n.__value__);
         }
-        return new ESBoolean(this.valueOf() === n.valueOf());
+        return new ESBoolean(this.__value__ === n.__value__);
     };
     override __bool__ = () => this;
 
     override __and__ = (props: funcProps, n: Primitive) =>
-        new ESBoolean(this.valueOf() && n.bool().valueOf());
+        new ESBoolean(this.__value__ && n.bool().__value__);
 
     override __or__ = (props: funcProps, n: Primitive): Error | ESBoolean => {
-        return new ESBoolean(this.valueOf() || n.bool().valueOf());
+        return new ESBoolean(this.__value__ || n.bool().__value__);
     };
 
-    override str = () => new ESString(this.valueOf() ? 'true' : 'false');
-    override clone = () => new ESBoolean(this.valueOf());
+    override str = () => new ESString(this.__value__ ? 'true' : 'false');
+    override clone = () => new ESBoolean(this.__value__);
 
     override bool = () => this;
 
@@ -65,5 +65,9 @@ export class ESBoolean extends ESPrimitive <boolean> {
     }
     override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
+    }
+
+    override keys = () => {
+        return Object.keys(this).map(s => new ESString(s));
     }
 }

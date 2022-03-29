@@ -36,7 +36,7 @@ if (!fs.existsSync('build')) {
 	);
 	await run(`cp build/${version}.js.map build/latest.js.map`);
 
-	if (process.argv.includes('--stable')) {
+	if (process.argv.includes('-s')) {
 		await run(`cp build/${version}.js build/stable.js`);
 		fs.writeFileSync(
 			'build/stable.js',

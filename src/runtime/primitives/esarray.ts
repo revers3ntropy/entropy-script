@@ -11,43 +11,46 @@ import { wrap } from './wrapStrip';
 import { types } from "../../util/constants";
 import { ESType, ESTypeIntersection, ESTypeUnion } from "./estype";
 import { ESErrorPrimitive } from "./eserrorprimitive";
+import { ESIterable } from "./esiterable";
 
-export class ESArray extends ESPrimitive <Primitive[]> {
+export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
+    override __iterable__ = true;
+
     constructor(values: Primitive[] = []) {
         super(values, types.array);
     }
 
-    len = (props: funcProps): ESNumber => {
-        return new ESNumber(this.valueOf().length);
+    len = (): ESNumber => {
+        return new ESNumber(this.__value__.length);
     };
 
     override cast = (props: funcProps, type: Primitive): Primitive | Error => {
         switch (type) {
-        case types.number:
-            return new ESNumber(this.len(props).valueOf());
-        case types.boolean:
-            return this.bool();
-        case types.string:
-            return this.str();
-        default:
-            return new Error(Position.void, 'TypeError', `Cannot cast 'Arr' to '${str(type)}'`);
+            case types.number:
+                return new ESNumber(this.len().__value__);
+            case types.boolean:
+                return this.bool();
+            case types.string:
+                return this.str();
+            default:
+                return new Error(Position.void, 'TypeError', `Cannot cast 'Arr' to '${str(type)}'`);
         }
     }
 
-    override str = () => new ESString(str(this.valueOf()));
+    override str = () => new ESString(str(this.__value__));
 
     override __eq__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
         if (!(n instanceof ESArray)) {
             return new ESBoolean();
         }
 
-        if (n.len(props).valueOf() !== this.len(props).valueOf()) {
+        if (n.len().__value__ !== this.len().__value__) {
             return new ESBoolean();
         }
 
-        for (let i = 0; i < this.len(props).valueOf(); i++) {
-            const thisElement = this.valueOf()[i];
-            const nElement = n.valueOf()[i];
+        for (let i = 0; i < this.len().__value__; i++) {
+            const thisElement = this.__value__[i];
+            const nElement = n.__value__[i];
 
             if (!thisElement) {
                 if (nElement) {
@@ -66,7 +69,7 @@ export class ESArray extends ESPrimitive <Primitive[]> {
                 return res;
             }
 
-            if (!res.valueOf()) {
+            if (!res.__value__) {
                 return new ESBoolean();
             }
         }
@@ -76,13 +79,13 @@ export class ESArray extends ESPrimitive <Primitive[]> {
 
     override __add__ = (props: funcProps, n: Primitive): ESArray | Error => {
         if (!(n instanceof ESArray)) {
-            return new TypeError(Position.void, 'array', n.__type_name__().valueOf(), n);
+            return new TypeError(Position.void, 'array', n.__type_name__(), n);
         }
 
-        return new ESArray([...this.valueOf(), ...n.valueOf()]);
+        return new ESArray([...this.__value__, ...n.__value__]);
     };
 
-    override __bool__ = () => new ESBoolean(this.valueOf().length > 0);
+    override __bool__ = () => new ESBoolean(this.__value__.length > 0);
     override bool = this.__bool__;
 
     override __get__ = (props: funcProps, key: Primitive): Primitive => {
@@ -94,14 +97,14 @@ export class ESArray extends ESPrimitive <Primitive[]> {
             return new ESUndefined();
         }
 
-        let idx = key.valueOf();
+        let idx = key.__value__;
 
         while (idx < 0) {
-            idx = this.valueOf().length + idx;
+            idx = this.__value__.length + idx;
         }
 
-        if (idx < this.valueOf().length) {
-            return this.valueOf()[idx];
+        if (idx < this.__value__.length) {
+            return this.__value__[idx];
         }
 
         return new ESUndefined();
@@ -116,10 +119,10 @@ export class ESArray extends ESPrimitive <Primitive[]> {
             value = wrap(value);
         }
 
-        let idx = key.valueOf();
+        let idx = key.__value__;
 
         while (idx < 0) {
-            idx = this.valueOf().length + idx;
+            idx = this.__value__.length + idx;
         }
 
         this.__value__[idx] = value;
@@ -141,21 +144,21 @@ export class ESArray extends ESPrimitive <Primitive[]> {
 
     override clone = (): ESArray => {
         const newArr = [];
-        for (let element of this.valueOf()) {
+        for (let element of this.__value__) {
             newArr.push(element);
         }
         return new ESArray(newArr);
     }
 
     override __includes__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
-        if (!(n instanceof ESArray) || this.len(props).valueOf() !== n.len(props).valueOf()) {
+        if (!(n instanceof ESArray) || this.len().__value__ !== n.len().__value__) {
             return new ESBoolean();
         }
 
         for (let i = 0; i < this.__value__.length; i++) {
             const res = this.__value__[i].__includes__(props, n.__value__[i]);
             if (res instanceof Error) return res;
-            if (!res.valueOf()) {
+            if (!res.__value__) {
                 return new ESBoolean();
             }
         }
@@ -180,6 +183,12 @@ export class ESArray extends ESPrimitive <Primitive[]> {
             return new ESErrorPrimitive(new EndIterator());
         }
     }
+
+    override keys = () => {
+        let res: (ESNumber | ESString)[] = Object.keys(this._).map(s => new ESString(s));
+        res.push(...Object.keys(this.__value__).map(s => new ESNumber(parseInt(s))))
+        return res;
+    }
 }
 
 export class ESTypeArray extends ESType {
@@ -191,7 +200,7 @@ export class ESTypeArray extends ESType {
         this.type = type;
     }
 
-    override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
+    override __call__ = (): Error | Primitive => {
         return new InvalidOperationError('__call__', this);
     }
 
@@ -201,15 +210,19 @@ export class ESTypeArray extends ESType {
         }
 
         if (this.numElements >= 0) {
-            if (t.valueOf().length !== this.numElements) {
-                return new TypeError(Position.void,
+            if (t.__value__.length !== this.numElements) {
+                return new TypeError(
+                    Position.void,
                     `Array[${str(this.type)}][${this.numElements}]`,
-                    `Array[Any][${t.valueOf().length}]`);
+                    `Array[Any][${t.__value__.length}]`
+                );
             }
         }
 
-        for (const element of t.valueOf()) {
-            if (!this.type.__includes__(props, element).valueOf()) {
+        for (const element of t.__value__) {
+            let typeRes = this.type.__includes__(props, element);
+            if (typeRes instanceof Error) return typeRes;
+            if (!typeRes.__value__) {
                 return new ESBoolean();
             }
         }
@@ -230,8 +243,12 @@ export class ESTypeArray extends ESType {
             return new TypeError(Position.void, 'Number', key.__type_name__(), str(key));
         }
 
-        this.numElements = key.valueOf();
+        this.numElements = key.__value__;
 
         return this;
+    }
+
+    override keys = () => {
+        return Object.keys(this).map(s => new ESString(s));
     }
 }

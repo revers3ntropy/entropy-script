@@ -63,7 +63,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
         return new ESBoolean(
             n instanceof ESUndefined ||
             typeof n === 'undefined' ||
-            typeof n.valueOf() === 'undefined'
+            typeof n.__value__ === 'undefined'
         );
     }
 
@@ -76,7 +76,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
-        return new IndexError(Position.void, key.valueOf(), this);
+        return new IndexError(Position.void, key.__value__, this);
     };
 
     override __includes__ = this.__eq__;
@@ -86,5 +86,9 @@ export class ESUndefined extends ESPrimitive <undefined> {
     }
     override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
+    }
+
+    override keys = () => {
+        return Object.keys(this).map(s => new ESString(s));
     }
 }

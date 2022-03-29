@@ -73,12 +73,9 @@ export const KEYWORDS = [
     'catch'
 ];
 
-export let now: (() => number) = () => 0;
-export async function refreshPerformanceNow (IS_NODE_INSTANCE: boolean) {
-    if (IS_NODE_INSTANCE) {
-        now = () => Date.now();
-
-    } else {
+export let now = () => Date.now();
+export function refreshPerformanceNow (isNode = IS_NODE_INSTANCE) {
+    if (!isNode) {
         now = () => {
             try {
                 return performance?.now();
@@ -86,9 +83,11 @@ export async function refreshPerformanceNow (IS_NODE_INSTANCE: boolean) {
                 return Date.now();
             }
         };
+    } else {
+        now = () => Date.now();
     }
 }
-refreshPerformanceNow(IS_NODE_INSTANCE);
+refreshPerformanceNow();
 
 export enum tokenType {
     NUMBER,
@@ -187,7 +186,7 @@ export const tokenTypeString: enumDict<tokenType, string> = {
     [tt.QM]: '?',
 }
 
-export const singleCharTokens: {[char: string]: tokenType} = {
+export const singleCharTokens: dict<tokenType> = {
     '*': tt.ASTERIX,
     '/': tt.DIV,
     '+': tt.ADD,
@@ -214,7 +213,7 @@ export const singleCharTokens: {[char: string]: tokenType} = {
     '?': tt.QM
 };
 
-export const doubleCharTokens: {[char: string]: tokenType} = {
+export const doubleCharTokens: dict<tokenType> = {
     '==': tt.EQUALS,
     '!=': tt.NOTEQUALS,
     '>=': tt.GTE,
@@ -227,7 +226,7 @@ export const doubleCharTokens: {[char: string]: tokenType} = {
     '||': tt.OR
 };
 
-export const tripleCharTokens: {[char: string]: tokenType} = {};
+export const tripleCharTokens: dict<tokenType> = {};
 
 export const primitiveMethods: string[] = [
     '__add__',
@@ -248,4 +247,5 @@ export const primitiveMethods: string[] = [
     '__call__',
     '__iter__',
     '__next__',
+    '__iterable__'
 ];

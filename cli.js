@@ -57,7 +57,7 @@ async function init () {
 		}
 	});
 
-	if (err) {
+	if (err instanceof es.Error) {
 		console.log(err.str);
 	}
 
@@ -118,7 +118,7 @@ async function runTerminal () {
 		fileName: 'JSES-REPL'
 	});
 
-	let out = res.val?.valueOf();
+	let out = res.val?.__value__;
 
 	if (out === undefined) {
 		out = '--undefined--';
