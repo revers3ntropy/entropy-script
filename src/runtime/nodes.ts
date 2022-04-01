@@ -1077,8 +1077,9 @@ export class N_statements extends Node {
             let last;
             for (let item of this.items) {
                 const res = item.interpret(context);
-                if (res.error || (typeof res.funcReturn !== 'undefined') || res.shouldBreak || res.shouldContinue)
+                if (res.error || (typeof res.funcReturn !== 'undefined') || res.shouldBreak || res.shouldContinue) {
                     return res;
+                }
                 // return last statement
                 last = res.val;
             }

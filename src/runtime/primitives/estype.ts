@@ -3,7 +3,7 @@ import { Error, InvalidOperationError, TypeError } from '../../errors';
 import {createInstance} from '../instantiator';
 import {ESBoolean} from './esboolean';
 import type {ESFunction} from './esfunction';
-import type {ESObject} from './esobject';
+import {ESObject} from './esobject';
 import {ESString} from './esstring';
 import type {Primitive, typeName} from './primitive';
 import type { funcProps } from "../../util/util";
@@ -12,6 +12,7 @@ import Position from "../../position";
 import {str} from "../../util/util";
 import { types } from "../../util/constants";
 import { ESTypeArray } from "./esarray";
+import type { runtimeArgument } from "../argument";
 
 export class ESType extends ESPrimitive <undefined> {
 
@@ -22,6 +23,7 @@ export class ESType extends ESPrimitive <undefined> {
     readonly __methods__: ESFunction[];
     readonly __init__: ESFunction | undefined;
     readonly __instances__: ESObject[] = [];
+    readonly __template_args__: runtimeArgument[];
 
     constructor (
         isPrimitive: boolean = false,
@@ -29,6 +31,7 @@ export class ESType extends ESPrimitive <undefined> {
         __methods__: ESFunction[] = [],
         __extends__?: undefined | ESType,
         __init__?: undefined | ESFunction,
+        templateArgs: runtimeArgument[] = []
     ) {
         super(undefined, types?.type);
 
@@ -37,6 +40,7 @@ export class ESType extends ESPrimitive <undefined> {
         this.__info__.name = name;
         this.__extends__ = __extends__;
         this.__methods__ = __methods__;
+        this.__template_args__ = templateArgs;
 
         if (__init__) {
             __init__.name = name;
@@ -98,7 +102,11 @@ export class ESType extends ESPrimitive <undefined> {
     }
 
     override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
-        return createInstance(this, props, params || []);
+        let res = createInstance(this, props, params || []);
+        if (res instanceof ESObject) {
+            this.__instances__.push(res);
+        }
+        return res;
     }
 
     override str = () => new ESString(this.__name__);
