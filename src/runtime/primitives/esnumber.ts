@@ -1,4 +1,4 @@
-import { EndIterator, Error, IndexError, TypeError } from '../../errors';
+import { Error, IndexError, TypeError } from '../../errors';
 import Position from '../../position';
 import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
@@ -9,7 +9,6 @@ import type {Primitive} from './primitive';
 import { wrap } from "./wrapStrip";
 import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
-import { ESErrorPrimitive } from "./eserrorprimitive";
 import { ESIterable } from "./esiterable";
 
 export class ESNumber extends ESPrimitive <number> implements ESIterable {

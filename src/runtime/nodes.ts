@@ -4,7 +4,7 @@ import { Context } from './context';
 import Position from "../position";
 import { catchBlockErrorSymbolName, compileConfig, now, tokenTypeString, tt, types } from "../util/constants";
 import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument";
-import { strip, wrap } from './primitives/wrapStrip';
+import { wrap } from './primitives/wrapStrip';
 import {
     ESArray,
     ESBoolean,
@@ -229,7 +229,7 @@ export class N_binOp extends Node {
             '&&': 'and',
             '||': 'or',
             '^': '**',
-        }
+        };
 
         let op = tokenTypeString[this.opTok.type];
         if (op in switchers) {
@@ -551,7 +551,7 @@ export class N_varAssign extends Node {
     }
 }
 
-export class N_arrayDestructAssign extends Node {
+export class N_destructAssign extends Node {
     value: Node;
     varNames: string[];
     types: Node[];
@@ -586,34 +586,24 @@ export class N_arrayDestructAssign extends Node {
         const res = this.value.interpret(context);
         if (res.error) return res.error;
 
-        if (res.val instanceof ESArray || res.val instanceof ESString) {
 
-            // TODO: be smarter about this due to possibly undefined types
-            if (this.varNames.length > res.val.__value__.length) {
-                return new TypeError(Position.void,
-                    `[Any * >=${this.varNames.length}]`,
-                    `[Any * <${this.varNames.length}]`, str(res.val));
-            }
-
+        if (res.val.__type__ === types.object) {
             let i = 0;
             for (let varName of this.varNames) {
-                let val: Primitive | string = res.val.__value__[i];
-                // for doing strings
-                if (typeof val === 'string') {
-                    val = new ESString(val);
-                }
+                let objPropRes =  res.val.__get__({context}, new ESString(varName));
+                if (objPropRes instanceof Error) return objPropRes;
 
                 let typeRes = this.types[i].interpret(context);
                 if (typeRes.error) return typeRes;
 
-                let typeCheckRes = typeRes.val.__includes__({context}, val);
+                let typeCheckRes = typeRes.val.__includes__({context}, objPropRes);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
 
                 if (!typeCheckRes.bool().__value__) {
-                    return new TypeError(Position.void, str(typeRes.val), val.__type_name__(), str(val));
+                    return new TypeError(Position.void, str(typeRes.val), objPropRes.__type_name__(), str(objPropRes));
                 }
 
-                context.setOwn(varName, val, {
+                context.setOwn(varName, objPropRes, {
                     global: this.isGlobal,
                     isConstant: this.isConstant,
                     type: res.val.__type__
@@ -624,22 +614,38 @@ export class N_arrayDestructAssign extends Node {
             return new interpretResult(res.val);
         }
 
+        if (!res.val.__iterable__) {
+            return new Error(Position.void, 'TypeError', 'Expected iterable in destructure assignment');
+        }
+
+
+        let iterable = res.val.__iter__({context});
+
+        if (iterable instanceof Error) return iterable;
+
         let i = 0;
         for (let varName of this.varNames) {
-            let objPropRes =  res.val.__get__({context}, new ESString(varName));
-            if (objPropRes instanceof Error) return objPropRes;
+            let nextRes = iterable.__next__({context});
+
+            if (nextRes instanceof ESErrorPrimitive && nextRes.__value__ instanceof EndIterator) {
+                return new Error(Position.void, 'IndexError', 'Iterator ended unexpectedly - not enough elements to destruct');
+            }
+            // for doing strings
+            if (nextRes instanceof Error) {
+                return nextRes;
+            }
 
             let typeRes = this.types[i].interpret(context);
             if (typeRes.error) return typeRes;
 
-            let typeCheckRes = typeRes.val.__includes__({context}, objPropRes);
+            let typeCheckRes = typeRes.val.__includes__({context}, nextRes);
             if (typeCheckRes instanceof Error) return typeCheckRes;
 
             if (!typeCheckRes.bool().__value__) {
-                return new TypeError(Position.void, str(typeRes.val), objPropRes.__type_name__(), str(objPropRes));
+                return new TypeError(Position.void, str(typeRes.val), nextRes.__type_name__(), str(nextRes));
             }
 
-            context.setOwn(varName, objPropRes, {
+            context.setOwn(varName, nextRes, {
                 global: this.isGlobal,
                 isConstant: this.isConstant,
                 type: res.val.__type__
@@ -1655,7 +1661,6 @@ export class N_class extends Node {
         }
 
         let typePrim = new ESType(false, this.name, methods, extends_, init);
-
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {

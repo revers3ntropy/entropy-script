@@ -591,7 +591,7 @@ export class Parser {
             let expr = res.register(this.expr());
             if (res.error) return res;
 
-            return res.success(new n.N_arrayDestructAssign(
+            return res.success(new n.N_destructAssign(
                 pos,
                 [],
                 [],
@@ -640,7 +640,7 @@ export class Parser {
         let expr = res.register(this.expr());
         if (res.error) return res;
 
-        return res.success(new n.N_arrayDestructAssign(
+        return res.success(new n.N_destructAssign(
             pos,
             identifiers.map(i => i.value),
             typeNodes,
@@ -1109,6 +1109,10 @@ export class Parser {
             identifier = this.currentToken.value;
             name = identifier;
             this.advance(res);
+        }
+
+        if (this.currentToken.type === tt.LT) {
+
         }
 
         if (this.currentToken.matches(tt.KEYWORD, 'extends')) {

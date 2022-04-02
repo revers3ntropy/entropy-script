@@ -54,3 +54,7 @@ expect('InvalidSyntaxError', `
     let a = 1;
     let a = 2;
 `);
+
+expect([2], `
+    let a = let b = 2;
+`);

@@ -88,10 +88,12 @@ function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
         case 'Type':
             if (params.length < 1) {
                 return new ESType();
-            } else {
-                return new ESString(params[0]?.__type_name__());
             }
+            return new ESString(params[0]?.__type_name__());
         case 'Str':
+            if (params.length < 1) {
+                return new ESString();
+            }
             return params[0].cast(props, types.string);
         case 'Arr':
             if (params.length < 1) {
@@ -113,10 +115,19 @@ function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
             }
             return new ESArray(elements);
         case 'Num':
+            if (params.length < 1) {
+                return new ESNumber();
+            }
             return params[0].cast(props, types.number);
         case 'Func':
+            if (params.length < 1) {
+                return new ESFunction();
+            }
             return params[0].cast(props, types.function);
         case 'Bool':
+            if (params.length < 1) {
+                return new ESBoolean();
+            }
             return params[0].cast(props, types.boolean);
         default:
             return wrap(params[0]);

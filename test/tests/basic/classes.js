@@ -222,3 +222,22 @@ expect(['parentClass', 'childClass', {doThing: '<Func>', doOtherThing: '<Func>'}
     instance.isa(parentClass);
     instance.isa(Str);
 `);
+
+
+expect(['A'], `
+    class A extends Str {};
+`);
+
+expect(['A', {}], `
+    class A extends Str {};
+    A();
+`);
+
+expect(['A', {}], `
+    class A extends Str {
+        init() {
+            super();
+        }
+    };
+    A();
+`);

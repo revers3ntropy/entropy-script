@@ -23,7 +23,7 @@ export class ESType extends ESPrimitive <undefined> {
     readonly __methods__: ESFunction[];
     readonly __init__: ESFunction | undefined;
     readonly __instances__: ESObject[] = [];
-    readonly __template_args__: runtimeArgument[];
+    readonly __targs__: runtimeArgument[];
 
     constructor (
         isPrimitive: boolean = false,
@@ -31,7 +31,7 @@ export class ESType extends ESPrimitive <undefined> {
         __methods__: ESFunction[] = [],
         __extends__?: undefined | ESType,
         __init__?: undefined | ESFunction,
-        templateArgs: runtimeArgument[] = []
+        targs: runtimeArgument[] = []
     ) {
         super(undefined, types?.type);
 
@@ -40,7 +40,7 @@ export class ESType extends ESPrimitive <undefined> {
         this.__info__.name = name;
         this.__extends__ = __extends__;
         this.__methods__ = __methods__;
-        this.__template_args__ = templateArgs;
+        this.__targs__ = targs;
 
         if (__init__) {
             __init__.name = name;
@@ -58,7 +58,8 @@ export class ESType extends ESPrimitive <undefined> {
             this.__name__,
             this.__methods__,
             this.__extends__,
-            this.__init__
+            this.__init__,
+            this.__targs__
         )
     }
 

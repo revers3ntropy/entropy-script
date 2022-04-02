@@ -15,7 +15,7 @@ expect([[1, 2, 3], 1, 2], `
     a; b;
 `);
 
-expect('TypeError', `
+expect('IndexError', `
     let [a, b] = [1];
     a; b;
 `);
@@ -25,8 +25,13 @@ expect(['hi', 'h', 'i'], `
     a; b;
 `);
 
-expect('IndexError', `
+expect([2, 0, 1], `
     let [a, b] = 2;
+    a; b;
+`);
+
+expect('IndexError', `
+    let [a, b, c] = 2;
     a; b;
 `);
 

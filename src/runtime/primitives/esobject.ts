@@ -14,6 +14,7 @@ import { ESIterable } from "./esiterable";
 
 export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterable{
     override __iterable__ = true;
+
     constructor (val: dict<Primitive> = {}) {
         super(val, types.object);
     }

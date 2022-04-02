@@ -171,8 +171,16 @@ async function compile (path, outPath) {
 	fs.writeFileSync(outPath, val);
 }
 
+function welcomeMessage () {
+	console.log('Welcome to JS EntropyScript v' + es.VERSION);
+	console.log('(Node ' + process.version + ')');
+	console.log("Type 'exit' to exit");
+}
+
 async function main () {
 	await init();
+
+	welcomeMessage();
 
 	const compileIdx = process.argv.indexOf('-compile');
 	if (compileIdx !== -1) {
