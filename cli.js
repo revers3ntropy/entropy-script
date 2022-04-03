@@ -118,22 +118,22 @@ async function runTerminal () {
 		fileName: 'JSES-REPL'
 	});
 
+	if (res.error) {
+		console.log(res.error.str);
+		runTerminal();
+		return;
+	}
+
 	let out = res.val?.__value__;
 
 	if (out === undefined) {
-		out = '--undefined--';
-	} else if (out.length === 0) {
+		console.log( '--undefined--');
 		runTerminal();
 		return;
-	} else if (out.length === 1) {
-		out = out[0];
 	}
-	if (res.error) {
-		out = res.error.str;
-	}
-	if (out !== undefined) {
-		// final out
-		console.log(es.str(out));
+
+	for (let item of out) {
+		console.log(es.str(item));
 	}
 
 	runTerminal();
@@ -173,7 +173,7 @@ async function compile (path, outPath) {
 
 function welcomeMessage () {
 	console.log('Welcome to JS EntropyScript v' + es.VERSION);
-	console.log('(Node ' + process.version + ')');
+	console.log(`(Node ${process.versions.node}, V8 engine ${process.versions.v8})`);
 	console.log("Type 'exit' to exit");
 }
 
