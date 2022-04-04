@@ -20,8 +20,9 @@ expect('TypeError', `
     f([10]);
 `);
 
-expect(['Concatenator', {concat: '<Func>', str: 'hello '}, 'hello world'], `
-    let Concatenator = class {
+expect(['Concatenator', {concat: '<Func>', str: 'hello ', init: '<Func>'}, 'hello world'], `
+    class Concatenator {
+        str;
         init (str1: Str) {
             this.str = str1;
         }
@@ -37,6 +38,7 @@ expect(['Concatenator', {concat: '<Func>', str: 'hello '}, 'hello world'], `
 `);
 expect('TypeError', `
     let Concatenator = class {
+        str;
         init (str1: Str) {
             this.str = str1;
         }

@@ -6,6 +6,7 @@ import {ESBoolean} from './esboolean';
 import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
 import {ESPrimitive} from './esprimitive';
+import {ESUndefined} from './esundefined';
 import type { Primitive} from './primitive';
 import {strip, wrap} from './wrapStrip';
 import { types } from "../../util/constants";
@@ -199,16 +200,13 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             return new ESBoolean();
         }
 
-        if (Object.keys(this.__value__).length !== Object.keys(n.__value__).length) {
+        if (Object.keys(this.__value__).length < Object.keys(n.__value__).length) {
             return new ESBoolean();
         }
 
         for (let key of Object.keys(this.__value__)) {
-            if (!n.__value__.hasOwnProperty(key) || !this.__value__.hasOwnProperty(key)) {
-                return new ESBoolean();
-            }
-            const thisType = this.__value__[key];
-            const nValue = n.__value__[key];
+            const thisType = this.__value__[key] ?? new ESUndefined();
+            const nValue = n.__value__[key] ?? new ESUndefined();
 
             let typeCheckRes = thisType.__includes__(props, nValue);
             if (typeCheckRes instanceof Error) return typeCheckRes;

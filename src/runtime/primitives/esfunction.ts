@@ -117,15 +117,42 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         if (!(n instanceof ESFunction)) {
             return new ESBoolean();
         }
-        if (this.__args__.length !== n.__args__.length) {
-            return new ESBoolean();
+
+        let nPosArgs = n.__args__.filter(a => !a.isKwarg);
+        let thisPosArgs = this.__args__.filter(a => !a.isKwarg);
+
+        if (!this.__allow_args__) {
+            if (nPosArgs.length !== thisPosArgs.length) {
+                return new ESBoolean();
+            }
+
+            for (let i = 0; i < nPosArgs.length; i++) {
+                let typeCheckRes = thisPosArgs[i].type.__includes__(props, nPosArgs[i].type);
+                if (typeCheckRes instanceof Error) return typeCheckRes;
+                if (!typeCheckRes.__value__) {
+                    return new ESBoolean();
+                }
+            }
         }
 
-        for (let i = 0; i < this.__args__.length; i++) {
-            let typeCheckRes = this.__args__[i].type.__includes__(props, n.__args__[i].type);
-            if (typeCheckRes instanceof Error) return typeCheckRes;
-            if (!typeCheckRes.__value__) {
+        if (!this.__allow_kwargs__) {
+
+            let nKwargs = n.__args__.filter(a => a.isKwarg);
+            let thisKwargs = this.__args__.filter(a => a.isKwarg);
+
+            if (nKwargs.length !== thisKwargs.length && !this.__allow_kwargs__) {
                 return new ESBoolean();
+            }
+
+            for (let name of thisKwargs.map(n => n.name)) {
+                let nKwarg = nKwargs.find(n => n.name === name);
+                if (!nKwarg) return new ESBoolean();
+
+                let typeCheckRes = thisKwargs.find(n => n.name === name)?.type.__includes__(props, nKwarg.type);
+                if (typeCheckRes instanceof Error) return typeCheckRes;
+                if (!typeCheckRes?.__value__) {
+                    return new ESBoolean();
+                }
             }
         }
 
@@ -137,7 +164,6 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         let eqRes = thisReturnVal.__eq__(props, n.__returns__);
         if (eqRes instanceof Error) return eqRes;
         return new ESBoolean(eqRes.__value__);
-
     };
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {

@@ -119,18 +119,21 @@ export class ESType extends ESPrimitive <undefined> {
                     'Obj', res.__type_name__(), str(res), 'Constructors must return an object');
             }
 
-            let properties = {
+            let properties: dict<Primitive> = {
                 ...this.__properties__
             };
 
             let parent: ESType = this;
             while (parent.__extends__) {
                 properties = {
+                    ...properties,
                     ...parent.__extends__.__properties__,
-                    ...properties
                 };
                 parent = parent.__extends__;
             }
+
+            // don't check the child's init function against the parents, just check that it is a function
+            properties['init'] = new ESTypeUnion(types.function, types.undefined);
 
             let typeCheckRes = res.isa(props, new ESObject(properties));
             if (typeCheckRes instanceof Error) return typeCheckRes;
@@ -297,7 +300,9 @@ export class ESTypeNot extends ESType {
         if (!(t instanceof ESTypeNot)) return new ESBoolean();
 
         let typeCheckRes = this.__val__.__eq__(props, t.__val__);
-        if (typeCheckRes instanceof Error) return typeCheckRes;
+        if (typeCheckRes instanceof Error) {
+            return typeCheckRes;
+        }
         return new ESBoolean(typeCheckRes.__value__ === true);
     }
 }

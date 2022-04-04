@@ -2,12 +2,12 @@ const {expect, file} = require( '../../testFramework');
 file('basic/operatorOverride');
 
 expect([
-    'myClass',
+    'A',
     {a: 12, __multiply__: '<Func>', init: '<Func>'}, 12
 ], `
     class A {
-        a;
-        init (a) {
+        a: Num;
+        init (a: Num) {
             this.a = a;
         }
         
@@ -19,5 +19,5 @@ expect([
     };
     
     let a = A(3) * A(4);
-    print(a.a); 
+    a.a;
 `);

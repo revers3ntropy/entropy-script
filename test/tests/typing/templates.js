@@ -1,7 +1,7 @@
 const {expect, file} = require( '../../testFramework');
 file('typing/templates');
 
-
+/*
 expect(['<SomeType>', {}], `
     class SomeType { 
         init (T: Type, a: T) {
@@ -62,3 +62,4 @@ expect(['<SomeType>', {}], `
     let a: SomeTime<Str> = SomeType<Str>('');
     a.v;
 `);
+ */

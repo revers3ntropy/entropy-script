@@ -4,17 +4,19 @@ file('examples/vector');
 expect(
 	[
 		'v2',
-		{x: 0, y: 0, add: '<Func>', str: '<Func>', clone: '<Func>'},
-		{x: 3, y: 4, add: '<Func>', str: '<Func>', clone: '<Func>'},
+		{x: 0, y: 0, add: '<Func>', str: '<Func>', clone: '<Func>', init: '<Func>'},
+		{x: 3, y: 4, add: '<Func>', str: '<Func>', clone: '<Func>', init: '<Func>'},
 		'3, 4',
 		true,
-		{x: 4, y: 5, add: '<Func>', str: '<Func>', clone: '<Func>'},
+		{x: 4, y: 5, add: '<Func>', str: '<Func>', clone: '<Func>', init: '<Func>'},
 		'3, 4',
 		'4, 5'
 	],
 
 	`
     let v2 = class {
+    	x: Num;
+    	y: Num;
         init (x: Num, y: Num) {
             this.x = x;
             this.y = y;
