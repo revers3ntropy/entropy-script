@@ -35,7 +35,8 @@ export abstract class ESPrimitive <T> {
      * Cast to string
      * @returns {ESString} this cast to string
      */
-    public abstract str: () => ESString;
+    public abstract str: (depth: ESNumber) => ESString;
+
     /**
      * Casts to any type
      * @type {(config: funcProps, type: Primitive) => Primitive}

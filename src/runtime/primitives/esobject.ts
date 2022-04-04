@@ -28,8 +28,8 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         }
     }
 
-    override str = () => {
-        let val = str(this.__value__);
+    override str = (depth = new ESNumber) => {
+        let val = str(this.__value__, depth.__value__);
         // remove trailing new line
         if (val[val.length-1] === '\n') {
             val = val.substr(0, val.length-1);

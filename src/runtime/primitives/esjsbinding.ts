@@ -73,8 +73,8 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
 
     override clone = (): Primitive => new ESJSBinding<T>(this.__value__);
 
-    override str = (): ESString => {
-        return new ESString(str(this.__value__));
+    override str = (depth= new ESNumber): ESString => {
+        return new ESString(str(this.__value__, depth.__value__));
     };
 
     override __eq__ = (props: funcProps, n: Primitive): ESBoolean => {

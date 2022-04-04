@@ -21,12 +21,11 @@ import { str } from "../util/util";
  * Adds the properties of a parent class to an instance of a child class
  * @param {Context} context
  * @param {ESType} class_ the class that the object is currently extending
- * @param {dict<Primitive>} instance the instance to add the properties to
- * @param {ESObject} this_ the 'super' function's 'this' context
+ * @param {Primitive} instance the instance to add the properties to
  * @param callContext
  * @returns {Error | void}
  */
-function dealWithExtends (context: Context, class_: ESType, instance: dict<Primitive>, this_: ESObject, callContext: Context): Error | void {
+function dealWithExtends (context: Context, class_: ESType, instance: ESObject, callContext: Context): Error | void {
     if (!(class_ instanceof ESType)) {
         return new TypeError(
             Position.void,
@@ -36,36 +35,40 @@ function dealWithExtends (context: Context, class_: ESType, instance: dict<Primi
         );
     }
 
+
     const superFunc = new ESFunction(({context}, ...args) => {
         const newContext = new Context();
         newContext.parent = context;
         // deal with next level
         if (class_.__extends__) {
-            let _a = dealWithExtends(newContext, class_.__extends__, instance, this_, callContext);
+            let _a = dealWithExtends(newContext, class_.__extends__, instance, callContext);
             if (_a instanceof Error) {
                 return _a;
             }
         }
 
-        const initFunc = class_?.__init__;
+        const initFunc = class_?.__get_init__();
+
 
         if (!initFunc) {
             return;
         }
 
-        initFunc.__this__ = this_;
+        initFunc.__this__ = instance;
         initFunc.__closure__ = newContext;
 
         const res_ = initFunc.__call__({context: newContext}, ...args);
         if (res_ instanceof Error) {
             return res_;
         }
-    }, undefined, 'super', this_);
+    }, undefined, 'super', instance);
+
+    const initFunc = class_?.__get_init__();
 
     // copy over arg details to facade 'super' function
-    superFunc.__allow_kwargs__ = class_?.__init__?.__allow_kwargs__ || false;
-    superFunc.__allow_args__ = class_?.__init__?.__allow_args__ || false;
-    superFunc.__args__ = class_?.__init__?.__args__ || [];
+    superFunc.__allow_kwargs__ = initFunc?.__allow_kwargs__ || false;
+    superFunc.__allow_args__ = initFunc?.__allow_args__ || false;
+    superFunc.__args__ = initFunc?.__args__ || [];
 
     let setRes = context.setOwn('super', superFunc);
     if (setRes instanceof Error) {
@@ -137,18 +140,13 @@ function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
 /**
  * Instantiates an instance of a type as an object.
  * Simply adds clones of all properties and methods to an empty object
- * @param {ESType} type
- * @param {Primitive[]} params
- * @param {boolean} runInit
- * @param {dict<Primitive>} on
- * @returns {ESBoolean | Primitive | ESFunction | ESUndefined | ESString | ESObject | Error | ESNumber | ESArray | ESType}
- */
+*/
 export function createInstance (
     type: ESType,
     props: funcProps,
     params: Primitive[],
     runInit=true,
-    on: dict<Primitive> = {}
+    instance = new ESObject,
 ): Error | Primitive {
 
     const {context} = props;
@@ -157,25 +155,23 @@ export function createInstance (
         return callPrimordial(params, type, props);
     }
 
-    const newContext = new Context();
-    newContext.parent = type.__init__?.__closure__;
+    let __init__ = type.__get_init__();
 
-    const instance = new ESObject();
+    const newContext = new Context();
+    newContext.parent = __init__?.__closure__;
 
     if (type.__extends__) {
-        let res = dealWithExtends(newContext, type.__extends__, on, instance, context);
+        let res = dealWithExtends(newContext, type.__extends__, instance, context);
         if (res instanceof Error) {
             return res;
         }
     }
 
-    instance.__value__ = on;
-
     for (let method of type.__methods__) {
         const methodClone = method.clone();
         methodClone.__this__ = instance;
 
-        on[method.name] = methodClone;
+        instance.__set__(props, new ESString(method.name), methodClone);
 
         // if it is an operator override method, set it on the primitive rather than the properties object
         if (primitiveMethods.indexOf(method.name) !== -1) {
@@ -183,13 +179,13 @@ export function createInstance (
         }
     }
 
-    if (runInit && type.__init__) {
-        type.__init__.__this__ = instance;
+    if (runInit && __init__) {
+        __init__.__this__ = instance;
 
         // newContext, which inherits from the current closure
-        type.__init__.__closure__ = newContext;
+        __init__.__closure__ = newContext;
 
-        const res = type.__init__.__call__({context: newContext}, ...params);
+        const res = __init__.__call__({context: newContext}, ...params);
         // the return value of init is ignored
         if (res instanceof Error) {
             return res;

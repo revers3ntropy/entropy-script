@@ -4,7 +4,7 @@ import { Context, generateESFunctionCallContext } from "./context";
 import { Error, TypeError } from "../errors";
 import Position from "../position";
 import type {NativeObj} from './primitives/primitive';
-import { ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
+import {ESFunction, ESNumber, ESObject, ESPrimitive, ESUndefined, Primitive} from './primitiveTypes';
 
 function callNode (self: ESFunction, context: Context, fn: Node) {
 
@@ -22,7 +22,7 @@ function callNode (self: ESFunction, context: Context, fn: Node) {
             Position.void,
             str(self.__returns__),
             res.val?.__type_name__() || 'undefined',
-            res.val?.str().__value__,
+            res.val?.str(new ESNumber).__value__,
             '(from function return)'
         );
     }

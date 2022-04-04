@@ -1600,18 +1600,35 @@ export class N_class extends Node {
     name: string;
     extends_?: Node;
     isDeclaration: boolean;
+    abstract: boolean;
+    properties: dict<Node>;
 
-    constructor(pos: Position, methods: N_functionDefinition[], extends_?: Node, init?: N_functionDefinition, name = '<anon class>', isDeclaration=false) {
+    constructor(
+        pos: Position,
+        methods: N_functionDefinition[],
+        properties: dict<Node>,
+        extends_?: Node,
+        init?: N_functionDefinition,
+        name = '<anon class>',
+        isDeclaration=false,
+        abstract = false
+    ) {
         super(pos);
         this.init = init;
         this.methods = methods;
         this.name = name;
         this.extends_ = extends_;
         this.isDeclaration = isDeclaration;
+        this.abstract = abstract;
+        this.properties = properties;
     }
 
     interpret_ (context: Context): interpretResult | Error {
-        const methods: ESFunction[] = [];
+
+        const properties: dict<Primitive> = {};
+
+        let methods: ESFunction[] = [];
+
         for (let method of this.methods) {
             const res = method.interpret(context);
             if (res.error) {
@@ -1627,6 +1644,13 @@ export class N_class extends Node {
             }
             methods.push(res.val);
         }
+
+        for (let id of Object.keys(this.properties)) {
+            let res = this.properties[id].interpret(context);
+            if (res.error) return res.error;
+            properties[id] = res.val;
+        }
+
         let extends_: ESType = types.object;
         if (this.extends_) {
             const extendsRes = this.extends_.interpret(context);
@@ -1660,7 +1684,11 @@ export class N_class extends Node {
             init = initRes.val;
         }
 
-        let typePrim = new ESType(false, this.name, methods, extends_, init);
+        if (init) {
+            methods.push(init);
+        }
+
+        let typePrim = new ESType(false, this.name, methods, properties, extends_);
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {

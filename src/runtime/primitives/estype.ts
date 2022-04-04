@@ -6,7 +6,7 @@ import type {ESFunction} from './esfunction';
 import {ESObject} from './esobject';
 import {ESString} from './esstring';
 import type {Primitive, typeName} from './primitive';
-import type { funcProps } from "../../util/util";
+import type {dict, funcProps} from '../../util/util';
 import { wrap } from "./wrapStrip";
 import Position from "../../position";
 import {str} from "../../util/util";
@@ -21,31 +21,30 @@ export class ESType extends ESPrimitive <undefined> {
     readonly __name__: typeName;
     readonly __extends__: undefined | ESType;
     readonly __methods__: ESFunction[];
-    readonly __init__: ESFunction | undefined;
+    readonly __properties__: dict<Primitive>;
     readonly __instances__: ESObject[] = [];
     readonly __targs__: runtimeArgument[];
+    readonly __abstract__: boolean;
 
     constructor (
         isPrimitive: boolean = false,
         name: typeName = '(anon)',
-        __methods__: ESFunction[] = [],
-        __extends__?: undefined | ESType,
-        __init__?: undefined | ESFunction,
-        targs: runtimeArgument[] = []
+        methods: ESFunction[] = [],
+        properties: dict<Primitive> = {},
+        extends_?: undefined | ESType,
+        targs: runtimeArgument[] = [],
+        abstract = false
     ) {
         super(undefined, types?.type);
 
         this.__primordial__ = isPrimitive;
         this.__name__ = name;
         this.__info__.name = name;
-        this.__extends__ = __extends__;
-        this.__methods__ = __methods__;
+        this.__extends__ = extends_;
+        this.__methods__ = methods;
+        this.__properties__ = properties;
         this.__targs__ = targs;
-
-        if (__init__) {
-            __init__.name = name;
-            this.__init__ = __init__;
-        }
+        this.__abstract__ = abstract;
 
         if (!types.type) {
             this.__type__ = this;
@@ -57,8 +56,8 @@ export class ESType extends ESPrimitive <undefined> {
             this.__primordial__,
             this.__name__,
             this.__methods__,
+            this.__properties__,
             this.__extends__,
-            this.__init__,
             this.__targs__
         )
     }
@@ -103,10 +102,25 @@ export class ESType extends ESPrimitive <undefined> {
     }
 
     override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
-        let res = createInstance(this, props, params || []);
-        if (res instanceof ESObject) {
-            this.__instances__.push(res);
+        if (this.__abstract__) {
+            return new Error(Position.void, 'TypeError', 'Cannot construct abstract class');
         }
+        let res = createInstance(this, props, params || []);
+
+        if (res instanceof Error) return res;
+
+        if (!(res instanceof ESObject)) {
+            return new TypeError(Position.void,
+                'Obj', res.__type_name__(), str(res), 'Constructors must return an object');
+        }
+
+        let typeCheckRes = res.isa(props, new ESObject(this.__properties__));
+        if (typeCheckRes instanceof Error) return typeCheckRes;
+        if (!typeCheckRes.__value__) {
+            return new Error(Position.void, 'TypeError', 'Initializer incorrectly assigned properties');
+        }
+
+        this.__instances__.push(res);
         return res;
     }
 
@@ -139,6 +153,12 @@ export class ESType extends ESPrimitive <undefined> {
 
     override keys = () => {
         return Object.keys(this).map(s => new ESString(s));
+    }
+
+    public __get_init__ = (): ESFunction | undefined => {
+        let res = this.__methods__.filter(m => m.name === 'init');
+        if (!res) return undefined;
+        return res[0];
     }
 }
 

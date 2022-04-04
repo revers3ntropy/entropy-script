@@ -180,14 +180,13 @@ function welcomeMessage () {
 async function main () {
 	await init();
 
-	welcomeMessage();
-
 	const compileIdx = process.argv.indexOf('-compile');
 	if (compileIdx !== -1) {
 		return compile(process.argv[compileIdx+1], process.argv[compileIdx+2]);
 	}
 
 	if (process.argv.length === 2) {
+		welcomeMessage();
 		return runTerminal();
 	}
 

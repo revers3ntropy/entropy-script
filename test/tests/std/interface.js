@@ -67,3 +67,19 @@ expect('TypeError', `
 	
 	let b: (Ia & Ib) = {};
 `);
+
+expect([{a: 'Func'}, 'A'], `
+	let Ia = interface({
+		a: Func
+	});
+	class A extends Ia {
+	    a () {}
+	};
+`);
+
+expect('TypeError', `
+	let Ia = interface({
+		a: Func
+	});
+	class A extends Ia {};
+`);

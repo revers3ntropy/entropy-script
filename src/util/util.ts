@@ -1,7 +1,7 @@
 import {Error} from '../errors';
 import {Context} from '../runtime/context';
 import {Node} from "../runtime/nodes";
-import {ESPrimitive, Primitive} from '../runtime/primitiveTypes';
+import {ESNumber, ESPrimitive, Primitive} from '../runtime/primitiveTypes';
 
 export type enumDict<T extends number, U> = { [k in T]: U };
 export type dict<T> = { [key in (string | number | symbol)]: T; };
@@ -30,13 +30,16 @@ export type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void 
  * @param {number} depth
  */
 export function str (val: any, depth = 0): string {
+    if (typeof depth !== 'number') {
+        depth = 0;
+    }
     if (typeof val === 'string') {
         if (depth > 0) {
             return `'${val}'`;
         }
         return val;
     }
-    if (depth > 20) {
+    if (depth > 5) {
         return '...';
     }
     let result = '';
@@ -46,7 +49,7 @@ export function str (val: any, depth = 0): string {
     }
 
     if (val instanceof ESPrimitive) {
-        return val.str().__value__;
+        return val.str(new ESNumber(depth)).__value__;
     }
 
     if (val instanceof Node) {
@@ -69,21 +72,22 @@ export function str (val: any, depth = 0): string {
                 }
                 result += ']';
             } else {
-                result += '{\n';
+
+                if (Object.keys(val).length < 1) {
+                    return indent('{}', {indentStart: false});
+                }
+                result += `{\n`;
                 let i = 0;
-                for (let item in val) {
-                    i++;
-                    if (!val.hasOwnProperty || !val.hasOwnProperty(item)){
-                        continue;
+                for (let item of Object.keys(val)) {
+                    result += indent(`${item}: ${str(val[item], depth + 1) || 'nil'}`);
+                    if (i < Object.keys(val).length-1) {
+                        result += ',\n';
                     }
-                    result += `  ${item}: ${str(val[item], depth + 1) || ''}, \n`;
+                    i++;
                 }
-                if (i > 0) {
-                    result = result.substring(0, result.length - 3);
-                }
-                result += '\n}\n';
+                result += '\n}';
             }
-            break;
+            return result;
 
         case "bigint":
         case "number":
@@ -94,12 +98,11 @@ export function str (val: any, depth = 0): string {
         case "function":
             result = `<NativeFunction ${val.name}>`;
             break;
-
     }
-    for (let i = 0; i < depth; i++) {
-        result = indent(result);
-    }
-    return result;
+    return indent(result, {
+        depth: depth > 0 ? 1 : 0,
+        indentStart: false
+    });
 }
 
 /**
@@ -108,8 +111,13 @@ export function str (val: any, depth = 0): string {
  */
 export const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(() => resolve(), ms));
 
-export function indent (str: string) {
-    return str.replace(/\n/g, '\n    ');
+export function indent (str: string, {
+    depth=1,
+    by = 4,
+    indentStart=true
+} = {}) {
+    let replacement = ' '.repeat(depth * by);
+    return (indentStart ? replacement : '') + str.replace(/\n/g, '\n' + replacement);
 }
 
 export function generateRandomSymbol (symbols: string[], length=10) {

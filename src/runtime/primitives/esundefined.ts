@@ -57,7 +57,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
         }
     }
 
-    override str = () => new ESString('<Undefined>');
+    override str = () => new ESString('nil');
 
     override __eq__ = (props: funcProps, n: Primitive) => {
         return new ESBoolean(

@@ -110,10 +110,11 @@ export class ESString extends ESPrimitive <string> implements ESIterable{
 
         let idx = key.__value__;
 
-        while (idx < 0)
+        while (idx < 0) {
             idx = this.__value__.length + idx;
+        }
 
-        const strToInsert = value.str().__value__;
+        const strToInsert = value.str(new ESNumber).__value__;
 
         let firstPart = this.__value__.substr(0, idx);
         let lastPart = this.__value__.substr(idx + strToInsert.length);

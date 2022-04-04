@@ -1,4 +1,4 @@
-import { tokenType, tokenTypeString, tt, types, VAR_DECLARE_KEYWORDS } from '../util/constants';
+import {CLASS_KEYWORDS, tokenType, tokenTypeString, tt, types, VAR_DECLARE_KEYWORDS} from '../util/constants';
 import { ParseResults } from './parseResults';
 import { Token } from "./tokens";
 import * as n from '../runtime/nodes';
@@ -401,7 +401,7 @@ export class Parser {
         } else if (this.currentToken.matches(tokenType.KEYWORD, 'func')) {
             return this.funcExpr();
 
-        } else if (this.currentToken.matches(tokenType.KEYWORD, 'class')) {
+        } else if (this.currentToken.type === tokenType.KEYWORD && CLASS_KEYWORDS.includes(this.currentToken.value)) {
             return this.classExpr();
 
         } else if (this.currentToken.matches(tokenType.KEYWORD, 'namespace')) {
@@ -559,7 +559,8 @@ export class Parser {
         ));
     }
 
-    private typeExpr (res: ParseResults) {
+    private typeExpr () {
+        let res = new ParseResults();
         if (this.currentToken.type === tt.IDENTIFIER) {
             const tok = this.currentToken;
             this.advance(res);
@@ -614,7 +615,7 @@ export class Parser {
             // @ts-ignore
             if (this.currentToken.type === tt.COLON) {
                 this.consume(res, tt.COLON);
-                let tRes = res.register(this.typeExpr(res));
+                let tRes = res.register(this.typeExpr());
                 if (res.error) return res;
                 typeNodes.push(tRes);
             } else {
@@ -716,7 +717,7 @@ export class Parser {
         if (this.currentToken.type === tt.COLON) {
             isDeclaration = true;
             this.consume(res, tt.COLON);
-            type = res.register(this.typeExpr(res));
+            type = res.register(this.typeExpr());
         }
 
         // @ts-ignore doesn't like two different comparisons after each other with different values
@@ -902,7 +903,7 @@ export class Parser {
             this.consume(res, tt.COLON);
             if (res.error) return res.error;
 
-            type = res.register(this.typeExpr(res));
+            type = res.register(this.typeExpr());
             if (res.error) return res.error;
         }
 
@@ -1029,7 +1030,7 @@ export class Parser {
         if (this.currentToken.type === tt.COLON) {
             this.advance(res);
 
-            returnType = res.register(this.typeExpr(res));
+            returnType = res.register(this.typeExpr());
             if (res.error) return res;
         }
 
@@ -1097,6 +1098,13 @@ export class Parser {
         let init: n.N_functionDefinition | undefined;
         let extends_: n.Node = new N_primitiveWrapper(types.object);
         let identifier: string | undefined;
+        let abstract = false;
+        let properties: dict<Node> = {};
+
+        if (this.currentToken.matches(tt.KEYWORD, 'abstract')) {
+            this.advance(res);
+            abstract = true;
+        }
 
         if (!this.currentToken.matches(tt.KEYWORD, 'class')) {
             return res.failure(new InvalidSyntaxError(
@@ -1131,31 +1139,50 @@ export class Parser {
             return res.success(new n.N_class(
                 pos,
                 [],
+                {},
                 extends_,
                 undefined,
                 name,
-                identifier !== undefined
+                identifier !== undefined,
+                abstract
             ));
         }
 
         while (this.currentToken.type === tt.IDENTIFIER) {
 
-            let methodId = this.currentToken.value;
+            let id = this.currentToken.value;
             this.advance(res);
 
-            const func = res.register(this.funcCore());
-            if (res.error) return res;
-            if (!(func instanceof N_functionDefinition)) {
-                return res.failure(new Error(this.currentToken.pos, 'ParseError',
-                    `Tried to get function, but got ${func} instead`));
-            }
+            // @ts-ignore
+            if (this.currentToken.type === tt.OPAREN) {
+                const func = res.register(this.funcCore());
+                if (res.error) return res;
+                if (!(func instanceof N_functionDefinition)) {
+                    return res.failure(new Error(this.currentToken.pos, 'ParseError',
+                        `Tried to get function, but got ${func} instead`));
+                }
 
-            func.name = methodId;
+                func.name = id;
 
-            if (methodId === 'init') {
-                init = func;
+                if (id === 'init') {
+                    init = func;
+                } else {
+                    methods.push(func);
+                }
+
+                properties[id] = new N_primitiveWrapper(types.function);
+
+                // @ts-ignore
+            } else if (this.currentToken.type !== tt.COLON) {
+                this.consume(res, tt.ENDSTATEMENT);
+                if (res.error) return res;
+                properties[id] = new N_primitiveWrapper(types.any);
             } else {
-                methods.push(func);
+                this.consume(res, tt.COLON);
+                properties[id] = res.register(this.typeExpr());
+                if (res.error) return res;
+                this.consume(res, tt.ENDSTATEMENT);
+                if (res.error) return res;
             }
         }
 
@@ -1164,6 +1191,7 @@ export class Parser {
         return res.success(new n.N_class(
             pos,
             methods,
+            properties,
             extends_,
             init,
             name,

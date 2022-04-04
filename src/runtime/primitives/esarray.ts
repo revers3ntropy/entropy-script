@@ -37,7 +37,9 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         }
     }
 
-    override str = () => new ESString(str(this.__value__));
+    override str = (depth= new ESNumber) => {
+        return new ESString(str(this.__value__, depth.__value__));
+    }
 
     override __eq__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
         if (!(n instanceof ESArray)) {
@@ -188,6 +190,10 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         let res: (ESNumber | ESString)[] = Object.keys(this._).map(s => new ESString(s));
         res.push(...Object.keys(this.__value__).map(s => new ESNumber(parseInt(s))))
         return res;
+    }
+
+    add = (props: funcProps, ...args: Primitive[]) => {
+        this.__value__.push(...args);
     }
 }
 

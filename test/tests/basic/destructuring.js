@@ -63,3 +63,12 @@ expect('TypeError', `
 expect('TypeError', `
     let [a: Num, b: Num] = {a: 1, b: nil};
 `);
+
+expect(['<Func>', 3, 2], `
+    func F (**) {
+        let global [ b ] = kwargs;
+        b + 1;
+    };
+    F(*b=2);
+    b;
+`);

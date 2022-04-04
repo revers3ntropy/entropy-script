@@ -64,6 +64,7 @@ export const KEYWORDS = [
     'return',
     'yield',
 
+    'abstract',
     'class',
     'extends',
 
@@ -71,6 +72,11 @@ export const KEYWORDS = [
 
     'try',
     'catch'
+];
+
+export const CLASS_KEYWORDS = [
+    'class',
+    'abstract'
 ];
 
 export let now = () => Date.now();
