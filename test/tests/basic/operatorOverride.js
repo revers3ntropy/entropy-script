@@ -3,9 +3,10 @@ file('basic/operatorOverride');
 
 expect([
     'myClass',
-    {a: 12, __multiply__: '<Func>'}, 12
+    {a: 12, __multiply__: '<Func>', init: '<Func>'}, 12
 ], `
-    let myClass = class {
+    class A {
+        a;
         init (a) {
             this.a = a;
         }
@@ -17,6 +18,6 @@ expect([
         }
     };
     
-    let a = myClass(3) * myClass(4);
-    let b = a.a; 
+    let a = A(3) * A(4);
+    print(a.a); 
 `);

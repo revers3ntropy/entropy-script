@@ -92,6 +92,7 @@ expect ('InvalidSyntaxError', `
 // iterator override
 expect (['Iter', [], undefined, [4, 3, 2, 1, 0]], `
     class Iter {
+        a;
     	init() {
     		this.a = 5;
     	}

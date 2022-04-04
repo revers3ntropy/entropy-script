@@ -21,10 +21,11 @@ expect('TypeError', `
 `);
 expect([
     {myClass: '<Symbol: myClass>', myFunc: '<Symbol: myFunc>', a: '<Symbol: a>'},
-    'myClass', {thing: 123}, 123, 'Hello world!'
+    'myClass', {thing: 123, init: '<Func>'}, 123, 'Hello world!'
 ], `
     let global MyLib = namespace {
         let myClass = class {
+            thing;
             init () {
                 this.thing = 123;
             }

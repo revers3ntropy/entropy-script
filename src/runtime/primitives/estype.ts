@@ -22,7 +22,7 @@ export class ESType extends ESPrimitive <undefined> {
     readonly __extends__: undefined | ESType;
     readonly __methods__: ESFunction[];
     readonly __properties__: dict<Primitive>;
-    readonly __instances__: ESObject[] = [];
+    readonly __instances__: Primitive[] = [];
     readonly __targs__: runtimeArgument[];
     readonly __abstract__: boolean;
 
@@ -105,19 +105,38 @@ export class ESType extends ESPrimitive <undefined> {
         if (this.__abstract__) {
             return new Error(Position.void, 'TypeError', 'Cannot construct abstract class');
         }
+
         let res = createInstance(this, props, params || []);
 
         if (res instanceof Error) return res;
 
-        if (!(res instanceof ESObject)) {
-            return new TypeError(Position.void,
-                'Obj', res.__type_name__(), str(res), 'Constructors must return an object');
-        }
+        if (!this.__primordial__) {
 
-        let typeCheckRes = res.isa(props, new ESObject(this.__properties__));
-        if (typeCheckRes instanceof Error) return typeCheckRes;
-        if (!typeCheckRes.__value__) {
-            return new Error(Position.void, 'TypeError', 'Initializer incorrectly assigned properties');
+            // Type Check
+
+            if (!(res instanceof ESObject)) {
+                return new TypeError(Position.void,
+                    'Obj', res.__type_name__(), str(res), 'Constructors must return an object');
+            }
+
+            let properties = {
+                ...this.__properties__
+            };
+
+            let parent: ESType = this;
+            while (parent.__extends__) {
+                properties = {
+                    ...parent.__extends__.__properties__,
+                    ...properties
+                };
+                parent = parent.__extends__;
+            }
+
+            let typeCheckRes = res.isa(props, new ESObject(properties));
+            if (typeCheckRes instanceof Error) return typeCheckRes;
+            if (!typeCheckRes.__value__) {
+                return new Error(Position.void, 'TypeError', 'Initializer incorrectly assigned properties');
+            }
         }
 
         this.__instances__.push(res);

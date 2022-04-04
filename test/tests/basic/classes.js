@@ -29,7 +29,7 @@ expect(['myClass'], `
     };
 `);
 
-expect(['myClass', {}], `
+expect(['myClass', {init: '<Func>'}], `
     class myClass {
     	init() {}
     };
@@ -44,7 +44,7 @@ expect(['myClass'], `
     };
 `);
 
-expect(['myClass', {a: 3}, 3], `
+expect(['myClass', {a: 3, init: '<Func>'}, 3], `
     let myClass = class {
         a: Num;
         init (a: Num) {
@@ -67,7 +67,7 @@ expect('TypeError', `
     myInstance.a;
 `);
 
-expect(['myClass', {setA: '<Func>', a: 3}, 3, 5, 5], `
+expect(['myClass', {setA: '<Func>', a: 3, init: '<Func>'}, 3, 5, 5], `
     let myClass = class {
         a: Num;
         init (a) {
@@ -85,7 +85,7 @@ expect(['myClass', {setA: '<Func>', a: 3}, 3, 5, 5], `
     myInstance.a;
 `);
 
-expect(['myClass', {a: 3, setA: '<Func>', doThing: '<Func>'}, 3, 10, 10], `
+expect(['myClass', {a: 3, setA: '<Func>', doThing: '<Func>', init: '<Func>'}, 3, 10, 10], `
     let myClass = class {
         a: Num;
         
@@ -107,7 +107,7 @@ expect(['myClass', {a: 3, setA: '<Func>', doThing: '<Func>'}, 3, 10, 10], `
     myInstance.doThing();
     myInstance.a;
 `);
-expect(['myClass', {a: 3, getThis: '<Func>'}, 3, {a: 3, getThis: '<Func>'}, true, true, true, false], `
+expect(['myClass', {a: 3, getThis: '<Func>', init: '<Func>'}, 3, {a: 3, getThis: '<Func>', init: '<Func>'}, true, true, true, false], `
     let myClass = class {
         a: Num;
         init (a) {
@@ -128,7 +128,7 @@ expect(['myClass', {a: 3, getThis: '<Func>'}, 3, {a: 3, getThis: '<Func>'}, true
     myInstance == myClass(4);
 `);
 
-expect(['parentClass', 'childClass', {a: 2, b: 3}, 2, 3], `
+expect(['parentClass', 'childClass', {a: 2, b: 3, init: '<Func>'}, 2, 3], `
     let parentClass = class {
         a;
         init (a) {
@@ -136,6 +136,7 @@ expect(['parentClass', 'childClass', {a: 2, b: 3}, 2, 3], `
         }
     };
     let childClass = class extends parentClass {
+        b;
         init (a, b) {
             super(a);
             this.b = b;
@@ -147,19 +148,22 @@ expect(['parentClass', 'childClass', {a: 2, b: 3}, 2, 3], `
     instance.b;
 `);
 
-expect(['parentClass', 'childClass', 'grandChildClass', {a: 2, b: 3, c: 4}, 2, 3, 4], `
+expect(['parentClass', 'childClass', 'grandChildClass', {a: 2, b: 3, c: 4, init: '<Func>'}, 2, 3, 4], `
     let parentClass = class {
+        a;
         init (a) {
             this.a = a;
         }
     };
     let childClass = class extends parentClass {
+        b;
         init (a, b) {
             super(a);
             this.b = b;
         }
     };
     let grandChildClass = class extends childClass {
+        c;
         init (a, b, c) {
             super(a, b);
             this.c = c;
@@ -171,25 +175,29 @@ expect(['parentClass', 'childClass', 'grandChildClass', {a: 2, b: 3, c: 4}, 2, 3
     instance.c;
 `);
 
-expect(['parentClass', 'childClass', 'grandChildClass', 'greatGrandChildClass', {a: 2, b: 3, c: 4, d: 5}, 2, 3, 4, 5], `
+expect(['parentClass', 'childClass', 'grandChildClass', 'greatGrandChildClass', {a: 2, b: 3, c: 4, d: 5, init: '<Func>'}, 2, 3, 4, 5], `
     let parentClass = class {
+        a;
         init (a) {
             this.a = a;
         }
     };
     let childClass = class extends parentClass {
+        b;
         init (a, b) {
             super(a);
             this.b = b;
         }
     };
     let grandChildClass = class extends childClass {
+        c;
         init (a, b, c) {
             super(a, b);
             this.c = c;
         }
     };
     let greatGrandChildClass = class extends grandChildClass {
+        d;
         init (a, b, c, d) {
             super(a, b, c);
             this.d = d;
@@ -262,7 +270,7 @@ expect(['A', {}], `
     A();
 `);
 
-expect(['A', {}], `
+expect(['A', {init: '<Func>'}], `
     class A extends Str {
         init() {
             super();
@@ -273,7 +281,7 @@ expect(['A', {}], `
 
 expect([{A: 'A'}, 'B'], `
     let a = {
-        A: class {};
+        A: class A {},
     };
     class B extends a.A {};
 `);

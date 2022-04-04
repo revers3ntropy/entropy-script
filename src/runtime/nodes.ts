@@ -586,7 +586,6 @@ export class N_destructAssign extends Node {
         const res = this.value.interpret(context);
         if (res.error) return res.error;
 
-
         if (res.val.__type__ === types.object) {
             let i = 0;
             for (let varName of this.varNames) {
@@ -1688,7 +1687,7 @@ export class N_class extends Node {
             methods.push(init);
         }
 
-        let typePrim = new ESType(false, this.name, methods, properties, extends_);
+        let typePrim = new ESType(false, this.name, methods, properties, extends_, [], this.abstract);
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {

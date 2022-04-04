@@ -137,9 +137,10 @@ export class Context {
             value = wrap(value);
         }
 
-        // is not global
-        if (options.global && !this.initialisedAsGlobal) {
+        if (options.global) {
             options.global = false;
+            this.root.setOwn(identifier, value, options);
+            return;
         }
 
         if (!options.forceThroughConst) {

@@ -1195,7 +1195,8 @@ export class Parser {
             extends_,
             init,
             name,
-            identifier !== undefined
+            identifier !== undefined,
+            abstract
         ));
     }
 
