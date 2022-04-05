@@ -1,5 +1,5 @@
 import {global} from '../util/constants';
-import { ESJSBinding, run } from '../index';
+import {ESBoolean, ESJSBinding, run} from '../index';
 import Position from '../position';
 import {Context} from '../runtime/context';
 import {interpretResult} from '../runtime/nodes';
@@ -37,6 +37,11 @@ export async function preloadModules (urls: dict<any>): Promise<Error | undefine
 
             const env = new Context();
             env.parent = global;
+            env.set('__main__', new ESBoolean(), {
+                isConstant: true,
+                forceThroughConst: true,
+                global: true
+            });
 
             let splitUrl = url.split("/");
             let scriptName = splitUrl.pop();

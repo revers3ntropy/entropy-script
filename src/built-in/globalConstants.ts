@@ -5,7 +5,7 @@ import type { dict } from "../util/util";
 
 import * as errors from '../errors';
 
-export default function load (context: Context) {
+export default function (context: Context) {
 
     // must be declared inside function as get import error otherwise
     const globalConstants: dict<Primitive> = {
@@ -13,6 +13,8 @@ export default function load (context: Context) {
         'true': new ESBoolean(true),
         'nil': new ESUndefined(),
         'inf': new ESNumber(Infinity),
+
+        '__main__': new ESBoolean(true),
 
         'Any': types.any,
         'Num': types.number,

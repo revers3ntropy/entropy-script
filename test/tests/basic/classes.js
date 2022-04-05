@@ -285,3 +285,34 @@ expect([{A: 'A'}, 'B'], `
     };
     class B extends a.A {};
 `);
+
+expect(['A', {a: 0, init: '<Func>', do_thing: '<Func>', do_other_thing: '<Func>'}, 0, undefined, 1, undefined, 2], `
+class A {
+    a: Num;
+    
+    // have to declare here if we define in the constructor
+    do_thing: Func;
+    
+    init () {
+        this.a = 0;
+        
+        let self = this;
+        this.do_thing = func (*, **) { 
+            self.a = 1;
+            nil;
+        };
+    }
+    
+    do_other_thing () {
+        this.a = 2;
+        nil;
+    }
+};
+
+let a = A();
+a.a;
+a.do_thing();
+a.a;
+a.do_other_thing();
+a.a;
+`);

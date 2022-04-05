@@ -1,7 +1,15 @@
 import Position from "../position";
 import {Context} from "../runtime/context";
 import { Error, ImportError, MissingNativeDependencyError, PermissionRequiredError } from '../errors';
-import {ESFunction, ESJSBinding, ESNamespace, ESObject, ESString, Primitive} from '../runtime/primitiveTypes';
+import {
+    ESBoolean,
+    ESFunction,
+    ESJSBinding,
+    ESNamespace,
+    ESObject,
+    ESString,
+    Primitive,
+} from '../runtime/primitiveTypes';
 import { funcProps, str } from "../util/util";
 import {interpretResult} from "../runtime/nodes";
 import {config, libs, run, strip} from '../index';
@@ -83,7 +91,7 @@ const import_ = (props: funcProps, rawPath: Primitive): Error | Primitive | unde
         return new MissingNativeDependencyError('fs');
     }
 
-    const {path, fs} = libs;
+    const { path, fs } = libs;
 
     scriptPath = path.join(props.context.path, scriptPath);
 
@@ -106,6 +114,12 @@ const import_ = (props: funcProps, rawPath: Primitive): Error | Primitive | unde
         const env = new Context();
         env.parent = global;
         env.path = exDir;
+
+        env.set('__main__', new ESBoolean(), {
+            isConstant: true,
+            forceThroughConst: true,
+            global: true
+        });
 
         const n = new ESNamespace(new ESString(scriptPath), {});
 
