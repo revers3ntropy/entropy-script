@@ -11,7 +11,7 @@ build/*.js
 /.idea/
 /src/
 build.js
-test.es
+*.es
 out.js
 out.py
 tsconfig.json

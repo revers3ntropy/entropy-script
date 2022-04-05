@@ -9,7 +9,7 @@ import { ESFunction, ESJSBinding, ESUndefined, initPrimitiveTypes } from './runt
 import loadGlobalConstants from "./built-in/globalConstants";
 import {global, refreshPerformanceNow, runningInNode, setGlobalContext, types} from './util/constants';
 import { dict } from "./util/util";
-import { NativeObj } from "./runtime/primitives/primitive";
+import { NativeObj } from "./runtime/primitive";
 import {libs as globalLibs} from "./util/constants";
 import { runtimeArgument } from "./runtime/argument";
 

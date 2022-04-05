@@ -1,18 +1,18 @@
-import {Error} from '../../errors';
-import {ESSymbol} from '../symbol';
-import {ESArray} from './esarray';
-import {ESBoolean} from './esboolean';
-import {ESErrorPrimitive} from './eserrorprimitive';
-import {ESFunction} from './esfunction';
-import {ESNumber} from './esnumber';
-import {ESObject} from './esobject';
+import {Error} from '../errors';
+import {ESSymbol} from './symbol';
+import {ESArray} from './primitives/esarray';
+import {ESBoolean} from './primitives/esboolean';
+import {ESErrorPrimitive} from './primitives/eserrorprimitive';
+import {ESFunction} from './primitives/esfunction';
+import {ESNumber} from './primitives/esnumber';
+import {ESObject} from './primitives/esobject';
 import {ESPrimitive} from './esprimitive';
-import {ESString} from './esstring';
-import {ESType} from './estype';
-import {ESUndefined} from './esundefined';
+import {ESString} from './primitives/esstring';
+import {ESType} from './primitives/estype';
+import {ESUndefined} from './primitives/esundefined';
 import type {NativeObj, Primitive} from './primitive';
-import { ESJSBinding } from "./esjsbinding";
-import { funcProps } from "../../util/util";
+import { ESJSBinding } from "./primitives/esjsbinding";
+import { funcProps } from "../util/util";
 
 /**
  * @param {any} thing

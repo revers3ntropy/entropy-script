@@ -1,7 +1,7 @@
-import type {Primitive} from './primitives/primitive';
-import type {FunctionInfo} from './primitives/info';
+import type {Primitive} from './primitive';
+import type {FunctionInfo} from './info';
 
-import {ESPrimitive} from './primitives/esprimitive';
+import {ESPrimitive} from './esprimitive';
 import {ESArray} from './primitives/esarray';
 import {ESBoolean} from './primitives/esboolean';
 import {ESErrorPrimitive} from './primitives/eserrorprimitive';

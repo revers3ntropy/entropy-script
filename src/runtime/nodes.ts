@@ -4,7 +4,7 @@ import { Context } from './context';
 import Position from "../position";
 import { catchBlockErrorSymbolName, compileConfig, now, tokenTypeString, tt, types } from "../util/constants";
 import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument";
-import { wrap } from './primitives/wrapStrip';
+import { wrap } from './wrapStrip';
 import {
     ESArray,
     ESBoolean,

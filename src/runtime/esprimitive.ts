@@ -1,15 +1,15 @@
-import type {ESType} from './estype';
-import {Error, InvalidOperationError, TypeError} from '../../errors';
+import type {ESType} from './primitives/estype';
+import {Error, InvalidOperationError, TypeError} from '../errors';
 
-import Position from '../../position';
-import {ESBoolean} from './esboolean';
-import type {ESString} from './esstring';
+import Position from '../position';
+import {ESBoolean} from './primitives/esboolean';
+import type {ESString} from './primitives/esstring';
 import type {Info} from './info';
 import type { NativeObj, Primitive} from './primitive';
-import { funcProps, str } from '../../util/util';
+import { funcProps, str } from '../util/util';
 import { strip } from './wrapStrip';
-import { types } from "../../util/constants";
-import type { ESNumber } from "./esnumber";
+import { types } from "../util/constants";
+import type { ESNumber } from "./primitives/esnumber";
 
 
 export abstract class ESPrimitive <T> {

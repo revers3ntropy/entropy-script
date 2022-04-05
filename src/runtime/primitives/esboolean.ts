@@ -1,11 +1,11 @@
 import { Error, IndexError, TypeError } from '../../errors';
 import Position from '../../position';
-import {ESPrimitive} from './esprimitive';
+import {ESPrimitive} from '../esprimitive';
 import { funcProps, str } from '../../util/util';
 import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
-import type {Primitive} from './primitive';
-import { wrap } from "./wrapStrip";
+import type {Primitive} from '../primitive';
+import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 

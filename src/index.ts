@@ -33,7 +33,7 @@ export {
 export * from './errors';
 export * from './runtime/nodes';
 export * from './util/util';
-export {strip, wrap} from './runtime/primitives/wrapStrip';
+export {strip, wrap} from './runtime/wrapStrip';
 export {ESSymbol} from './runtime/symbol';
 export {parseConfig} from './config';
 import init from './init';

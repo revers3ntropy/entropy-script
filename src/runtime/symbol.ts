@@ -1,5 +1,5 @@
 import {ESString} from './primitives/esstring';
-import type {Primitive} from './primitives/primitive';
+import type {Primitive} from './primitive';
 
 export type symbolOptions = {
     isConstant?: boolean;

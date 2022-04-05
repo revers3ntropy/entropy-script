@@ -3,7 +3,7 @@ import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
 import { Error, TypeError } from "../errors";
 import Position from "../position";
-import type {NativeObj} from './primitives/primitive';
+import type {NativeObj} from './primitive';
 import {ESFunction, ESNumber, ESObject, ESPrimitive, ESUndefined, Primitive} from './primitiveTypes';
 
 function callNode (self: ESFunction, context: Context, fn: Node) {

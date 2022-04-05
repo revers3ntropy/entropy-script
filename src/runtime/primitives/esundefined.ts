@@ -9,10 +9,10 @@ import {ESNumber} from './esnumber';
 import {ESObject} from './esobject';
 import {ESString} from './esstring';
 import { ESType, ESTypeIntersection, ESTypeUnion } from './estype';
-import {ESPrimitive} from './esprimitive';
-import {Primitive} from './primitive';
+import {ESPrimitive} from '../esprimitive';
+import {Primitive} from '../primitive';
 import { funcProps, str } from '../../util/util';
-import { wrap } from "./wrapStrip";
+import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
 
 export class ESUndefined extends ESPrimitive <undefined> {

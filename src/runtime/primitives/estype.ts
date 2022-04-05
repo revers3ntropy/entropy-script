@@ -1,13 +1,13 @@
-import {ESPrimitive} from './esprimitive';
+import {ESPrimitive} from '../esprimitive';
 import { Error, InvalidOperationError, TypeError } from '../../errors';
 import {createInstance} from '../instantiator';
 import {ESBoolean} from './esboolean';
 import type {ESFunction} from './esfunction';
 import {ESObject} from './esobject';
 import {ESString} from './esstring';
-import type {Primitive, typeName} from './primitive';
+import type {Primitive, typeName} from '../primitive';
 import type {dict, funcProps} from '../../util/util';
-import { wrap } from "./wrapStrip";
+import { wrap } from "../wrapStrip";
 import Position from "../../position";
 import {str} from "../../util/util";
 import { types } from "../../util/constants";

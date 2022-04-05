@@ -3,8 +3,8 @@ import { Context } from "./context";
 import type { dict, funcProps } from '../util/util';
 import { EndIterator, Error, TypeError } from "../errors";
 import Position from "../position";
-import type {NativeObj} from './primitives/primitive';
-import {wrap} from './primitives/wrapStrip';
+import type {NativeObj} from './primitive';
+import {wrap} from './wrapStrip';
 import {
     ESArray,
     ESBoolean, ESErrorPrimitive,

@@ -1,6 +1,6 @@
 import { Error, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import Position from "../position";
-import {wrap} from './primitives/wrapStrip';
+import {wrap} from './wrapStrip';
 import { ESArray, ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
 import {dict, str} from "../util/util";
 import {ESSymbol, symbolOptions} from './symbol';
