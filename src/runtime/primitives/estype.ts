@@ -66,7 +66,7 @@ export class ESType extends ESPrimitive <undefined> {
         return new ESBoolean(type === types.type);
     }
 
-    override cast = () => {
+    override cast = (): Error => {
         return new InvalidOperationError('cast', this);
     }
 
@@ -90,7 +90,9 @@ export class ESType extends ESPrimitive <undefined> {
             return new ESBoolean(true);
         }
 
-        if (!t) return new ESBoolean();
+        if (!t) {
+            return new ESBoolean();
+        }
 
         if (
             this === types.any ||
@@ -100,7 +102,7 @@ export class ESType extends ESPrimitive <undefined> {
         }
 
         if (this.__extends__) {
-            return t.__subtype_of__(props, this.__extends__);
+            return this.__extends__.__subtype_of__(props, t);
         }
         return new ESBoolean();
     }

@@ -33,3 +33,30 @@ expect(['A', 'B', {}, {}, false, false, false, false, false, false, false, true,
     A.__subtype_of__(B);
     B.__subtype_of__(A);
 `);
+expect(['', true, true, false, true], `
+    let a = '';
+    a.__subtype_of__(Str);
+    a.__subtype_of__(Any);
+    a.__subtype_of__(' ');
+    a.__subtype_of__('');
+`);
+expect(['Str', true, true, false, false], `
+    let a = Str;
+    a.__subtype_of__(Str);
+    a.__subtype_of__(Any);
+    a.__subtype_of__(' ');
+    a.__subtype_of__('');
+`);
+expect(['(Str) | (Str)', true, true, '(Str) & (Str)', true, "(Str) | ('')", false, "('hi') | ('')", false, "('hi') | (1)", false], `
+    let var a: Any = Str | Str;
+    a.__subtype_of__(Str);
+    a.__subtype_of__(Str | Str);
+    a = Str & Str;
+    a.__subtype_of__(Str);
+    a = Str & '';
+    a.__subtype_of__(Str);
+    a = 'hi' |  '';
+    a.__subtype_of__(Str);
+    a = 'hi' | 1;
+    a.__subtype_of__(Str);
+`);

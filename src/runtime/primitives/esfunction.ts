@@ -191,7 +191,8 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             }
 
             for (let i = 0; i < nPosArgs.length; i++) {
-                let typeCheckRes = thisPosArgs[i].type.__subtype_of__(props, nPosArgs[i].type);
+
+                let typeCheckRes = nPosArgs[i].type.__subtype_of__(props, thisPosArgs[i].type);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes.__value__) {
                     return new ESBoolean();
@@ -212,7 +213,11 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
                 let nKwarg = nKwargs.find(n => n.name === name);
                 if (!nKwarg) return new ESBoolean();
 
-                let typeCheckRes = thisKwargs.find(n => n.name === name)?.type.__subtype_of__(props, nKwarg.type);
+                let thisKwargType = thisKwargs.find(n => n.name === name)?.type;
+                if (!thisKwargType) {
+                    return new ESBoolean();
+                }
+                let typeCheckRes = nKwarg.type.__subtype_of__(props, thisKwargType);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes?.__value__) {
                     return new ESBoolean();
@@ -225,7 +230,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         if (thisReturnVal instanceof Error) {
             return thisReturnVal;
         }
-        let eqRes = thisReturnVal.__subtype_of__(props, n.__returns__);
+        let eqRes = n.__returns__.__subtype_of__(props, thisReturnVal);
         if (eqRes instanceof Error) return eqRes;
         return new ESBoolean(eqRes.__value__);
     };
