@@ -1,6 +1,5 @@
 import type {ESType} from './primitives/estype';
 import {Error, InvalidOperationError, TypeError} from '../errors';
-
 import Position from '../position';
 import {ESBoolean} from './primitives/esboolean';
 import type {ESString} from './primitives/esstring';
@@ -164,6 +163,6 @@ export abstract class ESPrimitive <T> {
     };
 
     abstract __includes__: (props: funcProps, n: Primitive) => ESBoolean | Error;
+
+    abstract __subtype_of__: (props: funcProps, n: Primitive) => ESBoolean | Error;
 }
-
-

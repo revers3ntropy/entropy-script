@@ -130,8 +130,6 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         this.__value__[idx] = value;
     }
 
-    // Util
-
     /**
      * Uses JS Array.prototype.includes
      */
@@ -164,7 +162,22 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
                 return new ESBoolean();
             }
         }
-        return new ESBoolean(true)
+        return new ESBoolean(true);
+    }
+
+    override __subtype_of__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+        if (!(n instanceof ESArray) || this.len().__value__ !== n.len().__value__) {
+            return new ESBoolean();
+        }
+
+        for (let i = 0; i < this.__value__.length; i++) {
+            const res = this.__value__[i].__subtype_of__(props, n.__value__[i]);
+            if (res instanceof Error) return res;
+            if (!res.__value__) {
+                return new ESBoolean();
+            }
+        }
+        return new ESBoolean(true);
     }
 
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
@@ -198,12 +211,12 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
 }
 
 export class ESTypeArray extends ESType {
-    private readonly type: Primitive;
-    private numElements: number = -1;
+    private readonly __t__: Primitive;
+    private __n_elements__: number = -1;
 
     constructor (type: Primitive) {
         super(false, `Array[${str(type)}]`);
-        this.type = type;
+        this.__t__ = type;
     }
 
     override __call__ = (): Error | Primitive => {
@@ -215,18 +228,46 @@ export class ESTypeArray extends ESType {
             return new ESBoolean();
         }
 
-        if (this.numElements >= 0) {
-            if (t.__value__.length !== this.numElements) {
-                return new TypeError(
-                    Position.void,
-                    `Array[${str(this.type)}][${this.numElements}]`,
+        if (this.__n_elements__ >= 0) {
+            if (t.__value__.length !== this.__n_elements__) {
+                return new TypeError(Position.void,
+                    `Array[${str(this.__t__)}][${this.__n_elements__}]`,
                     `Array[Any][${t.__value__.length}]`
                 );
             }
         }
 
         for (const element of t.__value__) {
-            let typeRes = this.type.__includes__(props, element);
+            let typeRes = this.__t__.__includes__(props, element);
+            if (typeRes instanceof Error) return typeRes;
+            if (!typeRes.__value__) {
+                return new ESBoolean();
+            }
+        }
+
+        return new ESBoolean(true);
+    }
+
+    override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+        if (Object.is(t, types.any) || Object.is(t, types.array)) {
+            return new ESBoolean(true);
+        }
+
+        if (!(t instanceof ESArray)) {
+            return new ESBoolean();
+        }
+
+        if (this.__n_elements__ >= 0) {
+            if (t.__value__.length !== this.__n_elements__) {
+                return new TypeError(Position.void,
+                    `Array[${str(this.__t__)}][${this.__n_elements__}]`,
+                    `Array[Any][${t.__value__.length}]`
+                );
+            }
+        }
+
+        for (const element of t.__value__) {
+            let typeRes = this.__t__.__subtype_of__(props, element);
             if (typeRes instanceof Error) return typeRes;
             if (!typeRes.__value__) {
                 return new ESBoolean();
@@ -237,7 +278,7 @@ export class ESTypeArray extends ESType {
     }
 
     override clone = () => {
-        return new ESTypeArray(this.type);
+        return new ESTypeArray(this.__t__);
     }
 
     override __get__ = (props: funcProps, key: Primitive) => {
@@ -249,7 +290,7 @@ export class ESTypeArray extends ESType {
             return new TypeError(Position.void, 'Number', key.__type_name__(), str(key));
         }
 
-        this.numElements = key.__value__;
+        this.__n_elements__ = key.__value__;
 
         return this;
     }

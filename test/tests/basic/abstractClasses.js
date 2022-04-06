@@ -246,26 +246,3 @@ expect('TypeError', `
     };
     B();
 `);
-expect('TypeError', `
-    abstract class A {
-        thing: Num;
-        name: Str;
-        
-        init (name: Str) {
-            this.name = name;
-        }
-        
-        speak: func (*, **) Any;
-    };
-    class B extends A {
-        init () {
-            super('something');
-            this.thing = 1;
-        }
-        
-        speak (level=1): Str {
-            return this.name + level.str();
-        }
-    };
-    B();
-`);

@@ -124,6 +124,13 @@ export class ESString extends ESPrimitive <string> implements ESIterable{
 
     override __includes__ = this.__eq__;
 
+    override __subtype_of__ = (props: funcProps, n: Primitive) => {
+        if (Object.is(n, types.any) || Object.is(n, types.string)) {
+            return new ESBoolean(true);
+        }
+        return this.__eq__(props, n);
+    };
+
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }

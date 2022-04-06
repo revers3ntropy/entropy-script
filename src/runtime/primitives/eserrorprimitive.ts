@@ -1,5 +1,5 @@
 import {ESPrimitive} from '../esprimitive';
-import { Error, IndexError } from '../../errors';
+import {Error, IndexError, InvalidOperationError, TypeError} from '../../errors';
 import Position from '../../position';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
@@ -56,8 +56,14 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
 
     override clone = () => new ESErrorPrimitive(this.__value__);
 
-    override __includes__ = this.__eq__;
+    override __includes__ = (): Error => new InvalidOperationError('type check', this, 'Cannot type check against an error instance');
 
+    override __subtype_of__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+        if (Object.is(n, types.any)) {
+            return new ESBoolean(true);
+        }
+        return new InvalidOperationError('type check', this, 'Cannot type check against an error instance');
+    }
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }

@@ -82,18 +82,26 @@ export class ESType extends ESPrimitive <undefined> {
             return new ESBoolean(true);
         }
 
-        while (t instanceof ESType) {
-            let eqRes = t.__extends__?.__eq__(props, this);
-            if (eqRes instanceof Error) return eqRes;
-            if (eqRes?.__value__ === true) {
-                return new ESBoolean(true);
-            }
-            if (!t.__extends__) {
-                break;
-            }
-            t = t.__extends__;
+        return t.__subtype_of__(props, this);
+    }
+
+    override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+        if (Object.is(t, types.any)) {
+            return new ESBoolean(true);
         }
 
+        if (!t) return new ESBoolean();
+
+        if (
+            this === types.any ||
+            this === t
+        ) {
+            return new ESBoolean(true);
+        }
+
+        if (this.__extends__) {
+            return t.__subtype_of__(props, this.__extends__);
+        }
         return new ESBoolean();
     }
 
@@ -211,6 +219,22 @@ export class ESTypeUnion extends ESType {
         );
     }
 
+    override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+        if (Object.is(t, types.any)) {
+            return new ESBoolean(true);
+        }
+
+        const leftRes = this.__left__.__subtype_of__(props, t);
+        const rightRes = this.__right__.__subtype_of__(props, t);
+        if (leftRes instanceof Error) return leftRes;
+        if (rightRes instanceof Error) return rightRes;
+
+        return new ESBoolean(
+            leftRes.__value__ &&
+            rightRes.__value__
+        );
+    }
+
     override clone = (): ESType => {
         return new ESTypeUnion(this.__left__, this.__right__);
     }
@@ -256,6 +280,22 @@ export class ESTypeIntersection extends ESType {
         );
     }
 
+    override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+        if (t === types.any) {
+            return new ESBoolean(true);
+        }
+
+        const leftRes = this.__left__.__subtype_of__(props, t);
+        const rightRes = this.__right__.__subtype_of__(props, t);
+        if (leftRes instanceof Error) return leftRes;
+        if (rightRes instanceof Error) return rightRes;
+
+        return new ESBoolean(
+            leftRes.__value__ ||
+            rightRes.__value__
+        );
+    }
+
     override clone = () => {
         return new ESTypeIntersection(this.__left__, this.__right__);
     }
@@ -292,12 +332,24 @@ export class ESTypeNot extends ESType {
         return new ESBoolean(!res.__value__);
     }
 
+    override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+        if (Object.is(t, types.any)) {
+            return new ESBoolean(true);
+        }
+        const res = this.__val__.__subtype_of__(props, t);
+        if (res instanceof Error) return res;
+
+        return new ESBoolean(!res.__value__);
+    }
+
     override clone = () => {
         return new ESTypeNot(this.__val__);
     }
 
     override __eq__ = (props: funcProps, t: Primitive) => {
-        if (!(t instanceof ESTypeNot)) return new ESBoolean();
+        if (!(t instanceof ESTypeNot)) {
+            return new ESBoolean();
+        }
 
         let typeCheckRes = this.__val__.__eq__(props, t.__val__);
         if (typeCheckRes instanceof Error) {

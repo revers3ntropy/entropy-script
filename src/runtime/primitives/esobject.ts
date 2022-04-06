@@ -219,6 +219,33 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         return new cls(true);
     };
 
+    override __subtype_of__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+        if (Object.is(n, types.any) || Object.is(n, types.object)) {
+            return new ESBoolean(true);
+        }
+        if (!(n instanceof ESObject)) {
+            return new ESBoolean();
+        }
+
+        if (Object.keys(this.__value__).length < Object.keys(n.__value__).length) {
+            return new ESBoolean();
+        }
+
+        for (let key of Object.keys(this.__value__)) {
+            const thisType = this.__value__[key] ?? new ESUndefined();
+            const nValue = n.__value__[key] ?? new ESUndefined();
+
+            let typeCheckRes = thisType.__subtype_of__(props, nValue);
+            if (typeCheckRes instanceof Error) return typeCheckRes;
+            if (!typeCheckRes.__value__) {
+                return new ESBoolean();
+            }
+        }
+
+        let cls: any = this.constructor;
+        return new cls(true);
+    };
+
     override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
@@ -250,6 +277,31 @@ export class ESInterface extends ESObject {
             const nValue = n.__value__[key];
 
             let typeCheckRes = thisType.__includes__(props, nValue);
+            if (typeCheckRes instanceof Error) return typeCheckRes;
+            if (!typeCheckRes.__value__) {
+                return new ESBoolean();
+            }
+        }
+
+        return new ESBoolean(true);
+    };
+
+    override __subtype_of__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+        if (Object.is(n, types.any) || Object.is(n, types.object)) {
+            return new ESBoolean(true);
+        }
+        if (!(n instanceof ESObject)) {
+            return new ESBoolean();
+        }
+
+        for (let key of Object.keys(this.__value__)) {
+            if (!n.__value__.hasOwnProperty(key)) {
+                return new ESBoolean();
+            }
+            const thisType = this.__value__[key];
+            const nValue = n.__value__[key];
+
+            let typeCheckRes = thisType.__subtype_of__(props, nValue);
             if (typeCheckRes instanceof Error) return typeCheckRes;
             if (!typeCheckRes.__value__) {
                 return new ESBoolean();
