@@ -2,7 +2,7 @@ import {global} from '../util/constants';
 import {ESBoolean, ESJSBinding, run} from '../index';
 import Position from '../position';
 import {Context} from '../runtime/context';
-import {interpretResult} from '../runtime/nodes';
+import {InterpretResult} from '../runtime/nodes';
 import {ESNamespace} from '../runtime/primitives/esnamespace';
 import {ESString} from '../runtime/primitives/esstring';
 import type { dict } from "../util/util";
@@ -52,7 +52,7 @@ export async function preloadModules (urls: dict<any>): Promise<Error | undefine
             // before running the code to prevent circular imports going unchecked
             loadedURls[url] = n;
 
-            const res: interpretResult = run(data, {
+            const res: InterpretResult = run(data, {
                 env,
                 fileName: name,
                 currentDir: exDir,

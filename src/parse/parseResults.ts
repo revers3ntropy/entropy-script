@@ -28,10 +28,7 @@ export class ParseResults {
         if (res.error) {
             this.error = res.error;
         }
-        if (!res.node) {
-            return new N_undefined();
-        }
-        return res.node;
+        return res.node || new N_undefined();
     }
 
     tryRegister (res: ParseResults) {

@@ -15,7 +15,7 @@ export class ESString extends ESPrimitive <string> implements ESIterable {
     override __iterable__ = true;
 
     constructor (value: string = '') {
-        super(value, types.string);
+        super(value.toString(), types.string);
     }
 
     override str = () => this;

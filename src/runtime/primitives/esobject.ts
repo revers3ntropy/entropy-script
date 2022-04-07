@@ -171,7 +171,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         return new IndexError(str(key), this);
     };
 
-    override __set__ = ({}: funcProps, key: Primitive, value: Primitive): void | Error => {
+    override __set__ = (props: funcProps, key: Primitive, value: Primitive): void | Error => {
         if (!(key instanceof ESString)) {
             return new TypeError('String', key.__type_name__(), str(key));
         }

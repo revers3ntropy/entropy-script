@@ -2,19 +2,19 @@ const {expect, file} = require( '../../testFramework');
 file('typing/arrays');
 
 expect([['hi']], `
-    let arr: (Arr[Str]) = ['hi'];
+    let arr: Arr[Str] = ['hi'];
 `);
 
 expect('TypeError', `
-    let arr: (Arr[Str]) = ['hi', 1];
+    let arr: Arr[Str] = ['hi', 1];
 `);
 
 expect('TypeError', `
-    let arr: (Arr[Str & 'hello']) = ['hi'];
+    let arr: Arr[Str & 'hello'] = ['hi'];
 `);
 
 expect([['hi', {}]], `
-    let arr: (Arr[Str | {}]) = ['hi', {}];
+    let arr: Arr[Str | {}] = ['hi', {}];
 `);
 
 expect('TypeError', `

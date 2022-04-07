@@ -11,7 +11,7 @@ import {
     Primitive,
 } from '../runtime/primitiveTypes';
 import { funcProps, str } from "../util/util";
-import {interpretResult} from "../runtime/nodes";
+import {InterpretResult} from "../runtime/nodes";
 import {config, libs, run, strip} from '../index';
 import { getModule, moduleExist } from './builtInModules';
 import { global, types, VALID_FILE_ENCODINGS } from "../util/constants";
@@ -123,7 +123,7 @@ const import_ = (props: funcProps, rawPath: Primitive): Error | Primitive | unde
 
         const n = new ESNamespace(new ESString(scriptPath), {});
 
-        const res: interpretResult = run(code, {
+        const res: InterpretResult = run(code, {
             env,
             fileName: scriptPath,
             currentDir: exDir,

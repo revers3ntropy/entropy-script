@@ -3,13 +3,13 @@ import { ParseResults } from './parseResults';
 import { Token } from "./tokens";
 import * as n from '../runtime/nodes';
 import {
-    N_functionDefinition,
+    N_functionDefinition, N_indexed,
     N_namespace,
-    N_primitiveWrapper,
+    N_primitiveWrapper, N_string,
     N_tryCatch,
-    N_undefined,
+    N_undefined, N_varAssign,
     N_variable,
-    Node
+    Node,
 } from '../runtime/nodes';
 import { Error, InvalidSyntaxError } from "../errors";
 import Position from "../position";
@@ -163,7 +163,29 @@ export class Parser {
             return res;
         }
 
-        return res.success(expr);
+        if (this.currentToken.type !== tt.ASSIGN) {
+            return res.success(expr);
+        }
+
+        let assignPos = this.currentToken.pos;
+        let assignType = this.currentToken.value;
+
+        this.advance(res);
+
+        let value = res.register(this.expr());
+        if (res.error) return res;
+
+        if (expr instanceof N_variable) {
+            return res.success(new N_varAssign(assignPos, expr.a, value, assignType));
+
+        } else if (expr instanceof N_indexed) {
+            expr.assignType = assignType;
+            expr.value = value;
+            return res.success(expr);
+
+        } else {
+            return res.failure(new InvalidSyntaxError('Cannot assign to this value. Expected identifier or index'), assignPos);
+        }
     }
 
     private returnStatement (res: ParseResults, isYield = false) {
@@ -199,18 +221,16 @@ export class Parser {
                 return res.success(new n.N_string(pos, tok));
 
             case tt.IDENTIFIER:
-                return this.atomIdentifier(res, pos, tok);
+                this.advance();
+                return res.success(new n.N_variable(tok));
 
             case tt.OPAREN:
                 this.advance(res);
                 const expr = res.register(this.expr());
                 if (res.error) return res;
-                if (this.currentToken.type === tt.CPAREN) {
-                    this.advance(res);
-                    return res.success(expr);
-                }
-                return res.failure(new InvalidSyntaxError(
-                    "Expected ')'"), this.currentToken.pos);
+                this.consume(res, tt.CPAREN);
+                if (res.error) return res;
+                return res.success(expr);
 
             case tt.OSQUARE:
                 let arrayExpr = res.register(this.array());
@@ -229,101 +249,56 @@ export class Parser {
                     return res.success(expr);
                 }
                 return res.failure(new InvalidSyntaxError(
-                    `Invalid Identifier ${tok.value}`), this.currentToken.pos);
+                    `keyword '${tok.value}' not valid here`), this.currentToken.pos);
 
             default:
                 return res.failure(new InvalidSyntaxError(
-                    `Expected number, identifier, '(', '+' or '-'`), this.currentToken.pos);
+                    `Expected number, array, object literal, 'if', string or brackets`), this.currentToken.pos);
         }
     }
 
-    private atomIdentifier (res: ParseResults, pos: Position, tok: Token<string>) {
-        this.advance(res);
-
-        let node: Node = new n.N_variable(tok);
-
-        let prevNode: Node = new n.N_undefined(pos);
-
-        let functionCall = false;
-
-        while ([tt.OPAREN, tt.OSQUARE, tt.DOT].indexOf(this.currentToken.type) !== -1) {
-            switch (this.currentToken.type) {
-                case tt.OPAREN:
-                    functionCall = true;
-                    const tempNode = node;
-                    node = res.register(this.makeFunctionCall(node));
-                    prevNode = tempNode;
-                    if (res.error) return res;
-                    break;
-
-                case tt.OSQUARE:
-                    prevNode = node;
-                    node = res.register(this.makeIndex(node));
-                    if (res.error) return res;
-                    break;
-
-                case tt.DOT:
-                    this.advance(res);
-                    // @ts-ignore
-                    if (this.currentToken.type !== tt.IDENTIFIER) {
-                        return res.failure(new InvalidSyntaxError(
-                            `Expected identifier after '.'`
-                        ), this.currentToken.pos);
-                    }
-
-                    prevNode = node;
-                    node = new n.N_indexed(
-                        this.currentToken.pos,
-                        node,
-                        new n.N_string(
-                            this.currentToken.pos,
-                            this.currentToken
-                        )
-                    );
-                    this.advance(res);
-            }
+    /**
+     * Gets atom, and then either '(', '[', or '.' after.
+     * @returns {ParseResults}
+     * @private
+     */
+    private compound (base?: Node): ParseResults {
+        let res = new ParseResults();
+        if (!base)  {
+            base = res.register(this.atom());
         }
+        if (res.error) return res;
 
-        if (this.currentToken.type === tt.ASSIGN) {
-            let assignType = this.currentToken.value;
-            if (functionCall) {
-                return res.failure(new InvalidSyntaxError(
-                    `Cannot assign to return value of function`), pos);
-            }
-            this.advance(res);
-            const value = res.register(this.expr());
-            if (res.error) {
-                return res;
-            }
-
-            if (node instanceof n.N_variable) {
-                node = new n.N_varAssign(
-                    pos,
-                    node.a,
-                    value,
-                    assignType,
-                    false
-                );
-
-            } else if (node instanceof n.N_indexed) {
-                node.value = value;
-                node.assignType = assignType;
-            } else {
-                return res.failure(new InvalidSyntaxError(
-                    `Cannot have node of type ${this.currentToken.constructor.name}.
-                            Expected either index or variable node.`
-                ), pos)
-            }
-
+        if (this.currentToken.type === tt.OPAREN) {
+            let call = res.register(this.makeFunctionCall(base));
             if (res.error) return res;
-        }
+            return this.compound(call);
 
-        return res.success(node);
+        } else if (this.currentToken.type === tt.OSQUARE) {
+            let call = res.register(this.makeIndex(base));
+            if (res.error) return res;
+            return this.compound(call);
+
+        } else if (this.currentToken.type === tt.DOT) {
+            this.advance(res);
+
+            let index = this.currentToken;
+            this.consume(res, tt.IDENTIFIER);
+
+            return this.compound(new n.N_indexed(
+                this.currentToken.pos,
+                base,
+                new N_string(this.currentToken.pos, index)
+            ));
+
+        } else {
+            return res.success(base);
+        }
     }
 
     private power () {
          return this.binOp(
-             () => this.atom(),
+             () => this.compound(),
              [tt.POW, tt.MOD, tt.APMERSAND, tt.PIPE],
              () => this.factor()
          );
@@ -489,7 +464,6 @@ export class Parser {
             }
         }
 
-
         // @ts-ignore
         if (this.currentToken.type !== tt.CPAREN) {
             return res.failure(new InvalidSyntaxError(
@@ -536,12 +510,6 @@ export class Parser {
     }
 
     private typeExpr () {
-        let res = new ParseResults();
-        if (this.currentToken.type === tt.IDENTIFIER) {
-            const tok = this.currentToken;
-            this.advance(res);
-            return res.success(new N_variable(tok));
-        }
         return this.expr();
     }
 
@@ -689,7 +657,9 @@ export class Parser {
 
         // @ts-ignore
         if (this.currentToken.type === tt.COLON) {
-            isDeclaration = true;
+            if (!isDeclaration) {
+                return res.failure(new InvalidSyntaxError('Cannot type variable outside declaration'));
+            }
             this.consume(res, tt.COLON);
             type = res.register(this.typeExpr());
         }
