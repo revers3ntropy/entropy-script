@@ -1,5 +1,5 @@
-import type {ESFunction} from '../runtime/primitives/esfunction.js';
-import type {ESType} from '../runtime/primitives/estype.js';
+import type {ESFunction} from '../runtime/primitives/esfunction';
+import type {ESType} from '../runtime/primitives/estype';
 import { IS_NODE_INSTANCE, libs } from '../util/constants';
 import {Error} from '../errors';
 import type {NativeModuleBuilder} from './module';

@@ -1,5 +1,4 @@
 import {Error, TypeError} from '../../errors';
-import Position from '../../position';
 import { funcProps, str } from '../../util/util';
 import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
@@ -26,7 +25,7 @@ export class ESString extends ESPrimitive <string> implements ESIterable {
             case types.number:
                 const num = parseFloat(this.__value__);
                 if (isNaN(num)) {
-                    return new Error(Position.void, 'TypeError', `This string is not a valid number`);
+                    return new Error('TypeError', `This string is not a valid number`);
                 }
                 return new ESNumber(num);
             case types.string:
@@ -34,19 +33,19 @@ export class ESString extends ESPrimitive <string> implements ESIterable {
             case types.array:
                 return new ESArray(this.__value__.split('').map(s => new ESString(s)));
             default:
-                return new Error(Position.void, 'TypeError', `Cannot cast to type '${str(type.__type_name__())}'`);
+                return new Error('TypeError', `Cannot cast to type '${str(type.__type_name__())}'`);
         }
     }
 
     override __add__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError(Position.void, 'String', n.__type_name__(), n.__value__);
+            return new TypeError('String', n.__type_name__(), n.__value__);
         }
         return new ESString(this.__value__ + n.__value__);
     };
     override __multiply__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.__type_name__(), n.__value__);
+            return new TypeError('Number', n.__type_name__(), n.__value__);
         }
         return new ESString(this.__value__.repeat(n.__value__));
     };
@@ -58,13 +57,13 @@ export class ESString extends ESPrimitive <string> implements ESIterable {
     };
     override __gt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError(Position.void, 'String', n.__type_name__(), n.__value__);
+            return new TypeError('String', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__.length > n.__value__.length);
     };
     override __lt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError(Position.void, 'String', n.__type_name__(), n.__value__);
+            return new TypeError('String', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__.length < n.__value__.length);
     };

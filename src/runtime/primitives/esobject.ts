@@ -1,5 +1,4 @@
 import { Error, IndexError, TypeError } from '../../errors';
-import Position from '../../position';
 import { dict, funcProps, str } from '../../util/util';
 import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
@@ -27,7 +26,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             case types.number:
                 return new ESNumber(this.__value__ ? 1 : 0);
             default:
-                return new Error(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.__type_name__())}'`);
+                return new Error('TypeError', `Cannot cast boolean to type '${str(type.__type_name__())}'`);
         }
     }
 
@@ -88,7 +87,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
     override __add__ = (props: funcProps, n: Primitive) => {
 
         if (!(n instanceof ESObject)) {
-            return new TypeError(Position.void, 'Object', n.__type_name__(), n);
+            return new TypeError('Object', n.__type_name__(), n);
         }
 
         let newOb: dict<Primitive> = {};
@@ -131,11 +130,11 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         } else if (n instanceof ESArray) {
             keysToRemove = strip(n, props);
         } else {
-            return new TypeError(Position.void, 'Array | String', n.__type_name__(), n);
+            return new TypeError('Array | String', n.__type_name__(), n);
         }
 
         if (!Array.isArray(keysToRemove)) {
-            return new TypeError(Position.void, 'Array | String', n.__type_name__(), n);
+            return new TypeError('Array | String', n.__type_name__(), n);
         }
 
         let newOb: dict<Primitive> = {};
@@ -156,7 +155,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
 
     override __get__ = (props: funcProps, k: Primitive): Primitive| Error => {
         if (!(k instanceof ESString) && !(k instanceof ESNumber)) {
-            return new TypeError(Position.void, 'String | Number', k.__type_name__(), str(k));
+            return new TypeError('String | Number', k.__type_name__(), str(k));
         }
 
         const key: string | number = k.__value__;
@@ -169,12 +168,12 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             return wrap(this._[str(key)], true);
         }
 
-        return new IndexError(Position.void, str(key), this);
+        return new IndexError(str(key), this);
     };
 
     override __set__ = ({}: funcProps, key: Primitive, value: Primitive): void | Error => {
         if (!(key instanceof ESString)) {
-            return new TypeError(Position.void, 'String', key.__type_name__(), str(key));
+            return new TypeError('String', key.__type_name__(), str(key));
         }
         this.__value__[key.__value__] = value;
     }
@@ -313,7 +312,7 @@ export class ESInterface extends ESObject {
     };
 
     override __set__ = (props: funcProps, key: Primitive): void | Error => {
-        return new TypeError(Position.void, 'Mutable', 'Immutable', str(key));
+        return new TypeError('Mutable', 'Immutable', str(key));
     }
 
     override str = (depth = new ESNumber) => {

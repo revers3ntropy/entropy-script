@@ -28,21 +28,21 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             try {
                 return new ESArray([...Array(min).keys()].map(n => new ESNumber(n)));
             } catch (e) {
-                return new Error(Position.void, 'RangeError', `Cannot make range of length '${str(min)}'`);
+                return new Error('RangeError', `Cannot make range of length '${str(min)}'`);
             }
         }
 
         let step = 1;
 
         if (!(maxP instanceof ESNumber)) {
-            return new TypeError(Position.void, 'number', maxP.__type_name__(), str(maxP));
+            return new TypeError('number', maxP.__type_name__(), str(maxP));
         }
 
         let max = maxP.__value__;
 
         if (!(stepP instanceof ESUndefined)) {
             if (!(stepP instanceof ESNumber)) {
-                return new TypeError(Position.void, 'number', stepP.__type_name__(), str(stepP));
+                return new TypeError('number', stepP.__type_name__(), str(stepP));
             }
             step = stepP.__value__;
         }
@@ -84,11 +84,11 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         try {
             const val: number = parseFloat(str(num));
             if (isNaN(val)) {
-                return new Error(Position.void, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
+                return new Error('TypeError', `Cannot convert '${str(num)}' to a number.`)
             }
             return new ESNumber(val);
         } catch (e) {
-            return new Error(Position.void, 'TypeError', `Cannot convert '${str(num)}' to a number.`)
+            return new Error('TypeError', `Cannot convert '${str(num)}' to a number.`)
         }
     }, {
         args: [{
@@ -212,7 +212,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
 
     using: [(props: funcProps, module, global_) => {
         if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding) && !(module instanceof ESObject)) {
-            return new TypeError(Position.void, 'Namespace', str(module.__type_name__()));
+            return new TypeError('Namespace', str(module.__type_name__()));
         }
 
         let {context} = props;
@@ -244,7 +244,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
 
     sleep: [({context}, time, cb) => {
         if (!(time instanceof ESNumber)) {
-            return new TypeError(Position.void, 'number', str(time.__type_name__()), str(time));
+            return new TypeError('number', str(time.__type_name__()), str(time));
         }
 
         sleep(time.__value__)
@@ -267,7 +267,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         if (name instanceof ESErrorPrimitive) {
             return name.__value__;
         }
-        return new Error(Position.void, str(name), str(details));
+        return new Error(str(name), str(details));
     }, {
         name: 'throw',
         args: [
@@ -278,19 +278,19 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
 
     typeof: [({context}, symbolPrim) => {
         if (!(symbolPrim instanceof ESString)) {
-            return new TypeError(Position.void, 'Str', symbolPrim.__type_name__(), str(symbolPrim));
+            return new TypeError('Str', symbolPrim.__type_name__(), str(symbolPrim));
         }
 
         let symbol = str(symbolPrim);
 
         if (!context.has(symbol)) {
-            return new ReferenceError(Position.void, symbol);
+            return new ReferenceError(symbol);
         }
 
         let res = context.getSymbol(symbol);
 
         if (!res) {
-            return new ReferenceError(Position.void, symbol);
+            return new ReferenceError(symbol);
         }
         if (res instanceof Error) {
             return res;
@@ -306,7 +306,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
 
     interface: [({context}, val) => {
         if (!(val instanceof ESObject)) {
-            return new TypeError(Position.void, 'Obj', val.__type_name__(), str(val));
+            return new TypeError('Obj', val.__type_name__(), str(val));
         }
         return new ESInterface(val.__value__);
     }, {
@@ -321,10 +321,10 @@ export function addDependencyInjectedBIFs (
 ) {
     builtInFunctions['import'] = [(props: funcProps, rawUrl) => {
         if (IS_NODE_INSTANCE) {
-            return new Error(Position.void, 'ImportError', 'Is running in node instance but trying to run browser import function');
+            return new Error('ImportError', 'Is running in node instance but trying to run browser import function');
         }
         if (!(rawUrl instanceof ESString)) {
-            return new TypeError(Position.void, 'String', rawUrl.__type_name__(), str(rawUrl));
+            return new TypeError('String', rawUrl.__type_name__(), str(rawUrl));
         }
         const url = str(rawUrl);
 
@@ -332,7 +332,7 @@ export function addDependencyInjectedBIFs (
             return getModule(url);
         }
 
-        return new ImportError(Position.void, url, 'Module not found. Try adding it to the pre-loaded modules.');
+        return new ImportError(url, 'Module not found. Try adding it to the pre-loaded modules.');
     }, {
         description: 'Loads a module. Cannot be used asynchronously, so add any modules to pre-load in the esconfig.json file.',
         args: [{name: 'path', type: 'String'}]
@@ -369,7 +369,7 @@ export function addDependencyInjectedBIFs (
     }];
     builtInFunctions['module'] = [(props, name, module) => {
         if (!(name instanceof ESString)) {
-            return new TypeError(Position.void, 'Str', name.__type_name__(), str(name));
+            return new TypeError('Str', name.__type_name__(), str(name));
         }
         if (module.__type__ === types.object) {
             addModule(str(name), new ESJSBinding(module.__value__, str(name), false));
@@ -378,7 +378,7 @@ export function addDependencyInjectedBIFs (
             addModule(str(name), module);
 
         } else {
-            return new TypeError(Position.void, 'Obj | Func', name.__type_name__(), str(name));
+            return new TypeError('Obj | Func', name.__type_name__(), str(name));
         }
     }, {
         args: [{name: 'msg', type: 'Str'}, {name: 'module', type: 'namespace'}]

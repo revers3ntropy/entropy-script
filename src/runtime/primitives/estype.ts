@@ -8,7 +8,6 @@ import {ESString} from './esstring';
 import type {Primitive, typeName} from '../primitive';
 import type {dict, funcProps} from '../../util/util';
 import { wrap } from "../wrapStrip";
-import Position from "../../position";
 import {str} from "../../util/util";
 import { types } from "../../util/constants";
 import { ESTypeArray } from "./esarray";
@@ -113,7 +112,7 @@ export class ESType extends ESPrimitive <undefined> {
 
     override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
         if (this.__abstract__) {
-            return new Error(Position.void, 'TypeError', 'Cannot construct abstract class');
+            return new Error('TypeError', 'Cannot construct abstract class');
         }
 
         let res = createInstance(this, props, params || []);
@@ -125,7 +124,7 @@ export class ESType extends ESPrimitive <undefined> {
             // Type Check
 
             if (!(res instanceof ESObject)) {
-                return new TypeError(Position.void,
+                return new TypeError(
                     'Obj', res.__type_name__(), str(res), 'Constructors must return an object');
             }
 
@@ -148,7 +147,7 @@ export class ESType extends ESPrimitive <undefined> {
             let typeCheckRes = res.isa(props, new ESObject(properties));
             if (typeCheckRes instanceof Error) return typeCheckRes;
             if (!typeCheckRes.__value__) {
-                return new Error(Position.void, 'TypeError', 'Initializer incorrectly assigned properties');
+                return new Error('TypeError', 'Initializer incorrectly assigned properties');
             }
         }
 
@@ -166,7 +165,7 @@ export class ESType extends ESPrimitive <undefined> {
             if (this === types.array) {
                 return new ESTypeArray(k);
             }
-            return new TypeError(Position.void, 'string', k.__type_name__(), str(k));
+            return new TypeError('string', k.__type_name__(), str(k));
         }
         const key = k.__value__;
         if (this._.hasOwnProperty(key)) {

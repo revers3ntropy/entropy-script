@@ -1,6 +1,5 @@
 import {ESPrimitive} from '../esprimitive';
 import {Error, IndexError, InvalidOperationError, TypeError} from '../../errors';
-import Position from '../../position';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
 import type {Primitive} from '../primitive';
@@ -12,7 +11,7 @@ import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESErrorPrimitive extends ESPrimitive <Error> {
-    constructor (error: Error = new Error(Position.void, 'Unknown', 'Error not specified')) {
+    constructor (error: Error = new Error('Unknown', 'Error not specified')) {
         super(error, types.error);
     }
 
@@ -33,12 +32,12 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
                 if (this._.hasOwnProperty(str(key))) {
                     return wrap(this._[str(key)], true);
                 }
-                return new IndexError(Position.void, key.__value__, this);
+                return new IndexError(key.__value__, this);
         }
     };
 
     override cast = () =>
-        new Error(Position.void, 'TypeError', `Cannot cast type 'error'`);
+        new Error('TypeError', `Cannot cast type 'error'`);
 
 
     override str = () =>

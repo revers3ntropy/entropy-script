@@ -1,7 +1,7 @@
-import {Error} from '../errors.js';
-import Position from '../position.js';
-import type {Primitive} from '../runtime/primitive.js';
-import {funcProps, str} from './util.js';
+import {Error} from '../errors';
+import Position from '../position';
+import type {Primitive} from '../runtime/primitive';
+import {funcProps, str} from './util';
 
 /**
  * Recursively checks properties until it finds an invalid match
@@ -20,5 +20,5 @@ export default function (props: funcProps, expectedType: Primitive, value: Primi
     if (reason === true) {
         reason = 'It... seem to be alright...';
     }
-    return new Error(Position.void, 'TypeError',  reason+ '\n' + msg);
+    return new Error('TypeError',  reason+ '\n' + msg);
 };

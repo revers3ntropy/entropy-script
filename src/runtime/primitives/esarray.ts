@@ -1,5 +1,4 @@
 import { EndIterator, Error, InvalidOperationError, TypeError } from '../../errors';
-import Position from '../../position';
 import { funcProps, str } from '../../util/util';
 import { ESBoolean } from './esboolean';
 import { ESNumber } from './esnumber';
@@ -33,7 +32,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
             case types.string:
                 return this.str();
             default:
-                return new Error(Position.void, 'TypeError', `Cannot cast 'Arr' to '${str(type)}'`);
+                return new Error('TypeError', `Cannot cast 'Arr' to '${str(type)}'`);
         }
     }
 
@@ -81,7 +80,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
 
     override __add__ = (props: funcProps, n: Primitive): ESArray | Error => {
         if (!(n instanceof ESArray)) {
-            return new TypeError(Position.void, 'array', n.__type_name__(), n);
+            return new TypeError('array', n.__type_name__(), n);
         }
 
         return new ESArray([...this.__value__, ...n.__value__]);
@@ -115,10 +114,6 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
     override __set__(props: funcProps, key: Primitive, value: Primitive): void {
         if (!(key instanceof ESNumber)) {
             return;
-        }
-
-        if (!(value instanceof ESPrimitive)) {
-            value = wrap(value);
         }
 
         let idx = key.__value__;
@@ -226,7 +221,7 @@ export class ESTypeArray extends ESType {
 
         if (this.__n_elements__ >= 0) {
             if (t.__value__.length !== this.__n_elements__) {
-                return new TypeError(Position.void,
+                return new TypeError(
                     `Array[${str(this.__t__)}][${this.__n_elements__}]`,
                     `Array[Any][${t.__value__.length}]`
                 );
@@ -255,7 +250,7 @@ export class ESTypeArray extends ESType {
 
         if (this.__n_elements__ >= 0) {
             if (t.__value__.length !== this.__n_elements__) {
-                return new TypeError(Position.void,
+                return new TypeError(
                     `Array[${str(this.__t__)}][${this.__n_elements__}]`,
                     `Array[Any][${t.__value__.length}]`
                 );
@@ -283,7 +278,7 @@ export class ESTypeArray extends ESType {
         }
 
         if (!(key instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', key.__type_name__(), str(key));
+            return new TypeError('Number', key.__type_name__(), str(key));
         }
 
         this.__n_elements__ = key.__value__;

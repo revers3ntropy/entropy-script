@@ -19,7 +19,6 @@ function callNode (self: ESFunction, context: Context, fn: Node) {
     if (typeCheckRes instanceof Error) return typeCheckRes;
     if (typeCheckRes.__value__ === false) {
         return new TypeError(
-            Position.void,
             str(self.__returns__),
             res.val?.__type_name__() || 'undefined',
             res.val?.str(new ESNumber).__value__,
@@ -87,6 +86,6 @@ export function call (
         return callNative(self, newContext, params, fn, kwargs);
 
     } else {
-        return new TypeError(Position.void, 'function', typeof fn);
+        return new TypeError('function', typeof fn);
     }
 }

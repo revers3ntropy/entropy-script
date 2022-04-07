@@ -19,7 +19,5 @@ expect(['<Func>', 'hello'], `
 			}
 		};
 	};
-	
 	my_func({c: ['hello', 'world']}).a.b;
-
 `);

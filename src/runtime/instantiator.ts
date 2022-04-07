@@ -15,7 +15,6 @@ import {
     ESUndefined,
     Primitive
 } from "./primitiveTypes";
-import { str } from "../util/util";
 
 /**
  * Adds the properties of a parent class to an instance of a child class
@@ -28,7 +27,6 @@ import { str } from "../util/util";
 function dealWithExtends (context: Context, class_: ESType, instance: ESObject, callContext: Context): Error | void {
     if (!(class_ instanceof ESType)) {
         return new TypeError(
-            Position.void,
             'Type',
             typeof class_,
             class_

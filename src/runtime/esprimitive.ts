@@ -151,7 +151,7 @@ export abstract class ESPrimitive <T> {
         const res = strip(info, props);
 
         if (typeof res !== 'object') {
-            return new TypeError(Position.void, 'object', this.__type_name__(), str(this));
+            return new TypeError('object', this.__type_name__(), str(this));
         }
 
         this.__info__ = {

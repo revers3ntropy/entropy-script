@@ -1,6 +1,5 @@
 import {Error, IndexError, TypeError} from '../../errors';
-import Position from '../../position';
-import { dict, funcProps } from '../../util/util';
+import type { dict, funcProps } from '../../util/util';
 import {ESSymbol} from '../symbol';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
@@ -11,7 +10,7 @@ import {wrap} from '../wrapStrip';
 import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 import { ESArray } from "./esarray";
-import { ESIterable } from "./esiterable";
+import type { ESIterable } from "./esiterable";
 import { ESNumber } from "./esnumber";
 
 export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterable {
@@ -25,7 +24,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
     }
 
     override cast = () => {
-        return new Error(Position.void, 'TypeError', `Cannot cast type 'namespace'`);
+        return new Error('TypeError', `Cannot cast type 'namespace'`);
     }
 
     get name () {
@@ -67,36 +66,36 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
         }
 
         if (!(key instanceof ESString)) {
-            return new TypeError(Position.void, 'string', key.__type_name__());
+            return new TypeError('string', key.__type_name__());
         }
 
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
 
-        return new IndexError(Position.void, key.__value__, this._);
+        return new IndexError(key.__value__, this._);
     };
 
     override __set__(props: funcProps, key: Primitive, value: Primitive): void | Error {
         if (!(key instanceof ESString)) {
-            return new TypeError(Position.void, 'string', key.__type_name__(), str(key));
+            return new TypeError('string', key.__type_name__(), str(key));
         }
 
         let idx = str(key);
 
         if (!this.__mutable__) {
-            return new TypeError(Position.void, 'mutable', 'immutable', `${str(this.name)}`);
+            return new TypeError('mutable', 'immutable', `${str(this.name)}`);
         }
 
         const symbol = this.__value__[idx];
         if (!symbol) {
-            return new Error(Position.void, 'SymbolError', `Symbol ${idx} is not declared in namespace ${str(this.name)}.`);
+            return new Error('SymbolError', `Symbol ${idx} is not declared in namespace ${str(this.name)}.`);
         }
         if (symbol.isConstant) {
-            return new TypeError(Position.void, 'mutable', 'immutable', `${str(this.name)}[${idx}]`);
+            return new TypeError('mutable', 'immutable', `${str(this.name)}[${idx}]`);
         }
         if (!symbol.isAccessible) {
-            return new TypeError(Position.void, 'accessible', 'inaccessible', `${str(this.name)}[${idx}]`);
+            return new TypeError('accessible', 'inaccessible', `${str(this.name)}[${idx}]`);
         }
 
         symbol.value = value;

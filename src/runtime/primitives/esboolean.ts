@@ -1,5 +1,4 @@
 import { Error, IndexError, TypeError } from '../../errors';
-import Position from '../../position';
 import {ESPrimitive} from '../esprimitive';
 import { funcProps, str } from '../../util/util';
 import {ESNumber} from './esnumber';
@@ -26,7 +25,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
-        return new IndexError(Position.void, key.__value__, this);
+        return new IndexError(key.__value__, this);
     };
 
     override cast = (props: funcProps, type: Primitive) => {
@@ -34,13 +33,13 @@ export class ESBoolean extends ESPrimitive <boolean> {
             case types.number:
                 return new ESNumber(this.__value__ ? 1 : 0);
             default:
-                return new Error(Position.void, 'TypeError', `Cannot cast boolean to type '${str(type.__type_name__())}'`);
+                return new Error('TypeError', `Cannot cast boolean to type '${str(type.__type_name__())}'`);
         }
     }
 
     override __eq__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESBoolean)) {
-            return new TypeError(Position.void, 'Boolean', n.__type_name__(), n.__value__);
+            return new TypeError('Boolean', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__ === n.__value__);
     };

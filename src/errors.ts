@@ -12,12 +12,11 @@ export interface TracebackFrame {
 export class Error {
     name: string;
     details: string;
-    pos: Position;
+    pos = Position.void;
 
     traceback: TracebackFrame[] = [];
 
-    constructor (pos: Position, name: string, details: string) {
-        this.pos = pos;
+    constructor (name: string, details: string) {
         this.name = name;
         this.details = details;
     }
@@ -37,24 +36,31 @@ export class Error {
     get str () {
         return `${this.name}: ${this.details} \n at ${this.pos.str}`;
     }
+
+    /**
+     * For easy adding of positions to errors
+     */
+    position (pos: Position) {
+        this.pos = pos;
+        return this;
+    }
 }
 
 export class IllegalCharError extends Error {
     constructor(char='<unknown>') {
-        super(Position.void, 'IllegalCharError', `'${char}'`);
+        super('IllegalCharError', `'${char}'`);
     }
 }
 
 export class InvalidSyntaxError extends Error {
     constructor(details='') {
-        super(Position.void,  'InvalidSyntaxError', details);
+        super('InvalidSyntaxError', details);
     }
 }
 
 export class TypeError extends Error {
     constructor(expectedType: string, actualType: string, value: any = '', detail = '') {
         super(
-            Position.void,
             'TypeError',
             `Expected type '${expectedType}', got type '${actualType}' ${
                 typeof value === 'undefined'? '' : ` on value '${str(value)}'`
@@ -65,60 +71,61 @@ export class TypeError extends Error {
 
 export class ImportError extends Error {
     constructor(url: string, detail = '') {
-        super(Position.void, 'ImportError',
+        super('ImportError',
             `Could not import ${url}: ${detail}`);
     }
 }
 
 export class ReferenceError extends Error {
     constructor(ref: string) {
-        super(Position.void,'ReferenceError',
+        super('ReferenceError',
             `${ref} is not defined`);
     }
 }
 
 export class IndexError extends Error {
     constructor(ref: string, object: Primitive) {
-        super(Position.void,'IndexError',
+        super('IndexError',
             `'${ref}' is not a property of '${(object?.__info__?.name) || str(object)}'`);
     }
 }
 
 export class InvalidOperationError extends Error {
     constructor(op: string, value: Primitive, detail: string = '', pos = Position.void) {
-        super(Position.void,'TypeError',
+        super('TypeError',
             `Cannot perform '${op}' on value ${value?.__info__?.name || str(value)}: ${detail}`);
+        this.pos = pos;
     }
 }
 
 export class InvalidRuntimeError extends Error {
     constructor () {
-        super(Position.void,'InvalidRuntimeError',
+        super('InvalidRuntimeError',
             `Required runtime of ${IS_NODE_INSTANCE ? 'browser' : 'node'}`);
     }
 }
 
 export class TestFailed extends Error {
     constructor(detail: string) {
-        super(Position.void, 'TestFailed', detail);
+        super( 'TestFailed', detail);
     }
 }
 
 export class PermissionRequiredError extends Error {
     constructor(detail: string) {
-        super(Position.void, 'PermissionRequiredError', detail);
+        super('PermissionRequiredError', detail);
     }
 }
 
 export class MissingNativeDependencyError extends Error {
     constructor(name: string) {
-        super(Position.void, 'MissingNativeDependencyError',
+        super('MissingNativeDependencyError',
             `Missing required native dependency '${name}'. This is probably an issue with the EntropyScript provider, not your code.`);
     }
 }
 
 export class EndIterator extends Error {
     constructor () {
-        super(Position.void, 'EndIterator', ``);
+        super('EndIterator', ``);
     }
 }

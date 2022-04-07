@@ -1,12 +1,10 @@
-import { Error, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
-import Position from "../position";
+import { Error, ReferenceError, TypeError } from "../errors";
 import {wrap} from './wrapStrip';
 import { ESArray, ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
 import {dict, str} from "../util/util";
 import {ESSymbol, symbolOptions} from './symbol';
 import chalk from "../util/colours";
 import { types } from "../util/constants";
-import { defaultPermissions, Permissions } from "../config";
 
 export class Context {
     private symbolTable: dict<ESSymbol> = {};
@@ -14,8 +12,6 @@ export class Context {
 
     public initialisedAsGlobal = false;
     public deleted = false;
-
-    public permissions_: Permissions | undefined;
 
     public path_ = '';
 
@@ -41,20 +37,6 @@ export class Context {
         this.parent_ = val;
     }
 
-    get permissions (): Permissions {
-        if (this.permissions_) {
-            return this.permissions_
-        }
-        if (this.parent) {
-            return this.parent.permissions;
-        }
-        return defaultPermissions();
-    }
-
-    set permissions (val) {
-        this.permissions_ = val;
-    }
-
     has (identifier?: string): boolean {
         if (!identifier) return false;
         return this.get(identifier) !== undefined;
@@ -72,15 +54,6 @@ export class Context {
         return symbol.value;
     }
 
-    getRawSymbolTableAsDict (): dict<Primitive> {
-        const symbols: dict<Primitive> = {};
-
-        for (let key in this.symbolTable)
-            symbols[key] = this.symbolTable[key].value;
-
-        return symbols;
-    }
-
     getSymbolTableAsDict (): dict<ESSymbol> {
         const symbols: dict<ESSymbol> = {};
 
@@ -95,7 +68,6 @@ export class Context {
 
         if (symbol && !symbol.isAccessible) {
             return new TypeError(
-                Position.void,
                 'assessable',
                 'inaccessible',
                 symbol.identifier
@@ -119,7 +91,8 @@ export class Context {
         if (options.global) {
             context = this.root;
         } else {
-            // searches upwards to find the identifier, and if none can be found then it assigns it to the current context
+            // searches upwards to find the identifier,
+            // and if none can be found, then it assigns it to the current context
             while (!context.hasOwn(identifier) && context.parent !== undefined) {
                 context = context.parent;
             }
@@ -147,7 +120,6 @@ export class Context {
             let symbol = this.symbolTable[identifier];
             if (symbol?.isConstant)
                 return new TypeError(
-                    Position.void,
                     'dynamic',
                     'constant',
                     identifier
@@ -164,7 +136,7 @@ export class Context {
         } else if (this.parent) {
             return this.parent.remove(identifier);
         } else {
-            return new ReferenceError(Position.void, identifier);
+            return new ReferenceError(identifier);
         }
     }
 
@@ -236,7 +208,7 @@ export function generateESFunctionCallContext (
     let parameters = self.__args__.filter(a => !a.isKwarg);
 
     if (!self.__allow_args__ && args.length > parameters.length) {
-        return new Error(Position.void, 'TypeError',
+        return new Error('TypeError',
             `Too many arguments. Expected ${parameters.length} but got ${args.length}`);
     }
 
@@ -267,7 +239,7 @@ export function generateESFunctionCallContext (
         const typeIncludes = param.type.__includes__({context: parent}, args[i]);
         if (typeIncludes instanceof Error) return typeIncludes;
         if (!typeIncludes.__value__) {
-            return new TypeError(Position.void, str(param.type), str(type), str(value));
+            return new TypeError(str(param.type), str(type), str(value));
         }
 
         newContext.setOwn(param.name, value, {
@@ -292,7 +264,7 @@ export function generateESFunctionCallContext (
             if (kwarg.defaultValue) {
                 arg = kwarg.defaultValue;
             } else {
-                return new TypeError(Position.void, 'Any', 'Undefined');
+                return new TypeError('Any', 'Undefined');
             }
         }
 
@@ -301,7 +273,7 @@ export function generateESFunctionCallContext (
         const typeIncludes = kwarg.type.__includes__({context: parent}, arg);
         if (typeIncludes instanceof Error) return typeIncludes;
         if (!typeIncludes.__value__) {
-            return new TypeError(Position.void, str(kwarg.type), str(type), str(arg));
+            return new TypeError(str(kwarg.type), str(type), str(arg));
         }
 
         newContext.setOwn(kwarg.name, arg, {
@@ -314,7 +286,7 @@ export function generateESFunctionCallContext (
     if (!self.__allow_kwargs__) {
         for (let k of Object.keys(kwargs)) {
             if (lookedAtKwargs.indexOf(k) === -1) {
-                return new Error(Position.void, 'TypeError',
+                return new Error('TypeError',
                     `Kwarg '${Object.keys(kwargs)[0]}' is not a parameter of '${self.name}'`);
             }
         }

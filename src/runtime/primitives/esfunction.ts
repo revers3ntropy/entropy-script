@@ -1,7 +1,6 @@
 import {ESPrimitive} from '../esprimitive';
 import { global, types } from '../../util/constants';
 import { Error, IndexError } from '../../errors';
-import Position from '../../position';
 import { BuiltInFunction, funcProps } from '../../util/util';
 import {runtimeArgument} from '../argument';
 import {Context} from '../context';
@@ -60,8 +59,8 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         this.__allow_kwargs__ = allowKwargs;
     }
 
-    override cast = (props: funcProps, type: Primitive) => {
-        return new Error(Position.void, 'TypeError', `Cannot cast type 'function'`)
+    override cast = () => {
+        return new Error('TypeError', `Cannot cast type 'function'`)
     }
 
     get name () {
@@ -110,7 +109,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
-        return new IndexError(Position.void, key.__value__, this);
+        return new IndexError(key.__value__, this);
     };
 
     override __includes__ = (props: funcProps, n: Primitive): Error | ESBoolean => {

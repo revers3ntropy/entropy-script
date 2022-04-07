@@ -1,4 +1,4 @@
-import Position from '../position.js';
+import Position from '../position';
 import * as n from "../runtime/nodes";
 import { Error } from "../errors";
 import { N_undefined } from "../runtime/nodes";

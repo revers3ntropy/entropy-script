@@ -19,7 +19,7 @@ const module: NativeModuleBuilder = (): NativeModule | Error => {
     const w: dict<any> | undefined = window;
 
     if (typeof w === 'undefined') {
-        return new TypeError(Position.void, 'Object', 'undefined', 'window', 'Window is undefined! ES expected to be in a browser.');
+        return new TypeError('Object', 'undefined', 'window', 'Window is undefined! ES expected to be in a browser.');
     }
 
     if (!('$' in w)) {

@@ -67,7 +67,7 @@ export async function preloadModules (urls: dict<any>): Promise<Error | undefine
             addModule(name, n);
 
         } catch (E: any) {
-            return new Error(Position.void, 'ImportError', E.toString());
+            return new Error('ImportError', E.toString());
         }
     }
 }

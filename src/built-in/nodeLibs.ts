@@ -39,7 +39,7 @@ const open = (props: funcProps, path_: Primitive, encoding_: Primitive) => {
     }
 
     if (!fs.existsSync(filePath)) {
-        return new ImportError(Position.void, filePath);
+        return new ImportError(filePath);
     }
 
     return new ESObject({
@@ -101,10 +101,10 @@ const import_ = (props: funcProps, rawPath: Primitive): Error | Primitive | unde
                 if (fs.existsSync('particles/' + scriptPath + '/main.es')) {
                     scriptPath = 'particles/' + scriptPath + '/main.es';
                 } else {
-                    return new Error(Position.void, 'ImportError', `Module '${scriptPath}' has no entry point. Requires 'main.es'.`)
+                    return new Error('ImportError', `Module '${scriptPath}' has no entry point. Requires 'main.es'.`)
                 }
             } else {
-                return new Error(Position.void, 'ImportError', `Can't find file '${scriptPath}' to import.`)
+                return new Error('ImportError', `Can't find file '${scriptPath}' to import.`)
             }
         }
 
@@ -137,7 +137,7 @@ const import_ = (props: funcProps, rawPath: Primitive): Error | Primitive | unde
         return n;
 
     } catch (E: any) {
-        return new Error(Position.void, 'ImportError', E.toString());
+        return new Error('ImportError', E.toString());
     }
 }
 

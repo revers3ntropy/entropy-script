@@ -103,7 +103,7 @@ export abstract class Node {
         }
 
         if (!(res.val instanceof ESPrimitive)) {
-            res.error = new TypeError(Position.void, 'Primitive',
+            res.error = new TypeError('Primitive',
                 'Native JS value', str(res.val));
             res.val = new ESUndefined();
         }
@@ -145,11 +145,13 @@ export class N_binOp extends Node {
         const l = left.val;
         const r = right.val;
         if (typeof l === 'undefined') {
-            return new TypeError(this.opTok.pos, '~undefined', 'undefined', l, 'N_binOp.interpret_');
+            return new TypeError('~nil', 'nil', l, 'N_binOp.interpret_')
+                .position(this.opTok.pos);
         }
 
         if (typeof r === 'undefined') {
-            return new TypeError(this.opTok.pos, '~undefined', 'undefined', r, 'N_binOp.interpret_');
+            return new TypeError('~nil', 'nil', r, 'N_binOp.interpret_')
+                .position(this.opTok.pos);
         }
 
         switch (this.opTok.type) {
@@ -201,9 +203,8 @@ export class N_binOp extends Node {
 
             default:
                 return new InvalidSyntaxError(
-                    this.opTok.pos,
                     `Invalid binary operator: ${tokenTypeString[this.opTok.type]}`
-                );
+                ).position(this.opTok.pos);
         }
     }
 
@@ -259,11 +260,10 @@ export class N_unaryOp extends Node {
             case tt.ADD:
                 if (!(res.val instanceof ESNumber)) {
                     return new TypeError(
-                        this.pos,
                         'Number',
                         res.val?.__type_name__().toString() || 'undefined_',
                         res.val?.__value__
-                    );
+                    ).position(this.pos);
                 }
                 const numVal = res.val.__value__;
                 return new interpretResult(new ESNumber(
@@ -277,9 +277,8 @@ export class N_unaryOp extends Node {
 
             default:
                 return new InvalidSyntaxError(
-                    this.opTok.pos,
                     `Invalid unary operator: ${tokenTypeString[this.opTok.type]}`
-                );
+                ).position(this.opTok.pos);
         }
     }
 
@@ -337,13 +336,15 @@ export class N_varAssign extends Node {
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.varNameTok.value)) {
-                return new InvalidSyntaxError(this.pos,
-                    `Symbol '${ this.varNameTok.value }' already exists, and cannot be redeclared`);
+                return new InvalidSyntaxError(
+                    `Symbol '${ this.varNameTok.value }' already exists, and cannot be redeclared`)
+                    .position(this.pos);
             }
 
             if (this.assignType !== '=') {
-                return new InvalidSyntaxError(this.pos,
-                    `Cannot declare variable with operator '${this.assignType}'`);
+                return new InvalidSyntaxError(
+                    `Cannot declare variable with operator '${this.assignType}'`)
+                    .position(this.pos);
             }
         }
 
@@ -355,30 +356,28 @@ export class N_varAssign extends Node {
 
         if (!typeRes.val) {
             return new TypeError(
-                this.varNameTok.pos,
                 'Type',
-                'undefined'
-            );
+                'nil'
+            ).position(this.varNameTok.pos);
         }
 
         if (!res.val) {
             return new TypeError(
-                this.varNameTok.pos,
-                '~undefined',
-                'undefined',
+                '~nil',
+                'nil',
                 'N_varAssign.interpret_'
-            );
+            ).position(this.varNameTok.pos);
         }
 
         const typeCheckRes = typeRes.val.__includes__({context}, res.val);
         if (typeCheckRes instanceof Error) return typeCheckRes;
 
         if (!typeCheckRes.bool().__value__) {
-            return new TypeError(this.varNameTok.pos,
+            return new TypeError(
                 str(typeRes.val),
                 str(res.val?.__type_name__()),
                 str(res.val)
-            );
+            ).position(this.varNameTok.pos);
         }
 
 
@@ -401,11 +400,10 @@ export class N_varAssign extends Node {
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes.__value__) {
                     return new TypeError(
-                        this.varNameTok.pos,
                         str(symbol.type),
                         res.val?.__type_name__(),
                         str(res.val)
-                    );
+                    ).position(this.varNameTok.pos);
                 }
             }
         }
@@ -423,8 +421,8 @@ export class N_varAssign extends Node {
                 return type;
             }
             if (!type) {
-                return new InvalidSyntaxError(this.pos,
-                    `Cannot declare variable without keyword`);
+                return new InvalidSyntaxError(`Cannot declare variable without keyword`)
+                    .position(this.pos);
             }
 
             const typeCheckRes = type.type.__includes__({context}, res.val);
@@ -432,7 +430,7 @@ export class N_varAssign extends Node {
             if (typeCheckRes instanceof Error) return typeCheckRes;
 
             if (!typeCheckRes.bool().__value__) {
-                return new TypeError(Position.void, str(type.type), str(res.val.__type__), str(res.val));
+                return new TypeError(str(type.type), str(res.val.__type__), str(res.val));
             }
 
             const setRes = context.set(this.varNameTok.value, value, {
@@ -452,8 +450,9 @@ export class N_varAssign extends Node {
             if (currentVal instanceof Error) return currentVal;
 
             if (currentVal == undefined)
-                return new InvalidSyntaxError(this.pos,
-                    `Cannot declare variable with operator '${this.assignType}'`);
+                return new InvalidSyntaxError(
+                    `Cannot declare variable with operator '${this.assignType}'`)
+                    .position(this.pos);
 
             let newVal: Primitive | Error;
             let assignVal = res.val;
@@ -470,10 +469,9 @@ export class N_varAssign extends Node {
 
                 default:
                     return new Error(
-                        this.pos,
                         'AssignError',
                         `Cannot find assignType of ${this.assignType[0]}`
-                    );
+                    ).position(this.pos);
             }
 
             if (newVal instanceof Error) {
@@ -536,7 +534,7 @@ export class N_varAssign extends Node {
         }
 
 
-        // if it is global then defined it at the top
+        // if it is global, then define it at the top
         if (this.isGlobal) {
             res.hoisted += `${this.varNameTok.value}=None`;
         }
@@ -578,8 +576,9 @@ export class N_destructAssign extends Node {
 
         for (let varName of this.varNames) {
             if (context.hasOwn(varName)) {
-                return new InvalidSyntaxError(this.pos,
-                    `Symbol '${varName}' already exists, and cannot be redeclared`);
+                return new InvalidSyntaxError(
+                    `Symbol '${varName}' already exists, and cannot be redeclared`)
+                    .position(this.pos);
             }
         }
 
@@ -599,7 +598,7 @@ export class N_destructAssign extends Node {
                 if (typeCheckRes instanceof Error) return typeCheckRes;
 
                 if (!typeCheckRes.bool().__value__) {
-                    return new TypeError(Position.void, str(typeRes.val), objPropRes.__type_name__(), str(objPropRes));
+                    return new TypeError(str(typeRes.val), objPropRes.__type_name__(), str(objPropRes));
                 }
 
                 context.setOwn(varName, objPropRes, {
@@ -614,7 +613,7 @@ export class N_destructAssign extends Node {
         }
 
         if (!res.val.__iterable__) {
-            return new Error(Position.void, 'TypeError', 'Expected iterable in destructure assignment');
+            return new Error('TypeError', 'Expected iterable in destructure assignment');
         }
 
 
@@ -627,7 +626,7 @@ export class N_destructAssign extends Node {
             let nextRes = iterable.__next__({context});
 
             if (nextRes instanceof ESErrorPrimitive && nextRes.__value__ instanceof EndIterator) {
-                return new Error(Position.void, 'IndexError', 'Iterator ended unexpectedly - not enough elements to destruct');
+                return new Error('IndexError', 'Iterator ended unexpectedly - not enough elements to destruct');
             }
             // for doing strings
             if (nextRes instanceof Error) {
@@ -641,7 +640,7 @@ export class N_destructAssign extends Node {
             if (typeCheckRes instanceof Error) return typeCheckRes;
 
             if (!typeCheckRes.bool().__value__) {
-                return new TypeError(Position.void, str(typeRes.val), nextRes.__type_name__(), str(nextRes));
+                return new TypeError(str(typeRes.val), nextRes.__type_name__(), str(nextRes));
             }
 
             context.setOwn(varName, nextRes, {
@@ -659,7 +658,7 @@ export class N_destructAssign extends Node {
         const val = this.value.compileJS(config);
         if (val.error) return val;
 
-        let declaration = '';
+        let declaration;
 
         if (this.isGlobal) {
             declaration = 'var';
@@ -709,6 +708,8 @@ export class N_if extends Node {
         } else if (this.ifFalse) {
             return this.ifFalse.interpret(newContext);
         }
+
+        newContext.clear();
 
         return res;
     }
@@ -863,8 +864,8 @@ export class N_for extends Node {
         if (array.error) return array;
 
         if (context.has(this.identifier.value) && this.isGlobalId) {
-            return new InvalidSyntaxError(this.identifier.pos,
-                'Cannot declare global variable which exists in the current scope')
+            return new InvalidSyntaxError('Cannot declare global variable which exists in the current scope')
+                .position(this.identifier.pos);
         }
 
         let iterator = array.val.__iter__({context});
@@ -941,7 +942,7 @@ export class N_for extends Node {
         const bodyRes = res.register(this.body, config);
         if (res.error) return res;
 
-        // if it is global then defined it at the top
+        // if it is global, then define it at the top
         if (this.isGlobalId) {
             res.hoisted += `${this.identifier.value}=None`;
         }
@@ -1168,7 +1169,8 @@ export class N_functionCall extends Node {
             return error;
         }
         if (!val) {
-            return new TypeError(this.pos, 'any', 'undefined', undefined, 'On function call');
+            return new TypeError('any', 'undefined', undefined, 'On function call')
+                .position(this.pos);
         }
 
         let args: Primitive[] = [];
@@ -1195,7 +1197,7 @@ export class N_functionCall extends Node {
             }
 
             if (!(val instanceof ESNamespace) && !(val instanceof ESJSBinding) && !(val instanceof ESObject)) {
-                return new TypeError(Position.void, 'Namespace', str(val.__type_name__()));
+                return new TypeError('Namespace', str(val.__type_name__()));
             }
 
             let kwargPrim = val.__value__;
@@ -1219,9 +1221,7 @@ export class N_functionCall extends Node {
         if (res instanceof Error) {
             res.traceback.push({
                 position: this.pos,
-                // do the best we can to recreate line,
-                // giving some extra info as well as it is the interpreted arguments so
-                // variables values not names
+                // do the best we can to recreate line
                 line: `${val.__info__.name || '<AnonFunction>'}(${args.map(str).join(', ')})`
             });
         }
@@ -1259,21 +1259,24 @@ export class N_functionCall extends Node {
 
         const funcRes = res.register(this.to, config);
         if (res.error) return res;
-        res.val = funcRes + '(';
 
+        res.val = funcRes + '(';
         for (let arg of this.arguments) {
+
             const argRes = res.register(arg, config);
-            if (res.error) return res;
+            if (res.error) {
+                return res;
+            }
+
             res.val += argRes;
+            // if it's not the last argument, add ', '
             if (arg !== this.arguments[this.arguments.length-1]) {
                 res.val += ',';
                 if (!config.minify) {
                     res.val += ' ';
                 }
             }
-
         }
-
         res.val += ')';
 
         return res;
@@ -1328,7 +1331,7 @@ export class N_functionDefinition extends Node {
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {
-                return new InvalidSyntaxError(Position.void, `Cannot redeclare symbol '${this.name}'`);
+                return new InvalidSyntaxError(`Cannot redeclare symbol '${this.name}'`);
             }
 
             context.setOwn(this.name, funcPrim, {
@@ -1516,8 +1519,8 @@ export class N_indexed extends Node {
             this.assignType ??= '=';
 
             if (!assignVal) {
-                return new TypeError(this.pos,
-                    '~undefined', 'undefined', 'undefined', 'N_indexed.interpret_')
+                return new TypeError('~nil', 'nil')
+                    .position(this.pos);
             }
 
             switch (this.assignType[0]) {
@@ -1534,18 +1537,17 @@ export class N_indexed extends Node {
 
                 default:
                     return new Error(
-                        this.pos,
                         'AssignError',
                         `Cannot find assignType of ${this.assignType[0]}`
-                    );
+                    ).position(this.pos);
             }
 
             if (newVal instanceof Error)
                 return newVal;
 
             if (!base.__set__)
-                return new TypeError(this.pos,
-                    'mutable', 'immutable', base.__value__);
+                return new TypeError('mutable', 'immutable', base.__value__)
+                    .position(this.pos);
 
             const res = base.__set__({context}, index, newVal ?? new ESUndefined());
             if (res instanceof Error)
@@ -1635,11 +1637,10 @@ export class N_class extends Node {
             }
             if (!(res.val instanceof ESFunction)) {
                 return new TypeError(
-                    this.pos,
                     'Function',
                     res.val?.__type_name__() || 'undefined',
                     'method on ' + this.name
-                );
+                ).position(this.pos);
             }
             methods.push(res.val);
         }
@@ -1658,11 +1659,10 @@ export class N_class extends Node {
             }
             if (!(extendsRes.val instanceof ESType)) {
                 return new TypeError(
-                    this.pos,
                     'Type',
                     extendsRes.val?.__type_name__() || 'undefined',
                     'method on ' + this.name
-                );
+                ).position(this.pos);
             }
             extends_ = extendsRes.val;
         }
@@ -1674,11 +1674,10 @@ export class N_class extends Node {
             }
             if (!(initRes.val instanceof ESFunction)) {
                 return new TypeError(
-                    this.pos,
                     'Function',
                     initRes.val?.__type_name__() || 'undefined',
                     'method on ' + this.name
-                );
+                ).position(this.pos);
             }
             init = initRes.val;
         }
@@ -1691,7 +1690,7 @@ export class N_class extends Node {
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {
-                return new InvalidSyntaxError(Position.void, `Cannot redeclare symbol '${this.name}'`);
+                return new InvalidSyntaxError(`Cannot redeclare symbol '${this.name}'`);
             }
 
             context.setOwn(this.name, typePrim, {
@@ -1738,11 +1737,13 @@ export class N_namespace extends Node {
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {
-                return new InvalidSyntaxError(Position.void, `Cannot redeclare symbol '${this.name}'`);
+                return new InvalidSyntaxError(`Cannot redeclare symbol '${this.name}'`);
             }
 
             context.setOwn(this.name, n);
         }
+
+        newContext.clear();
 
         return new interpretResult(n);
     }
@@ -1779,15 +1780,19 @@ export class N_tryCatch extends Node {
     interpret_ (context: Context): Error | interpretResult {
         const res = this.body.interpret(context);
 
-        if (res.error) {
-            const newContext = new Context();
-            newContext.parent = context;
-            newContext.setOwn(catchBlockErrorSymbolName, new ESErrorPrimitive(res.error), {
-                isConstant: true
-            });
-            const catchRes = this.catchBlock.interpret(newContext);
-            if (catchRes.error) return catchRes.error;
+        if (!res.error) {
+            return new interpretResult();
         }
+
+        const newContext = new Context();
+        newContext.parent = context;
+        newContext.setOwn(catchBlockErrorSymbolName, new ESErrorPrimitive(res.error), {
+            isConstant: true
+        });
+        const catchRes = this.catchBlock.interpret(newContext);
+        if (catchRes.error) return catchRes.error;
+
+        newContext.clear();
 
         return new interpretResult();
     }
@@ -1877,14 +1882,15 @@ export class N_variable extends Node {
 
     interpret_ (context: Context): Error | interpretResult {
         if (!context.has(this.a.value)) {
-            return new ReferenceError(this.a.pos, this.a.value);
+            return new ReferenceError(this.a.value)
+                .position(this.a.pos);
         }
 
         let res = new interpretResult();
         let symbol = context.getSymbol(this.a.value);
 
         if (!symbol) {
-            return new ReferenceError(this.pos, `No access to undeclared variable ${this.a.value}`);
+            return new ReferenceError(`No access to undeclared variable ${this.a.value}`).position(this.pos);
         }
         if (symbol instanceof Error) {
             return symbol;

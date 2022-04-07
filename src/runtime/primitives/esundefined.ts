@@ -1,5 +1,4 @@
 import { Error, IndexError } from '../../errors';
-import Position from '../../position';
 import {Context} from '../context';
 import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
@@ -51,7 +50,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
             return new ESBoolean();
         default:
             if (!(type instanceof ESType)) {
-                return new Error(Position.void, 'TypeError', `Cannot cast to type '${str(type.__type_name__())}'`);
+                return new Error('TypeError', `Cannot cast to type '${str(type.__type_name__())}'`);
             }
             return type.__call__({context});
         }
@@ -76,7 +75,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
-        return new IndexError(Position.void, key.__value__, this);
+        return new IndexError(key.__value__, this);
     };
 
     override __includes__ = this.__eq__;

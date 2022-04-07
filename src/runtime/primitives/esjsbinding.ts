@@ -17,7 +17,7 @@ import { ESNumber } from './esnumber';
 
 function tryCall (fTakesProps: boolean, val: any, key: any, props: funcProps, args: Primitive[], catchErs: boolean): Primitive | Error {
     if (typeof val[key] !== 'function') {
-        return new ESTypeError(Position.void, 'Func', typeof val[key], str(val[key]));
+        return new ESTypeError('Func', typeof val[key], str(val[key]));
     }
     let res;
     if (fTakesProps) {
@@ -25,12 +25,12 @@ function tryCall (fTakesProps: boolean, val: any, key: any, props: funcProps, ar
             res = new val[key](props, ...args);
         } catch (e: any) {
             if (!(e instanceof TypeError)) {
-                return new Error(Position.void, e.name, e.toString());
+                return new Error(e.name, e.toString());
             }
             try {
                 res = val[key](props, ...args);
             } catch (e: any) {
-                return new Error(Position.void, '', e.toString());
+                return new Error('', e.toString());
             }
         }
     } else {
@@ -38,12 +38,12 @@ function tryCall (fTakesProps: boolean, val: any, key: any, props: funcProps, ar
             res = new val[key](...args.map(o => strip(o, props)));
         } catch (e: any) {
             if (!(e instanceof TypeError)) {
-                return new Error(Position.void, e.name, e.toString());
+                return new Error(e.name, e.toString());
             }
             try {
                 res = val[key](...args.map(o => strip(o, props)));
             } catch (e: any) {
-                return new Error(Position.void, '', e.toString());
+                return new Error('', e.toString());
             }
         }
     }
@@ -68,7 +68,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
     }
 
     override cast = (props: funcProps): Error | Primitive => {
-        return new Error(Position.void, 'ESTypeError', `Cannot cast native object`);
+        return new Error('ESTypeError', `Cannot cast native object`);
     };
 
     override clone = (): Primitive => new ESJSBinding<T>(this.__value__);
@@ -98,7 +98,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
                 return wrap(this._[key], true);
             }
 
-            return new IndexError(Position.void, key, this);
+            return new IndexError(key, this);
         }
 
         if (res instanceof ESPrimitive) {
@@ -138,7 +138,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
 
     override __call__ = (props: funcProps, ...args: Primitive[]): Error | Primitive => {
         if (typeof this.__value__ !== 'function') {
-            return new ESTypeError(Position.void, 'function', typeof this.__value__, str(this));
+            return new ESTypeError('function', typeof this.__value__, str(this));
         }
 
        return tryCall(this.functionsTakeProps, this, '__value__', props, args, this.catchErrorsToPrimitive);

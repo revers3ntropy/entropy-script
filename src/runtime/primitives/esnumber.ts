@@ -31,7 +31,7 @@ export class ESNumber extends ESPrimitive <number> implements ESIterable {
             case types.array:
                 return new ESArray(new Array(this.__value__));
             default:
-                return new Error(Position.void, 'TypeError', `Cannot cast to type '${str(type.__type_name__())}'`);
+                return new Error('TypeError', `Cannot cast to type '${str(type.__type_name__())}'`);
         }
     }
 
@@ -39,37 +39,37 @@ export class ESNumber extends ESPrimitive <number> implements ESIterable {
 
     override __add__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.__type_name__(), n.__value__);
+            return new TypeError('Number', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ + n.__value__);
     };
     override __subtract__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.__type_name__(), n.__value__);
+            return new TypeError('Number', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ - n.__value__);
     };
     override __multiply__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.__type_name__(), n.__value__);
+            return new TypeError('Number', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ * n.__value__);
     };
     override __divide__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.__type_name__(), n.__value__);
+            return new TypeError('Number', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ / n.__value__);
     };
     override __pow__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.__type_name__(), n.__value__);
+            return new TypeError('Number', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ ** n.__value__);
     };
     override __mod__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.__type_name__(), n.__value__);
+            return new TypeError('Number', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ % n.__value__);
     };
@@ -81,13 +81,13 @@ export class ESNumber extends ESPrimitive <number> implements ESIterable {
     };
     override __gt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.__type_name__(), n.__value__);
+            return new TypeError('Number', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__ > n.__value__);
     };
     override __lt__ = (props: funcProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError(Position.void, 'Number', n.__type_name__(), n.__value__);
+            return new TypeError('Number', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__ < n.__value__);
     };
@@ -103,7 +103,7 @@ export class ESNumber extends ESPrimitive <number> implements ESIterable {
         if (this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
-        return new IndexError(Position.void, key.__value__, this);
+        return new IndexError(key.__value__, this);
     };
 
     override __includes__ = this.__eq__;

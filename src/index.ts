@@ -13,6 +13,7 @@ import { Error } from "./errors";
 import Position from "./position";
 import { compileResult, interpretResult, Node } from "./runtime/nodes";
 import { ESArray } from "./runtime/primitiveTypes";
+import {str} from './util/util';
 import type { timeData } from "./util/util";
 import { Context } from "./runtime/context";
 import colours from './util/colours';
@@ -90,8 +91,7 @@ export function run (msg: string, {
     if (!env.root.initialisedAsGlobal){
         const res = new interpretResult();
         res.error = new Error(
-            Position.void,
-            'Uninitialised',
+            'UninitialisedError',
             'Global context has not been initialised with global values'
         );
         return res;
@@ -163,7 +163,7 @@ export function parse (code: string, {
 
     if (!res.node) {
         return {
-            error: new Error(Position.void, 'Error', 'no output')
+            error: new Error('Error', 'no output')
         };
     }
 
@@ -198,7 +198,7 @@ export function parse (code: string, {
 
             if (!env.root.initialisedAsGlobal){
                 const res = new interpretResult();
-                res.error = new Error(Position.void, 'Uninitialised',
+                res.error = new Error('Uninitialised',
                     'Global context has not been initialised with global values');
                 return res;
             }
