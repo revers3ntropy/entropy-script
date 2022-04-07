@@ -26,11 +26,7 @@ export interface funcProps {
 
 export type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | Error | Primitive | Promise<void>;
 
-/**
- * @param {any} val to be turned to string. used by .str primitive method
- * @param {number} depth
- */
-export function str (val: any, depth = 0): string {
+export function str (val: unknown, depth = 0): string {
     if (typeof depth !== 'number') {
         depth = 0;
     }
@@ -61,7 +57,7 @@ export function str (val: any, depth = 0): string {
         case 'object':
             if (Array.isArray(val)) {
                 result += '[';
-                for (let item of val) {
+                for (const item of val) {
                     try {
                         result += str(item, depth + 1)+`, `;
                     } catch (e) {
@@ -79,7 +75,7 @@ export function str (val: any, depth = 0): string {
                 }
                 result += `{\n`;
                 let i = 0;
-                for (let item of Object.keys(val)) {
+                for (const item of Object.keys(val)) {
                     result += indent(`${item}: ${str(val[item], depth + 1) || 'nil'}`);
                     if (i < Object.keys(val).length-1) {
                         result += ',\n';
@@ -117,7 +113,7 @@ export function indent (str: string, {
     by = 4,
     indentStart=true
 } = {}) {
-    let replacement = ' '.repeat(depth * by);
+    const replacement = ' '.repeat(depth * by);
     return (indentStart ? replacement : '') + str.replace(/\n/g, '\n' + replacement);
 }
 

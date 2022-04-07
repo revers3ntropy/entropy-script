@@ -84,7 +84,7 @@ export class Parser {
     private statements (topLevel = false): ParseResults {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
-        let statements: Node[] = [];
+        const statements: Node[] = [];
 
         this.clearEndStatements(res);
 
@@ -125,7 +125,7 @@ export class Parser {
 
         this.clearEndStatements(res);
 
-        let node = new n.N_statements(pos, statements, topLevel);
+         const node = new n.N_statements(pos, statements, topLevel);
 
         return res.success(node);
     }
@@ -167,12 +167,12 @@ export class Parser {
             return res.success(expr);
         }
 
-        let assignPos = this.currentToken.pos;
-        let assignType = this.currentToken.value;
+        const assignPos = this.currentToken.pos;
+        const assignType = this.currentToken.value;
 
         this.advance(res);
 
-        let value = res.register(this.expr());
+        const value = res.register(this.expr());
         if (res.error) return res;
 
         if (expr instanceof N_variable) {
@@ -194,7 +194,7 @@ export class Parser {
         this.advance(res);
         let expr: Node = new N_undefined(this.currentToken.pos);
         if (this.currentToken.type !== tt.ENDSTATEMENT) {
-            let exprRes = res.register(this.expr());
+            const exprRes = res.register(this.expr());
             if (!exprRes) {
                 return res.failure(new InvalidSyntaxError('Expected end of statement'), this.currentToken.pos);
             }
@@ -233,12 +233,12 @@ export class Parser {
                 return res.success(expr);
 
             case tt.OSQUARE:
-                let arrayExpr = res.register(this.array());
+                const arrayExpr = res.register(this.array());
                 if (res.error) return res;
                 return res.success(arrayExpr);
 
             case tt.OBRACES:
-                let objectExpr = res.register(this.object());
+                const objectExpr = res.register(this.object());
                 if (res.error) return res;
                 return res.success(objectExpr);
 
@@ -263,26 +263,26 @@ export class Parser {
      * @private
      */
     private compound (base?: Node): ParseResults {
-        let res = new ParseResults();
+        const res = new ParseResults();
         if (!base)  {
             base = res.register(this.atom());
         }
         if (res.error) return res;
 
         if (this.currentToken.type === tt.OPAREN) {
-            let call = res.register(this.makeFunctionCall(base));
+            const call = res.register(this.makeFunctionCall(base));
             if (res.error) return res;
             return this.compound(call);
 
         } else if (this.currentToken.type === tt.OSQUARE) {
-            let call = res.register(this.makeIndex(base));
+            const call = res.register(this.makeIndex(base));
             if (res.error) return res;
             return this.compound(call);
 
         } else if (this.currentToken.type === tt.DOT) {
             this.advance(res);
 
-            let index = this.currentToken;
+            const index = this.currentToken;
             this.consume(res, tt.IDENTIFIER);
 
             return this.compound(new n.N_indexed(
@@ -332,7 +332,7 @@ export class Parser {
             const opTok = this.currentToken;
             this.advance(res);
 
-            let node = res.register(this.expr());
+            const node = res.register(this.expr());
             if (res.error) return res;
             return res.success(new n.N_unaryOp(opTok.pos, node, opTok));
         }
@@ -341,12 +341,12 @@ export class Parser {
             const opTok = this.currentToken;
             this.advance(res);
 
-            let node = res.register(this.expr());
+            const node = res.register(this.expr());
             if (res.error) return res;
             return res.success(new n.N_unaryOp(opTok.pos, node, opTok));
         }
 
-        let node = res.register(this.binOp(
+        const node = res.register(this.binOp(
             () => this.arithmeticExpr(),
             [tt.EQUALS, tt.NOTEQUALS, tt.GT, tt.GTE, tt.LTE, tt.LT]
         ));
@@ -374,7 +374,7 @@ export class Parser {
             return this.namespace();
         }
 
-        let node = res.register(this.binOp(() => this.comparisonExpr(), [tt.AND, tt.OR]));
+        const node = res.register(this.binOp(() => this.comparisonExpr(), [tt.AND, tt.OR]));
 
         if (res.error) return res;
 
@@ -402,9 +402,9 @@ export class Parser {
 
     private makeFunctionCall (to: Node) {
         const res = new ParseResults();
-        let args: Node[] = [];
-        let indefiniteKwargs: Node[] = [];
-        let definiteKwargs: dict<Node> = {};
+        const args: Node[] = [];
+        const indefiniteKwargs: Node[] = [];
+        const definiteKwargs: dict<Node> = {};
         const pos = this.currentToken.pos;
 
         if (this.currentToken.type !== tt.OPAREN) {
@@ -433,7 +433,7 @@ export class Parser {
                     indefiniteKwargs.push(res.register(this.expr()));
                 } else {
 
-                    let nameTok = this.currentToken;
+                    const nameTok = this.currentToken;
 
                     this.consume(res, tt.IDENTIFIER);
                     if (res.error) return res;

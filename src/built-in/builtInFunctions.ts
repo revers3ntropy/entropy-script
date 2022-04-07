@@ -1,5 +1,4 @@
 import { Error, ImportError, TypeError, ReferenceError } from "../errors";
-import Position from "../position";
 import { strip, wrap } from '../runtime/wrapStrip';
 import {
     ESArray, ESErrorPrimitive, ESFunction, ESNamespace,
@@ -7,17 +6,17 @@ import {
     ESObject,
     ESPrimitive,
     ESString, ESType, ESUndefined,
-    FunctionInfo, Primitive,
+    FunctionInfo,
 } from '../runtime/primitiveTypes';
 import { BuiltInFunction, dict, funcProps, indent, sleep, str } from '../util/util';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import chalk from "../util/colours";
-import {IS_NODE_INSTANCE, global, types} from '../util/constants';
+import {IS_NODE_INSTANCE, types} from '../util/constants';
 import {addModule, getModule, moduleExist} from './builtInModules';
 import { ESInterface } from "../runtime/primitives/esobject";
 
 export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
-    range: [({context}, minP, maxP, stepP) => {
+    range: [(props, minP, maxP, stepP) => {
         if (!(minP instanceof ESNumber)) {
             return new ESArray();
         }
@@ -38,7 +37,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             return new TypeError('number', maxP.__type_name__(), str(maxP));
         }
 
-        let max = maxP.__value__;
+        const max = maxP.__value__;
 
         if (!(stepP instanceof ESUndefined)) {
             if (!(stepP instanceof ESNumber)) {
@@ -47,7 +46,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             step = stepP.__value__;
         }
 
-        let arr = [];
+        const arr = [];
 
         let i = min;
         while (i < max) {
@@ -68,7 +67,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         returnType: 'Arr[Num] | RangeError'
     }],
 
-    log: [({context}, ...msgs) => {
+    log: [(props, ...msgs) => {
         console.log(...msgs.map(m => str(m)));
     }, {
         args: [{
@@ -80,7 +79,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         allow_args: true
     }],
 
-    parse_num: [({context}, num) => {
+    parse_num: [(props, num) => {
         try {
             const val: number = parseFloat(str(num));
             if (isNaN(val)) {
@@ -99,7 +98,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         returnType: 'number | TypeError'
     }],
 
-    help: [({context}, ...things) => {
+    help: [(props, ...things) => {
         // I am truly disgusted by this function.
         // But I am not going to make it look better.
 
@@ -150,7 +149,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
 
             if (info.contents && (thing instanceof ESObject || thing instanceof ESNamespace)) {
                 out += '    Properties: \n      ';
-                for (let contents of info.contents)
+                for (const contents of info.contents)
                     out += contents.name + '\n      ';
             }
         }
@@ -174,7 +173,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
 
     delete: [({context}, name) => {
         const id = str(name);
-        let res = context.remove(id);
+        const res = context.remove(id);
         if (res instanceof Error) return res;
     }, {
         name: 'delete',
@@ -215,12 +214,12 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             return new TypeError('Namespace', str(module.__type_name__()));
         }
 
-        let {context} = props;
+        let { context } = props;
 
         // trust me, this works... hopefully
-        let global = !(global_ && !global_.bool().__value__);
+        const global = !(global_ && !global_.bool().__value__);
 
-        let value = strip(module, props);
+        const value = strip(module, props);
 
         if (global) {
             context = context.root;
@@ -230,7 +229,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         }
 
         for (const key of Object.keys(value)) {
-            let res = context.setOwn(key, wrap(value[key]));
+            const res = context.setOwn(key, wrap(value[key]));
             if (res) return res;
         }
     }, {
@@ -263,7 +262,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         description: 'Waits n milliseconds and then executes the callback'
     }],
 
-    throw: [({context}, name, details) => {
+    throw: [(props, name, details) => {
         if (name instanceof ESErrorPrimitive) {
             return name.__value__;
         }
@@ -281,13 +280,13 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
             return new TypeError('Str', symbolPrim.__type_name__(), str(symbolPrim));
         }
 
-        let symbol = str(symbolPrim);
+        const symbol = str(symbolPrim);
 
         if (!context.has(symbol)) {
             return new ReferenceError(symbol);
         }
 
-        let res = context.getSymbol(symbol);
+        const res = context.getSymbol(symbol);
 
         if (!res) {
             return new ReferenceError(symbol);
@@ -304,7 +303,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         ]
     }],
 
-    interface: [({context}, val) => {
+    interface: [(props, val) => {
         if (!(val instanceof ESObject)) {
             return new TypeError('Obj', val.__type_name__(), str(val));
         }
@@ -338,9 +337,9 @@ export function addDependencyInjectedBIFs (
         args: [{name: 'path', type: 'String'}]
     }];
 
-    builtInFunctions['print'] = [({context}, ...args) => {
+    builtInFunctions['print'] = [(props, ...args) => {
         let out = ``;
-        for (let arg of args) {
+        for (const arg of args) {
             out += str(arg);
         }
         printFunc(out);
@@ -350,9 +349,9 @@ export function addDependencyInjectedBIFs (
 
     builtInFunctions['input'] = [({context}, msg, cbRaw) => {
         inputFunc(msg.__value__, (msg) => {
-            let cb = cbRaw?.__value__;
+            const cb = cbRaw?.__value__;
             if (cb instanceof ESFunction) {
-                let res = cb.__call__({context},
+                const res = cb.__call__({context},
                     new ESString(msg)
                 );
                 if (res instanceof Error) {

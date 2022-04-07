@@ -28,11 +28,11 @@ export default function (context: Context) {
         'Null': types.undefined
     };
 
-    for (let cls of Object.keys(errors)) {
+    for (const cls of Object.keys(errors)) {
         globalConstants[cls] = new ESJSBinding((errors as any)[cls], cls, false, true);
     }
 
-    for (let constant in globalConstants) {
+    for (const constant in globalConstants) {
         const value = globalConstants[constant];
         context.set(constant, value, {
             global: true,

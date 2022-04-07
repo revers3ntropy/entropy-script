@@ -1,4 +1,3 @@
-import Position from "../position";
 import {Context} from "../runtime/context";
 import { Error, ImportError, MissingNativeDependencyError, PermissionRequiredError } from '../errors';
 import {
@@ -66,7 +65,7 @@ const fetch_ = (props: funcProps, ...args: Primitive[]) => {
         return new PermissionRequiredError(`Networking not allowed but is required for 'fetch'`);
     }
 
-    let nFetch = libs['node-fetch'].default;
+    const nFetch = libs['node-fetch'].default;
 
     return new ESJSBinding(nFetch(...args.map(a => strip(a, props))));
 }

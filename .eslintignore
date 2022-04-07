@@ -1,0 +1,8 @@
+/test/
+/bin/
+/build/
+/examples/
+/grammer/
+/node_modules/
+/src/built-in/compiledSTD/
+/src/built-in/std/

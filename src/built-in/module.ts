@@ -1,6 +1,5 @@
 import {global} from '../util/constants';
 import {ESBoolean, ESJSBinding, run} from '../index';
-import Position from '../position';
 import {Context} from '../runtime/context';
 import {InterpretResult} from '../runtime/nodes';
 import {ESNamespace} from '../runtime/primitives/esnamespace';
@@ -12,7 +11,7 @@ import {addModule, modulePrimitive} from './builtInModules';
 export type NativeModule = dict<any>;
 export type NativeModuleBuilder = (dependencies: dict<any>) => NativeModule | Error;
 
-let loadedURls: dict<modulePrimitive> = {};
+const loadedURls: dict<modulePrimitive> = {};
 
 export async function preloadModules (urls: dict<any>): Promise<Error | undefined> {
 
@@ -33,7 +32,7 @@ export async function preloadModules (urls: dict<any>): Promise<Error | undefine
         }
 
         try {
-            let data = await (await fetch(url)).text();
+            const data = await (await fetch(url)).text();
 
             const env = new Context();
             env.parent = global;
@@ -43,9 +42,9 @@ export async function preloadModules (urls: dict<any>): Promise<Error | undefine
                 global: true
             });
 
-            let splitUrl = url.split("/");
-            let scriptName = splitUrl.pop();
-            let exDir = splitUrl.join("/");
+            const splitUrl = url.split("/");
+            const scriptName = splitUrl.pop();
+            const exDir = splitUrl.join("/");
 
             const n = new ESNamespace(new ESString(scriptName), {});
 

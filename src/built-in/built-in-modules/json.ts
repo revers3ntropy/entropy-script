@@ -2,7 +2,7 @@ import {str} from '../../util/util';
 import { NativeModuleBuilder } from "../module";
 
 const module: NativeModuleBuilder = () => ({
-    parse: (json: any) => {
+    parse: (json: unknown) => {
         return JSON.parse(str(json));
     },
 

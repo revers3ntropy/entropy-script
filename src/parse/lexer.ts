@@ -64,7 +64,7 @@ export class Lexer {
 
             } else {
                 const possibleAssignFirstChar = this.currentChar;
-                let token = this.unknownChar();
+                const token = this.unknownChar();
                 if (token) {
                     if (token.type === tt.ASSIGN) {
                         token.value = possibleAssignFirstChar;
@@ -73,8 +73,8 @@ export class Lexer {
 
                 } else {
                     // unknown char
-                    let pos = this.position.clone;
-                    let char = this.currentChar;
+                    const pos = this.position.clone;
+                    const char = this.currentChar;
                     this.advance();
                     const err = new IllegalCharError(char);
                     err.pos = pos;
@@ -116,7 +116,7 @@ export class Lexer {
     private makeString () {
         const pos = this.position.clone;
         let str = '';
-        let strClose = this.currentChar;
+        const strClose = this.currentChar;
         this.advance();
 
         while (this.currentChar !== strClose && this.currentChar !== undefined) {
@@ -161,7 +161,7 @@ export class Lexer {
             return undefined;
         }
 
-        for (let triple in tripleCharTokens) {
+        for (const triple in tripleCharTokens) {
             if (triple[0] === this.currentChar)
                 if (triple[1] === this.text[this.position.idx + 1])
                     if (triple[2] === this.text[this.position.idx + 2]) {
@@ -174,7 +174,7 @@ export class Lexer {
                     }
         }
 
-        for (let double in doubleCharTokens) {
+        for (const double in doubleCharTokens) {
             if (double[0] === this.currentChar)
                 if (double[1] === this.text[this.position.idx + 1]) {
                         const pos = this.position.clone;
@@ -185,9 +185,9 @@ export class Lexer {
                     }
         }
 
-        if (singleCharTokens.hasOwnProperty(this.currentChar)) {
-            let pos = this.position.clone;
-            let val = singleCharTokens[this.currentChar];
+        if (this.currentChar in singleCharTokens) {
+            const pos = this.position.clone;
+            const val = singleCharTokens[this.currentChar];
             this.advance();
             return new Token(pos, val, undefined);
         }

@@ -3,8 +3,6 @@ import {Error, InvalidRuntimeError, PermissionRequiredError, TypeError} from '..
 import { NativeModule, NativeModuleBuilder } from '../module';
 import { ESJSBinding } from "../../runtime/primitives/esjsbinding";
 import { config } from "../../config";
-import Position from "../../position";
-import type { dict } from "../../util/util";
 
 const module: NativeModuleBuilder = (): NativeModule | Error => {
 
@@ -16,7 +14,7 @@ const module: NativeModuleBuilder = (): NativeModule | Error => {
         return new InvalidRuntimeError();
     }
 
-    const w: dict<any> | undefined = window;
+    const w: (Window & typeof globalThis & {$?: unknown}) | undefined = window;
 
     if (typeof w === 'undefined') {
         return new TypeError('Object', 'undefined', 'window', 'Window is undefined! ES expected to be in a browser.');
@@ -30,7 +28,7 @@ const module: NativeModuleBuilder = (): NativeModule | Error => {
     }
 
 
-    const $: any = new ESJSBinding(w['$'], 'jquery');
+    const $ = new ESJSBinding(w.$, 'jquery');
 
     return {
         $,
