@@ -16,7 +16,7 @@ function callNode (self: ESFunction, context: Context, fn: Node, dontTypeCheck: 
     }
 
     if (!dontTypeCheck) {
-        let typeCheckRes = self.__returns__.__includes__({ context }, res.val);
+        const typeCheckRes = self.__returns__.__includes__({ context }, res.val);
         if (typeCheckRes instanceof Error) return typeCheckRes;
         if (typeCheckRes.__value__ === false) {
             return new TypeError(
@@ -63,7 +63,7 @@ export function call (
 ): ESUndefined | Error | ESPrimitive<NativeObj> {
 
     // generate context
-    let callContext = context;
+    const callContext = context;
     if (!self.takeCallContextAsClosure) {
         context = self.__closure__;
     }
@@ -75,9 +75,9 @@ export function call (
         return newContext;
     }
 
-    let this_ = self.__this__ ?? new ESObject();
+    const this_ = self.__this__ ?? new ESObject();
 
-    let setRes = newContext.setOwn('this', this_);
+    const setRes = newContext.setOwn('this', this_);
     if (setRes instanceof Error) {
         return setRes;
     }

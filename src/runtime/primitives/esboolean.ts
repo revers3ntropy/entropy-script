@@ -9,7 +9,7 @@ import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESBoolean extends ESPrimitive <boolean> {
-    constructor (val: boolean = false) {
+    constructor (val = false) {
         super(Boolean(val), types.bool);
 
         this.__info__ = {

@@ -7,8 +7,8 @@ import {funcProps, str} from './util';
  * Recursively checks properties until it finds an invalid match
  */
 function getWhyTypesAreInvalid (props: funcProps, expected: Primitive, got: Primitive): string | true {
-    let reason = 'something';
-    for (let k of expected.keys(props)) {
+    const reason = 'something';
+    for (const k of expected.keys(props)) {
 
     }
     if (reason === '') return true;
@@ -21,4 +21,4 @@ export default function (props: funcProps, expectedType: Primitive, value: Primi
         reason = 'It... seem to be alright...';
     }
     return new Error('TypeError',  reason+ '\n' + msg);
-};
+}

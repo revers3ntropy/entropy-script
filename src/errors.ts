@@ -25,7 +25,7 @@ export class Error {
         let out = '';
         if (this.traceback.length) {
             out = chalk.yellow('Error Traceback (most recent call last):\n');
-            for (let pos of [...this.traceback].reverse())
+            for (const pos of [...this.traceback].reverse())
                 out += `    ${chalk.cyan(pos.position.str)}:\n        ${pos.line}\n`;
         }
 
@@ -91,7 +91,7 @@ export class IndexError extends Error {
 }
 
 export class InvalidOperationError extends Error {
-    constructor(op: string, value: Primitive, detail: string = '', pos = Position.void) {
+    constructor(op: string, value: Primitive, detail = '', pos = Position.void) {
         super('TypeError',
             `Cannot perform '${op}' on value ${value?.__info__?.name || str(value)}: ${detail}`);
         this.pos = pos;

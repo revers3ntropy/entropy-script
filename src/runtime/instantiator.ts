@@ -39,7 +39,7 @@ function dealWithExtends (context: Context, class_: ESType, instance: ESObject, 
         newContext.parent = context;
         // deal with next level
         if (class_.__extends__) {
-            let _a = dealWithExtends(newContext, class_.__extends__, instance, callContext);
+            const _a = dealWithExtends(newContext, class_.__extends__, instance, callContext);
             if (_a instanceof Error) {
                 return _a;
             }
@@ -68,7 +68,7 @@ function dealWithExtends (context: Context, class_: ESType, instance: ESObject, 
     superFunc.__allow_args__ = initFunc?.__allow_args__ || false;
     superFunc.__args__ = initFunc?.__args__ || [];
 
-    let setRes = context.setOwn('super', superFunc);
+    const setRes = context.setOwn('super', superFunc);
     if (setRes instanceof Error) {
         return setRes;
     }
@@ -100,13 +100,13 @@ function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
             if (params.length < 1) {
                 return new ESArray();
             }
-            let elements: Primitive[] = [];
-            for (let arg of params) {
+            const elements: Primitive[] = [];
+            for (const arg of params) {
                 // array from iterator
-                let iter = arg.__iter__(props);
+                const iter = arg.__iter__(props);
                 if (iter instanceof Error) return iter;
                 while (true) {
-                    let nextRes = iter.__next__(props);
+                    const nextRes = iter.__next__(props);
                     if (nextRes instanceof Error) return nextRes;
                     if (nextRes instanceof ESErrorPrimitive && nextRes.__value__ instanceof EndIterator) {
                         break;
@@ -153,19 +153,19 @@ export function createInstance (
         return callPrimordial(params, type, props);
     }
 
-    let __init__ = type.__get_init__();
+    const __init__ = type.__get_init__();
 
     const newContext = new Context();
     newContext.parent = __init__?.__closure__;
 
     if (type.__extends__) {
-        let res = dealWithExtends(newContext, type.__extends__, instance, context);
+        const res = dealWithExtends(newContext, type.__extends__, instance, context);
         if (res instanceof Error) {
             return res;
         }
     }
 
-    for (let method of type.__methods__) {
+    for (const method of type.__methods__) {
         const methodClone = method.clone();
         methodClone.__this__ = instance;
 

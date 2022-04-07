@@ -14,7 +14,7 @@ import { ESIterable } from "./esiterable";
 export class ESNumber extends ESPrimitive <number> implements ESIterable {
     override __iterable__ = true;
 
-    constructor (value: number = 0) {
+    constructor (value = 0) {
         super(value, types.number);
     }
 
@@ -122,7 +122,7 @@ export class ESNumber extends ESPrimitive <number> implements ESIterable {
     }
 
     override __iter__(props: funcProps): Error | Primitive {
-        let arr: ESNumber[] = [];
+        const arr: ESNumber[] = [];
         for (let i = 0; i < this.__value__; i++) {
             arr.push(new ESNumber(i));
         }

@@ -47,7 +47,7 @@ export class Context {
     }
 
     get (identifier: string): Primitive | Error | undefined {
-        let symbol = this.getSymbol(identifier);
+        const symbol = this.getSymbol(identifier);
         if (symbol instanceof Error || symbol == undefined) {
             return symbol;
         }
@@ -57,7 +57,7 @@ export class Context {
     getSymbolTableAsDict (): dict<ESSymbol> {
         const symbols: dict<ESSymbol> = {};
 
-        for (let key in this.symbolTable)
+        for (const key in this.symbolTable)
             symbols[key] = this.symbolTable[key];
 
         return symbols;
@@ -75,7 +75,7 @@ export class Context {
         }
 
         if (!symbol && this.parent) {
-            let res = this.parent.getSymbol(identifier);
+            const res = this.parent.getSymbol(identifier);
             if (res instanceof Error) {
                 return res;
             }
@@ -117,7 +117,7 @@ export class Context {
         }
 
         if (!options.forceThroughConst) {
-            let symbol = this.symbolTable[identifier];
+            const symbol = this.symbolTable[identifier];
             if (symbol?.isConstant)
                 return new TypeError(
                     'dynamic',
@@ -141,7 +141,7 @@ export class Context {
     }
 
     clear () {
-        for (let symbol in this.symbolTable) {
+        for (const symbol in this.symbolTable) {
             this.remove(symbol);
         }
 
@@ -177,7 +177,7 @@ export class Context {
 
     log () {
         console.log('---- CONTEXT ----');
-        for (let key in this.symbolTable) {
+        for (const key in this.symbolTable) {
             const symbol = this.symbolTable[key];
             let out = key;
             if (symbol.isConstant) {
@@ -206,7 +206,7 @@ export function generateESFunctionCallContext (
     const newContext = new Context();
     newContext.parent = parent;
 
-    let parameters = self.__args__.filter(a => !a.isKwarg);
+    const parameters = self.__args__.filter(a => !a.isKwarg);
 
     if (!self.__allow_args__ && args.length > parameters.length) {
         return new Error('TypeError',
@@ -257,9 +257,9 @@ export function generateESFunctionCallContext (
         return setRes;
     }
 
-    let lookedAtKwargs = [];
+    const lookedAtKwargs = [];
 
-    for (let kwarg of self.__args__.filter(a => a.isKwarg)) {
+    for (const kwarg of self.__args__.filter(a => a.isKwarg)) {
 
         let arg = kwargs[kwarg.name];
 
@@ -272,7 +272,7 @@ export function generateESFunctionCallContext (
         }
 
         if (!dontTypeCheck) {
-            let type = arg.__type__;
+            const type = arg.__type__;
             const typeIncludes = kwarg.type.__includes__({context: parent}, arg);
             if (typeIncludes instanceof Error) return typeIncludes;
             if (!typeIncludes.__value__) {
@@ -288,7 +288,7 @@ export function generateESFunctionCallContext (
     }
 
     if (!self.__allow_kwargs__) {
-        for (let k of Object.keys(kwargs)) {
+        for (const k of Object.keys(kwargs)) {
             if (lookedAtKwargs.indexOf(k) === -1) {
                 return new Error('TypeError',
                     `Kwarg '${Object.keys(kwargs)[0]}' is not a parameter of '${self.name}'`);

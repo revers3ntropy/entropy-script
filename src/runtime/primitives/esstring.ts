@@ -14,7 +14,7 @@ export class ESString extends ESPrimitive <string> implements ESIterable {
 
     override __iterable__ = true;
 
-    constructor (value: string = '') {
+    constructor (value = '') {
         super(value.toString(), types.string);
     }
 
@@ -115,8 +115,8 @@ export class ESString extends ESPrimitive <string> implements ESIterable {
 
         const strToInsert = value.str(new ESNumber).__value__;
 
-        let firstPart = this.__value__.substr(0, idx);
-        let lastPart = this.__value__.substr(idx + strToInsert.length);
+        const firstPart = this.__value__.substr(0, idx);
+        const lastPart = this.__value__.substr(idx + strToInsert.length);
 
         this.__value__ = firstPart + strToInsert + lastPart;
     }
@@ -143,7 +143,7 @@ export class ESString extends ESPrimitive <string> implements ESIterable {
     }
 
     override keys = () => {
-        let res: (ESNumber | ESString)[] = Object.keys(this._).map(s => new ESString(s));
+        const res: (ESNumber | ESString)[] = Object.keys(this._).map(s => new ESString(s));
         res.push(...Object.keys(this.__value__).map(s => new ESNumber(parseInt(s))))
         return res;
     }

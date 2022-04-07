@@ -65,8 +65,8 @@ export function strip (thing: Primitive | undefined, props: funcProps): NativeOb
         return thing.__value__.map(m => strip(m, props), props);
 
     } else if (thing instanceof ESObject) {
-        let val: dict<NativeObj> = {};
-        for (let key in thing.__value__) {
+        const val: dict<NativeObj> = {};
+        for (const key in thing.__value__) {
             val[key] = strip(thing.__value__[key], props);
         }
         return val;
