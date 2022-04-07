@@ -1,4 +1,4 @@
-const {Test} = require('./testFramework.js');
+const {Test} = require('../test/testFramework.js');
 
 // libs for ES
 const es = require("../build/latest.js");

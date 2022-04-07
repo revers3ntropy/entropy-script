@@ -12,6 +12,10 @@
         "entropy-script": "./bin/index.js",
         "jses": "./bin/index.js"
     },
+    "scripts": {
+        "build": "node scripts/build",
+        "test": "node scripts/test"
+    },
     "preferGlobal": true,
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^5.18.0",

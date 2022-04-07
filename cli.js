@@ -3,11 +3,11 @@
  *
  * Syntax:
  *
- * >> node cli.js ./path/to/script.es
+ * >> node cli ./path/to/script.es
  * will run a script
  *
- * >> node cli.js
- * will start the terminal
+ * >> node cli
+ * will start the REPL
  */
 
 // node libs that scripts should have access to

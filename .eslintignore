@@ -6,3 +6,6 @@
 /node_modules/
 /src/built-in/compiledSTD/
 /src/built-in/std/
+/scripts/
+cli.js
+index.d.ts
