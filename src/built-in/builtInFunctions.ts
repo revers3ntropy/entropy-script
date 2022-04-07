@@ -6,14 +6,14 @@ import {
     ESNumber,
     ESObject,
     ESPrimitive,
-    ESString, ESUndefined,
-    FunctionInfo
+    ESString, ESType, ESUndefined,
+    FunctionInfo, Primitive,
 } from '../runtime/primitiveTypes';
 import { BuiltInFunction, dict, funcProps, indent, sleep, str } from '../util/util';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import chalk from "../util/colours";
-import { IS_NODE_INSTANCE, global } from "../util/constants";
-import { getModule, moduleExist } from "./builtInModules";
+import {IS_NODE_INSTANCE, global, types} from '../util/constants';
+import {addModule, getModule, moduleExist} from './builtInModules';
 import { ESInterface } from "../runtime/primitives/esobject";
 
 export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
@@ -365,6 +365,22 @@ export function addDependencyInjectedBIFs (
             return new ESString('\'input()\' does not return anything. Pass in a function as the second argument, which will take the user input as an argument.');
         })
     }, {
-        args: [{name: 'msg', type: 'String'}, {name: 'callback', type: 'Func'}]
+        args: [{name: 'msg', type: 'Str'}, {name: 'callback', type: 'Func'}]
+    }];
+    builtInFunctions['module'] = [(props, name, module) => {
+        if (!(name instanceof ESString)) {
+            return new TypeError(Position.void, 'Str', name.__type_name__(), str(name));
+        }
+        if (module.__type__ === types.object) {
+            addModule(str(name), new ESJSBinding(module.__value__, str(name), false));
+
+        } else if (module instanceof ESFunction || module instanceof ESType) {
+            addModule(str(name), module);
+
+        } else {
+            return new TypeError(Position.void, 'Obj | Func', name.__type_name__(), str(name));
+        }
+    }, {
+        args: [{name: 'msg', type: 'Str'}, {name: 'module', type: 'namespace'}]
     }];
 }

@@ -20,7 +20,7 @@ expect('TypeError', `
     MyLib.a = 1;
 `);
 expect([
-    {myClass: '<Symbol: myClass>', myFunc: '<Symbol: myFunc>', a: '<Symbol: a>'},
+    {myClass: '<Symbol: myClass>', my_func: '<Symbol: my_func>', a: '<Symbol: a>'},
     'myClass', {thing: 123, init: '<Func>'}, 123, 'Hello world!'
 ], `
     let global MyLib = namespace {
@@ -31,7 +31,7 @@ expect([
             }
         };
     
-        let myFunc = func (obj: myClass) {
+        let my_func = func (obj: myClass) {
             return obj.thing;
         };
     
@@ -40,7 +40,7 @@ expect([
     
     let myType = MyLib.myClass;
     let instance: myType = MyLib.myClass();
-    MyLib.myFunc(instance);
+    MyLib.my_func(instance);
     MyLib.a;
 `);
 

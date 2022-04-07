@@ -72,7 +72,9 @@ export class Lexer {
                     let pos = this.position.clone;
                     let char = this.currentChar;
                     this.advance();
-                    return new IllegalCharError(pos, char);
+                    const err = new IllegalCharError(char);
+                    err.pos = pos;
+                    return err;
                 }
 
             }

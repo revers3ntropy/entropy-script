@@ -196,8 +196,8 @@ export class ESType extends ESPrimitive <undefined> {
 
 export class ESTypeUnion extends ESType {
 
-    private readonly __left__: Primitive;
-    private readonly __right__: Primitive;
+    readonly __left__: Primitive;
+    readonly __right__: Primitive;
 
     constructor (left: Primitive, right: Primitive) {
         super(false, `(${str(left)}) | (${str(right)})`);
@@ -223,6 +223,14 @@ export class ESTypeUnion extends ESType {
 
     override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
         if (Object.is(t, types.any)) {
+            return new ESBoolean(true);
+        }
+
+        let eqCheckRes = this.__eq__(props, t);
+        if (eqCheckRes instanceof Error) {
+            return eqCheckRes;
+        }
+        if (eqCheckRes.__value__) {
             return new ESBoolean(true);
         }
 
@@ -257,8 +265,8 @@ export class ESTypeUnion extends ESType {
 
 export class ESTypeIntersection extends ESType {
 
-    private readonly __left__: Primitive;
-    private readonly __right__: Primitive;
+    readonly __left__: Primitive;
+    readonly __right__: Primitive;
 
     constructor (left: Primitive, right: Primitive) {
         super(false, `(${str(left)}) & (${str(right)})`);
@@ -284,6 +292,14 @@ export class ESTypeIntersection extends ESType {
 
     override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
         if (t === types.any) {
+            return new ESBoolean(true);
+        }
+
+        let eqCheckRes = this.__eq__(props, t);
+        if (eqCheckRes instanceof Error) {
+            return eqCheckRes;
+        }
+        if (eqCheckRes.__value__) {
             return new ESBoolean(true);
         }
 
@@ -338,6 +354,23 @@ export class ESTypeNot extends ESType {
         if (Object.is(t, types.any)) {
             return new ESBoolean(true);
         }
+
+        /*
+            weird case caught here:
+            (~Str).__subtype_of__(Str | Num)
+            should be false as it could be a string
+        */
+        if (t instanceof ESTypeUnion || t instanceof ESTypeIntersection) {
+            let leftRes = t.__left__.__subtype_of__(props, this.__val__);
+            if (leftRes instanceof Error) return leftRes;
+            if (leftRes.__value__) return new ESBoolean();
+
+            let rightRes = t.__right__.__subtype_of__(props, this.__val__);
+            if (rightRes instanceof Error) return rightRes;
+            if (rightRes.__value__) return new ESBoolean();
+            return new ESBoolean(true);
+        }
+
         const res = this.__val__.__subtype_of__(props, t);
         if (res instanceof Error) return res;
 

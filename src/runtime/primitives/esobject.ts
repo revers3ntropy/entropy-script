@@ -16,6 +16,8 @@ import { ESIterable } from "./esiterable";
 export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterable{
     override __iterable__ = true;
 
+    __type_map__: dict<Primitive> | undefined;
+
     constructor (val: dict<Primitive> = {}) {
         super(val, types.object);
     }
@@ -112,7 +114,13 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             newOb[key] = res;
         }
 
-        return new ESObject(newOb);
+        let res = new ESObject(newOb);
+        // join type maps as well as objects
+        res.__type_map__ = {
+            ...this.__type_map__,
+            ...n.__type_map__
+        };
+        return res;
     };
 
     override __subtract__ = (props: funcProps, n: Primitive): Primitive | Error => {
@@ -265,16 +273,9 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
 
 export class ESInterface extends ESObject {
     override __includes__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
-        if (!(n instanceof ESObject)) {
-            return new ESBoolean();
-        }
-
         for (let key of Object.keys(this.__value__)) {
-            if (!n.__value__.hasOwnProperty(key)) {
-                return new ESBoolean();
-            }
             const thisType = this.__value__[key];
-            const nValue = n.__value__[key];
+            const nValue = n.__value__[key] ?? new ESUndefined();
 
             let typeCheckRes = thisType.__includes__(props, nValue);
             if (typeCheckRes instanceof Error) return typeCheckRes;
@@ -313,5 +314,14 @@ export class ESInterface extends ESObject {
 
     override __set__ = (props: funcProps, key: Primitive): void | Error => {
         return new TypeError(Position.void, 'Mutable', 'Immutable', str(key));
+    }
+
+    override str = (depth = new ESNumber) => {
+        let val = str(this.__value__, depth.__value__);
+        // remove trailing new line
+        if (val[val.length-1] === '\n') {
+            val = val.substr(0, val.length-1);
+        }
+        return new ESString('interface ' + val);
     }
 }

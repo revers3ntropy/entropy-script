@@ -130,9 +130,6 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         this.__value__[idx] = value;
     }
 
-    /**
-     * Uses JS Array.prototype.includes
-     */
     contains = (props: funcProps, val: Primitive) => {
         for (let element of this.__value__) {
             if (val.__eq__(props, element)) {
@@ -180,23 +177,22 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         return new ESBoolean(true);
     }
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __pipe__ = (props: funcProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __ampersand__ = (props: funcProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__(props: funcProps): Error | Primitive {
+    override __iter__ = (): Error | Primitive => {
         return this.clone();
     }
 
-    override __next__(props: funcProps): Error | Primitive {
+    override __next__ = (): Error | Primitive => {
         if (this.__value__.length) {
             return wrap(this.__value__.shift());
-        } else {
-            return new ESErrorPrimitive(new EndIterator());
         }
+        return new ESErrorPrimitive(new EndIterator());
     }
 
     override keys = () => {

@@ -1,4 +1,6 @@
-import { global, IS_NODE_INSTANCE, libs } from '../util/constants';
+import type {ESFunction} from '../runtime/primitives/esfunction.js';
+import type {ESType} from '../runtime/primitives/estype.js';
+import { IS_NODE_INSTANCE, libs } from '../util/constants';
 import {Error} from '../errors';
 import type {NativeModuleBuilder} from './module';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
@@ -14,7 +16,7 @@ import regex from "./built-in-modules/regex";
 
 import { ESNamespace } from "../runtime/primitives/esnamespace";
 
-export type modulePrimitive = ESJSBinding<any> | ESNamespace;
+export type modulePrimitive = ESJSBinding<any> | ESNamespace | ESFunction | ESType;
 
 const BIMs: dict<NativeModuleBuilder> = {
     ascii,

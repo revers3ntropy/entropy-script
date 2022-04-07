@@ -61,7 +61,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
     override __iterable__ = true;
 
     constructor (value: T, name = '<AnonNative>', functionsTakeProps = false, catchErrors = false) {
-        super(value, types.object);
+        super(value, typeof value === 'function' ? types.function : types.object);
         this.__info__.name = str(name);
         this.functionsTakeProps = functionsTakeProps;
         this.catchErrorsToPrimitive = catchErrors;

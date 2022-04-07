@@ -1,6 +1,6 @@
 import {IS_NODE_INSTANCE} from './util/constants';
 import Position from "./position";
-import {Primitive} from './runtime/primitive';
+import type {Primitive} from './runtime/primitive';
 import {str} from "./util/util";
 import chalk from "./util/colours";
 
@@ -40,21 +40,21 @@ export class Error {
 }
 
 export class IllegalCharError extends Error {
-    constructor(pos=Position.void, char='<unknown>') {
-        super(pos, 'IllegalCharError', `'${char}'`);
+    constructor(char='<unknown>') {
+        super(Position.void, 'IllegalCharError', `'${char}'`);
     }
 }
 
 export class InvalidSyntaxError extends Error {
-    constructor(pos=Position.void, details='') {
-        super(pos,  'InvalidSyntaxError', details);
+    constructor(details='') {
+        super(Position.void,  'InvalidSyntaxError', details);
     }
 }
 
 export class TypeError extends Error {
-    constructor(pos: Position, expectedType: string, actualType: string, value: any = '', detail = '') {
+    constructor(expectedType: string, actualType: string, value: any = '', detail = '') {
         super(
-            pos ?? Position.void,
+            Position.void,
             'TypeError',
             `Expected type '${expectedType}', got type '${actualType}' ${
                 typeof value === 'undefined'? '' : ` on value '${str(value)}'`
@@ -64,29 +64,29 @@ export class TypeError extends Error {
 }
 
 export class ImportError extends Error {
-    constructor(pos: Position, url: string, detail = '') {
-        super(pos ?? Position.void, 'ImportError',
+    constructor(url: string, detail = '') {
+        super(Position.void, 'ImportError',
             `Could not import ${url}: ${detail}`);
     }
 }
 
 export class ReferenceError extends Error {
-    constructor(pos: Position, ref: string) {
-        super(pos ?? Position.void,'ReferenceError',
+    constructor(ref: string) {
+        super(Position.void,'ReferenceError',
             `${ref} is not defined`);
     }
 }
 
 export class IndexError extends Error {
-    constructor(pos: Position, ref: string, object: Primitive) {
-        super(pos ?? Position.void,'IndexError',
+    constructor(ref: string, object: Primitive) {
+        super(Position.void,'IndexError',
             `'${ref}' is not a property of '${(object?.__info__?.name) || str(object)}'`);
     }
 }
 
 export class InvalidOperationError extends Error {
     constructor(op: string, value: Primitive, detail: string = '', pos = Position.void) {
-        super(pos ?? Position.void,'TypeError',
+        super(Position.void,'TypeError',
             `Cannot perform '${op}' on value ${value?.__info__?.name || str(value)}: ${detail}`);
     }
 }
@@ -118,7 +118,7 @@ export class MissingNativeDependencyError extends Error {
 }
 
 export class EndIterator extends Error {
-    constructor() {
+    constructor () {
         super(Position.void, 'EndIterator', ``);
     }
 }

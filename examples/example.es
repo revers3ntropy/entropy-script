@@ -24,7 +24,7 @@ i; // 9, as i is now defined globally
 
 
 // functions
-let myFunc = func () {
+let my_func = func () {
     let output = '';
     for let arg in args {
         output += arg.str();
@@ -32,7 +32,7 @@ let myFunc = func () {
     return output;
 }; // note the ; after functions
 
-print(myFunc('hi ', 123, ['hi', 1])); // hi 123[hi, 1];
+print(my_func('hi ', 123, ['hi', 1])); // hi 123[hi, 1];
 
 // callbacks and higher order functions
 var wrapper = func (f: function) {

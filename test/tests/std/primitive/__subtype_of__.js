@@ -47,16 +47,37 @@ expect(['Str', true, true, false, false], `
     a.__subtype_of__(' ');
     a.__subtype_of__('');
 `);
-expect(['(Str) | (Str)', true, true, '(Str) & (Str)', true, "(Str) | ('')", false, "('hi') | ('')", false, "('hi') | (1)", false], `
-    let var a: Any = Str | Str;
+expect(['(Str) | (Str)', true, true], `
+    let a: Any = Str | Str;
     a.__subtype_of__(Str);
     a.__subtype_of__(Str | Str);
-    a = Str & Str;
+`);
+expect(['(Str) & (Str)', true, "(Str) & ()", true], `
+    let var a = Str & Str;
     a.__subtype_of__(Str);
     a = Str & '';
     a.__subtype_of__(Str);
-    a = 'hi' |  '';
+`);
+expect(["(hi) | ()", true, "(hi) | (1)", false], `
+    let var a = 'hi' |  '';
     a.__subtype_of__(Str);
     a = 'hi' | 1;
     a.__subtype_of__(Str);
+`);
+expect([true, true, true, false, false], `
+    Num.__subtype_of__(~Str);
+    Num.__subtype_of__(~Str & ~Bool);
+    Num.__subtype_of__(~(Str | Bool));
+    Num.__subtype_of__(~Str & ~Bool & ~Num);
+    Num.__subtype_of__(~Str & ~Bool & ~1);
+`);
+
+expect(['(fish) | (dog)', false, true, true, true, false, false], `
+    let A = 'fish' | 'dog';
+    A.__subtype_of__(~Str);
+    A.__subtype_of__(Str);
+    A.__subtype_of__(Str | Str);
+    A.__subtype_of__(~Num & ~Bool);
+    A.__subtype_of__(~Num & ~Bool & ~Str);
+    A.__subtype_of__(~Num & ~(Bool | Str | 1));
 `);

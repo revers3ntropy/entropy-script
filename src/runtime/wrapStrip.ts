@@ -12,7 +12,7 @@ import {ESType} from './primitives/estype';
 import {ESUndefined} from './primitives/esundefined';
 import type {NativeObj, Primitive} from './primitive';
 import { ESJSBinding } from "./primitives/esjsbinding";
-import { funcProps } from "../util/util";
+import {dict, funcProps} from '../util/util';
 
 /**
  * @param {any} thing
@@ -65,7 +65,7 @@ export function strip (thing: Primitive | undefined, props: funcProps): NativeOb
         return thing.__value__.map(m => strip(m, props), props);
 
     } else if (thing instanceof ESObject) {
-        let val: { [key: string]: NativeObj } = {};
+        let val: dict<NativeObj> = {};
         for (let key in thing.__value__) {
             val[key] = strip(thing.__value__[key], props);
         }

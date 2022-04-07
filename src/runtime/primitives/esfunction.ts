@@ -168,7 +168,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         if (thisReturnVal instanceof Error) {
             return thisReturnVal;
         }
-        let eqRes = thisReturnVal.__subtype_of__(props, n.__returns__);
+        let eqRes = n.__returns__.__subtype_of__(props, thisReturnVal);
         if (eqRes instanceof Error) return eqRes;
         return new ESBoolean(eqRes.__value__);
     };

@@ -11,7 +11,7 @@ import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 import { ESIterable } from "./esiterable";
 
-export class ESString extends ESPrimitive <string> implements ESIterable{
+export class ESString extends ESPrimitive <string> implements ESIterable {
 
     override __iterable__ = true;
 

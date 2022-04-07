@@ -12,7 +12,7 @@ expect('TypeError', `
 `);
 
 expect(['<Func>', 'hello'], `
-	let myFunc = func (g: {c: [Str, Str]}): {a: {b: Str}} {
+	let my_func = func (g: {c: [Str, Str]}): {a: {b: Str}} {
 		return {
 			a: {
 				b: g.c[0]
@@ -20,6 +20,6 @@ expect(['<Func>', 'hello'], `
 		};
 	};
 	
-	myFunc({c: ['hello', 'world']}).a.b;
+	my_func({c: ['hello', 'world']}).a.b;
 
 `);

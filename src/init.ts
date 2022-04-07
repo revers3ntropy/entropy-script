@@ -3,11 +3,12 @@ import { addModule, initModules } from './built-in/builtInModules';
 import {preloadModules} from './built-in/module';
 import addNodeBIFs from './built-in/nodeLibs';
 import {config} from './config';
+import {run} from './index';
 import { Context } from "./runtime/context";
 import { Error } from "./errors";
 import { ESFunction, ESJSBinding, ESUndefined, initPrimitiveTypes } from './runtime/primitiveTypes';
 import loadGlobalConstants from "./built-in/globalConstants";
-import {global, refreshPerformanceNow, runningInNode, setGlobalContext, types} from './util/constants';
+import {global, refreshPerformanceNow, runningInNode, setGlobalContext, STD_RAW, types} from './util/constants';
 import { dict } from "./util/util";
 import { NativeObj } from "./runtime/primitive";
 import {libs as globalLibs} from "./util/constants";
@@ -107,6 +108,13 @@ export default async function init ({
     let modulePreloadRes = await preloadModules(config.modules);
     if (modulePreloadRes instanceof Error) {
         return modulePreloadRes;
+    }
+
+    for (let file of STD_RAW) {
+        run(file, {
+            fileName: 'std',
+            env: global
+        });
     }
 
     return global;

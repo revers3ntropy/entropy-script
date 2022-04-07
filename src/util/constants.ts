@@ -255,3 +255,15 @@ export const primitiveMethods: string[] = [
     '__next__',
     '__iterable__'
 ];
+
+
+
+// @ts-ignore
+import STD_ITER from 'raw-loader!../built-in/std/iter.es';
+// @ts-ignore
+import STD_TEST from 'raw-loader!../built-in/std/test.es';
+
+export const STD_RAW: string[] = [
+    STD_ITER,
+    STD_TEST
+];

@@ -256,6 +256,7 @@ function expect (expected, from) {
             return result.error;
         }
 
+        // wrap in function to make returning easier to handle
         const res = (() => {
             if (result.error || typeof expected === 'string') {
                 if (!result.error || Array.isArray(expected)) {

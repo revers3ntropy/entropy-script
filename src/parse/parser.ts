@@ -36,9 +36,8 @@ export class Parser {
 
         if (!res.error && this.currentToken.type !== tokenType.EOF) {
             return res.failure(new InvalidSyntaxError(
-                this.currentToken?.pos,
                 `Expected 'End of File', got token of type '${tokenTypeString[this.currentToken.type]}'`
-            ));
+            ), this.currentToken?.pos);
         }
 
         return res;
@@ -69,10 +68,9 @@ export class Parser {
     private consume (res: ParseResults, type: tokenType, errorMsg?: string): void | ParseResults {
         if (this.currentToken.type !== type)
             return res.failure(new InvalidSyntaxError(
-                this.currentToken.pos,
                 errorMsg ??
                 `Expected '${tokenTypeString[type]}' but got '${tokenTypeString[this.currentToken.type]}'`
-            ));
+            ), this.currentToken.pos);
 
         this.advance(res);
     }
@@ -176,7 +174,7 @@ export class Parser {
         if (this.currentToken.type !== tt.ENDSTATEMENT) {
             let exprRes = res.register(this.expr());
             if (!exprRes) {
-                return res.failure(new InvalidSyntaxError(this.currentToken.pos, 'Expected end of statement'));
+                return res.failure(new InvalidSyntaxError('Expected end of statement'), this.currentToken.pos);
             }
             expr = exprRes;
         }
@@ -212,9 +210,7 @@ export class Parser {
                     return res.success(expr);
                 }
                 return res.failure(new InvalidSyntaxError(
-                    this.currentToken.pos,
-                    "Expected ')'"
-                ));
+                    "Expected ')'"), this.currentToken.pos);
 
             case tt.OSQUARE:
                 let arrayExpr = res.register(this.array());
@@ -233,15 +229,11 @@ export class Parser {
                     return res.success(expr);
                 }
                 return res.failure(new InvalidSyntaxError(
-                    this.currentToken.pos,
-                    `Invalid Identifier ${tok.value}`
-                ));
+                    `Invalid Identifier ${tok.value}`), this.currentToken.pos);
 
             default:
                 return res.failure(new InvalidSyntaxError(
-                    this.currentToken.pos,
-                    `Expected number, identifier, '(', '+' or '-'`
-                ));
+                    `Expected number, identifier, '(', '+' or '-'`), this.currentToken.pos);
         }
     }
 
@@ -275,9 +267,8 @@ export class Parser {
                     // @ts-ignore
                     if (this.currentToken.type !== tt.IDENTIFIER) {
                         return res.failure(new InvalidSyntaxError(
-                            this.currentToken.pos,
                             `Expected identifier after '.'`
-                        ));
+                        ), this.currentToken.pos);
                     }
 
                     prevNode = node;
@@ -297,9 +288,7 @@ export class Parser {
             let assignType = this.currentToken.value;
             if (functionCall) {
                 return res.failure(new InvalidSyntaxError(
-                    pos,
-                    `Cannot assign to return value of function`
-                ));
+                    `Cannot assign to return value of function`), pos);
             }
             this.advance(res);
             const value = res.register(this.expr());
@@ -318,10 +307,9 @@ export class Parser {
                 node.assignType = assignType;
             } else {
                 return res.failure(new InvalidSyntaxError(
-                    pos,
                     `Cannot have node of type ${this.currentToken.constructor.name}.
                             Expected either index or variable node.`
-                ))
+                ), pos)
             }
 
             if (res.error) return res;
@@ -443,7 +431,7 @@ export class Parser {
 
         if (this.currentToken.type !== tt.OPAREN) {
             return res.failure(new InvalidSyntaxError(
-                pos, "Expected '('"));
+                "Expected '('"), pos);
         }
 
         this.advance(res);
@@ -504,9 +492,7 @@ export class Parser {
         // @ts-ignore
         if (this.currentToken.type !== tt.CPAREN) {
             return res.failure(new InvalidSyntaxError(
-                this.currentToken.pos,
-                "Expected ',' or ')'"
-            ));
+                "Expected ',' or ')'"), this.currentToken.pos);
         }
 
         this.advance(res);
@@ -520,35 +506,26 @@ export class Parser {
 
         const base = to;
 
-        if (this.currentToken.type !== tt.OSQUARE) {
-            return res.failure(new InvalidSyntaxError(
-                pos,
-                "Expected '["
-            ));
-        }
+        this.consume(res, tt.OSQUARE);
+        if (res.error) return res;
 
         this.advance(res);
+        if (res.error) return res;
 
         // @ts-ignore
         if (this.currentToken.type === tt.CSQUARE) {
             return res.failure(new InvalidSyntaxError(
-                pos,
-                `Cannot index without expression`
-            ));
+                `Cannot index without expression`), pos);
         }
 
         let index = res.register(this.expr());
         if (res.error) return res.failure(new InvalidSyntaxError(
-            this.currentToken.pos,
-            "Invalid index"
-        ));
+            "Invalid index"), this.currentToken.pos);
 
         // @ts-ignore
         if (this.currentToken.type !== tt.CSQUARE)
             return res.failure(new InvalidSyntaxError(
-                this.currentToken.pos,
-                "Expected ']'"
-            ));
+                "Expected ']'", this.currentToken.pos);
 
         this.advance(res);
 
@@ -584,7 +561,7 @@ export class Parser {
             this.consume(res, tt.CSQUARE);
 
             if (!this.currentToken.matches(tt.ASSIGN, '=')) {
-                return res.failure(new InvalidSyntaxError(this.currentToken.pos, `Expected '='`))
+                return res.failure(new InvalidSyntaxError(`Expected '='`), this.currentToken.pos)
             }
 
             this.consume(res, tt.ASSIGN);

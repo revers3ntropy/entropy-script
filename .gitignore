@@ -2,6 +2,7 @@
 /package-lock.json
 /.idea/
 *.es
+!src/**/*.es
 out.js
 out.py
 esconfig.json
