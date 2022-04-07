@@ -2,11 +2,10 @@ import { dict, str } from '../util/util';
 import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
 import { Error, TypeError } from "../errors";
-import Position from "../position";
 import type {NativeObj} from './primitive';
 import {ESFunction, ESNumber, ESObject, ESPrimitive, ESUndefined, Primitive} from './primitiveTypes';
 
-function callNode (self: ESFunction, context: Context, fn: Node) {
+function callNode (self: ESFunction, context: Context, fn: Node, dontTypeCheck: boolean) {
 
     const res = fn.interpret(context);
 
@@ -15,15 +14,18 @@ function callNode (self: ESFunction, context: Context, fn: Node) {
         res.val = res.funcReturn;
         res.funcReturn = undefined;
     }
-    let typeCheckRes = self.__returns__.__includes__({ context }, res.val);
-    if (typeCheckRes instanceof Error) return typeCheckRes;
-    if (typeCheckRes.__value__ === false) {
-        return new TypeError(
-            str(self.__returns__),
-            res.val?.__type_name__() || 'undefined',
-            res.val?.str(new ESNumber).__value__,
-            '(from function return)'
-        );
+
+    if (!dontTypeCheck) {
+        let typeCheckRes = self.__returns__.__includes__({ context }, res.val);
+        if (typeCheckRes instanceof Error) return typeCheckRes;
+        if (typeCheckRes.__value__ === false) {
+            return new TypeError(
+                str(self.__returns__),
+                res.val?.__type_name__() || 'undefined',
+                res.val?.str(new ESNumber).__value__,
+                '(from function return)'
+            );
+        }
     }
 
     if (res.val) {
@@ -33,7 +35,7 @@ function callNode (self: ESFunction, context: Context, fn: Node) {
     }
 }
 
-function callNative (self: ESFunction, context: Context, params: Primitive[], fn: Function, kwargs: dict<Primitive>) {
+function callNative (self: ESFunction, context: Context, params: Primitive[], fn: Function, kwargs: dict<Primitive>, dontTypeCheck: boolean) {
     for (let i = params.length; i < fn.length; i++) {
         params.push(new ESUndefined());
     }
@@ -56,7 +58,8 @@ export function call (
     context: Context,
     self: ESFunction,
     params: Primitive[] = [],
-    kwargs: dict<Primitive> = {}
+    kwargs: dict<Primitive> = {},
+    dontTypeCheck = false
 ): ESUndefined | Error | ESPrimitive<NativeObj> {
 
     // generate context
@@ -67,7 +70,7 @@ export function call (
     context.path = callContext.path;
     const fn = self.__value__;
 
-    const newContext = generateESFunctionCallContext(self, params, kwargs, context);
+    const newContext = generateESFunctionCallContext(self, params, kwargs, context, dontTypeCheck);
     if (newContext instanceof Error) {
         return newContext;
     }
@@ -80,10 +83,10 @@ export function call (
     }
 
     if (fn instanceof Node) {
-        return callNode(self, newContext, fn);
+        return callNode(self, newContext, fn, dontTypeCheck);
 
     } else if (typeof fn === 'function') {
-        return callNative(self, newContext, params, fn, kwargs);
+        return callNative(self, newContext, params, fn, kwargs, dontTypeCheck);
 
     } else {
         return new TypeError('function', typeof fn);

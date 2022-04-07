@@ -199,7 +199,8 @@ export function generateESFunctionCallContext (
     self: ESFunction,
     args: Primitive[],
     kwargs: dict<Primitive>,
-    parent: Context
+    parent: Context,
+    dontTypeCheck: boolean
 ) {
 
     const newContext = new Context();
@@ -236,10 +237,12 @@ export function generateESFunctionCallContext (
             continue;
         }
 
-        const typeIncludes = param.type.__includes__({context: parent}, args[i]);
-        if (typeIncludes instanceof Error) return typeIncludes;
-        if (!typeIncludes.__value__) {
-            return new TypeError(str(param.type), str(type), str(value));
+        if (!dontTypeCheck) {
+            const typeIncludes = param.type.__includes__({context: parent}, args[i]);
+            if (typeIncludes instanceof Error) return typeIncludes;
+            if (!typeIncludes.__value__) {
+                return new TypeError(str(param.type), str(type), str(value));
+            }
         }
 
         newContext.setOwn(param.name, value, {
@@ -268,12 +271,13 @@ export function generateESFunctionCallContext (
             }
         }
 
-        let type = arg.__type__;
-
-        const typeIncludes = kwarg.type.__includes__({context: parent}, arg);
-        if (typeIncludes instanceof Error) return typeIncludes;
-        if (!typeIncludes.__value__) {
-            return new TypeError(str(kwarg.type), str(type), str(arg));
+        if (!dontTypeCheck) {
+            let type = arg.__type__;
+            const typeIncludes = kwarg.type.__includes__({context: parent}, arg);
+            if (typeIncludes instanceof Error) return typeIncludes;
+            if (!typeIncludes.__value__) {
+                return new TypeError(str(kwarg.type), str(type), str(arg));
+            }
         }
 
         newContext.setOwn(kwarg.name, arg, {

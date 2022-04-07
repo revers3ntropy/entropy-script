@@ -96,13 +96,13 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __call__ = ({context, kwargs}: funcProps, ...params: Primitive[]): Error | Primitive => {
+    override __call__ = ({context, kwargs, dontTypeCheck}: funcProps, ...params: Primitive[]): Error | Primitive => {
         let ctx = context;
         if (!this.takeCallContextAsClosure) {
             ctx = this.__closure__;
             ctx.path = context.path;
         }
-        return call(ctx, this, params, kwargs);
+        return call(ctx, this, params, kwargs, dontTypeCheck);
     }
 
     override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
@@ -162,7 +162,10 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             }
         }
 
-        const thisReturnVal = this.__call__(props);
+        const thisReturnVal = this.__call__({
+            ...props,
+            dontTypeCheck: true
+        });
 
         if (thisReturnVal instanceof Error) {
             return thisReturnVal;
@@ -190,7 +193,6 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             }
 
             for (let i = 0; i < nPosArgs.length; i++) {
-
                 let typeCheckRes = nPosArgs[i].type.__subtype_of__(props, thisPosArgs[i].type);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes.__value__) {
@@ -224,12 +226,22 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             }
         }
 
-        const thisReturnVal = this.__call__(props);
+        const thisReturnVal = this.__call__({
+            ...props,
+            dontTypeCheck: true
+        });
 
         if (thisReturnVal instanceof Error) {
             return thisReturnVal;
         }
-        let eqRes = n.__returns__.__subtype_of__(props, thisReturnVal);
+
+        const nReturnsVal = n.__call__({
+            ...props,
+            dontTypeCheck: true
+        });
+        if (nReturnsVal instanceof Error) return nReturnsVal;
+
+        let eqRes = nReturnsVal.__subtype_of__(props, thisReturnVal);
         if (eqRes instanceof Error) return eqRes;
         return new ESBoolean(eqRes.__value__);
     };

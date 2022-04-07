@@ -21,6 +21,7 @@ export interface timeData {
 export interface funcProps {
     context: Context,
     kwargs?: dict<Primitive>
+    dontTypeCheck?: boolean
 }
 
 export type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | Error | Primitive | Promise<void>;

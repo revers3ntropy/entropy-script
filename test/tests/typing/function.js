@@ -112,7 +112,7 @@ expect(['<Func>'], `
     let my_func: Func = func (*, **): Any {};
 `);
 expect(['<Func>'], `
-    let my_func: Func = func (c, *d, *, **): [Bool, Str] [true, ''];
+    let my_func: Func = func (c, *d, *, **): [Bool, Str] { [true, ''] };
 `);
 expect(['<Func>'], `
     let my_func: Func = func (c) c;
