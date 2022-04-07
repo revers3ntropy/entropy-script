@@ -34,7 +34,7 @@ export function interpretArgument (arg: uninterpretedArgument, context: Context)
 
     let defaultValue: Primitive | undefined;
     if (arg.defaultValue) {
-        let defaultValRes = arg.defaultValue?.interpret(context);
+        const defaultValRes = arg.defaultValue?.interpret(context);
         if (defaultValRes.error) {
             return defaultValRes.error;
         }

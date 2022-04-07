@@ -126,7 +126,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
     }
 
     contains = (props: funcProps, val: Primitive) => {
-        for (let element of this.__value__) {
+        for (const element of this.__value__) {
             if (val.__eq__(props, element)) {
                 return true;
             }
@@ -136,7 +136,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
 
     override clone = (): ESArray => {
         const newArr = [];
-        for (let element of this.__value__) {
+        for (const element of this.__value__) {
             newArr.push(element);
         }
         return new ESArray(newArr);
@@ -191,7 +191,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
     }
 
     override keys = () => {
-        let res: (ESNumber | ESString)[] = Object.keys(this._).map(s => new ESString(s));
+        const res: (ESNumber | ESString)[] = Object.keys(this._).map(s => new ESString(s));
         res.push(...Object.keys(this.__value__).map(s => new ESNumber(parseInt(s))))
         return res;
     }
@@ -203,7 +203,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
 
 export class ESTypeArray extends ESType {
     private readonly __t__: Primitive;
-    private __n_elements__: number = -1;
+    private __n_elements__ = -1;
 
     constructor (type: Primitive) {
         super(false, `Array[${str(type)}]`);
@@ -229,7 +229,7 @@ export class ESTypeArray extends ESType {
         }
 
         for (const element of t.__value__) {
-            let typeRes = this.__t__.__includes__(props, element);
+            const typeRes = this.__t__.__includes__(props, element);
             if (typeRes instanceof Error) return typeRes;
             if (!typeRes.__value__) {
                 return new ESBoolean();
@@ -258,7 +258,7 @@ export class ESTypeArray extends ESType {
         }
 
         for (const element of t.__value__) {
-            let typeRes = this.__t__.__subtype_of__(props, element);
+            const typeRes = this.__t__.__subtype_of__(props, element);
             if (typeRes instanceof Error) return typeRes;
             if (!typeRes.__value__) {
                 return new ESBoolean();

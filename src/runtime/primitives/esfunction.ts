@@ -117,8 +117,8 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             return new ESBoolean();
         }
 
-        let nPosArgs = n.__args__.filter(a => !a.isKwarg);
-        let thisPosArgs = this.__args__.filter(a => !a.isKwarg);
+        const nPosArgs = n.__args__.filter(a => !a.isKwarg);
+        const thisPosArgs = this.__args__.filter(a => !a.isKwarg);
 
         if (!this.__allow_kwargs__ && n.__allow_kwargs__) {
             return new ESBoolean();
@@ -133,7 +133,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             }
 
             for (let i = 0; i < nPosArgs.length; i++) {
-                let typeCheckRes = thisPosArgs[i].type.__subtype_of__(props, nPosArgs[i].type);
+                const typeCheckRes = thisPosArgs[i].type.__subtype_of__(props, nPosArgs[i].type);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes.__value__) {
                     return new ESBoolean();
@@ -143,18 +143,18 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
         if (!this.__allow_kwargs__) {
 
-            let nKwargs = n.__args__.filter(a => a.isKwarg);
-            let thisKwargs = this.__args__.filter(a => a.isKwarg);
+            const nKwargs = n.__args__.filter(a => a.isKwarg);
+            const thisKwargs = this.__args__.filter(a => a.isKwarg);
 
             if (nKwargs.length !== thisKwargs.length && !this.__allow_kwargs__) {
                 return new ESBoolean();
             }
 
-            for (let name of thisKwargs.map(n => n.name)) {
-                let nKwarg = nKwargs.find(n => n.name === name);
+            for (const name of thisKwargs.map(n => n.name)) {
+                const nKwarg = nKwargs.find(n => n.name === name);
                 if (!nKwarg) return new ESBoolean();
 
-                let typeCheckRes = thisKwargs.find(n => n.name === name)?.type.__subtype_of__(props, nKwarg.type);
+                const typeCheckRes = thisKwargs.find(n => n.name === name)?.type.__subtype_of__(props, nKwarg.type);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes?.__value__) {
                     return new ESBoolean();
@@ -170,7 +170,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         if (thisReturnVal instanceof Error) {
             return thisReturnVal;
         }
-        let eqRes = n.__returns__.__subtype_of__(props, thisReturnVal);
+        const eqRes = n.__returns__.__subtype_of__(props, thisReturnVal);
         if (eqRes instanceof Error) return eqRes;
         return new ESBoolean(eqRes.__value__);
     };
@@ -184,8 +184,8 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             return new ESBoolean();
         }
 
-        let nPosArgs = n.__args__.filter(a => !a.isKwarg);
-        let thisPosArgs = this.__args__.filter(a => !a.isKwarg);
+        const nPosArgs = n.__args__.filter(a => !a.isKwarg);
+        const thisPosArgs = this.__args__.filter(a => !a.isKwarg);
 
         if (!this.__allow_args__) {
             if (nPosArgs.length !== thisPosArgs.length) {
@@ -193,7 +193,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             }
 
             for (let i = 0; i < nPosArgs.length; i++) {
-                let typeCheckRes = nPosArgs[i].type.__subtype_of__(props, thisPosArgs[i].type);
+                const typeCheckRes = nPosArgs[i].type.__subtype_of__(props, thisPosArgs[i].type);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes.__value__) {
                     return new ESBoolean();
@@ -203,22 +203,22 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
         if (!this.__allow_kwargs__) {
 
-            let nKwargs = n.__args__.filter(a => a.isKwarg);
-            let thisKwargs = this.__args__.filter(a => a.isKwarg);
+            const nKwargs = n.__args__.filter(a => a.isKwarg);
+            const thisKwargs = this.__args__.filter(a => a.isKwarg);
 
             if (nKwargs.length !== thisKwargs.length && !this.__allow_kwargs__) {
                 return new ESBoolean();
             }
 
-            for (let name of thisKwargs.map(n => n.name)) {
-                let nKwarg = nKwargs.find(n => n.name === name);
+            for (const name of thisKwargs.map(n => n.name)) {
+                const nKwarg = nKwargs.find(n => n.name === name);
                 if (!nKwarg) return new ESBoolean();
 
-                let thisKwargType = thisKwargs.find(n => n.name === name)?.type;
+                const thisKwargType = thisKwargs.find(n => n.name === name)?.type;
                 if (!thisKwargType) {
                     return new ESBoolean();
                 }
-                let typeCheckRes = nKwarg.type.__subtype_of__(props, thisKwargType);
+                const typeCheckRes = nKwarg.type.__subtype_of__(props, thisKwargType);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes?.__value__) {
                     return new ESBoolean();
@@ -241,7 +241,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         });
         if (nReturnsVal instanceof Error) return nReturnsVal;
 
-        let eqRes = nReturnsVal.__subtype_of__(props, thisReturnVal);
+        const eqRes = nReturnsVal.__subtype_of__(props, thisReturnVal);
         if (eqRes instanceof Error) return eqRes;
         return new ESBoolean(eqRes.__value__);
     };

@@ -26,7 +26,7 @@ export class ESType extends ESPrimitive <undefined> {
     readonly __abstract__: boolean;
 
     constructor (
-        isPrimitive: boolean = false,
+        isPrimitive = false,
         name: typeName = '(anon)',
         methods: ESFunction[] = [],
         properties: dict<Primitive> = {},
@@ -71,7 +71,7 @@ export class ESType extends ESPrimitive <undefined> {
 
     override __includes__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
         if (!n) return new ESBoolean();
-        let t = n.__type__;
+        const t = n.__type__;
 
         if (
             this === types.any ||
@@ -115,7 +115,7 @@ export class ESType extends ESPrimitive <undefined> {
             return new Error('TypeError', 'Cannot construct abstract class');
         }
 
-        let res = createInstance(this, props, params || []);
+        const res = createInstance(this, props, params || []);
 
         if (res instanceof Error) return res;
 
@@ -144,7 +144,7 @@ export class ESType extends ESPrimitive <undefined> {
             // don't check the child's init function against the parents, just check that it is a function
             properties['init'] = new ESTypeUnion(types.function, types.undefined);
 
-            let typeCheckRes = res.isa(props, new ESObject(properties));
+            const typeCheckRes = res.isa(props, new ESObject(properties));
             if (typeCheckRes instanceof Error) return typeCheckRes;
             if (!typeCheckRes.__value__) {
                 return new Error('TypeError', 'Initializer incorrectly assigned properties');
@@ -187,7 +187,7 @@ export class ESType extends ESPrimitive <undefined> {
     }
 
     public __get_init__ = (): ESFunction | undefined => {
-        let res = this.__methods__.filter(m => m.name === 'init');
+        const res = this.__methods__.filter(m => m.name === 'init');
         if (!res) return undefined;
         return res[0];
     }
@@ -225,7 +225,7 @@ export class ESTypeUnion extends ESType {
             return new ESBoolean(true);
         }
 
-        let eqCheckRes = this.__eq__(props, t);
+        const eqCheckRes = this.__eq__(props, t);
         if (eqCheckRes instanceof Error) {
             return eqCheckRes;
         }
@@ -251,10 +251,10 @@ export class ESTypeUnion extends ESType {
     override __eq__ = (props: funcProps, t: Primitive) => {
         if (!(t instanceof ESTypeUnion)) return new ESBoolean();
 
-        let leftTypeCheckRes = this.__left__.__eq__(props, t.__left__);
+        const leftTypeCheckRes = this.__left__.__eq__(props, t.__left__);
         if (leftTypeCheckRes instanceof Error) return leftTypeCheckRes;
 
-        let rightTypeCheckRes = this.__right__.__eq__(props, t.__right__);
+        const rightTypeCheckRes = this.__right__.__eq__(props, t.__right__);
         if (rightTypeCheckRes instanceof Error) return rightTypeCheckRes;
 
         return new ESBoolean(leftTypeCheckRes.__value__ && rightTypeCheckRes.__value__);
@@ -294,7 +294,7 @@ export class ESTypeIntersection extends ESType {
             return new ESBoolean(true);
         }
 
-        let eqCheckRes = this.__eq__(props, t);
+        const eqCheckRes = this.__eq__(props, t);
         if (eqCheckRes instanceof Error) {
             return eqCheckRes;
         }
@@ -320,10 +320,10 @@ export class ESTypeIntersection extends ESType {
     override __eq__ = (props: funcProps, t: Primitive) => {
         if (!(t instanceof ESTypeIntersection)) return new ESBoolean();
 
-        let leftTypeCheckRes = this.__left__.__eq__(props, t.__left__);
+        const leftTypeCheckRes = this.__left__.__eq__(props, t.__left__);
         if (leftTypeCheckRes instanceof Error) return leftTypeCheckRes;
 
-        let rightTypeCheckRes = this.__right__.__eq__(props, t.__right__);
+        const rightTypeCheckRes = this.__right__.__eq__(props, t.__right__);
         if (rightTypeCheckRes instanceof Error) return rightTypeCheckRes;
 
         return new ESBoolean(leftTypeCheckRes.__value__ && rightTypeCheckRes.__value__);
@@ -360,11 +360,11 @@ export class ESTypeNot extends ESType {
             should be false as it could be a string
         */
         if (t instanceof ESTypeUnion || t instanceof ESTypeIntersection) {
-            let leftRes = t.__left__.__subtype_of__(props, this.__val__);
+            const leftRes = t.__left__.__subtype_of__(props, this.__val__);
             if (leftRes instanceof Error) return leftRes;
             if (leftRes.__value__) return new ESBoolean();
 
-            let rightRes = t.__right__.__subtype_of__(props, this.__val__);
+            const rightRes = t.__right__.__subtype_of__(props, this.__val__);
             if (rightRes instanceof Error) return rightRes;
             if (rightRes.__value__) return new ESBoolean();
             return new ESBoolean(true);
@@ -385,7 +385,7 @@ export class ESTypeNot extends ESType {
             return new ESBoolean();
         }
 
-        let typeCheckRes = this.__val__.__eq__(props, t.__val__);
+        const typeCheckRes = this.__val__.__eq__(props, t.__val__);
         if (typeCheckRes instanceof Error) {
             return typeCheckRes;
         }

@@ -36,9 +36,9 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
     }
 
     override clone = (): Primitive => {
-        let obj: dict<ESSymbol> = {};
-        let toClone = this.__value__;
-        for (let key of Object.keys(toClone)) {
+        const obj: dict<ESSymbol> = {};
+        const toClone = this.__value__;
+        for (const key of Object.keys(toClone)) {
             obj[key] = toClone[key];
         }
         return new ESNamespace(this.name, obj);
@@ -81,7 +81,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
             return new TypeError('string', key.__type_name__(), str(key));
         }
 
-        let idx = str(key);
+        const idx = str(key);
 
         if (!this.__mutable__) {
             return new TypeError('mutable', 'immutable', `${str(this.name)}`);

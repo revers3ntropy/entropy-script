@@ -11,7 +11,7 @@ const codes: {[k: string]: number} = {
 
 const c: {[k: string]: (s: string | undefined) => string} = {};
 
-for (let code of Object.keys(codes)) {
+for (const code of Object.keys(codes)) {
     c[code] = (s: string | undefined) => {
         s ||= '';
         if (IS_NODE_INSTANCE) {

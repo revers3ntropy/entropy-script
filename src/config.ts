@@ -13,7 +13,7 @@ export interface config {
     modules: dict<string|any>,
 }
 
-let AllowAny = Symbol('AllowAny');
+const AllowAny = Symbol('AllowAny');
 
 export function defaultPermissions (): Permissions {
     return {
@@ -35,7 +35,7 @@ export const config = {
 
 function pathAsString (path: string[]) {
     let res = '[';
-    for (let p of path) {
+    for (const p of path) {
         res += p + '][';
     }
     return res.substring(0, res.length-1);

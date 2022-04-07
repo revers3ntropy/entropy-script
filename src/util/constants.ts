@@ -143,7 +143,7 @@ export enum tokenType {
     QM
 }
 
-export let tt = tokenType;
+export const tt = tokenType;
 
 export const tokenTypeString: enumDict<tokenType, string> = {
     [tt.NUMBER]: 'Number',

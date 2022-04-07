@@ -39,9 +39,9 @@ export class InterpretResult {
 }
 
 export class CompileResult {
-    val: string = '';
+    val = '';
     // for hoisting declarations to the start of the file, gets added after STD
-    hoisted: string = '';
+    hoisted = '';
     error: Error | undefined;
 
     constructor (val?: string | Error) {
@@ -111,7 +111,7 @@ export abstract class Node {
         res.val.__info__.file ||= this.pos.file;
 
         Node.interprets++;
-        let time = now() - start;
+        const time = now() - start;
         Node.totalTime += time;
         if (time > Node.maxTime) Node.maxTime = time;
 
@@ -465,7 +465,7 @@ export class N_varAssign extends Node {
                     .position(this.pos);
 
             let newVal: Primitive | Error;
-            let assignVal = res.val;
+            const assignVal = res.val;
 
             switch (this.assignType[0]) {
                 case '*':
@@ -488,7 +488,7 @@ export class N_varAssign extends Node {
                 return newVal;
             }
 
-            let setRes = context.set(this.varNameTok.value, newVal, {
+            const setRes = context.set(this.varNameTok.value, newVal, {
                 global: this.isGlobal,
                 isConstant: this.isConstant,
                 type: newVal.__type__
@@ -592,7 +592,7 @@ export class N_destructAssign extends Node {
 
     interpret_(context: Context): InterpretResult | Error {
 
-        for (let varName of this.varNames) {
+        for (const varName of this.varNames) {
             if (context.hasOwn(varName)) {
                 return new InvalidSyntaxError(
                     `Symbol '${varName}' already exists, and cannot be redeclared`)
@@ -605,14 +605,14 @@ export class N_destructAssign extends Node {
 
         if (res.val.__type__ === types.object) {
             let i = 0;
-            for (let varName of this.varNames) {
-                let objPropRes =  res.val.__get__({context}, new ESString(varName));
+            for (const varName of this.varNames) {
+                const objPropRes =  res.val.__get__({context}, new ESString(varName));
                 if (objPropRes instanceof Error) return objPropRes;
 
-                let typeRes = this.types[i].interpret(context);
+                const typeRes = this.types[i].interpret(context);
                 if (typeRes.error) return typeRes;
 
-                let typeCheckRes = typeRes.val.__includes__({context}, objPropRes);
+                const typeCheckRes = typeRes.val.__includes__({context}, objPropRes);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
 
                 if (!typeCheckRes.bool().__value__) {
@@ -635,13 +635,13 @@ export class N_destructAssign extends Node {
         }
 
 
-        let iterable = res.val.__iter__({context});
+        const iterable = res.val.__iter__({context});
 
         if (iterable instanceof Error) return iterable;
 
         let i = 0;
-        for (let varName of this.varNames) {
-            let nextRes = iterable.__next__({context});
+        for (const varName of this.varNames) {
+            const nextRes = iterable.__next__({context});
 
             if (nextRes instanceof ESErrorPrimitive && nextRes.__value__ instanceof EndIterator) {
                 return new Error('IndexError', 'Iterator ended unexpectedly - not enough elements to destruct');
@@ -651,10 +651,10 @@ export class N_destructAssign extends Node {
                 return nextRes;
             }
 
-            let typeRes = this.types[i].interpret(context);
+            const typeRes = this.types[i].interpret(context);
             if (typeRes.error) return typeRes;
 
-            let typeCheckRes = typeRes.val.__includes__({context}, nextRes);
+            const typeCheckRes = typeRes.val.__includes__({context}, nextRes);
             if (typeCheckRes instanceof Error) return typeCheckRes;
 
             if (!typeCheckRes.bool().__value__) {
@@ -717,11 +717,11 @@ export class N_if extends Node {
     }
 
     interpret_(context: Context): InterpretResult {
-        let newContext = new Context();
+        const newContext = new Context();
         newContext.parent = context;
-        let res: InterpretResult = new InterpretResult();
+        const res: InterpretResult = new InterpretResult();
 
-        let compRes = this.comparison.interpret(context);
+        const compRes = this.comparison.interpret(context);
         if (compRes.error) return compRes;
 
         if (compRes.val?.bool().__value__) {
@@ -757,7 +757,7 @@ export class N_if extends Node {
 
         config.indent = highIndent.length;
 
-        let ifFalseRes = this.ifFalse.compileJS(config);
+        const ifFalseRes = this.ifFalse.compileJS(config);
         if (ifFalseRes.error) return ifFalseRes;
 
         if (!(this.ifFalse instanceof N_statements)) {
@@ -821,15 +821,15 @@ export class N_while extends Node {
 
     interpret_(context: Context): Error | InterpretResult {
         while (true) {
-            let newContext = new Context();
+            const newContext = new Context();
             newContext.parent = context;
 
-            let shouldLoop = this.comparison.interpret(context);
+            const shouldLoop = this.comparison.interpret(context);
             if (shouldLoop.error) return shouldLoop;
 
             if (!shouldLoop.val?.bool()?.__value__) break;
 
-            let potentialError = this.loop.interpret(newContext)
+            const potentialError = this.loop.interpret(newContext)
             if (potentialError.error) return potentialError;
             if (potentialError.shouldBreak) break;
         }
@@ -898,18 +898,18 @@ export class N_for extends Node {
                 .position(this.identifier.pos);
         }
 
-        let iterator = array.val.__iter__({context});
+        const iterator = array.val.__iter__({context});
 
         if (iterator instanceof Error) return iterator;
 
         while (true) {
-            let nextRes = iterator.__next__({context});
+            const nextRes = iterator.__next__({context});
             if (nextRes instanceof Error) return nextRes;
             if (nextRes instanceof ESErrorPrimitive && nextRes.__value__ instanceof EndIterator) {
                 break;
             }
 
-            let newContext = new Context();
+            const newContext = new Context();
             newContext.parent = context;
 
             newContext.set(this.identifier.value, nextRes, {
@@ -999,10 +999,10 @@ export class N_array extends Node {
     }
 
     interpret_ (context: Context) {
-        let result = new InterpretResult();
-        let interpreted: Primitive[] = [];
+        const result = new InterpretResult();
+        const interpreted: Primitive[] = [];
 
-        for (let item of this.items) {
+        for (const item of this.items) {
             const res = item.interpret(context);
             if (res.error || (res.funcReturn !== undefined)) return res;
             if (!res.val) continue;
@@ -1020,7 +1020,7 @@ export class N_array extends Node {
 
     compileJS (config: compileConfig) {
         const res = new CompileResult('[');
-        for (let item of this.items) {
+        for (const item of this.items) {
             const itemRes = item.compileJS(config);
             if (itemRes.error) return itemRes;
             res.val += itemRes.val + ',';
@@ -1031,7 +1031,7 @@ export class N_array extends Node {
 
     compilePy (config: compileConfig) {
         const res = new CompileResult('[');
-        for (let item of this.items) {
+        for (const item of this.items) {
             const itemRes = res.register(item, config);
             if (res.error) return res;
             res.val += itemRes + ',';
@@ -1042,7 +1042,7 @@ export class N_array extends Node {
 
     str () {
         let res = '([';
-        for (let item of this.items) {
+        for (const item of this.items) {
             const itemRes = item.str();
             res += itemRes + ',';
         }
@@ -1059,7 +1059,7 @@ export class N_objectLiteral extends Node {
     }
 
     interpret_ (context: Context): InterpretResult | Error {
-        let interpreted: dict<Primitive> = {};
+        const interpreted: dict<Primitive> = {};
 
         for (const [keyNode, valueNode] of this.properties) {
             const value = valueNode.interpret(context);
@@ -1137,7 +1137,7 @@ export class N_statements extends Node {
     interpret_ (context: Context): Error | InterpretResult {
         if (!this.topLevel) {
             let last;
-            for (let item of this.items) {
+            for (const item of this.items) {
                 const res = item.interpret(context);
                 if (res.error || (typeof res.funcReturn !== 'undefined') || res.shouldBreak || res.shouldContinue) {
                     return res;
@@ -1148,14 +1148,14 @@ export class N_statements extends Node {
 
             return new InterpretResult(last || new ESUndefined());
         } else {
-            let result = new InterpretResult();
-            let interpreted: Primitive[] = [];
+            const result = new InterpretResult();
+            const interpreted: Primitive[] = [];
 
-            for (let item of this.items) {
+            for (const item of this.items) {
                 const res = item.interpret(context);
                 if (res.error || (res.funcReturn !== undefined)) return res;
                 if (!res.val) continue;
-                let val = res.val.clone();
+                const val = res.val.clone();
                 interpreted.push(val);
             }
 
@@ -1172,7 +1172,7 @@ export class N_statements extends Node {
 
         res.val += indent;
 
-        for (let item of this.items) {
+        for (const item of this.items) {
 
             const itemRes = item.compileJS(config);
             if (itemRes.error) return itemRes;
@@ -1192,7 +1192,7 @@ export class N_statements extends Node {
 
         res.val += indent;
 
-        for (let item of this.items) {
+        for (const item of this.items) {
 
             const itemRes = res.register(item, config);
             if (res.error) return res;
@@ -1205,7 +1205,7 @@ export class N_statements extends Node {
 
     str () {
         let res = '(';
-        for (let item of this.items) {
+        for (const item of this.items) {
             res += item.str() + ';';
         }
         return res + ')';
@@ -1227,7 +1227,7 @@ export class N_functionCall extends Node {
     }
 
     interpret_ (context: Context): Error | InterpretResult {
-        let { val, error } = this.to.interpret(context);
+        const { val, error } = this.to.interpret(context);
         if (error) {
             return error;
         }
@@ -1237,9 +1237,9 @@ export class N_functionCall extends Node {
         }
 
         let args: Primitive[] = [];
-        let kwargs: dict<Primitive> = {};
+        const kwargs: dict<Primitive> = {};
 
-        for (let arg of this.arguments) {
+        for (const arg of this.arguments) {
             const res = arg.interpret(context);
             if (res.error) {
                 return res.error;
@@ -1249,10 +1249,10 @@ export class N_functionCall extends Node {
             }
         }
 
-        for (let node of this.indefiniteKwargs) {
-            let res = node.interpret(context);
+        for (const node of this.indefiniteKwargs) {
+            const res = node.interpret(context);
             if (res.error) return res.error;
-            let val = res.val;
+            const val = res.val;
 
             if (val instanceof ESArray) {
                 args = [...args, ...val.__value__];
@@ -1263,7 +1263,7 @@ export class N_functionCall extends Node {
                 return new TypeError('Namespace', str(val.__type_name__()));
             }
 
-            let kwargPrim = val.__value__;
+            const kwargPrim = val.__value__;
 
             for (const key of Object.keys(kwargPrim)) {
                 kwargs[key] = kwargPrim[key];
@@ -1271,7 +1271,7 @@ export class N_functionCall extends Node {
         }
 
         for (const key of Object.keys(this.definiteKwargs)) {
-            let res = this.definiteKwargs[key].interpret(context);
+            const res = this.definiteKwargs[key].interpret(context);
             if (res.error) return res.error;
             kwargs[key] = res.val;
         }
@@ -1299,7 +1299,7 @@ export class N_functionCall extends Node {
         if (funcRes.error) return funcRes;
         res.val = funcRes.val + '(';
 
-        for (let arg of this.arguments) {
+        for (const arg of this.arguments) {
             const argRes = arg.compileJS(config);
             if (argRes.error) return argRes;
             res.val += argRes.val;
@@ -1324,7 +1324,7 @@ export class N_functionCall extends Node {
         if (res.error) return res;
 
         res.val = funcRes + '(';
-        for (let arg of this.arguments) {
+        for (const arg of this.arguments) {
 
             const argRes = res.register(arg, config);
             if (res.error) {
@@ -1348,7 +1348,7 @@ export class N_functionCall extends Node {
     str () {
         let res = '(' + this.to.str() + '(';
 
-        for (let arg of this.arguments) {
+        for (const arg of this.arguments) {
             res += arg.str();
             if (arg !== this.arguments[this.arguments.length-1]) {
                 res += ',';
@@ -1390,8 +1390,8 @@ export class N_functionDefinition extends Node {
 
     interpret_ (context: Context): InterpretResult | Error {
 
-        let args: runtimeArgument[] = [];
-        for (let arg of this.arguments) {
+        const args: runtimeArgument[] = [];
+        for (const arg of this.arguments) {
             const res = interpretArgument(arg, context);
             if (res instanceof Error)
                 return res;
@@ -1400,7 +1400,7 @@ export class N_functionDefinition extends Node {
         const returnTypeRes = this.returnType.interpret(context);
         if (returnTypeRes.error) return returnTypeRes.error;
 
-        let funcPrim = new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val, context);
+        const funcPrim = new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val, context);
 
         funcPrim.__allow_kwargs__ = this.allowKwargs;
         funcPrim.__allow_args__ = this.allowArgs;
@@ -1422,7 +1422,7 @@ export class N_functionDefinition extends Node {
     compileJS (config: compileConfig) {
         const res = new CompileResult('function(');
 
-        for (let param of this.arguments) {
+        for (const param of this.arguments) {
             res.val += param.name + ',';
             if (!config.minify) {
                 res.val += ' ';
@@ -1450,7 +1450,7 @@ export class N_functionDefinition extends Node {
 
         res.hoisted = `def ${hoistedName}(`;
 
-        for (let param of this.arguments) {
+        for (const param of this.arguments) {
             res.hoisted += param.name + ',';
             if (!config.minify) {
                 res.hoisted += ' ';
@@ -1491,7 +1491,7 @@ export class N_return extends Node {
             return res;
         }
 
-        let val = this.value.interpret(context);
+        const val = this.value.interpret(context);
         if (val.error) return val.error;
 
         res.funcReturn = val.val;
@@ -1534,7 +1534,7 @@ export class N_yield extends Node {
             return res;
         }
 
-        let val = this.value.interpret(context);
+        const val = this.value.interpret(context);
         if (val.error) return val.error;
 
         if (val.val?.bool().__value__) {
@@ -1584,10 +1584,10 @@ export class N_indexed extends Node {
     }
 
     interpret_ (context: Context): Error | InterpretResult {
-        let baseRes = this.base.interpret(context);
+        const baseRes = this.base.interpret(context);
         if (baseRes.error) return baseRes;
 
-        let indexRes = this.index.interpret(context);
+        const indexRes = this.index.interpret(context);
         if (indexRes.error) return indexRes;
 
         const index = indexRes.val;
@@ -1599,12 +1599,12 @@ export class N_indexed extends Node {
 
         // assign
         if (this.value) {
-            let valRes = this.value.interpret(context);
+            const valRes = this.value.interpret(context);
             if (valRes.error) return valRes;
 
             const currentVal = wrap(base.__get__({context}, index));
             let newVal: Primitive | Error;
-            let assignVal = valRes.val;
+            const assignVal = valRes.val;
             this.assignType ??= '=';
 
             if (!assignVal) {
@@ -1732,9 +1732,9 @@ export class N_class extends Node {
 
         const properties: dict<Primitive> = {};
 
-        let methods: ESFunction[] = [];
+        const methods: ESFunction[] = [];
 
-        for (let method of this.methods) {
+        for (const method of this.methods) {
             const res = method.interpret(context);
             if (res.error) {
                 return res.error;
@@ -1749,8 +1749,8 @@ export class N_class extends Node {
             methods.push(res.val);
         }
 
-        for (let id of Object.keys(this.properties)) {
-            let res = this.properties[id].interpret(context);
+        for (const id of Object.keys(this.properties)) {
+            const res = this.properties[id].interpret(context);
             if (res.error) return res.error;
             properties[id] = res.val;
         }
@@ -1790,7 +1790,7 @@ export class N_class extends Node {
             methods.push(init);
         }
 
-        let typePrim = new ESType(false, this.name, methods, properties, extends_, [], this.abstract);
+        const typePrim = new ESType(false, this.name, methods, properties, extends_, [], this.abstract);
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {
@@ -1841,7 +1841,7 @@ export class N_namespace extends Node {
         const res = this.statements.interpret(newContext);
         if (res.error) return res;
 
-        let n = new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
+        const n = new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {
@@ -1948,7 +1948,7 @@ export class N_number extends Node {
         this.a = a;
     }
     interpret_ (context: Context): InterpretResult | Error {
-        let val = this.a.value;
+        const val = this.a.value;
 
         const res = new InterpretResult();
         res.val = new ESNumber(val);
@@ -1978,7 +1978,7 @@ export class N_string extends Node {
     }
 
     interpret_ (context: Context): InterpretResult | Error {
-        let val = this.a.value;
+        const val = this.a.value;
         return new InterpretResult(new ESString(val));
     }
 
@@ -2009,8 +2009,8 @@ export class N_variable extends Node {
                 .position(this.a.pos);
         }
 
-        let res = new InterpretResult();
-        let symbol = context.getSymbol(this.a.value);
+        const res = new InterpretResult();
+        const symbol = context.getSymbol(this.a.value);
 
         if (!symbol) {
             return new ReferenceError(`No access to undeclared variable ${this.a.value}`).position(this.pos);

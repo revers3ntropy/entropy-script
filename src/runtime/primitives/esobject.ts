@@ -52,7 +52,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             return new ESBoolean();
         }
 
-        for (let k of this.keys()) {
+        for (const k of this.keys()) {
             const key: string = k.__value__;
             const thisElement = this.__value__[key];
             const nElement = n.__value__[key];
@@ -90,9 +90,9 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             return new TypeError('Object', n.__type_name__(), n);
         }
 
-        let newOb: dict<Primitive> = {};
+        const newOb: dict<Primitive> = {};
 
-        for (let k of this.keys()) {
+        for (const k of this.keys()) {
             const key = k.__value__;
             // skip keys which will be generated on the new object anyway
             if (this.hasOwnProperty(key)) continue;
@@ -103,7 +103,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             newOb[key] = res;
         }
 
-        for (let k of n.keys()) {
+        for (const k of n.keys()) {
             const key = k.__value__;
             if (newOb.hasOwnProperty(key)) continue;
             const res = n.__get__(props, k);
@@ -113,7 +113,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             newOb[key] = res;
         }
 
-        let res = new ESObject(newOb);
+        const res = new ESObject(newOb);
         // join type maps as well as objects
         res.__type_map__ = {
             ...this.__type_map__,
@@ -137,12 +137,12 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             return new TypeError('Array | String', n.__type_name__(), n);
         }
 
-        let newOb: dict<Primitive> = {};
+        const newOb: dict<Primitive> = {};
 
-        for (let k of this.keys()) {
+        for (const k of this.keys()) {
             const key = k.__value__;
             if (keysToRemove.indexOf(key) === -1) {
-                let res = this.__get__(props, k);
+                const res = this.__get__(props, k);
                 if (res instanceof Error) {
                     return res;
                 }
@@ -190,10 +190,10 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
     override clone = (): ESObject => {
 
         const res = new ESObject();
-        let obj: dict<Primitive> = {};
-        let toClone = this.__value__;
+        const obj: dict<Primitive> = {};
+        const toClone = this.__value__;
 
-        for (let key of Object.keys(toClone)) {
+        for (const key of Object.keys(toClone)) {
             obj[key] = toClone[key];
         }
 
@@ -211,18 +211,18 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             return new ESBoolean();
         }
 
-        for (let key of Object.keys(this.__value__)) {
+        for (const key of Object.keys(this.__value__)) {
             const thisType = this.__value__[key] ?? new ESUndefined();
             const nValue = n.__value__[key] ?? new ESUndefined();
 
-            let typeCheckRes = thisType.__includes__(props, nValue);
+            const typeCheckRes = thisType.__includes__(props, nValue);
             if (typeCheckRes instanceof Error) return typeCheckRes;
             if (!typeCheckRes.__value__) {
                 return new ESBoolean();
             }
         }
 
-        let cls: any = this.constructor;
+        const cls: any = this.constructor;
         return new cls(true);
     };
 
@@ -238,18 +238,18 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             return new ESBoolean();
         }
 
-        for (let key of Object.keys(this.__value__)) {
+        for (const key of Object.keys(this.__value__)) {
             const thisType = this.__value__[key] ?? new ESUndefined();
             const nValue = n.__value__[key] ?? new ESUndefined();
 
-            let typeCheckRes = thisType.__subtype_of__(props, nValue);
+            const typeCheckRes = thisType.__subtype_of__(props, nValue);
             if (typeCheckRes instanceof Error) return typeCheckRes;
             if (!typeCheckRes.__value__) {
                 return new ESBoolean();
             }
         }
 
-        let cls: any = this.constructor;
+        const cls: any = this.constructor;
         return new cls(true);
     };
 
@@ -272,11 +272,11 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
 
 export class ESInterface extends ESObject {
     override __includes__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
-        for (let key of Object.keys(this.__value__)) {
+        for (const key of Object.keys(this.__value__)) {
             const thisType = this.__value__[key];
             const nValue = n.__value__[key] ?? new ESUndefined();
 
-            let typeCheckRes = thisType.__includes__(props, nValue);
+            const typeCheckRes = thisType.__includes__(props, nValue);
             if (typeCheckRes instanceof Error) return typeCheckRes;
             if (!typeCheckRes.__value__) {
                 return new ESBoolean();
@@ -294,14 +294,14 @@ export class ESInterface extends ESObject {
             return new ESBoolean();
         }
 
-        for (let key of Object.keys(this.__value__)) {
+        for (const key of Object.keys(this.__value__)) {
             if (!n.__value__.hasOwnProperty(key)) {
                 return new ESBoolean();
             }
             const thisType = this.__value__[key];
             const nValue = n.__value__[key];
 
-            let typeCheckRes = thisType.__subtype_of__(props, nValue);
+            const typeCheckRes = thisType.__subtype_of__(props, nValue);
             if (typeCheckRes instanceof Error) return typeCheckRes;
             if (!typeCheckRes.__value__) {
                 return new ESBoolean();

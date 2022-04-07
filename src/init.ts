@@ -34,11 +34,11 @@ export default async function init ({
 
     initPrimitiveTypes();
 
-    for (let k of Object.keys(libs)) {
+    for (const k of Object.keys(libs)) {
         if (!Array.isArray(libs[k]) || libs[k].length !== 2) {
             throw `lib ${k} is not of type [any, boolean]`;
         }
-        let [lib, exposed] = libs[k];
+        const [lib, exposed] = libs[k];
         if (typeof exposed !== 'boolean') {
             throw `lib ${k} is not of type [any, boolean]`;
         }
@@ -50,11 +50,11 @@ export default async function init ({
 
     addDependencyInjectedBIFs(print, input);
 
-    for (let builtIn in builtInFunctions) {
-        let [rawFn, info] = builtInFunctions[builtIn];
+    for (const builtIn in builtInFunctions) {
+        const [rawFn, info] = builtInFunctions[builtIn];
 
-        let numArgs = info.args?.length ?? rawFn.length-1;
-        let args: runtimeArgument[] = (new Array(numArgs))
+        const numArgs = info.args?.length ?? rawFn.length-1;
+        const args: runtimeArgument[] = (new Array(numArgs))
             .fill({
                 name: 'unknown',
                 type: types.any,
@@ -105,12 +105,12 @@ export default async function init ({
         addNodeBIFs(context);
     }
 
-    let modulePreloadRes = await preloadModules(config.modules);
+    const modulePreloadRes = await preloadModules(config.modules);
     if (modulePreloadRes instanceof Error) {
         return modulePreloadRes;
     }
 
-    for (let file of STD_RAW) {
+    for (const file of STD_RAW) {
         run(file, {
             fileName: 'std',
             env: global

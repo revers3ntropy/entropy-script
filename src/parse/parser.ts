@@ -490,7 +490,7 @@ export class Parser {
                 `Cannot index without expression`), pos);
         }
 
-        let index = res.register(this.expr());
+        const index = res.register(this.expr());
         if (res.error) return res.failure(new InvalidSyntaxError(
             "Invalid index"), this.currentToken.pos);
 
@@ -519,8 +519,8 @@ export class Parser {
         this.advance(res);
         if (res.error) return res;
 
-        let identifiers: Token<string>[] = [];
-        let typeNodes: Node[] = [];
+        const identifiers: Token<string>[] = [];
+        const typeNodes: Node[] = [];
 
         // @ts-ignore
         if (this.currentToken.type === tt.CSQUARE) {
@@ -533,7 +533,7 @@ export class Parser {
 
             this.consume(res, tt.ASSIGN);
 
-            let expr = res.register(this.expr());
+            const expr = res.register(this.expr());
             if (res.error) return res;
 
             return res.success(new n.N_destructAssign(
@@ -560,7 +560,7 @@ export class Parser {
             // @ts-ignore
             if (this.currentToken.type === tt.COLON) {
                 this.consume(res, tt.COLON);
-                let tRes = res.register(this.typeExpr());
+                const tRes = res.register(this.typeExpr());
                 if (res.error) return res;
                 typeNodes.push(tRes);
             } else {
@@ -584,7 +584,7 @@ export class Parser {
 
         this.consume(res, tt.ASSIGN);
 
-        let expr = res.register(this.expr());
+        const expr = res.register(this.expr());
         if (res.error) return res;
 
         return res.success(new n.N_destructAssign(
@@ -598,7 +598,7 @@ export class Parser {
     }
 
     private initiateVar (res: ParseResults): ParseResults {
-        let pos = this.currentToken.pos;
+        const pos = this.currentToken.pos;
 
         let isConst = true;
         let isGlobal = false;
@@ -684,7 +684,7 @@ export class Parser {
             ));
         }
 
-        let assignType = this.currentToken.value;
+        const assignType = this.currentToken.value;
 
         this.advance(res);
         const expr = res.register(this.expr());
@@ -832,7 +832,7 @@ export class Parser {
         if (res.error) return res.error;
 
         if (this.currentToken.type !== tt.IDENTIFIER) {
-            let err = new InvalidSyntaxError(
+            const err = new InvalidSyntaxError(
                 "Expected identifier");
             err.pos = this.currentToken.pos;
             return err;
@@ -891,7 +891,7 @@ export class Parser {
             let usingKwargs = false;
 
             while (true) {
-                let paramStart = this.currentToken.pos;
+                const paramStart = this.currentToken.pos;
 
                 if (this.currentToken.type === tt.ASTERIX && this.nextToken?.type !== tt.IDENTIFIER) {
                     // must be at end, no parameters after * or ** but could have only one
@@ -927,7 +927,7 @@ export class Parser {
                     }
                 }
 
-                let param = this.parameter(res);
+                const param = this.parameter(res);
                 if (param instanceof Error) {
                     return res.failure(param);
                 }
@@ -990,7 +990,7 @@ export class Parser {
             if (res.error) return res;
         }
 
-        let fn = new n.N_functionDefinition(pos, body, args, returnType);
+        const fn = new n.N_functionDefinition(pos, body, args, returnType);
 
         fn.allowKwargs = allowKwargs;
         fn.allowArgs = allowArgs;
@@ -1038,7 +1038,7 @@ export class Parser {
         let extends_: n.Node = new N_primitiveWrapper(types.object);
         let identifier: string | undefined;
         let abstract = false;
-        let properties: dict<Node> = {};
+        const properties: dict<Node> = {};
 
         if (this.currentToken.matches(tt.KEYWORD, 'abstract')) {
             this.advance(res);
@@ -1089,7 +1089,7 @@ export class Parser {
 
         while (this.currentToken.type === tt.IDENTIFIER) {
 
-            let id = this.currentToken.value;
+            const id = this.currentToken.value;
             this.advance(res);
 
             // @ts-ignore
@@ -1196,7 +1196,7 @@ export class Parser {
 
     private array () {
         const res = new ParseResults();
-        let elements: Node[] = [];
+        const elements: Node[] = [];
         const pos = this.currentToken.pos;
 
         if (this.currentToken.type !== tt.OSQUARE) {
@@ -1241,7 +1241,7 @@ export class Parser {
 
     private object () {
         const res = new ParseResults();
-        let properties: [Node, Node][] = [];
+        const properties: [Node, Node][] = [];
         const pos = this.currentToken.pos;
 
         if (this.currentToken.type !== tt.OBRACES) {
