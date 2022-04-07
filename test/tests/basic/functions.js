@@ -43,6 +43,15 @@ expect('InvalidSyntaxError', `
 func (a, a) {};
 `);
 
+expect([1], `
+(func () 1)();
+`);
+
+expect([1], `
+(func () func () {
+    return 1;
+})()();
+`);
 
 // recursion
 expect(['<Func>', 3], `

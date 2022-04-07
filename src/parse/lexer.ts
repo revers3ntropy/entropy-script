@@ -9,6 +9,10 @@ import {
 import {Error, IllegalCharError} from "../errors";
 import {Token} from "./tokens";
 
+function isDigit (n: string) {
+    return (digits+'._').includes(n);
+}
+
 export class Lexer {
     private readonly text: string;
     private currentChar: string | undefined;
@@ -76,7 +80,6 @@ export class Lexer {
                     err.pos = pos;
                     return err;
                 }
-
             }
         }
 
@@ -90,9 +93,9 @@ export class Lexer {
         let numStr = '';
         let dotCount = 0;
 
-        while (this.currentChar !== undefined && (digits+'._').includes(this.currentChar)) {
+        while (this.currentChar !== undefined && isDigit(this.currentChar)) {
             if (this.currentChar === '.') {
-                if (dotCount === 1) {
+                if (dotCount === 1 || !digits.includes(this.text[this.position.idx+1])) {
                     break;
                 }
 
@@ -100,6 +103,7 @@ export class Lexer {
                 numStr += '.';
 
                 // use _ as a deliminator for sets of 0s - eg 1_000_000_000
+                // so just ignore it and move on, but if it is a digit then add it.
             } else if (this.currentChar !== '_') {
                 numStr += this.currentChar;
             }
