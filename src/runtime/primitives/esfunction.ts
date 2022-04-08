@@ -23,6 +23,9 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     __allow_kwargs__: boolean;
     takeCallContextAsClosure: boolean;
 
+    __generic_types__: Primitive[] = [];
+    readonly __gargs__: IRuntimeArgument[];
+
     constructor (
         func: Node | BuiltInFunction = (() => void 0),
         arguments_: IRuntimeArgument[] = [],
@@ -32,10 +35,12 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         closure?: Context,
         takeCallContextAsClosure = false,
         allowArgs = false,
-        allowKwargs = false
+        allowKwargs = false,
+        gargs: IRuntimeArgument[] = [],
     ) {
         super(func, types.function);
         this.__args__ = arguments_;
+        this.__gargs__ = gargs;
         this.__info__.name = name;
         this.__this__ = this_;
         this.__returns__ = returnType;
@@ -254,5 +259,12 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
     override keys = () => {
         return Object.keys(this).map(s => new ESString(s));
+    }
+
+    override __generic__ (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive {
+        const T = this.clone();
+        if (props.dontTypeCheck) return T;
+        T.__generic_types__ = parameters;
+        return T;
     }
 }
