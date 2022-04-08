@@ -32,6 +32,8 @@ function dealWithExtends (context: Context, class_: ESType, instance: ESObject, 
         );
     }
 
+    if (class_.__primordial__) return;
+
     const superFunc = new ESFunction(({context}, ...args) => {
         const newContext = new Context();
         newContext.parent = context;

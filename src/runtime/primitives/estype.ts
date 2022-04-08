@@ -22,11 +22,10 @@ export class ESType extends ESPrimitive <undefined> {
     readonly __methods__: ESFunction[];
     readonly __properties__: Map<Primitive>;
     readonly __instances__: Primitive[] = [];
-    readonly __targs__: IRuntimeArgument[];
     readonly __abstract__: boolean;
 
-    __generic_args__: Primitive[] = [];
-    __generic_params__: IRuntimeArgument[] = [];
+    __generic_types__: Primitive[] = [];
+    readonly __gargs__: IRuntimeArgument[];
 
     constructor (
         isPrimitive = false,
@@ -34,7 +33,7 @@ export class ESType extends ESPrimitive <undefined> {
         methods: ESFunction[] = [],
         properties: Map<Primitive> = {},
         extends_?: ESType,
-        targs: IRuntimeArgument[] = [],
+        gargs: IRuntimeArgument[] = [],
         abstract = false
     ) {
         super(undefined, types?.type);
@@ -45,7 +44,7 @@ export class ESType extends ESPrimitive <undefined> {
         this.__extends__ = extends_;
         this.__methods__ = methods;
         this.__properties__ = properties;
-        this.__targs__ = targs;
+        this.__gargs__ = gargs;
         this.__abstract__ = abstract;
 
         if (!types.type) {
@@ -60,8 +59,9 @@ export class ESType extends ESPrimitive <undefined> {
             this.__methods__,
             this.__properties__,
             this.__extends__,
-            this.__targs__
-        )
+            this.__gargs__,
+            this.__abstract__,
+        );
     }
 
     override isa = (props: IFuncProps, type: Primitive) => {
@@ -197,7 +197,8 @@ export class ESType extends ESPrimitive <undefined> {
 
     override __generic__ (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive {
         const T = this.clone();
-        T.__generic_args__ = parameters;
+        if (props.dontTypeCheck) return T;
+        T.__generic_types__ = parameters;
         return T;
     }
 }

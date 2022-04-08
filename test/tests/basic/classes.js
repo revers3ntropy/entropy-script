@@ -269,8 +269,7 @@ expect(['A', {}], `
     class A extends Str {};
     A();
 `);
-
-expect(['A', {init: '<Func>'}], `
+expect('ReferenceError', `
     class A extends Str {
         init() {
             super();
