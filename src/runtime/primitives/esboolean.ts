@@ -22,7 +22,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
     }
 
     override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
-        if (this._.hasOwnProperty(str(key))) {
+        if (str(key) in this) {
             return wrap(this._[str(key)], true);
         }
         return new IndexError(key.__value__, this);

@@ -1,5 +1,4 @@
 import { Error, IndexError, TypeError } from '../../errors';
-import Position from '../../position';
 import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
@@ -100,7 +99,7 @@ export class ESNumber extends ESPrimitive <number> implements ESIterable {
     override clone = (): ESNumber => new ESNumber(this.__value__);
 
     override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
-        if (this._.hasOwnProperty(str(key))) {
+        if (str(key) in this) {
             return wrap(this._[str(key)], true);
         }
         return new IndexError(key.__value__, this);

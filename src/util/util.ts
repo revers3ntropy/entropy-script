@@ -55,7 +55,10 @@ export function str (val: unknown, depth = 0): string {
 
     switch (typeof val) {
         case 'object':
-            if (Array.isArray(val)) {
+            if (val === null) {
+                return 'nil';
+
+            } else if (Array.isArray(val)) {
                 result += '[';
                 for (const item of val) {
                     try {
@@ -68,15 +71,17 @@ export function str (val: unknown, depth = 0): string {
                     result = result.substring(0, result.length - 2);
                 }
                 result += ']';
-            } else {
 
+            } else {
                 if (Object.keys(val).length < 1) {
-                    return indent('{}', {indentStart: false});
+                    return indent('{}', {
+                        indentStart: false
+                    });
                 }
                 result += `{\n`;
                 let i = 0;
                 for (const item of Object.keys(val)) {
-                    result += indent(`${item}: ${str(val[item], depth + 1) || 'nil'}`);
+                    result += indent(`${item}: ${str((val as dict<unknown>)[item], depth + 1) || 'nil'}`);
                     if (i < Object.keys(val).length-1) {
                         result += ',\n';
                     }

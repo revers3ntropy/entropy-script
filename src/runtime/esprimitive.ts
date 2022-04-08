@@ -1,6 +1,4 @@
-import type {ESType} from './primitives/estype';
 import {Error, InvalidOperationError, TypeError} from '../errors';
-import Position from '../position';
 import {ESBoolean} from './primitives/esboolean';
 import type {ESString} from './primitives/esstring';
 import type {Info} from './info';
@@ -9,7 +7,6 @@ import { funcProps, str } from '../util/util';
 import { strip } from './wrapStrip';
 import { types } from "../util/constants";
 import type { ESNumber } from "./primitives/esnumber";
-
 
 export abstract class ESPrimitive <T> {
     public __value__: T;
@@ -131,7 +128,7 @@ export abstract class ESPrimitive <T> {
 
     // Object stuff
     public has_property = (props: funcProps, key: Primitive): ESBoolean => {
-        return new ESBoolean(this.hasOwnProperty(str(key)));
+        return new ESBoolean(str(key) in this);
     }
 
     public describe = (props: funcProps, info: Primitive) => {
@@ -163,6 +160,5 @@ export abstract class ESPrimitive <T> {
     };
 
     abstract __includes__: (props: funcProps, n: Primitive) => ESBoolean | Error;
-
     abstract __subtype_of__: (props: funcProps, n: Primitive) => ESBoolean | Error;
 }

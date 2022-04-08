@@ -132,11 +132,11 @@ export class ESType extends ESPrimitive <undefined> {
                 ...this.__properties__
             };
 
-            let parent: ESType = this;
-            while (parent.__extends__) {
+            let parent: ESType | undefined = this.__extends__;
+            while (parent) {
                 properties = {
                     ...properties,
-                    ...parent.__extends__.__properties__,
+                    ...parent.__properties__,
                 };
                 parent = parent.__extends__;
             }
@@ -168,7 +168,7 @@ export class ESType extends ESPrimitive <undefined> {
             return new TypeError('string', k.__type_name__(), str(k));
         }
         const key = k.__value__;
-        if (this._.hasOwnProperty(key)) {
+        if (key in this) {
             return wrap(this._[key], true);
         }
         return new ESTypeArray(k);

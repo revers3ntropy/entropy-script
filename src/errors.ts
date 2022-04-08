@@ -59,11 +59,11 @@ export class InvalidSyntaxError extends Error {
 }
 
 export class TypeError extends Error {
-    constructor(expectedType: string, actualType: string, value: any = '', detail = '') {
+    constructor(expectedType: string, actualType: string, value = '', detail = '') {
         super(
             'TypeError',
             `Expected type '${expectedType}', got type '${actualType}' ${
-                typeof value === 'undefined'? '' : ` on value '${str(value)}'`
+                typeof value === 'undefined'? '' : ` on value '${value}'`
             } ${!detail ? '' : detail}`
         );
     }

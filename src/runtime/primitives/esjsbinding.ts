@@ -1,5 +1,4 @@
 import { Error, IndexError, TypeError as ESTypeError } from '../../errors';
-import Position from '../../position';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
 import {ESPrimitive} from '../esprimitive';
@@ -67,7 +66,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
         this.catchErrorsToPrimitive = catchErrors;
     }
 
-    override cast = (props: funcProps): Error | Primitive => {
+    override cast = (): Error | Primitive => {
         return new Error('ESTypeError', `Cannot cast native object`);
     };
 
@@ -87,14 +86,14 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
     override __get__ = (props: funcProps, k: Primitive): Primitive | Error => {
         const key = str(k);
 
-        const val: any = this.__value__;
+        const val: NativeObj = this.__value__;
 
         const res = val[key];
 
         if (res === undefined) {
 
             // check on self after confirming it doesn't exist on the native value
-            if (this.hasOwnProperty(key)) {
+            if (key in this) {
                 return wrap(this._[key], true);
             }
 
@@ -128,7 +127,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
 
         const val: dict<NativeObj> = this.__value__;
 
-        if (this._.hasOwnProperty(key)) {
+        if (key in this) {
             this._[str(key)] = value;
             return;
         }
@@ -163,7 +162,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__(props: funcProps): Error | Primitive {
+    override __iter__(): Error | Primitive {
         // returns array of keys in the object
         return new ESArray(Object.keys(this.__value__).map(s => new ESString(s)));
     }

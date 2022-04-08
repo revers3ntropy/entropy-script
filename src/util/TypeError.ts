@@ -11,6 +11,7 @@ function getWhyTypesAreInvalid (props: funcProps, expected: Primitive, got: Prim
     for (const k of expected.keys(props)) {
 
     }
+    // @ts-ignore
     if (reason === '') return true;
     return `Type '${got.__type_name__()}' is incompatible with type '${str(expected)}':\n` + reason;
 }

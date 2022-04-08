@@ -10,7 +10,7 @@ export type Permissions = {
 
 export interface config {
     permissions: Permissions,
-    modules: dict<string|any>,
+    modules: dict<string | any>,
 }
 
 const AllowAny = Symbol('AllowAny');
@@ -42,7 +42,6 @@ function pathAsString (path: string[]) {
 }
 
 function parsePartOfConfig (config: dict<any>, configJSON: dict<any>, path: string[]=[]) {
-
     if (!config[AllowAny]) {
         const unknownProps = Object.keys(configJSON).filter(x => !(x in config));
 

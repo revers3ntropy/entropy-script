@@ -13,7 +13,6 @@ import { Error } from "./errors";
 import Position from "./position";
 import { CompileResult, InterpretResult, Node } from "./runtime/nodes";
 import { ESArray } from "./runtime/primitiveTypes";
-import {str} from './util/util';
 import type { timeData } from "./util/util";
 import { Context } from "./runtime/context";
 import colours from './util/colours';

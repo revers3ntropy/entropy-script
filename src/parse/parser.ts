@@ -76,7 +76,7 @@ export class Parser {
     }
 
     private clearEndStatements (res: ParseResults): void {
-        while (this.currentToken.type === tt.ENDSTATEMENT) {
+        while (this.currentToken.type === tt.END_STATEMENT) {
             this.advance(res);
         }
     }
@@ -103,7 +103,7 @@ export class Parser {
         while (true) {
             let newLineCount = 0;
             // @ts-ignore
-            while (this.currentToken.type === tt.ENDSTATEMENT) {
+            while (this.currentToken.type === tt.END_STATEMENT) {
                 this.advance(res);
                 newLineCount++;
             }
@@ -193,7 +193,7 @@ export class Parser {
 
         this.advance(res);
         let expr: Node = new N_undefined(this.currentToken.pos);
-        if (this.currentToken.type !== tt.ENDSTATEMENT) {
+        if (this.currentToken.type !== tt.END_STATEMENT) {
             const exprRes = res.register(this.expr());
             if (!exprRes) {
                 return res.failure(new InvalidSyntaxError('Expected end of statement'), this.currentToken.pos);
@@ -299,7 +299,7 @@ export class Parser {
     private power () {
          return this.binOp(
              () => this.compound(),
-             [tt.POW, tt.MOD, tt.APMERSAND, tt.PIPE],
+             [tt.POW, tt.MOD, tt.AMPERSAND, tt.PIPE],
              () => this.factor()
          );
     }
@@ -319,7 +319,7 @@ export class Parser {
     }
 
     private term () {
-        return this.binOp(() => this.factor(), [tt.ASTERIX, tt.DIV]);
+        return this.binOp(() => this.factor(), [tt.ASTRIX, tt.DIV]);
     }
 
     private arithmeticExpr () {
@@ -348,7 +348,7 @@ export class Parser {
 
         const node = res.register(this.binOp(
             () => this.arithmeticExpr(),
-            [tt.EQUALS, tt.NOTEQUALS, tt.GT, tt.GTE, tt.LTE, tt.LT]
+            [tt.EQUALS, tt.NOT_EQUALS, tt.GT, tt.GTE, tt.LTE, tt.LT]
         ));
 
         if (res.error) return res;
@@ -423,12 +423,12 @@ export class Parser {
         while (true) {
             // check for kwargs
             // @ts-ignore
-            if (this.currentToken.type === tt.ASTERIX) {
+            if (this.currentToken.type === tt.ASTRIX) {
                 this.advance(res);
 
                 // @ts-ignore
-                if (this.currentToken.type === tt.ASTERIX) {
-                    // double asterix
+                if (this.currentToken.type === tt.ASTRIX) {
+                    // double astrix
                     this.advance(res);
                     indefiniteKwargs.push(res.register(this.expr()));
                 } else {
@@ -439,7 +439,7 @@ export class Parser {
                     if (res.error) return res;
 
                     if (!this.currentToken.matches(tt.ASSIGN, '=')) {
-                        // for *a, which is the same as *a=a
+                        // for '*a', which is the same as '*a=a'
                         definiteKwargs[nameTok.value] = new N_variable(nameTok);
                     } else {
                         // remove '='
@@ -744,7 +744,7 @@ export class Parser {
     private addEndStatement (res: ParseResults) {
         this.tokens.splice(this.tokenIdx, 0, new Token(
             this.currentToken.pos,
-            tt.ENDSTATEMENT,
+            tt.END_STATEMENT,
             undefined
         ));
         this.reverse();
@@ -753,11 +753,8 @@ export class Parser {
 
     private ifExpr (): ParseResults {
         const res = new ParseResults();
-        let ifTrue;
-        let ifFalse;
-        let condition;
-
         const pos = this.currentToken.pos;
+        let ifFalse;
 
         if (!this.currentToken.matches(tt.KEYWORD, 'if')) {
             return res.failure(new InvalidSyntaxError("Expected 'if'"), this.currentToken.pos);
@@ -765,11 +762,11 @@ export class Parser {
 
         this.advance(res);
 
-        condition = res.register(this.expr());
+        const condition = res.register(this.expr());
         if (res.error) return res;
 
 
-        ifTrue = res.register(this.bracesExp());
+        const ifTrue = res.register(this.bracesExp());
         if (res.error) return res;
 
         this.clearEndStatements(res);
@@ -793,8 +790,6 @@ export class Parser {
 
     private whileExpr (): ParseResults {
         const res = new ParseResults();
-        let loop;
-        let condition;
         const pos = this.currentToken.pos;
 
         if (!this.currentToken.matches(tt.KEYWORD, 'while')) {
@@ -804,13 +799,13 @@ export class Parser {
 
         this.advance(res);
 
-        condition = res.register(this.expr());
+        const condition = res.register(this.expr());
         if (res.error) return res;
 
-       loop = res.register(this.bracesExp());
-       if (res.error) return res;
+        const loop = res.register(this.bracesExp());
+        if (res.error) return res;
 
-       this.addEndStatement(res);
+        this.addEndStatement(res);
 
         return res.success(new n.N_while(pos, condition, loop));
     }
@@ -819,14 +814,13 @@ export class Parser {
      * Gets the __name__ and __type__ of a parameter, for example `arg1: number`
      */
     private parameter (res: ParseResults): uninterpretedArgument | Error {
-        let name: string;
         let type: Node = new n.N_primitiveWrapper(types.any);
         let defaultValue: Node | undefined;
         let isKwarg = false;
 
-        if (this.currentToken.type === tt.ASTERIX) {
+        if (this.currentToken.type === tt.ASTRIX) {
             isKwarg = true;
-            this.consume(res, tt.ASTERIX);
+            this.consume(res, tt.ASTRIX);
         }
 
         if (res.error) return res.error;
@@ -838,7 +832,7 @@ export class Parser {
             return err;
         }
 
-        name = this.currentToken.value;
+        const name = this.currentToken.value;
 
         this.advance(res);
 
@@ -874,10 +868,11 @@ export class Parser {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         let body: n.Node,
-            args: uninterpretedArgument[] = [],
             returnType: Node = new n.N_primitiveWrapper(types.any),
             allowArgs = false,
             allowKwargs = false;
+
+        const args: uninterpretedArgument[] = [];
 
         this.consume(res, tt.OPAREN);
 
@@ -893,10 +888,10 @@ export class Parser {
             while (true) {
                 const paramStart = this.currentToken.pos;
 
-                if (this.currentToken.type === tt.ASTERIX && this.nextToken?.type !== tt.IDENTIFIER) {
+                if (this.currentToken.type === tt.ASTRIX && this.nextToken?.type !== tt.IDENTIFIER) {
                     // must be at end, no parameters after * or ** but could have only one
                     this.advance(res);
-                    if (this.currentToken.type === tt.ASTERIX) {
+                    if (this.currentToken.type === tt.ASTRIX) {
                         allowKwargs = true;
                         this.advance(res);
                         break;
@@ -913,9 +908,9 @@ export class Parser {
                     if (res.error) return res;
 
                     // look for kwargs
-                    if (this.currentToken.type === tt.ASTERIX) {
+                    if (this.currentToken.type === tt.ASTRIX) {
                         this.advance(res);
-                        if (this.currentToken.type === tt.ASTERIX) {
+                        if (this.currentToken.type === tt.ASTRIX) {
                             allowKwargs = true;
                             this.advance(res);
                         } else {
@@ -1058,10 +1053,6 @@ export class Parser {
             this.advance(res);
         }
 
-        if (this.currentToken.type === tt.LT) {
-
-        }
-
         if (this.currentToken.matches(tt.KEYWORD, 'extends')) {
             this.advance(res);
 
@@ -1113,14 +1104,14 @@ export class Parser {
 
                 // @ts-ignore
             } else if (this.currentToken.type !== tt.COLON) {
-                this.consume(res, tt.ENDSTATEMENT);
+                this.consume(res, tt.END_STATEMENT);
                 if (res.error) return res;
                 properties[id] = new N_primitiveWrapper(types.any);
             } else {
                 this.consume(res, tt.COLON);
                 properties[id] = res.register(this.typeExpr());
                 if (res.error) return res;
-                this.consume(res, tt.ENDSTATEMENT);
+                this.consume(res, tt.END_STATEMENT);
                 if (res.error) return res;
             }
         }
@@ -1142,10 +1133,7 @@ export class Parser {
     private forExpr (): ParseResults {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
-        let body: n.Node,
-            array: n.Node,
-            identifier: Token<any>,
-            isConst = true;
+        let isConst = true;
 
         if (!this.currentToken.matches(tt.KEYWORD, 'for')) {
             return res.failure(new InvalidSyntaxError(
@@ -1169,7 +1157,7 @@ export class Parser {
                 "Expected identifier"), this.currentToken.pos);
         }
 
-        identifier = this.currentToken;
+        const identifier = this.currentToken;
 
         this.advance(res);
 
@@ -1180,10 +1168,10 @@ export class Parser {
 
         this.advance(res);
 
-        array = res.register(this.expr());
+        const array = res.register(this.expr());
         if (res.error) return res;
 
-        body = res.register(this.bracesExp());
+        const body = res.register(this.bracesExp());
         if (res.error) return res;
 
         this.addEndStatement(res);

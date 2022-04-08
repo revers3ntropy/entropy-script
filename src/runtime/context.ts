@@ -86,6 +86,7 @@ export class Context {
     }
 
     set (identifier: string, value: Primitive, options: symbolOptions = {}) {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         let context: Context = this;
 
         if (options.global) {
@@ -98,6 +99,7 @@ export class Context {
             }
 
             if (!context.hasOwn(identifier)) {
+                // eslint-disable-next-line @typescript-eslint/no-this-alias
                 context = this;
             }
         }
@@ -150,6 +152,7 @@ export class Context {
     }
 
     get root () {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         let parent: Context = this;
 
         while (parent.parent) {

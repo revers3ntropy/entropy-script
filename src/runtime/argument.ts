@@ -48,5 +48,5 @@ export function interpretArgument (arg: uninterpretedArgument, context: Context)
         type: typeRes.val,
         defaultValue,
         isKwarg: arg.isKwarg
-    }
+    };
 }

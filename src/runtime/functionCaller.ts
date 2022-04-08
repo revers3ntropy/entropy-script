@@ -35,13 +35,15 @@ function callNode (self: ESFunction, context: Context, fn: Node, dontTypeCheck: 
     }
 }
 
-function callNative (self: ESFunction, context: Context, params: Primitive[], fn: Function, kwargs: dict<Primitive>, dontTypeCheck: boolean) {
+function callNative (self: ESFunction, context: Context, params: Primitive[], fn: (...args: any[]) => any, kwargs: dict<Primitive>, dontTypeCheck: boolean) {
     for (let i = params.length; i < fn.length; i++) {
         params.push(new ESUndefined());
     }
 
     const res = fn({
-        context, kwargs
+        context,
+        kwargs,
+        dontTypeCheck
     }, ...params);
 
     if (res instanceof Error || res instanceof ESPrimitive) {

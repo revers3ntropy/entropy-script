@@ -27,33 +27,8 @@ export class ESUndefined extends ESPrimitive <undefined> {
         };
     }
 
-    override cast = ({context}: {context: Context}, type: Primitive): Primitive | Error => {
-        switch (type) {
-        case types.number:
-            return new ESNumber();
-        case types.string:
-            return new ESString();
-        case types.array:
-            return new ESArray();
-        case types.undefined:
-            return new ESUndefined();
-        case types.type:
-            return new ESType();
-        case types.error:
-            return new ESErrorPrimitive();
-        case types.object:
-        case types.any:
-            return new ESObject();
-        case types.function:
-            return new ESFunction(() => {});
-        case types.boolean:
-            return new ESBoolean();
-        default:
-            if (!(type instanceof ESType)) {
-                return new Error('TypeError', `Cannot cast to type '${str(type.__type_name__())}'`);
-            }
-            return type.__call__({context});
-        }
+    override cast = (): Primitive | Error => {
+        return new Error('TypeError', `Cannot cast type 'Null'`);
     }
 
     override str = () => new ESString('nil');
@@ -71,8 +46,9 @@ export class ESUndefined extends ESPrimitive <undefined> {
 
     override clone = () => new ESUndefined();
 
-    override __get__ = ({}: funcProps, key: Primitive): Primitive | Error => {
-        if (this._.hasOwnProperty(str(key))) {
+    override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
+
+        if (str(key) in this) {
             return wrap(this._[str(key)], true);
         }
         return new IndexError(key.__value__, this);

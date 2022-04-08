@@ -44,9 +44,11 @@ export class ParseResults {
         return this;
     }
 
-    failure (error: Error, pos = Position.void): ParseResults {
+    failure (error: Error, pos?: Position): ParseResults {
         this.error = error;
-        this.error.pos = pos;
+        if (pos) {
+            this.error.pos = pos;
+        }
         return this;
     }
 }

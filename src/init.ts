@@ -16,7 +16,7 @@ import { runtimeArgument } from "./runtime/argument";
 
 export default async function init ({
   print = console.log,
-  input = () => {},
+  input = () => void 0,
   node = true,
   context = new Context(),
   path = '',

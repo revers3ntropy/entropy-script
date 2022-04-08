@@ -29,7 +29,7 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
                         .map(s => new ESString(`${s.position.str} : ${s.line}`)));
 
             default:
-                if (this._.hasOwnProperty(str(key))) {
+                if (str(key) in this) {
                     return wrap(this._[str(key)], true);
                 }
                 return new IndexError(key.__value__, this);

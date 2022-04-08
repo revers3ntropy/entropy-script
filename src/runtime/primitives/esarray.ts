@@ -80,7 +80,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
 
     override __add__ = (props: funcProps, n: Primitive): ESArray | Error => {
         if (!(n instanceof ESArray)) {
-            return new TypeError('array', n.__type_name__(), n);
+            return new TypeError('array', n.__type_name__(), str(n));
         }
 
         return new ESArray([...this.__value__, ...n.__value__]);
@@ -90,7 +90,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
     override bool = this.__bool__;
 
     override __get__ = (props: funcProps, key: Primitive): Primitive => {
-        if (key instanceof ESString && this._.hasOwnProperty(str(key))) {
+        if (key instanceof ESString && str(key) in this._) {
             return wrap(this._[str(key)], true);
         }
 
@@ -273,7 +273,7 @@ export class ESTypeArray extends ESType {
     }
 
     override __get__ = (props: funcProps, key: Primitive) => {
-        if (key instanceof ESString && this._.hasOwnProperty(str(key))) {
+        if (key instanceof ESString && str(key) in this) {
             return wrap(this._[str(key)], true);
         }
 

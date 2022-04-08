@@ -85,9 +85,8 @@ export abstract class Node {
 
         if (val instanceof Error) {
             res.error = val;
-        }
 
-        else if (val instanceof InterpretResult) {
+        } else if (val instanceof InterpretResult) {
             res.val = val.val;
             res.error = val.error;
             res.funcReturn = val.funcReturn;
@@ -171,7 +170,7 @@ export class N_binOp extends Node {
                 if (eq instanceof Error) return eq;
                 return new InterpretResult(gt.__or__({context}, eq));
 
-            } case tt.NOTEQUALS: {
+            } case tt.NOT_EQUALS: {
                 const res = l.__eq__({context}, r);
                 if (res instanceof Error) return res;
                 return new InterpretResult(new ESBoolean(!res.bool().__value__));
@@ -180,7 +179,7 @@ export class N_binOp extends Node {
                 return new InterpretResult(l.__add__({context}, r));
             case tt.SUB:
                 return new InterpretResult(l.__subtract__({context}, r));
-            case tt.ASTERIX:
+            case tt.ASTRIX:
                 return new InterpretResult(l.__multiply__({context}, r));
             case tt.DIV:
                 return new InterpretResult(l.__divide__({context}, r));
@@ -198,7 +197,7 @@ export class N_binOp extends Node {
                 return new InterpretResult(l.__and__({context}, r));
             case tt.OR:
                 return new InterpretResult(l.__or__({context}, r));
-            case tt.APMERSAND:
+            case tt.AMPERSAND:
                 return new InterpretResult(l.__ampersand__({context}, r));
             case tt.PIPE:
                 return new InterpretResult(l.__pipe__({context}, r));
@@ -827,11 +826,17 @@ export class N_while extends Node {
             const shouldLoop = this.comparison.interpret(context);
             if (shouldLoop.error) return shouldLoop;
 
-            if (!shouldLoop.val?.bool()?.__value__) break;
+            if (!shouldLoop.val?.bool()?.__value__) {
+                break;
+            }
 
             const potentialError = this.loop.interpret(newContext)
-            if (potentialError.error) return potentialError;
-            if (potentialError.shouldBreak) break;
+            if (potentialError.error) {
+                return potentialError;
+            }
+            if (potentialError.shouldBreak) {
+                break;
+            }
         }
         return new InterpretResult(new ESUndefined());
     }
@@ -1806,11 +1811,11 @@ export class N_class extends Node {
         return new InterpretResult(typePrim);
     }
 
-    compileJS (config: compileConfig) {
+    compileJS () {
         return new CompileResult('function(){return{};}');
     }
 
-    compilePy (config: compileConfig) {
+    compilePy () {
         return new CompileResult(`class ${this.name}: pass`);
     }
 
@@ -1863,7 +1868,7 @@ export class N_namespace extends Node {
         return new CompileResult(`(() => {${bodyRes.val}})()`);
     }
 
-    compilePy (config: compileConfig) {
+    compilePy () {
         const res = new CompileResult;
         //const bodyRes = res.register(this.statements, config);
         if (res.error) return res;
@@ -1947,7 +1952,7 @@ export class N_number extends Node {
         super(pos, true);
         this.a = a;
     }
-    interpret_ (context: Context): InterpretResult | Error {
+    interpret_ (): InterpretResult | Error {
         const val = this.a.value;
 
         const res = new InterpretResult();
@@ -1955,11 +1960,11 @@ export class N_number extends Node {
         return res;
     }
 
-    compileJS (config: compileConfig) {
+    compileJS () {
         return new CompileResult(this.a.value.toString());
     }
 
-    compilePy (config: compileConfig) {
+    compilePy () {
         return new CompileResult(this.a.value.toString());
     }
 
@@ -1977,16 +1982,16 @@ export class N_string extends Node {
         this.a = a;
     }
 
-    interpret_ (context: Context): InterpretResult | Error {
+    interpret_ (): InterpretResult | Error {
         const val = this.a.value;
         return new InterpretResult(new ESString(val));
     }
 
-    compileJS (config: compileConfig) {
+    compileJS () {
         return new CompileResult(`'${this.a.value}'`);
     }
 
-    compilePy (config: compileConfig) {
+    compilePy () {
         return new CompileResult(`'${this.a.value}'`);
     }
     str () {
@@ -2024,7 +2029,7 @@ export class N_variable extends Node {
         return res;
     }
 
-    compileJS (config: compileConfig) {
+    compileJS () {
         let val = this.a.value.toString();
         if (val === 'import') {
             val = 'import_';
@@ -2032,7 +2037,7 @@ export class N_variable extends Node {
         return new CompileResult(val);
     }
 
-    compilePy (config: compileConfig): CompileResult {
+    compilePy (): CompileResult {
         let val = this.a.value.toString();
         if (val === 'import') {
             val = 'import_';
@@ -2051,17 +2056,17 @@ export class N_undefined extends Node {
         super(pos, true);
     }
 
-    interpret_ (context: Context) {
+    interpret_ () {
         const res = new InterpretResult();
         res.val = new ESUndefined();
         return res;
     }
 
-    compileJS (config: compileConfig) {
+    compileJS () {
         return new CompileResult('undefined');
     }
 
-    compilePy (config: compileConfig) {
+    compilePy () {
         return new CompileResult('None');
     }
     str () {
@@ -2074,17 +2079,17 @@ export class N_break extends Node {
         super(pos, true);
     }
 
-    interpret_ (context: Context) {
+    interpret_ () {
         const res = new InterpretResult();
         res.shouldBreak = true;
         return res;
     }
 
-    compileJS (config: compileConfig) {
+    compileJS () {
         return new CompileResult('break');
     }
 
-    compilePy (config: compileConfig) {
+    compilePy () {
         return new CompileResult('break');
     }
     str () {
@@ -2096,17 +2101,17 @@ export class N_continue extends Node {
         super(pos, true);
     }
 
-    interpret_ (context: Context) {
+    interpret_ () {
         const res = new InterpretResult();
         res.shouldContinue = true;
         return res;
     }
 
-    compileJS (config: compileConfig) {
+    compileJS () {
         return new CompileResult('continue');
     }
 
-    compilePy (config: compileConfig) {
+    compilePy () {
         return new CompileResult('continue');
     }
     str () {
@@ -2122,15 +2127,15 @@ export class N_primitiveWrapper extends Node {
         this.value = val;
     }
 
-    public interpret_(context: Context): InterpretResult {
+    public interpret_(): InterpretResult {
         return new InterpretResult(this.value);
     }
 
-    compileJS (config: compileConfig) {
+    compileJS () {
         return new CompileResult(JSON.stringify(this.value.__value__));
     }
 
-    compilePy (config: compileConfig) {
+    compilePy () {
         return new CompileResult(JSON.stringify(this.value.__value__));
     }
     str () {

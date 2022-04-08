@@ -99,7 +99,7 @@ export enum tokenType {
     NUMBER,
     STRING,
 
-    ENDSTATEMENT,
+    END_STATEMENT,
 
     IDENTIFIER,
     KEYWORD,
@@ -110,7 +110,7 @@ export enum tokenType {
 
     ADD,
     SUB,
-    ASTERIX,
+    ASTRIX,
     DIV,
     POW,
     MOD,
@@ -123,7 +123,7 @@ export enum tokenType {
     CSQUARE,
 
     EQUALS,
-    NOTEQUALS,
+    NOT_EQUALS,
     NOT,
     GT,
     LT,
@@ -138,7 +138,7 @@ export enum tokenType {
     EOF,
 
     PIPE,
-    APMERSAND,
+    AMPERSAND,
     BITWISE_NOT,
     QM
 }
@@ -148,7 +148,7 @@ export const tt = tokenType;
 export const tokenTypeString: enumDict<tokenType, string> = {
     [tt.NUMBER]: 'Number',
     [tt.STRING]: 'String',
-    [tt.ENDSTATEMENT]: ';',
+    [tt.END_STATEMENT]: ';',
 
     [tt.IDENTIFIER]: 'Identifier',
     [tt.KEYWORD]: 'Keyword',
@@ -166,13 +166,13 @@ export const tokenTypeString: enumDict<tokenType, string> = {
 
     [tt.ADD]: '+',
     [tt.SUB]: '-',
-    [tt.ASTERIX]: '*',
+    [tt.ASTRIX]: '*',
     [tt.DIV]: '/',
     [tt.POW]: '^',
     [tt.MOD]: '%',
 
     [tt.EQUALS]: '==',
-    [tt.NOTEQUALS]: '!=',
+    [tt.NOT_EQUALS]: '!=',
     [tt.NOT]: '!',
     [tt.GT]: '>',
     [tt.LT]: '<',
@@ -186,14 +186,14 @@ export const tokenTypeString: enumDict<tokenType, string> = {
 
     [tt.EOF]: 'End of File',
 
-    [tt.APMERSAND]: '&',
+    [tt.AMPERSAND]: '&',
     [tt.PIPE]: '|',
     [tt.BITWISE_NOT]: '~',
     [tt.QM]: '?',
 }
 
 export const singleCharTokens: dict<tokenType> = {
-    '*': tt.ASTERIX,
+    '*': tt.ASTRIX,
     '/': tt.DIV,
     '+': tt.ADD,
     '-': tt.SUB,
@@ -206,7 +206,7 @@ export const singleCharTokens: dict<tokenType> = {
     ',': tt.COMMA,
     '[': tt.OSQUARE,
     ']': tt.CSQUARE,
-    ';': tt.ENDSTATEMENT,
+    ';': tt.END_STATEMENT,
     ':': tt.COLON,
     '.': tt.DOT,
     '=': tt.ASSIGN,
@@ -214,14 +214,14 @@ export const singleCharTokens: dict<tokenType> = {
     '<': tt.LT,
     '!': tt.NOT,
     '|': tt.PIPE,
-    '&': tt.APMERSAND,
+    '&': tt.AMPERSAND,
     '~': tt.BITWISE_NOT,
     '?': tt.QM
 };
 
 export const doubleCharTokens: dict<tokenType> = {
     '==': tt.EQUALS,
-    '!=': tt.NOTEQUALS,
+    '!=': tt.NOT_EQUALS,
     '>=': tt.GTE,
     '<=': tt.LTE,
     '+=': tt.ASSIGN,

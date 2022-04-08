@@ -24,7 +24,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     takeCallContextAsClosure: boolean;
 
     constructor (
-        func: Node | BuiltInFunction = (() => {}),
+        func: Node | BuiltInFunction = (() => void 0),
         arguments_: runtimeArgument[] = [],
         name='(anon)',
         this_: ESObject = new ESObject(),
@@ -82,7 +82,6 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         );
     };
 
-    // @ts-ignore
     override valueOf = () => this;
 
     override str = () => new ESString(`<Func: ${this.name}>`);
@@ -106,7 +105,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     }
 
     override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
-        if (this._.hasOwnProperty(str(key))) {
+        if (str(key) in this) {
             return wrap(this._[str(key)], true);
         }
         return new IndexError(key.__value__, this);

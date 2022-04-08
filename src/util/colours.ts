@@ -1,6 +1,7 @@
 import { IS_NODE_INSTANCE } from "./constants";
+import type {dict} from './util';
 
-const codes: {[k: string]: number} = {
+const codes: dict<number> = {
     red: 31,
     yellow: 33,
     green: 32,

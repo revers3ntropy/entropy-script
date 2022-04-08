@@ -87,7 +87,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
     override __add__ = (props: funcProps, n: Primitive) => {
 
         if (!(n instanceof ESObject)) {
-            return new TypeError('Object', n.__type_name__(), n);
+            return new TypeError('Object', n.__type_name__(), str(n));
         }
 
         const newOb: dict<Primitive> = {};
@@ -95,7 +95,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         for (const k of this.keys()) {
             const key = k.__value__;
             // skip keys which will be generated on the new object anyway
-            if (this.hasOwnProperty(key)) continue;
+            if (key in this) continue;
             const res = this.__get__(props, k);
             if (res instanceof Error) {
                 return res;
@@ -105,7 +105,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
 
         for (const k of n.keys()) {
             const key = k.__value__;
-            if (newOb.hasOwnProperty(key)) continue;
+            if (key in newOb) continue;
             const res = n.__get__(props, k);
             if (res instanceof Error) {
                 return res;
@@ -130,11 +130,11 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         } else if (n instanceof ESArray) {
             keysToRemove = strip(n, props);
         } else {
-            return new TypeError('Array | String', n.__type_name__(), n);
+            return new TypeError('Array | String', n.__type_name__(), str(n));
         }
 
         if (!Array.isArray(keysToRemove)) {
-            return new TypeError('Array | String', n.__type_name__(), n);
+            return new TypeError('Array | String', n.__type_name__(), str(n));
         }
 
         const newOb: dict<Primitive> = {};
@@ -160,11 +160,11 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
 
         const key: string | number = k.__value__;
 
-        if (this.__value__.hasOwnProperty(key)) {
+        if (key in this.__value__) {
             return this.__value__[key];
         }
 
-        if (this._.hasOwnProperty(key)) {
+        if (key in this) {
             return wrap(this._[str(key)], true);
         }
 
@@ -179,12 +179,14 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
     }
 
     override has_property = (props: funcProps, k: Primitive): ESBoolean => {
-        const key = str(k);
-        if (this.__value__.hasOwnProperty(str(key))) {
+        if (!(k instanceof ESString) && !(k instanceof ESNumber)) {
+            return new ESBoolean();
+        }
+        if (k.__value__ in this.__value__) {
             return new ESBoolean(true);
         }
 
-        return new ESBoolean(this.hasOwnProperty(key));
+        return new ESBoolean(k.__value__ in this);
     };
 
     override clone = (): ESObject => {
@@ -260,7 +262,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__(props: funcProps): Error | Primitive {
+    override __iter__(): Error | Primitive {
         // returns array of keys in the object
         return new ESArray(Object.keys(this.__value__).map(s => new ESString(s)));
     }
@@ -295,7 +297,7 @@ export class ESInterface extends ESObject {
         }
 
         for (const key of Object.keys(this.__value__)) {
-            if (!n.__value__.hasOwnProperty(key)) {
+            if (!(key in n.__value__)) {
                 return new ESBoolean();
             }
             const thisType = this.__value__[key];

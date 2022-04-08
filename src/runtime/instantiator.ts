@@ -1,8 +1,7 @@
 import { primitiveMethods, types } from '../util/constants';
 import { Context } from "./context";
-import type { dict, funcProps } from '../util/util';
+import type { funcProps } from '../util/util';
 import { EndIterator, Error, TypeError } from "../errors";
-import Position from "../position";
 import type {NativeObj} from './primitive';
 import {wrap} from './wrapStrip';
 import {
@@ -108,7 +107,7 @@ function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
                 while (true) {
                     const nextRes = iter.__next__(props);
                     if (nextRes instanceof Error) return nextRes;
-                    if (nextRes instanceof ESErrorPrimitive && nextRes.__value__ instanceof EndIterator) {
+                    if (nextRes instanceof ESErrorPrimitive && nextRes.__value__?.name === 'EndIterator') {
                         break;
                     }
                     elements.push(nextRes);

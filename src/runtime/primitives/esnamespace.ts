@@ -58,7 +58,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
 
 
     override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
-        if (key instanceof ESString && this.__value__.hasOwnProperty(key.__value__)) {
+        if (key instanceof ESString && key.__value__ in this.__value__) {
             const symbol = this.__value__[key.__value__];
             if (symbol.isAccessible) {
                 return symbol.value;
@@ -69,7 +69,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
             return new TypeError('string', key.__type_name__());
         }
 
-        if (this._.hasOwnProperty(str(key))) {
+        if (str(key) in this) {
             return wrap(this._[str(key)], true);
         }
 
