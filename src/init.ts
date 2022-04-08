@@ -8,11 +8,11 @@ import { Context } from "./runtime/context";
 import { Error } from "./errors";
 import { ESFunction, ESJSBinding, ESUndefined, initPrimitiveTypes } from './runtime/primitiveTypes';
 import loadGlobalConstants from "./built-in/globalConstants";
-import {global, refreshPerformanceNow, runningInNode, setGlobalContext, STD_RAW, types} from './util/constants';
-import { dict } from "./util/util";
+import {GLOBAL_CTX, refreshPerformanceNow, runningInNode, setGlobalContext, STD_RAW, types} from './util/constants';
+import { Map } from "./util/util";
 import { NativeObj } from "./runtime/primitive";
 import {libs as globalLibs} from "./util/constants";
-import { runtimeArgument } from "./runtime/argument";
+import { IRuntimeArgument } from "./runtime/argument";
 
 export default async function init ({
   print = console.log,
@@ -27,7 +27,7 @@ export default async function init ({
     node?: boolean,
     context?: Context,
     path?: string,
-    libs?: dict<[NativeObj, boolean]>
+    libs?: Map<[NativeObj, boolean]>
 } = {}): Promise<Error | Context> {
 
     setGlobalContext(context);
@@ -54,12 +54,12 @@ export default async function init ({
         const [rawFn, info] = builtInFunctions[builtIn];
 
         const numArgs = info.args?.length ?? rawFn.length-1;
-        const args: runtimeArgument[] = (new Array(numArgs))
+        const args: IRuntimeArgument[] = (new Array(numArgs))
             .fill({
                 name: 'unknown',
                 type: types.any,
                 defaultValue: new ESUndefined()
-            } as runtimeArgument);
+            } as IRuntimeArgument);
 
         const fn = new ESFunction(
             rawFn,
@@ -113,9 +113,9 @@ export default async function init ({
     for (const file of STD_RAW) {
         run(file, {
             fileName: 'std',
-            env: global
+            env: GLOBAL_CTX
         });
     }
 
-    return global;
+    return GLOBAL_CTX;
 }

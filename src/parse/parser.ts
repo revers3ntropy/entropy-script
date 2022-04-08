@@ -1,4 +1,4 @@
-import {CLASS_KEYWORDS, tokenType, tokenTypeString, tt, types, VAR_DECLARE_KEYWORDS} from '../util/constants';
+import {CLASS_KEYWORDS, TokenType, ttToStr, tt, types, VAR_DECLARE_KEYWORDS} from '../util/constants';
 import { ParseResults } from './parseResults';
 import { Token } from "./tokens";
 import * as n from '../runtime/nodes';
@@ -14,8 +14,8 @@ import {
 import { Error, InvalidSyntaxError } from "../errors";
 import Position from "../position";
 import { ESType } from "../runtime/primitiveTypes";
-import { uninterpretedArgument } from "../runtime/argument";
-import { dict } from "../util/util";
+import { IUninterpretedArgument } from "../runtime/argument";
+import { Map } from "../util/util";
 
 export class Parser {
     tokens: Token[];
@@ -27,23 +27,28 @@ export class Parser {
         this.advance();
     }
 
-    public parse (): ParseResults {
-        if (!this.currentToken || !this.tokens || (this.tokens.length === 1 && this.tokens[0].type === tt.EOF)) {
+    public parse = (): ParseResults => {
+        if (this.tokens.length === 1 && this.tokens[0].type === tt.EOF) {
             return new ParseResults();
         }
 
         const res = this.statements(true);
 
-        if (!res.error && this.currentToken.type !== tokenType.EOF) {
+        if (!res.error && this.currentToken?.type !== TokenType.EOF && !this.currentToken) {
             return res.failure(new InvalidSyntaxError(
-                `Expected 'End of File', got token of type '${tokenTypeString[this.currentToken.type]}'`
+                'Expected EOF'), this.tokens[this.tokens.length-1]?.pos)
+        }
+
+        if (!res.error && this.currentToken?.type !== TokenType.EOF) {
+            return res.failure(new InvalidSyntaxError(
+                `Unexpected token of type '${ttToStr[this.currentToken?.type]}'`
             ), this.currentToken?.pos);
         }
 
         return res;
     }
 
-    private advance (res?: ParseResults): Token {
+    private advance = (res?: ParseResults): Token => {
         if (res) res.registerAdvance();
 
         this.tokenIdx++;
@@ -60,28 +65,28 @@ export class Parser {
         return this.tokens[this.tokenIdx] as Token<any>;
     }
 
-    private reverse (amount = 1): Token {
+    private reverse = (amount = 1): Token => {
         this.tokenIdx -= amount;
         return this.currentToken;
     }
 
-    private consume (res: ParseResults, type: tokenType, errorMsg?: string): void | ParseResults {
+    private consume = (res: ParseResults, type: TokenType, errorMsg?: string): void | ParseResults => {
         if (this.currentToken.type !== type)
             return res.failure(new InvalidSyntaxError(
                 errorMsg ??
-                `Expected '${tokenTypeString[type]}' but got '${tokenTypeString[this.currentToken.type]}'`
+                `Expected '${ttToStr[type]}' but got '${ttToStr[this.currentToken.type]}'`
             ), this.currentToken.pos);
 
         this.advance(res);
     }
 
-    private clearEndStatements (res: ParseResults): void {
+    private clearEndStatements = (res: ParseResults): void => {
         while (this.currentToken.type === tt.END_STATEMENT) {
             this.advance(res);
         }
     }
 
-    private statements (topLevel = false): ParseResults {
+    private statements = (topLevel = false): ParseResults => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         const statements: Node[] = [];
@@ -130,7 +135,7 @@ export class Parser {
         return res.success(node);
     }
 
-    private statement () {
+    private statement = () => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
@@ -151,10 +156,10 @@ export class Parser {
         } else if (this.currentToken.matches(tt.KEYWORD, 'try')) {
             return this.tryCatch();
 
-        } else if (this.currentToken.matches(tokenType.KEYWORD, 'while')) {
+        } else if (this.currentToken.matches(TokenType.KEYWORD, 'while')) {
             return this.whileExpr();
 
-        } else if (this.currentToken.matches(tokenType.KEYWORD, 'for')) {
+        } else if (this.currentToken.matches(TokenType.KEYWORD, 'for')) {
             return this.forExpr();
         }
 
@@ -188,7 +193,7 @@ export class Parser {
         }
     }
 
-    private returnStatement (res: ParseResults, isYield = false) {
+    private returnStatement = (res: ParseResults, isYield = false) => {
         const pos = this.currentToken.pos;
 
         this.advance(res);
@@ -206,7 +211,7 @@ export class Parser {
         return res.success(new n.N_return(pos, expr));
     }
 
-    private atom () {
+    private atom = () => {
         const res = new ParseResults();
         const tok = this.currentToken;
         const pos = this.currentToken.pos;
@@ -238,7 +243,7 @@ export class Parser {
                 return res.success(arrayExpr);
 
             case tt.OBRACES:
-                const objectExpr = res.register(this.object());
+                const objectExpr = res.register(this.obLiteral());
                 if (res.error) return res;
                 return res.success(objectExpr);
 
@@ -253,23 +258,26 @@ export class Parser {
 
             default:
                 return res.failure(new InvalidSyntaxError(
-                    `Expected number, array, object literal, 'if', string or brackets`), this.currentToken.pos);
+                    `Expected identifier, number, array, object literal, 'if', string or brackets`), this.currentToken.pos);
         }
     }
 
     /**
-     * Gets atom, and then either '(', '[', or '.' after.
-     * @returns {ParseResults}
-     * @private
+     * Gets atom, and then either '(', '[', '<|', or '.' after.
      */
-    private compound (base?: Node): ParseResults {
+    private compound = (base?: Node): ParseResults => {
         const res = new ParseResults();
         if (!base)  {
             base = res.register(this.atom());
         }
         if (res.error) return res;
 
-        if (this.currentToken.type === tt.OPAREN) {
+        if (this.currentToken.type === tt.OGENERIC) {
+            const call = res.register(this.makeGenericCall(base));
+            if (res.error) return res;
+            return this.compound(call);
+
+        } else if (this.currentToken.type === tt.OPAREN) {
             const call = res.register(this.makeFunctionCall(base));
             if (res.error) return res;
             return this.compound(call);
@@ -296,15 +304,21 @@ export class Parser {
         }
     }
 
-    private power () {
+    /**
+     * a (^|%|&||) b
+     */
+    private power = () => {
          return this.binOp(
-             () => this.compound(),
+             this.compound,
              [tt.POW, tt.MOD, tt.AMPERSAND, tt.PIPE],
-             () => this.factor()
+             this.factor
          );
     }
 
-    private factor (): ParseResults {
+    /**
+     * (+|-|~|?) power
+     */
+    private factor = (): ParseResults => {
         const res = new ParseResults();
         const tok = this.currentToken;
 
@@ -318,15 +332,26 @@ export class Parser {
         return this.power();
     }
 
-    private term () {
-        return this.binOp(() => this.factor(), [tt.ASTRIX, tt.DIV]);
+    /**
+     * Multiplication
+     * a (*|/) b
+     */
+    private term = () => {
+        return this.binOp(this.factor, [tt.ASTRIX, tt.DIV]);
     }
 
-    private arithmeticExpr () {
-        return this.binOp(() => this.term(), [tt.ADD, tt.SUB]);
+    /**
+     * Addition
+     * a (+|-) b
+     */
+    private arithmeticExpr = () => {
+        return this.binOp(this.term, [tt.ADD, tt.SUB]);
     }
 
-    private comparisonExpr (): ParseResults {
+    /**
+     * ((!|~) expr) | (a (==|!=|>|>=|<|<=) b)
+     */
+    private comparisonExpr = (): ParseResults => {
         const res = new ParseResults();
         if (this.currentToken.type === tt.NOT) {
             const opTok = this.currentToken;
@@ -356,22 +381,27 @@ export class Parser {
         return res.success(node);
     }
 
-    private expr (): ParseResults {
+    /**
+     * (let|func|abstract|class|namespace) | (a ((||)|(&&)) b)
+     */
+    private expr = (): ParseResults => {
         const res = new ParseResults();
 
         this.clearEndStatements(res);
 
-        if (this.currentToken.type === tt.KEYWORD && VAR_DECLARE_KEYWORDS.indexOf(this.currentToken.value) !== -1) {
-            return this.initiateVar(res);
+        if (this.currentToken.type === tt.KEYWORD) {
+            if (VAR_DECLARE_KEYWORDS.indexOf(this.currentToken.value) !== -1) {
+                return this.initiateVar(res);
 
-        } else if (this.currentToken.matches(tokenType.KEYWORD, 'func')) {
-            return this.funcExpr();
+            } else if (this.currentToken.value === 'func') {
+                return this.funcExpr();
 
-        } else if (this.currentToken.type === tokenType.KEYWORD && CLASS_KEYWORDS.includes(this.currentToken.value)) {
-            return this.classExpr();
+            } else if (CLASS_KEYWORDS.includes(this.currentToken.value)) {
+                return this.classExpr();
 
-        } else if (this.currentToken.matches(tokenType.KEYWORD, 'namespace')) {
-            return this.namespace();
+            } else if (this.currentToken.value ==='namespace') {
+                return this.namespace();
+            }
         }
 
         const node = res.register(this.binOp(() => this.comparisonExpr(), [tt.AND, tt.OR]));
@@ -381,7 +411,13 @@ export class Parser {
         return res.success(node);
     }
 
-    private binOp (func: () => ParseResults, ops: tokenType[] | [tokenType, string][], funcB=func): ParseResults {
+    /**
+     * Does a binary operation.
+     * Takes a function to parse the left-hand side, which is immediately excecuted to get the left-hand side.
+     * Then checks that the current token matches the possible operators, and consumes it
+     * Then uses the right-hand parsing function to get the right-hand side of the expression.
+     */
+    private binOp = (func: () => ParseResults, ops: TokenType[] | [TokenType, string][], funcB=func): ParseResults => {
         const res = new ParseResults();
         let left = res.register(func());
         if (res.error) return res;
@@ -400,11 +436,92 @@ export class Parser {
         return res.success(left);
     }
 
-    private makeFunctionCall (to: Node) {
-        const res = new ParseResults();
+    private arguments = (res: ParseResults, allowKwargs=true) => {
         const args: Node[] = [];
         const indefiniteKwargs: Node[] = [];
-        const definiteKwargs: dict<Node> = {};
+        const definiteKwargs: Map<Node> = {};
+
+        while (true) {
+            // check for kwargs
+            // @ts-ignore
+            if (this.currentToken.type === tt.ASTRIX) {
+                this.advance(res);
+
+                if (!allowKwargs) {
+                    return {
+                        error: new InvalidSyntaxError('Kwargs not allowed here'),
+                        args,
+                        indefiniteKwargs,
+                        definiteKwargs
+                    };
+                }
+
+                // @ts-ignore
+                if (this.currentToken.type === tt.ASTRIX) {
+                    // double astrix
+                    this.advance(res);
+                    indefiniteKwargs.push(res.register(this.expr()));
+                } else {
+
+                    const nameTok = this.currentToken;
+
+                    this.consume(res, tt.IDENTIFIER);
+                    if (res.error) {
+                        return {
+                            error: res.error,
+                            args,
+                            indefiniteKwargs,
+                            definiteKwargs
+                        };
+                    }
+
+                    if (!this.currentToken.matches(tt.ASSIGN, '=')) {
+                        // for '*a', which is the same as '*a=a'
+                        definiteKwargs[nameTok.value] = new N_variable(nameTok);
+                    } else {
+                        // remove '='
+                        this.advance(res);
+
+                        definiteKwargs[nameTok.value] = res.register(this.expr());
+                        if (res.error) return {
+                            error: res.error,
+                            args,
+                            indefiniteKwargs,
+                            definiteKwargs
+                        };
+                    }
+                }
+            } else {
+                // normal argument
+                args.push(res.register(this.expr()));
+                if (res.error) {
+                    return {
+                        error: res.error,
+                        args,
+                        indefiniteKwargs,
+                        definiteKwargs
+                    };
+                }
+            }
+
+            // @ts-ignore
+            if (this.currentToken.type === tt.COMMA) {
+                this.advance(res);
+            } else {
+                // break on no more commas
+                break;
+            }
+        }
+
+        return {
+            args,
+            indefiniteKwargs,
+            definiteKwargs
+        };
+    }
+
+    private makeFunctionCall = (to: Node) => {
+        const res = new ParseResults();
         const pos = this.currentToken.pos;
 
         if (this.currentToken.type !== tt.OPAREN) {
@@ -420,49 +537,8 @@ export class Parser {
             return res.success(new n.N_functionCall(pos, to));
         }
 
-        while (true) {
-            // check for kwargs
-            // @ts-ignore
-            if (this.currentToken.type === tt.ASTRIX) {
-                this.advance(res);
-
-                // @ts-ignore
-                if (this.currentToken.type === tt.ASTRIX) {
-                    // double astrix
-                    this.advance(res);
-                    indefiniteKwargs.push(res.register(this.expr()));
-                } else {
-
-                    const nameTok = this.currentToken;
-
-                    this.consume(res, tt.IDENTIFIER);
-                    if (res.error) return res;
-
-                    if (!this.currentToken.matches(tt.ASSIGN, '=')) {
-                        // for '*a', which is the same as '*a=a'
-                        definiteKwargs[nameTok.value] = new N_variable(nameTok);
-                    } else {
-                        // remove '='
-                        this.advance(res);
-
-                        definiteKwargs[nameTok.value] = res.register(this.expr());
-                        if (res.error) return res;
-                    }
-                }
-            } else {
-                // normal argument
-                args.push(res.register(this.expr()));
-                if (res.error) return res;
-            }
-
-            // @ts-ignore
-            if (this.currentToken.type === tt.COMMA) {
-                this.advance(res);
-            } else {
-                // break on no more commas
-                break;
-            }
-        }
+        const {args, definiteKwargs, indefiniteKwargs, error} = this.arguments(res);
+        if (error) return res.failure(error);
 
         // @ts-ignore
         if (this.currentToken.type !== tt.CPAREN) {
@@ -475,7 +551,38 @@ export class Parser {
         return res.success(new n.N_functionCall(pos, to, args, indefiniteKwargs, definiteKwargs));
     }
 
-    private makeIndex (to: Node) {
+    private makeGenericCall = (to: Node) => {
+        const res = new ParseResults();
+        const pos = this.currentToken.pos;
+
+        this.consume(res, tt.OGENERIC);
+        if (res.error) return res;
+        this.advance(res);
+        if (res.error) return res;
+
+        // @ts-ignore
+        if (this.currentToken.type === tt.CGENERIC) {
+            this.advance(res);
+            const node = new n.N_functionCall(pos, to);
+            node.functionType = '__generic__';
+            return res.success(node);
+        }
+
+        const {args, definiteKwargs, indefiniteKwargs, error} = this.arguments(res, false);
+        if (error) return res.failure(error);
+
+        // @ts-ignore
+        if (this.currentToken.type !== tt.CPAREN) {
+            return res.failure(new InvalidSyntaxError(
+                "Expected ',' or '|>'"), this.currentToken.pos);
+        }
+
+        this.advance(res);
+
+        return res.success(new n.N_functionCall(pos, to, args, indefiniteKwargs, definiteKwargs, '__generic__'));
+    }
+
+    private makeIndex = (to: Node) => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
@@ -509,11 +616,14 @@ export class Parser {
         ));
     }
 
-    private typeExpr () {
+    /**
+     * Not needed atm, but might want to parse type expressions differently in the future.
+     */
+    private typeExpr = () => {
         return this.expr();
     }
 
-    private destructuring (pos: Position, isConst: boolean, isGlobal: boolean): ParseResults {
+    private destructuring = (pos: Position, isConst: boolean, isGlobal: boolean): ParseResults => {
         const res = new ParseResults();
 
         this.advance(res);
@@ -597,7 +707,7 @@ export class Parser {
         ));
     }
 
-    private initiateVar (res: ParseResults): ParseResults {
+    private initiateVar = (res: ParseResults): ParseResults => {
         const pos = this.currentToken.pos;
 
         let isConst = true;
@@ -645,7 +755,7 @@ export class Parser {
         }
 
         // @ts-ignore
-        if (this.currentToken.type !== tokenType.IDENTIFIER) {
+        if (this.currentToken.type !== TokenType.IDENTIFIER) {
             return res.failure(new InvalidSyntaxError(
                 `Expected Identifier, '[' or '{'`), this.currentToken.pos);
         }
@@ -713,7 +823,7 @@ export class Parser {
         ));
     }
 
-    private bracesExp (): ParseResults {
+    private bracesExp = (): ParseResults => {
         const res = new ParseResults();
 
         this.consume(res, tt.OBRACES);
@@ -741,7 +851,7 @@ export class Parser {
         return res.success(expr);
     }
 
-    private addEndStatement (res: ParseResults) {
+    private addEndStatement = (res: ParseResults) => {
         this.tokens.splice(this.tokenIdx, 0, new Token(
             this.currentToken.pos,
             tt.END_STATEMENT,
@@ -751,7 +861,7 @@ export class Parser {
         this.advance(res);
     }
 
-    private ifExpr (): ParseResults {
+    private ifExpr = (): ParseResults => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         let ifFalse;
@@ -788,7 +898,7 @@ export class Parser {
         return res.success(new n.N_if(pos, condition, ifTrue, ifFalse));
     }
 
-    private whileExpr (): ParseResults {
+    private whileExpr = (): ParseResults => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
@@ -813,7 +923,7 @@ export class Parser {
     /**
      * Gets the __name__ and __type__ of a parameter, for example `arg1: number`
      */
-    private parameter (res: ParseResults): uninterpretedArgument | Error {
+    private parameter = (res: ParseResults): IUninterpretedArgument | Error => {
         let type: Node = new n.N_primitiveWrapper(types.any);
         let defaultValue: Node | undefined;
         let isKwarg = false;
@@ -864,7 +974,7 @@ export class Parser {
     /**
      * (a: String, *b, *c: Number=1, *, **) {}
      */
-    private funcCore (): ParseResults {
+    private funcCore = (): ParseResults => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         let body: n.Node,
@@ -872,7 +982,7 @@ export class Parser {
             allowArgs = false,
             allowKwargs = false;
 
-        const args: uninterpretedArgument[] = [];
+        const args: IUninterpretedArgument[] = [];
 
         this.consume(res, tt.OPAREN);
 
@@ -993,7 +1103,7 @@ export class Parser {
         return res.success(fn);
     }
 
-    private funcExpr (): ParseResults {
+    private funcExpr = (): ParseResults => {
         const res = new ParseResults();
         let name: string | undefined;
 
@@ -1025,7 +1135,7 @@ export class Parser {
         return res.success(func);
     }
 
-    private classExpr (name?: string): ParseResults {
+    private classExpr = (name?: string): ParseResults => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         const methods: n.N_functionDefinition[] = [];
@@ -1033,7 +1143,7 @@ export class Parser {
         let extends_: n.Node = new N_primitiveWrapper(types.object);
         let identifier: string | undefined;
         let abstract = false;
-        const properties: dict<Node> = {};
+        const properties: Map<Node> = {};
 
         if (this.currentToken.matches(tt.KEYWORD, 'abstract')) {
             this.advance(res);
@@ -1130,7 +1240,7 @@ export class Parser {
         ));
     }
 
-    private forExpr (): ParseResults {
+    private forExpr = (): ParseResults => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         let isConst = true;
@@ -1182,7 +1292,7 @@ export class Parser {
         ));
     }
 
-    private array () {
+    private array = () => {
         const res = new ParseResults();
         const elements: Node[] = [];
         const pos = this.currentToken.pos;
@@ -1227,7 +1337,7 @@ export class Parser {
         return res.success(new n.N_array(pos, elements));
     }
 
-    private object () {
+    private obLiteral = () => {
         const res = new ParseResults();
         const properties: [Node, Node][] = [];
         const pos = this.currentToken.pos;
@@ -1277,7 +1387,7 @@ export class Parser {
                 if (res.error) return res;
                 if (this.currentToken.type !== tt.CSQUARE) {
                     return res.failure(new InvalidSyntaxError(
-                        `Expected ']', got '${tokenTypeString[this.currentToken.type]}'`), this.currentToken.pos);
+                        `Expected ']', got '${ttToStr[this.currentToken.type]}'`), this.currentToken.pos);
                 }
                 this.advance(res);
             } else {
@@ -1291,7 +1401,7 @@ export class Parser {
 
                 if (this.currentToken.type !== tt.COMMA && this.currentToken.type !== tt.CBRACES) {
                     return res.failure(new InvalidSyntaxError(
-                        `Expected ',' or '}', got '${tokenTypeString[this.currentToken.type]}'`
+                        `Expected ',' or '}', got '${ttToStr[this.currentToken.type]}'`
                     ), this.currentToken.pos);
                 }
 
@@ -1302,7 +1412,7 @@ export class Parser {
             } else {
                 if (this.currentToken.type !== tt.COMMA && this.currentToken.type !== tt.CBRACES) {
                     return res.failure(new InvalidSyntaxError(
-                        `Expected ',' or '}', got '${tokenTypeString[this.currentToken.type]}'`), this.currentToken.pos);
+                        `Expected ',' or '}', got '${ttToStr[this.currentToken.type]}'`), this.currentToken.pos);
                 }
 
                 if (keyType !== 'id') {
@@ -1337,7 +1447,7 @@ export class Parser {
         return res.success(new n.N_objectLiteral(pos, properties));
     }
 
-    private namespace () {
+    private namespace = () => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
@@ -1368,7 +1478,7 @@ export class Parser {
         return res.success(new n.N_namespace(pos, statements, name, false));
     }
 
-    private tryCatch (): ParseResults {
+    private tryCatch = (): ParseResults => {
         const res = new ParseResults();
 
         this.consume(res, tt.KEYWORD);

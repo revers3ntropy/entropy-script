@@ -1,4 +1,4 @@
-import type { dict } from "./util/util";
+import type { Map } from "./util/util";
 
 export type Permissions = {
     networking: boolean;
@@ -6,11 +6,11 @@ export type Permissions = {
     accessDOM: boolean;
     useSTD: boolean;
     fileSystem: boolean,
-} & dict<any>;
+} & Map<any>;
 
 export interface config {
     permissions: Permissions,
-    modules: dict<string | any>,
+    modules: Map<string | any>,
 }
 
 const AllowAny = Symbol('AllowAny');
@@ -41,7 +41,7 @@ function pathAsString (path: string[]) {
     return res.substring(0, res.length-1);
 }
 
-function parsePartOfConfig (config: dict<any>, configJSON: dict<any>, path: string[]=[]) {
+function parsePartOfConfig (config: Map<any>, configJSON: Map<any>, path: string[]=[]) {
     if (!config[AllowAny]) {
         const unknownProps = Object.keys(configJSON).filter(x => !(x in config));
 
@@ -66,6 +66,6 @@ function parsePartOfConfig (config: dict<any>, configJSON: dict<any>, path: stri
     }
 }
 
-export function parseConfig (configJSON: dict<any>): void {
+export function parseConfig (configJSON: Map<any>): void {
     parsePartOfConfig(config, configJSON);
 }

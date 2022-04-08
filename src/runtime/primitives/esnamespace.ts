@@ -1,5 +1,5 @@
 import {Error, IndexError, TypeError} from '../../errors';
-import type { dict, funcProps } from '../../util/util';
+import type { Map, IFuncProps } from '../../util/util';
 import {ESSymbol} from '../symbol';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
@@ -13,11 +13,11 @@ import { ESArray } from "./esarray";
 import type { ESIterable } from "./esiterable";
 import { ESNumber } from "./esnumber";
 
-export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterable {
+export class ESNamespace extends ESPrimitive<Map<ESSymbol>> implements ESIterable {
     public __mutable__: boolean;
     override __iterable__ = true;
 
-    constructor (name: ESString, value: dict<ESSymbol>, mutable=false) {
+    constructor (name: ESString, value: Map<ESSymbol>, mutable=false) {
         super(value, types.object);
         this.__info__.name = str(name);
         this.__mutable__ = mutable;
@@ -36,7 +36,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
     }
 
     override clone = (): Primitive => {
-        const obj: dict<ESSymbol> = {};
+        const obj: Map<ESSymbol> = {};
         const toClone = this.__value__;
         for (const key of Object.keys(toClone)) {
             obj[key] = toClone[key];
@@ -49,7 +49,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
         return new ESString(`<Namespace ${str(this.name)}${keys.length > 0 ? ': ' : ''}${keys.slice(0, 5)}${keys.length >= 5 ? '...' : ''}>`);
     }
 
-    override __eq__ = (props: funcProps, n: Primitive): ESBoolean => {
+    override __eq__ = (props: IFuncProps, n: Primitive): ESBoolean => {
         return new ESBoolean(this === n);
     };
 
@@ -57,7 +57,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
     override bool = this.__bool__;
 
 
-    override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
+    override __get__ = (props: IFuncProps, key: Primitive): Primitive | Error => {
         if (key instanceof ESString && key.__value__ in this.__value__) {
             const symbol = this.__value__[key.__value__];
             if (symbol.isAccessible) {
@@ -76,7 +76,7 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
         return new IndexError(key.__value__, this._);
     };
 
-    override __set__(props: funcProps, key: Primitive, value: Primitive): void | Error {
+    override __set__(props: IFuncProps, key: Primitive, value: Primitive): void | Error {
         if (!(key instanceof ESString)) {
             return new TypeError('string', key.__type_name__(), str(key));
         }
@@ -102,21 +102,21 @@ export class ESNamespace extends ESPrimitive<dict<ESSymbol>> implements ESIterab
     }
 
     override __includes__ = this.__eq__;
-    override __subtype_of__ = (props: funcProps, n: Primitive) => {
+    override __subtype_of__ = (props: IFuncProps, n: Primitive) => {
         if (Object.is(n, types.any) || Object.is(n, types.object)) {
             return new ESBoolean(true);
         }
         return this.__eq__(props, n);
     };
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__(props: funcProps): Error | Primitive {
+    override __iter__(props: IFuncProps): Error | Primitive {
         // returns array of keys in the object
         return new ESArray(Object.keys(this.__value__).map(s => new ESString(s)));
     }

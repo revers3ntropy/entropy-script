@@ -1,50 +1,52 @@
 import type { Context } from '../runtime/context';
-import type { dict, enumDict } from './util';
+import type { NativeObj } from '../runtime/primitive';
+import type { Map, EnumMap } from './util';
 import type { ESType } from "../runtime/primitives/estype";
 
 // @ts-ignore
 import PACKAGE_JSON from '../../package.json';
 
-export const digits = '0123456789';
-export const identifierChars = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-export const singleLineComment = '//';
-export const multiLineCommentStart = '/*';
-export const multiLineCommentEnd = '*/';
+export const DIGITS = '0123456789';
+export const IDENTIFIER_CHARS = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+export const ONE_LINE_COMMENT = '//';
+export const MULTI_LINE_COMMENT_START = '/*';
+export const MULTI_LINE_COMMENT_END = '*/';
+export const WHITESPACE = ' \t\n';
 
-export let global: Context;
+export let GLOBAL_CTX: Context;
 export const setGlobalContext = (c: Context) => {
-    global = c;
+    GLOBAL_CTX = c;
 };
 
-export const stringSurrounds = ['\'', '`', '"'];
+export const STRING_SURROUNDS = ['\'', '`', '"'];
 
 export let IS_NODE_INSTANCE = typeof window === 'undefined';
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 
-export const VAR_DECLARE_KEYWORDS = ['var', 'let', 'global'];
+export const VAR_DECLARE_KEYWORDS = ['let'];
 
 export const VERSION = PACKAGE_JSON['version'];
 
-export const configFileName = 'esconfig.json';
+export const CONFIG_FILE_NAME = 'esconfig.json';
 
 export const VALID_FILE_ENCODINGS: string[] = [
     'utf8', 'ucs2', 'utf16le', 'latin1',
     'ascii', 'base64', 'base64url', 'hex'
 ];
 
-export interface compileConfig {
+export interface ICompileConfig {
     minify: boolean,
     indent: number,
     symbols: string[]
 }
 
 // global store of built-in types like 'String' and 'Type'
-export const types: dict<ESType> = {};
+export const types: Map<ESType> = {};
 
 // global object of all native dependencies like node-fetch and fs.
-export const libs: dict<any> = {};
+export const libs: Map<NativeObj> = {};
 
-export const catchBlockErrorSymbolName = 'err';
+export const CATCH_BLOCK_ERR_SYMBOL_ID = 'err';
 
 export const KEYWORDS = [
     'var',
@@ -95,7 +97,7 @@ export function refreshPerformanceNow (isNode = IS_NODE_INSTANCE) {
 }
 refreshPerformanceNow();
 
-export enum tokenType {
+export enum TokenType {
     NUMBER,
     STRING,
 
@@ -140,12 +142,15 @@ export enum tokenType {
     PIPE,
     AMPERSAND,
     BITWISE_NOT,
-    QM
+    QM,
+
+    OGENERIC,
+    CGENERIC
 }
 
-export const tt = tokenType;
+export const tt = TokenType;
 
-export const tokenTypeString: enumDict<tokenType, string> = {
+export const ttToStr: EnumMap<TokenType, string> = {
     [tt.NUMBER]: 'Number',
     [tt.STRING]: 'String',
     [tt.END_STATEMENT]: ';',
@@ -190,9 +195,12 @@ export const tokenTypeString: enumDict<tokenType, string> = {
     [tt.PIPE]: '|',
     [tt.BITWISE_NOT]: '~',
     [tt.QM]: '?',
+
+    [tt.OGENERIC]: '<|',
+    [tt.CGENERIC]: '|>'
 }
 
-export const singleCharTokens: dict<tokenType> = {
+export const SINGLE_TOKENS: Map<TokenType> = {
     '*': tt.ASTRIX,
     '/': tt.DIV,
     '+': tt.ADD,
@@ -219,7 +227,7 @@ export const singleCharTokens: dict<tokenType> = {
     '?': tt.QM
 };
 
-export const doubleCharTokens: dict<tokenType> = {
+export const DOUBLE_TOKENS: Map<TokenType> = {
     '==': tt.EQUALS,
     '!=': tt.NOT_EQUALS,
     '>=': tt.GTE,
@@ -229,12 +237,14 @@ export const doubleCharTokens: dict<tokenType> = {
     '*=': tt.ASSIGN,
     '/=': tt.ASSIGN,
     '&&': tt.AND,
-    '||': tt.OR
+    '||': tt.OR,
+    '<|': tt.OGENERIC,
+    '|>': tt.CGENERIC
 };
 
-export const tripleCharTokens: dict<tokenType> = {};
+export const TRIPLE_TOKENS: Map<TokenType> = {};
 
-export const primitiveMethods: string[] = [
+export const PROPS_TO_OVERRIDE_ON_PRIM: string[] = [
     '__add__',
     '__subtract__',
     '__multiply__',
@@ -255,7 +265,6 @@ export const primitiveMethods: string[] = [
     '__next__',
     '__iterable__'
 ];
-
 
 
 // @ts-ignore

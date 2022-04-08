@@ -3,7 +3,7 @@ import {Error, IndexError, InvalidOperationError, TypeError} from '../../errors'
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
 import type {Primitive} from '../primitive';
-import type { funcProps } from "../../util/util";
+import type { IFuncProps } from "../../util/util";
 import { wrap } from "../wrapStrip";
 import {str} from "../../util/util";
 import { ESArray } from "./esarray";
@@ -15,7 +15,7 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
         super(error, types.error);
     }
 
-    override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
+    override __get__ = (props: IFuncProps, key: Primitive): Primitive | Error => {
 
         switch (str(key)) {
 
@@ -43,7 +43,7 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
     override str = () =>
         new ESString(`<Error: ${this.__value__.str}>`);
 
-    override __eq__ = (props: funcProps, n: Primitive) => {
+    override __eq__ = (props: IFuncProps, n: Primitive) => {
         return new ESBoolean(
             n instanceof ESErrorPrimitive &&
             this.__value__.name === n.__value__.name
@@ -57,16 +57,16 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
 
     override __includes__ = (): Error => new InvalidOperationError('type check', this, 'Cannot type check against an error instance');
 
-    override __subtype_of__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __subtype_of__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         if (Object.is(n, types.any)) {
             return new ESBoolean(true);
         }
         return new InvalidOperationError('type check', this, 'Cannot type check against an error instance');
     }
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 

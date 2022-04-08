@@ -5,33 +5,36 @@ import {ESBoolean} from './esboolean';
 import type {ESFunction} from './esfunction';
 import {ESObject} from './esobject';
 import {ESString} from './esstring';
-import type {Primitive, typeName} from '../primitive';
-import type {dict, funcProps} from '../../util/util';
+import type {Primitive} from '../primitive';
+import type {Map, IFuncProps} from '../../util/util';
 import { wrap } from "../wrapStrip";
 import {str} from "../../util/util";
 import { types } from "../../util/constants";
 import { ESTypeArray } from "./esarray";
-import type { runtimeArgument } from "../argument";
+import type { IRuntimeArgument } from "../argument";
 
 export class ESType extends ESPrimitive <undefined> {
 
     readonly __primordial__: boolean;
 
-    readonly __name__: typeName;
+    readonly __name__: string;
     readonly __extends__: undefined | ESType;
     readonly __methods__: ESFunction[];
-    readonly __properties__: dict<Primitive>;
+    readonly __properties__: Map<Primitive>;
     readonly __instances__: Primitive[] = [];
-    readonly __targs__: runtimeArgument[];
+    readonly __targs__: IRuntimeArgument[];
     readonly __abstract__: boolean;
+
+    __generic_args__: Primitive[] = [];
+    __generic_params__: IRuntimeArgument[] = [];
 
     constructor (
         isPrimitive = false,
-        name: typeName = '(anon)',
+        name = '(anon)',
         methods: ESFunction[] = [],
-        properties: dict<Primitive> = {},
-        extends_?: undefined | ESType,
-        targs: runtimeArgument[] = [],
+        properties: Map<Primitive> = {},
+        extends_?: ESType,
+        targs: IRuntimeArgument[] = [],
         abstract = false
     ) {
         super(undefined, types?.type);
@@ -61,7 +64,7 @@ export class ESType extends ESPrimitive <undefined> {
         )
     }
 
-    override isa = (props: funcProps, type: Primitive) => {
+    override isa = (props: IFuncProps, type: Primitive) => {
         return new ESBoolean(type === types.type);
     }
 
@@ -69,7 +72,7 @@ export class ESType extends ESPrimitive <undefined> {
         return new InvalidOperationError('cast', this);
     }
 
-    override __includes__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         if (!n) return new ESBoolean();
         const t = n.__type__;
 
@@ -84,7 +87,7 @@ export class ESType extends ESPrimitive <undefined> {
         return t.__subtype_of__(props, this);
     }
 
-    override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __subtype_of__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
         if (Object.is(t, types.any)) {
             return new ESBoolean(true);
         }
@@ -106,11 +109,11 @@ export class ESType extends ESPrimitive <undefined> {
         return new ESBoolean();
     }
 
-    override __eq__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __eq__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
         return new ESBoolean(t === this);
     }
 
-    override __call__ = (props: funcProps, ...params: Primitive[]): Error | Primitive => {
+    override __call__ = (props: IFuncProps, ...params: Primitive[]): Error | Primitive => {
         if (this.__abstract__) {
             return new Error('TypeError', 'Cannot construct abstract class');
         }
@@ -128,7 +131,7 @@ export class ESType extends ESPrimitive <undefined> {
                     'Obj', res.__type_name__(), str(res), 'Constructors must return an object');
             }
 
-            let properties: dict<Primitive> = {
+            let properties: Map<Primitive> = {
                 ...this.__properties__
             };
 
@@ -160,7 +163,7 @@ export class ESType extends ESPrimitive <undefined> {
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __get__ = (props: funcProps, k: Primitive): Primitive | Error => {
+    override __get__ = (props: IFuncProps, k: Primitive): Primitive | Error => {
         if (!(k instanceof ESString)) {
             if (this === types.array) {
                 return new ESTypeArray(k);
@@ -174,10 +177,10 @@ export class ESType extends ESPrimitive <undefined> {
         return new ESTypeArray(k);
     };
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 
@@ -190,6 +193,12 @@ export class ESType extends ESPrimitive <undefined> {
         const res = this.__methods__.filter(m => m.name === 'init');
         if (!res) return undefined;
         return res[0];
+    }
+
+    override __generic__ (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive {
+        const T = this.clone();
+        T.__generic_args__ = parameters;
+        return T;
     }
 }
 
@@ -208,7 +217,7 @@ export class ESTypeUnion extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override __includes__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
         const leftRes = this.__left__.__includes__(props, t);
         const rightRes = this.__right__.__includes__(props, t);
         if (leftRes instanceof Error) return leftRes;
@@ -220,7 +229,7 @@ export class ESTypeUnion extends ESType {
         );
     }
 
-    override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __subtype_of__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
         if (Object.is(t, types.any)) {
             return new ESBoolean(true);
         }
@@ -248,7 +257,7 @@ export class ESTypeUnion extends ESType {
         return new ESTypeUnion(this.__left__, this.__right__);
     }
 
-    override __eq__ = (props: funcProps, t: Primitive) => {
+    override __eq__ = (props: IFuncProps, t: Primitive) => {
         if (!(t instanceof ESTypeUnion)) return new ESBoolean();
 
         const leftTypeCheckRes = this.__left__.__eq__(props, t.__left__);
@@ -258,6 +267,10 @@ export class ESTypeUnion extends ESType {
         if (rightTypeCheckRes instanceof Error) return rightTypeCheckRes;
 
         return new ESBoolean(leftTypeCheckRes.__value__ && rightTypeCheckRes.__value__);
+    }
+
+    override __generic__ (): Error | Primitive {
+        return new InvalidOperationError('__generic__', this);
     }
 }
 
@@ -277,7 +290,7 @@ export class ESTypeIntersection extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override __includes__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
         const leftRes = this.__left__.__includes__(props, t);
         const rightRes = this.__right__.__includes__(props, t);
         if (leftRes instanceof Error) return leftRes;
@@ -289,7 +302,7 @@ export class ESTypeIntersection extends ESType {
         );
     }
 
-    override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __subtype_of__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
         if (t === types.any) {
             return new ESBoolean(true);
         }
@@ -317,7 +330,7 @@ export class ESTypeIntersection extends ESType {
         return new ESTypeIntersection(this.__left__, this.__right__);
     }
 
-    override __eq__ = (props: funcProps, t: Primitive) => {
+    override __eq__ = (props: IFuncProps, t: Primitive) => {
         if (!(t instanceof ESTypeIntersection)) return new ESBoolean();
 
         const leftTypeCheckRes = this.__left__.__eq__(props, t.__left__);
@@ -327,6 +340,10 @@ export class ESTypeIntersection extends ESType {
         if (rightTypeCheckRes instanceof Error) return rightTypeCheckRes;
 
         return new ESBoolean(leftTypeCheckRes.__value__ && rightTypeCheckRes.__value__);
+    }
+
+    override __generic__ (): Error | Primitive {
+        return new InvalidOperationError('__generic__', this);
     }
 }
 
@@ -342,14 +359,14 @@ export class ESTypeNot extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override __includes__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
         const res = this.__val__.__includes__(props, t);
         if (res instanceof Error) return res;
 
         return new ESBoolean(!res.__value__);
     }
 
-    override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __subtype_of__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
         if (Object.is(t, types.any)) {
             return new ESBoolean(true);
         }
@@ -380,7 +397,7 @@ export class ESTypeNot extends ESType {
         return new ESTypeNot(this.__val__);
     }
 
-    override __eq__ = (props: funcProps, t: Primitive) => {
+    override __eq__ = (props: IFuncProps, t: Primitive) => {
         if (!(t instanceof ESTypeNot)) {
             return new ESBoolean();
         }
@@ -390,5 +407,9 @@ export class ESTypeNot extends ESType {
             return typeCheckRes;
         }
         return new ESBoolean(typeCheckRes.__value__ === true);
+    }
+
+    override __generic__ (): Error | Primitive {
+        return new InvalidOperationError('__generic__', this);
     }
 }

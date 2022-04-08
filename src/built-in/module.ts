@@ -1,19 +1,19 @@
-import {global} from '../util/constants';
+import {GLOBAL_CTX} from '../util/constants';
 import {ESBoolean, ESJSBinding, run} from '../index';
 import {Context} from '../runtime/context';
 import {InterpretResult} from '../runtime/nodes';
 import {ESNamespace} from '../runtime/primitives/esnamespace';
 import {ESString} from '../runtime/primitives/esstring';
-import type { dict } from "../util/util";
+import type { Map } from "../util/util";
 import { Error } from "../errors";
 import {addModule, modulePrimitive} from './builtInModules';
 
-export type NativeModule = dict<any>;
-export type NativeModuleBuilder = (dependencies: dict<any>) => NativeModule | Error;
+export type NativeModule = Map<any>;
+export type NativeModuleBuilder = (dependencies: Map<any>) => NativeModule | Error;
 
-const loadedURls: dict<modulePrimitive> = {};
+const loadedURls: Map<modulePrimitive> = {};
 
-export async function preloadModules (urls: dict<any>): Promise<Error | undefined> {
+export async function preloadModules (urls: Map<any>): Promise<Error | undefined> {
 
     for (const name of Object.keys(urls)) {
 
@@ -35,7 +35,7 @@ export async function preloadModules (urls: dict<any>): Promise<Error | undefine
             const data = await (await fetch(url)).text();
 
             const env = new Context();
-            env.parent = global;
+            env.parent = GLOBAL_CTX;
             env.set('__main__', new ESBoolean(), {
                 isConstant: true,
                 forceThroughConst: true,

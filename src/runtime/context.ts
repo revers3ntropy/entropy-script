@@ -1,13 +1,13 @@
 import { Error, ReferenceError, TypeError } from "../errors";
 import {wrap} from './wrapStrip';
 import { ESArray, ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
-import {dict, str} from "../util/util";
-import {ESSymbol, symbolOptions} from './symbol';
+import {Map, str} from "../util/util";
+import {ESSymbol, ISymbolOptions} from './symbol';
 import chalk from "../util/colours";
 import { types } from "../util/constants";
 
 export class Context {
-    private symbolTable: dict<ESSymbol> = {};
+    private symbolTable: Map<ESSymbol> = {};
     private parent_: Context | undefined;
 
     public initialisedAsGlobal = false;
@@ -54,8 +54,8 @@ export class Context {
         return symbol.value;
     }
 
-    getSymbolTableAsDict (): dict<ESSymbol> {
-        const symbols: dict<ESSymbol> = {};
+    getSymbolTableAsDict (): Map<ESSymbol> {
+        const symbols: Map<ESSymbol> = {};
 
         for (const key in this.symbolTable)
             symbols[key] = this.symbolTable[key];
@@ -85,7 +85,7 @@ export class Context {
         return symbol;
     }
 
-    set (identifier: string, value: Primitive, options: symbolOptions = {}) {
+    set (identifier: string, value: Primitive, options: ISymbolOptions = {}) {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         let context: Context = this;
 
@@ -106,7 +106,7 @@ export class Context {
         return context.setOwn(identifier, value, options);
     }
 
-    setOwn (identifier: string, value: Primitive, options: symbolOptions = {}): void | Error {
+    setOwn (identifier: string, value: Primitive, options: ISymbolOptions = {}): void | Error {
 
         if (!(value instanceof ESPrimitive)) {
             value = wrap(value);
@@ -201,7 +201,7 @@ export class Context {
 export function generateESFunctionCallContext (
     self: ESFunction,
     args: Primitive[],
-    kwargs: dict<Primitive>,
+    kwargs: Map<Primitive>,
     parent: Context,
     dontTypeCheck: boolean
 ) {

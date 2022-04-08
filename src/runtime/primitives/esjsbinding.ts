@@ -2,7 +2,7 @@ import { Error, IndexError, TypeError as ESTypeError } from '../../errors';
 import {ESBoolean} from './esboolean';
 import {ESString} from './esstring';
 import {ESPrimitive} from '../esprimitive';
-import { dict, funcProps, str } from '../../util/util';
+import { Map, IFuncProps, str } from '../../util/util';
 import type {NativeObj, Primitive} from '../primitive';
 import { strip, wrap } from '../wrapStrip';
 import { ESFunction } from "./esfunction";
@@ -14,7 +14,7 @@ import { ESIterable } from "./esiterable";
 import { ESNumber } from './esnumber';
 
 
-function tryCall (fTakesProps: boolean, val: any, key: any, props: funcProps, args: Primitive[], catchErs: boolean): Primitive | Error {
+function tryCall (fTakesProps: boolean, val: any, key: any, props: IFuncProps, args: Primitive[], catchErs: boolean): Primitive | Error {
     if (typeof val[key] !== 'function') {
         return new ESTypeError('Func', typeof val[key], str(val[key]));
     }
@@ -76,14 +76,14 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
         return new ESString(str(this.__value__, depth.__value__));
     };
 
-    override __eq__ = (props: funcProps, n: Primitive): ESBoolean => {
+    override __eq__ = (props: IFuncProps, n: Primitive): ESBoolean => {
         return new ESBoolean(this === n);
     };
 
     override __bool__ = (): ESBoolean => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __get__ = (props: funcProps, k: Primitive): Primitive | Error => {
+    override __get__ = (props: IFuncProps, k: Primitive): Primitive | Error => {
         const key = str(k);
 
         const val: NativeObj = this.__value__;
@@ -122,10 +122,10 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
         return wrap(res);
     };
 
-    override __set__ (props: funcProps, k: Primitive, value: Primitive): void | Error {
+    override __set__ (props: IFuncProps, k: Primitive, value: Primitive): void | Error {
         const key = str(k);
 
-        const val: dict<NativeObj> = this.__value__;
+        const val: Map<NativeObj> = this.__value__;
 
         if (key in this) {
             this._[str(key)] = value;
@@ -135,7 +135,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
         val[key] = strip(value, props);
     }
 
-    override __call__ = (props: funcProps, ...args: Primitive[]): Error | Primitive => {
+    override __call__ = (props: IFuncProps, ...args: Primitive[]): Error | Primitive => {
         if (typeof this.__value__ !== 'function') {
             return new ESTypeError('function', typeof this.__value__, str(this));
         }
@@ -143,22 +143,22 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIter
        return tryCall(this.functionsTakeProps, this, '__value__', props, args, this.catchErrorsToPrimitive);
     };
 
-    override has_property = (props: funcProps, key: Primitive): ESBoolean => {
+    override has_property = (props: IFuncProps, key: Primitive): ESBoolean => {
         return new ESBoolean(!(this.__get__(props, key) instanceof Error));
     };
 
     override __includes__ = this.__eq__;
-    override __subtype_of__ = (props: funcProps, n: Primitive) => {
+    override __subtype_of__ = (props: IFuncProps, n: Primitive) => {
         if (Object.is(n, types.any) || Object.is(n, types.object)) {
             return new ESBoolean(true);
         }
         return this.__eq__(props, n);
     };
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 

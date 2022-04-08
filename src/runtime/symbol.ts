@@ -1,7 +1,7 @@
 import {ESString} from './primitives/esstring';
 import type {Primitive} from './primitive';
 
-export type symbolOptions = {
+export interface ISymbolOptions {
     isConstant?: boolean;
     isAccessible?: boolean;
     global?: boolean;
@@ -16,7 +16,7 @@ export class ESSymbol {
     isAccessible: boolean;
     type: Primitive;
 
-    constructor (value: Primitive, identifier: string, options: symbolOptions = {}) {
+    constructor (value: Primitive, identifier: string, options: ISymbolOptions = {}) {
         this.value = value;
         this.identifier = identifier;
         this.isConstant = options.isConstant ?? false;
@@ -31,5 +31,7 @@ export class ESSymbol {
         });
     }
 
-    str = () => new ESString(`<Symbol: ${this.identifier}>`);
+    str = () => {
+        return new ESString(`<Symbol: ${this.identifier}>`);
+    }
 }

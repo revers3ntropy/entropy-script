@@ -1,8 +1,8 @@
 import {ESPrimitive} from '../esprimitive';
-import { global, types } from '../../util/constants';
+import { GLOBAL_CTX, types } from '../../util/constants';
 import { Error, IndexError } from '../../errors';
-import { BuiltInFunction, funcProps } from '../../util/util';
-import {runtimeArgument} from '../argument';
+import { BuiltInFunction, IFuncProps } from '../../util/util';
+import {IRuntimeArgument} from '../argument';
 import {Context} from '../context';
 import {call} from '../functionCaller';
 import {Node} from '../nodes';
@@ -15,7 +15,7 @@ import { wrap } from "../wrapStrip";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
-    __args__: runtimeArgument[];
+    __args__: IRuntimeArgument[];
     __this__: ESObject;
     __returns__: Primitive;
     __closure__: Context;
@@ -25,7 +25,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
     constructor (
         func: Node | BuiltInFunction = (() => void 0),
-        arguments_: runtimeArgument[] = [],
+        arguments_: IRuntimeArgument[] = [],
         name='(anon)',
         this_: ESObject = new ESObject(),
         returnType: Primitive = types.any,
@@ -43,7 +43,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             this.__closure__ = closure;
         } else {
             this.__closure__ = new Context();
-            this.__closure__.parent = global;
+            this.__closure__.parent = GLOBAL_CTX;
         }
         this.takeCallContextAsClosure = takeCallContextAsClosure;
 
@@ -86,7 +86,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
     override str = () => new ESString(`<Func: ${this.name}>`);
 
-    override __eq__ = (props: funcProps, n: Primitive) => {
+    override __eq__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESFunction))
             return new ESBoolean(false);
         return new ESBoolean(this.__value__ === n.__value__);
@@ -95,7 +95,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __call__ = ({context, kwargs, dontTypeCheck}: funcProps, ...params: Primitive[]): Error | Primitive => {
+    override __call__ = ({context, kwargs, dontTypeCheck}: IFuncProps, ...params: Primitive[]): Error | Primitive => {
         let ctx = context;
         if (!this.takeCallContextAsClosure) {
             ctx = this.__closure__;
@@ -104,14 +104,14 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         return call(ctx, this, params, kwargs, dontTypeCheck);
     }
 
-    override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
+    override __get__ = (props: IFuncProps, key: Primitive): Primitive | Error => {
         if (str(key) in this) {
             return wrap(this._[str(key)], true);
         }
         return new IndexError(key.__value__, this);
     };
 
-    override __includes__ = (props: funcProps, n: Primitive): Error | ESBoolean => {
+    override __includes__ = (props: IFuncProps, n: Primitive): Error | ESBoolean => {
         if (!(n instanceof ESFunction)) {
             return new ESBoolean();
         }
@@ -174,7 +174,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         return new ESBoolean(eqRes.__value__);
     };
 
-    override __subtype_of__ = (props: funcProps, n: Primitive): Error | ESBoolean => {
+    override __subtype_of__ = (props: IFuncProps, n: Primitive): Error | ESBoolean => {
         if (Object.is(n, types.any) || Object.is(n, types.function)) {
             return new ESBoolean(true);
         }
@@ -245,10 +245,10 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         return new ESBoolean(eqRes.__value__);
     };
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 

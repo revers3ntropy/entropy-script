@@ -1,5 +1,5 @@
 import type {Primitive} from './primitive';
-import type {FunctionInfo} from './info';
+import type {IFunctionInfo} from './info';
 
 import {ESPrimitive} from './esprimitive';
 import {ESArray} from './primitives/esarray';
@@ -32,7 +32,7 @@ export {
 
     Primitive,
 
-    FunctionInfo
+    IFunctionInfo
 };
 
 
@@ -56,13 +56,13 @@ export function initPrimitiveTypes () {
         builtin: true
     };
     types.number.__info__ = {
-        name: 'Number',
+        name: 'Num',
         description: 'The ES Number type. Is a a double-precision 64-bit binary format IEEE 754 value, like double in Java and C#',
         file: 'built-in',
         builtin: true
     };
     types.string.__info__ = {
-        name: 'string',
+        name: 'Str',
         description: 'The ES String type. Holds an array of characters, and can be defined with any of \', " and `. Can be indexed like an array.',
         file: 'built-in',
         builtin: true
@@ -80,19 +80,19 @@ export function initPrimitiveTypes () {
         builtin: true
     };
     types.array.__info__ = {
-        name: 'Array',
+        name: 'Arr',
         description: 'The ES Array type. Defines a set of items of any type which can be accessed by an index with [].',
         file: 'built-in',
         builtin: true
     };
     types.object.__info__ = {
-        name: 'object',
+        name: 'Obj',
         description: 'The ES Object type. Similar to JS objects or python dictionaries.',
         file: 'built-in',
         builtin: true
     };
     types.error.__info__ = {
-        name: 'Error',
+        name: 'Err',
         description: 'The ES Error type. Call to throw an error.',
         file: 'built-in',
         builtin: true

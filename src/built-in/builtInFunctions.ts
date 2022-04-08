@@ -6,16 +6,16 @@ import {
     ESObject,
     ESPrimitive,
     ESString, ESType, ESUndefined,
-    FunctionInfo,
+    IFunctionInfo,
 } from '../runtime/primitiveTypes';
-import { BuiltInFunction, dict, funcProps, indent, sleep, str } from '../util/util';
+import { BuiltInFunction, Map, IFuncProps, indent, sleep, str } from '../util/util';
 import { ESJSBinding } from "../runtime/primitives/esjsbinding";
 import chalk from "../util/colours";
 import {IS_NODE_INSTANCE, types} from '../util/constants';
 import {addModule, getModule, moduleExist} from './builtInModules';
 import { ESInterface } from "../runtime/primitives/esobject";
 
-export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
+export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
     range: [(props, minP, maxP, stepP) => {
         if (!(minP instanceof ESNumber)) {
             return new ESArray();
@@ -209,7 +209,7 @@ export const builtInFunctions: dict<[BuiltInFunction, FunctionInfo]> = {
         description: 'Returns an array of the names of all symbols in the current context'
     }],
 
-    using: [(props: funcProps, module, global_) => {
+    using: [(props: IFuncProps, module, global_) => {
         if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding) && !(module instanceof ESObject)) {
             return new TypeError('Namespace', str(module.__type_name__()));
         }
@@ -318,7 +318,7 @@ export function addDependencyInjectedBIFs (
     printFunc: (...args: string[]) => void,
     inputFunc: (msg: string, cb: (...arg: any[]) => any) => void
 ) {
-    builtInFunctions['import'] = [(props: funcProps, rawUrl) => {
+    builtInFunctions['import'] = [(props: IFuncProps, rawUrl) => {
         if (IS_NODE_INSTANCE) {
             return new Error('ImportError', 'Is running in node instance but trying to run browser import function');
         }

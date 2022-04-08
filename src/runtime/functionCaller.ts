@@ -1,4 +1,4 @@
-import { dict, str } from '../util/util';
+import { Map, str } from '../util/util';
 import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
 import { Error, TypeError } from "../errors";
@@ -35,7 +35,7 @@ function callNode (self: ESFunction, context: Context, fn: Node, dontTypeCheck: 
     }
 }
 
-function callNative (self: ESFunction, context: Context, params: Primitive[], fn: (...args: any[]) => any, kwargs: dict<Primitive>, dontTypeCheck: boolean) {
+function callNative (self: ESFunction, context: Context, params: Primitive[], fn: (...args: any[]) => any, kwargs: Map<Primitive>, dontTypeCheck: boolean) {
     for (let i = params.length; i < fn.length; i++) {
         params.push(new ESUndefined());
     }
@@ -60,7 +60,7 @@ export function call (
     context: Context,
     self: ESFunction,
     params: Primitive[] = [],
-    kwargs: dict<Primitive> = {},
+    kwargs: Map<Primitive> = {},
     dontTypeCheck = false
 ): ESUndefined | Error | ESPrimitive<NativeObj> {
 

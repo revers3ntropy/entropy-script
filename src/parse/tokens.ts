@@ -1,19 +1,19 @@
 import Position from "../position";
-import type {tokenType} from '../util/constants';
+import type {TokenType} from '../util/constants';
 import type {NativeObj} from '../runtime/primitive';
 
-export class Token <T = undefined> {
-    type: tokenType;
+export class Token <T = unknown> {
+    type: TokenType;
     value: T;
     pos: Position;
 
-    constructor (pos: Position, type: tokenType, value: T) {
+    constructor (pos: Position, type: TokenType, value: T) {
         this.type = type;
         this.value = value;
         this.pos = pos;
     }
 
-    public matches(type: tokenType, val: NativeObj) {
+    public matches(type: TokenType, val: NativeObj) {
         return this.type === type && this.value === val;
     }
 }

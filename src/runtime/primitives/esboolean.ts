@@ -1,6 +1,6 @@
 import { Error, IndexError, TypeError } from '../../errors';
 import {ESPrimitive} from '../esprimitive';
-import { funcProps, str } from '../../util/util';
+import { IFuncProps, str } from '../../util/util';
 import {ESNumber} from './esnumber';
 import {ESString} from './esstring';
 import type {Primitive} from '../primitive';
@@ -21,14 +21,14 @@ export class ESBoolean extends ESPrimitive <boolean> {
         };
     }
 
-    override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
+    override __get__ = (props: IFuncProps, key: Primitive): Primitive | Error => {
         if (str(key) in this) {
             return wrap(this._[str(key)], true);
         }
         return new IndexError(key.__value__, this);
     };
 
-    override cast = (props: funcProps, type: Primitive) => {
+    override cast = (props: IFuncProps, type: Primitive) => {
         switch (type) {
             case types.number:
                 return new ESNumber(this.__value__ ? 1 : 0);
@@ -37,7 +37,7 @@ export class ESBoolean extends ESPrimitive <boolean> {
         }
     }
 
-    override __eq__ = (props: funcProps, n: Primitive) => {
+    override __eq__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESBoolean)) {
             return new TypeError('Boolean', n.__type_name__(), n.__value__);
         }
@@ -45,10 +45,10 @@ export class ESBoolean extends ESPrimitive <boolean> {
     };
     override __bool__ = () => this;
 
-    override __and__ = (props: funcProps, n: Primitive) =>
+    override __and__ = (props: IFuncProps, n: Primitive) =>
         new ESBoolean(this.__value__ && n.bool().__value__);
 
-    override __or__ = (props: funcProps, n: Primitive): Error | ESBoolean => {
+    override __or__ = (props: IFuncProps, n: Primitive): Error | ESBoolean => {
         return new ESBoolean(this.__value__ || n.bool().__value__);
     };
 
@@ -58,17 +58,17 @@ export class ESBoolean extends ESPrimitive <boolean> {
     override bool = () => this;
 
     override __includes__ = this.__eq__;
-    override __subtype_of__ = (props: funcProps, n: Primitive) => {
+    override __subtype_of__ = (props: IFuncProps, n: Primitive) => {
         if (Object.is(n, types.any) || Object.is(n, types.boolean)) {
             return new ESBoolean(true);
         }
         return this.__eq__(props, n);
     }
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 

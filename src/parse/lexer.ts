@@ -1,16 +1,16 @@
 import Position from "../position";
 import {
-    digits, doubleCharTokens,
-    identifierChars,
-    KEYWORDS, multiLineCommentEnd, multiLineCommentStart, singleCharTokens,
-    singleLineComment,
-    stringSurrounds, tripleCharTokens, tt,
+    DIGITS, DOUBLE_TOKENS,
+    IDENTIFIER_CHARS,
+    KEYWORDS, MULTI_LINE_COMMENT_END, MULTI_LINE_COMMENT_START, SINGLE_TOKENS,
+    ONE_LINE_COMMENT,
+    STRING_SURROUNDS, TRIPLE_TOKENS, tt, WHITESPACE,
 } from '../util/constants';
 import {Error, IllegalCharError} from "../errors";
 import {Token} from "./tokens";
 
 function isDigit (n: string) {
-    return (digits+'._').includes(n);
+    return (DIGITS+'._').includes(n);
 }
 
 export class Lexer {
@@ -39,27 +39,27 @@ export class Lexer {
 
         while (this.currentChar !== undefined) {
             // add semi-colon after
-            if (' \t\n'.includes(this.currentChar)) {
+            if (WHITESPACE.includes(this.currentChar)) {
                 this.advance();
 
-            } else if (digits.includes(this.currentChar)) {
+            } else if (DIGITS.includes(this.currentChar)) {
                 tokens.push(this.makeNumber());
 
             } else if (
-                this.currentChar === singleLineComment[0] &&
-                this.text[this.position.idx + 1] === singleLineComment[1]
+                this.currentChar === ONE_LINE_COMMENT[0] &&
+                this.text[this.position.idx + 1] === ONE_LINE_COMMENT[1]
             ) {
                 this.singleLineComment();
             } else if (
-                this.currentChar === multiLineCommentStart[0] &&
-                this.text[this.position.idx + 1] === multiLineCommentStart[1]
+                this.currentChar === MULTI_LINE_COMMENT_START[0] &&
+                this.text[this.position.idx + 1] === MULTI_LINE_COMMENT_START[1]
             ) {
                 this.multiLineComment();
 
-            } else if (identifierChars.includes(this.currentChar)) {
+            } else if (IDENTIFIER_CHARS.includes(this.currentChar)) {
                 tokens.push(this.makeIdentifier());
 
-            } else if (stringSurrounds.indexOf(this.currentChar) !== -1) {
+            } else if (STRING_SURROUNDS.indexOf(this.currentChar) !== -1) {
                 tokens.push(this.makeString());
 
             } else {
@@ -95,7 +95,7 @@ export class Lexer {
 
         while (this.currentChar !== undefined && isDigit(this.currentChar)) {
             if (this.currentChar === '.') {
-                if (dotCount === 1 || !digits.includes(this.text[this.position.idx+1])) {
+                if (dotCount === 1 || !DIGITS.includes(this.text[this.position.idx+1])) {
                     break;
                 }
 
@@ -142,7 +142,7 @@ export class Lexer {
         let idStr = '';
         const posStart = this.position.clone;
 
-        while (this.currentChar !== undefined && (identifierChars + digits).includes(this.currentChar)) {
+        while (this.currentChar !== undefined && (IDENTIFIER_CHARS + DIGITS).includes(this.currentChar)) {
             idStr += this.currentChar;
             this.advance();
         }
@@ -161,7 +161,7 @@ export class Lexer {
             return undefined;
         }
 
-        for (const triple in tripleCharTokens) {
+        for (const triple in TRIPLE_TOKENS) {
             if (triple[0] === this.currentChar)
                 if (triple[1] === this.text[this.position.idx + 1])
                     if (triple[2] === this.text[this.position.idx + 2]) {
@@ -170,24 +170,24 @@ export class Lexer {
                         this.advance();
                         this.advance();
 
-                        return new Token(pos, tripleCharTokens[triple], undefined);
+                        return new Token(pos, TRIPLE_TOKENS[triple], undefined);
                     }
         }
 
-        for (const double in doubleCharTokens) {
+        for (const double in DOUBLE_TOKENS) {
             if (double[0] === this.currentChar)
                 if (double[1] === this.text[this.position.idx + 1]) {
                         const pos = this.position.clone;
                         this.advance();
                         this.advance();
 
-                        return new Token(pos, doubleCharTokens[double], undefined);
+                        return new Token(pos, DOUBLE_TOKENS[double], undefined);
                     }
         }
 
-        if (this.currentChar in singleCharTokens) {
+        if (this.currentChar in SINGLE_TOKENS) {
             const pos = this.position.clone;
-            const val = singleCharTokens[this.currentChar];
+            const val = SINGLE_TOKENS[this.currentChar];
             this.advance();
             return new Token(pos, val, undefined);
         }
@@ -209,8 +209,8 @@ export class Lexer {
         this.advance();
 
         while (!(
-            this.currentChar === multiLineCommentEnd[0] &&
-            this.text[this.position.idx + 1] === multiLineCommentEnd[1]
+            this.currentChar === MULTI_LINE_COMMENT_END[0] &&
+            this.text[this.position.idx + 1] === MULTI_LINE_COMMENT_END[1]
         )) {
             this.advance();
         }

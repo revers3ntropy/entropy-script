@@ -1,5 +1,5 @@
 import { Error, IndexError, TypeError } from '../../errors';
-import { dict, funcProps, str } from '../../util/util';
+import { Map, IFuncProps, str } from '../../util/util';
 import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
 import {ESNumber} from './esnumber';
@@ -12,16 +12,16 @@ import { types } from "../../util/constants";
 import { ESTypeIntersection, ESTypeUnion } from "./estype";
 import { ESIterable } from "./esiterable";
 
-export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterable{
+export class ESObject extends ESPrimitive <Map<Primitive>> implements ESIterable{
     override __iterable__ = true;
 
-    __type_map__: dict<Primitive> | undefined;
+    __type_map__: Map<Primitive> | undefined;
 
-    constructor (val: dict<Primitive> = {}) {
+    constructor (val: Map<Primitive> = {}) {
         super(val, types.object);
     }
 
-    override cast = (props: funcProps, type: Primitive) => {
+    override cast = (props: IFuncProps, type: Primitive) => {
         switch (type) {
             case types.number:
                 return new ESNumber(this.__value__ ? 1 : 0);
@@ -43,7 +43,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         return Object.keys(this.__value__).map(s => new ESString(s));
     }
 
-    override __eq__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __eq__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         if (!(n instanceof ESObject)) {
             return new ESBoolean();
         }
@@ -84,13 +84,13 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __add__ = (props: funcProps, n: Primitive) => {
+    override __add__ = (props: IFuncProps, n: Primitive) => {
 
         if (!(n instanceof ESObject)) {
             return new TypeError('Object', n.__type_name__(), str(n));
         }
 
-        const newOb: dict<Primitive> = {};
+        const newOb: Map<Primitive> = {};
 
         for (const k of this.keys()) {
             const key = k.__value__;
@@ -122,7 +122,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         return res;
     };
 
-    override __subtract__ = (props: funcProps, n: Primitive): Primitive | Error => {
+    override __subtract__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
 
         let keysToRemove = [];
         if (n instanceof ESString) {
@@ -137,7 +137,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
             return new TypeError('Array | String', n.__type_name__(), str(n));
         }
 
-        const newOb: dict<Primitive> = {};
+        const newOb: Map<Primitive> = {};
 
         for (const k of this.keys()) {
             const key = k.__value__;
@@ -153,7 +153,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         return new ESObject(newOb);
     }
 
-    override __get__ = (props: funcProps, k: Primitive): Primitive| Error => {
+    override __get__ = (props: IFuncProps, k: Primitive): Primitive| Error => {
         if (!(k instanceof ESString) && !(k instanceof ESNumber)) {
             return new TypeError('String | Number', k.__type_name__(), str(k));
         }
@@ -171,14 +171,14 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         return new IndexError(str(key), this);
     };
 
-    override __set__ = (props: funcProps, key: Primitive, value: Primitive): void | Error => {
+    override __set__ = (props: IFuncProps, key: Primitive, value: Primitive): void | Error => {
         if (!(key instanceof ESString)) {
             return new TypeError('String', key.__type_name__(), str(key));
         }
         this.__value__[key.__value__] = value;
     }
 
-    override has_property = (props: funcProps, k: Primitive): ESBoolean => {
+    override has_property = (props: IFuncProps, k: Primitive): ESBoolean => {
         if (!(k instanceof ESString) && !(k instanceof ESNumber)) {
             return new ESBoolean();
         }
@@ -192,7 +192,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
     override clone = (): ESObject => {
 
         const res = new ESObject();
-        const obj: dict<Primitive> = {};
+        const obj: Map<Primitive> = {};
         const toClone = this.__value__;
 
         for (const key of Object.keys(toClone)) {
@@ -204,7 +204,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         return res;
     }
 
-    override __includes__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         if (!(n instanceof ESObject)) {
             return new ESBoolean();
         }
@@ -228,7 +228,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         return new cls(true);
     };
 
-    override __subtype_of__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __subtype_of__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         if (Object.is(n, types.any) || Object.is(n, types.object)) {
             return new ESBoolean(true);
         }
@@ -255,10 +255,10 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
         return new cls(true);
     };
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 
@@ -273,7 +273,7 @@ export class ESObject extends ESPrimitive <dict<Primitive>> implements ESIterabl
 }
 
 export class ESInterface extends ESObject {
-    override __includes__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         for (const key of Object.keys(this.__value__)) {
             const thisType = this.__value__[key];
             const nValue = n.__value__[key] ?? new ESUndefined();
@@ -288,7 +288,7 @@ export class ESInterface extends ESObject {
         return new ESBoolean(true);
     };
 
-    override __subtype_of__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __subtype_of__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         if (Object.is(n, types.any) || Object.is(n, types.object)) {
             return new ESBoolean(true);
         }
@@ -313,7 +313,7 @@ export class ESInterface extends ESObject {
         return new ESBoolean(true);
     };
 
-    override __set__ = (props: funcProps, key: Primitive): void | Error => {
+    override __set__ = (props: IFuncProps, key: Primitive): void | Error => {
         return new TypeError('Mutable', 'Immutable', str(key));
     }
 

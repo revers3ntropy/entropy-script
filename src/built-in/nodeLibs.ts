@@ -9,13 +9,13 @@ import {
     ESString,
     Primitive,
 } from '../runtime/primitiveTypes';
-import { funcProps, str } from "../util/util";
+import { IFuncProps, str } from "../util/util";
 import {InterpretResult} from "../runtime/nodes";
 import {config, libs, run, strip} from '../index';
 import { getModule, moduleExist } from './builtInModules';
-import { global, types, VALID_FILE_ENCODINGS } from "../util/constants";
+import { GLOBAL_CTX, types, VALID_FILE_ENCODINGS } from "../util/constants";
 
-const open = (props: funcProps, path_: Primitive, encoding_: Primitive) => {
+const open = (props: IFuncProps, path_: Primitive, encoding_: Primitive) => {
     if (!config.permissions.fileSystem) {
         return new PermissionRequiredError('No access to file system');
     }
@@ -56,7 +56,7 @@ const open = (props: funcProps, path_: Primitive, encoding_: Primitive) => {
     });
 };
 
-const fetch_ = (props: funcProps, ...args: Primitive[]) => {
+const fetch_ = (props: IFuncProps, ...args: Primitive[]) => {
     if (!('node-fetch' in libs)) {
         return new MissingNativeDependencyError('node-fetch');
     }
@@ -70,7 +70,7 @@ const fetch_ = (props: funcProps, ...args: Primitive[]) => {
     return new ESJSBinding(nFetch(...args.map(a => strip(a, props))));
 }
 
-const import_ = (props: funcProps, rawPath: Primitive): Error | Primitive | undefined => {
+const import_ = (props: IFuncProps, rawPath: Primitive): Error | Primitive | undefined => {
 
     if (!config.permissions.imports) {
         return new PermissionRequiredError('Imports not allowed');
@@ -111,7 +111,7 @@ const import_ = (props: funcProps, rawPath: Primitive): Error | Primitive | unde
 
         const code = fs.readFileSync(scriptPath, 'utf-8');
         const env = new Context();
-        env.parent = global;
+        env.parent = GLOBAL_CTX;
         env.path = exDir;
 
         env.set('__main__', new ESBoolean(), {

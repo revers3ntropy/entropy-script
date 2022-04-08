@@ -6,7 +6,7 @@ import { Node } from "./nodes";
 /**
  * The argument which has been populated with Primitive values
  */
-export interface runtimeArgument {
+export interface IRuntimeArgument {
     name: string;
     type: Primitive;
     defaultValue?: Primitive;
@@ -16,7 +16,7 @@ export interface runtimeArgument {
 /**
  * The argument data before it has been interpreted
  */
-export interface uninterpretedArgument {
+export interface IUninterpretedArgument {
     name: string;
     type: Node;
     defaultValue?: Node;
@@ -26,7 +26,7 @@ export interface uninterpretedArgument {
 /**
  * Converts uninterpretedArgument -> runtimeArgument
  */
-export function interpretArgument (arg: uninterpretedArgument, context: Context): runtimeArgument | Error {
+export function interpretArgument (arg: IUninterpretedArgument, context: Context): IRuntimeArgument | Error {
     const typeRes = arg.type.interpret(context);
     if (typeRes.error) {
         return typeRes.error;

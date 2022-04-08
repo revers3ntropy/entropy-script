@@ -1,7 +1,7 @@
-import { primitiveMethods, types } from '../util/constants';
+import { PROPS_TO_OVERRIDE_ON_PRIM, types } from '../util/constants';
 import { Context } from "./context";
-import type { funcProps } from '../util/util';
-import { EndIterator, Error, TypeError } from "../errors";
+import type { IFuncProps } from '../util/util';
+import { Error, TypeError } from "../errors";
 import type {NativeObj} from './primitive';
 import {wrap} from './wrapStrip';
 import {
@@ -31,7 +31,6 @@ function dealWithExtends (context: Context, class_: ESType, instance: ESObject, 
             class_
         );
     }
-
 
     const superFunc = new ESFunction(({context}, ...args) => {
         const newContext = new Context();
@@ -79,7 +78,7 @@ function dealWithExtends (context: Context, class_: ESType, instance: ESObject, 
     }
 }
 
-function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
+function callPrimordial (params: Primitive[], type: ESType, props: IFuncProps) {
     // make sure we have at least one arg
 
     switch (type.__name__) {
@@ -140,7 +139,7 @@ function callPrimordial (params: Primitive[], type: ESType, props: funcProps) {
 */
 export function createInstance (
     type: ESType,
-    props: funcProps,
+    props: IFuncProps,
     params: Primitive[],
     runInit=true,
     instance = new ESObject,
@@ -171,7 +170,7 @@ export function createInstance (
         instance.__set__(props, new ESString(method.name), methodClone);
 
         // if it is an operator override method, set it on the primitive rather than the properties object
-        if (primitiveMethods.indexOf(method.name) !== -1) {
+        if (PROPS_TO_OVERRIDE_ON_PRIM.indexOf(method.name) !== -1) {
             (<NativeObj>instance)[method.name] = methodClone.__call__;
         }
     }

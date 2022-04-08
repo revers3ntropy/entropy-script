@@ -2,8 +2,8 @@ import { Token } from "../parse/tokens";
 import { EndIterator, Error, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
 import Position from "../position";
-import { catchBlockErrorSymbolName, compileConfig, now, tokenTypeString, tt, types } from "../util/constants";
-import { interpretArgument, runtimeArgument, uninterpretedArgument } from "./argument";
+import { CATCH_BLOCK_ERR_SYMBOL_ID, ICompileConfig, now, ttToStr, tt, types } from "../util/constants";
+import { interpretArgument, IRuntimeArgument, IUninterpretedArgument } from "./argument";
 import { wrap } from './wrapStrip';
 import {
     ESArray,
@@ -19,7 +19,7 @@ import {
     ESUndefined,
     Primitive
 } from "./primitiveTypes";
-import {dict, generateRandomSymbol, str} from '../util/util';
+import {Map, generateRandomSymbol, str} from '../util/util';
 import { ESTypeNot, ESTypeUnion } from "./primitives/estype";
 
 export class InterpretResult {
@@ -52,7 +52,7 @@ export class CompileResult {
         }
     }
 
-    register (node: Node, config: compileConfig): string {
+    register (node: Node, config: ICompileConfig): string {
         const res = node.compilePy(config);
         this.hoisted += res.hoisted;
         if (res.error) {
@@ -117,8 +117,8 @@ export abstract class Node {
         return res;
     }
 
-    abstract compileJS (config: compileConfig): CompileResult;
-    abstract compilePy (config: compileConfig): CompileResult;
+    abstract compileJS (config: ICompileConfig): CompileResult;
+    abstract compilePy (config: ICompileConfig): CompileResult;
 
     abstract str(): string;
 }
@@ -204,36 +204,36 @@ export class N_binOp extends Node {
 
             default:
                 return new InvalidSyntaxError(
-                    `Invalid binary operator: ${tokenTypeString[this.opTok.type]}`
+                    `Invalid binary operator: ${ttToStr[this.opTok.type]}`
                 ).position(this.opTok.pos);
         }
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const left = this.left.compileJS(config);
         if (left.error) return left;
         const right = this.right.compileJS(config);
         if (right.error) return right;
 
         if (config.minify) {
-            return new CompileResult(`${left.val}${tokenTypeString[this.opTok.type]}${right.val}`);
+            return new CompileResult(`${left.val}${ttToStr[this.opTok.type]}${right.val}`);
         }
-        return new CompileResult(`${left.val} ${tokenTypeString[this.opTok.type]} ${right.val}`);
+        return new CompileResult(`${left.val} ${ttToStr[this.opTok.type]} ${right.val}`);
     }
 
-    compilePy(config: compileConfig): CompileResult {
+    compilePy(config: ICompileConfig): CompileResult {
         const left = this.left.compilePy(config);
         if (left.error) return left;
         const right = this.right.compilePy(config);
         if (right.error) return right;
 
-        const switchers: dict<string> = {
+        const switchers: Map<string> = {
             '&&': 'and',
             '||': 'or',
             '^': '**',
         };
 
-        let op = tokenTypeString[this.opTok.type];
+        let op = ttToStr[this.opTok.type];
         if (op in switchers) {
             op = switchers[op];
         }
@@ -242,7 +242,7 @@ export class N_binOp extends Node {
     }
 
     str () {
-        return `(${this.left.str()} ${tokenTypeString[this.opTok.type]} ${this.right.str()})`;
+        return `(${this.left.str()} ${ttToStr[this.opTok.type]} ${this.right.str()})`;
     }
 }
 
@@ -282,27 +282,27 @@ export class N_unaryOp extends Node {
 
             default:
                 return new InvalidSyntaxError(
-                    `Invalid unary operator: ${tokenTypeString[this.opTok.type]}`
+                    `Invalid unary operator: ${ttToStr[this.opTok.type]}`
                 ).position(this.opTok.pos);
         }
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const val = this.a.compileJS(config);
         if (val.error) return val;
 
-        return new CompileResult(`${tokenTypeString[this.opTok.type]}${val.val}`);
+        return new CompileResult(`${ttToStr[this.opTok.type]}${val.val}`);
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const val = this.a.compilePy(config);
         if (val.error) return val;
 
-        return new CompileResult(`${tokenTypeString[this.opTok.type]}${val.val}`);
+        return new CompileResult(`${ttToStr[this.opTok.type]}${val.val}`);
     }
 
     str () {
-        return `(${tokenTypeString[this.opTok.type]}${this.a.str()})`;
+        return `(${ttToStr[this.opTok.type]}${this.a.str()})`;
     }
 }
 
@@ -504,7 +504,7 @@ export class N_varAssign extends Node {
         return res;
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const val = this.value.compileJS(config);
         if (val.error) return val;
 
@@ -530,7 +530,7 @@ export class N_varAssign extends Node {
         return new CompileResult(`${declaration} ${this.varNameTok.value} ${assign} ${val.val}`);
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const res = new CompileResult
 
         const val = this.value.compilePy(config);
@@ -671,7 +671,7 @@ export class N_destructAssign extends Node {
         return new InterpretResult(res.val);
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const val = this.value.compileJS(config);
         if (val.error) return val;
 
@@ -691,7 +691,7 @@ export class N_destructAssign extends Node {
         return new CompileResult(`${declaration} [${this.varNames.join(', ')}] = ${val.val}`);
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const val = this.value.compileJS(config);
         if (val.error) return val;
 
@@ -735,7 +735,7 @@ export class N_if extends Node {
         return res;
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const indent = ' '.repeat(config.indent);
         const highIndent = ' '.repeat(config.indent+4);
 
@@ -771,7 +771,7 @@ export class N_if extends Node {
             `if (${statementRes.val}) {\n${ifTrueRes.val}\n${indent}} else {\n${ifFalseRes.val}\n${indent}}`);
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const res = new CompileResult;
 
         const indent = ' '.repeat(config.indent);
@@ -841,7 +841,7 @@ export class N_while extends Node {
         return new InterpretResult(new ESUndefined());
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
 
         config.indent += 4;
 
@@ -857,7 +857,7 @@ export class N_while extends Node {
         return new CompileResult(`while (${comparisonRes.val}) {\n${bodyRes.val}}`);
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const res = new CompileResult;
 
         const highIndent = ' '.repeat(config.indent || 0);
@@ -939,7 +939,7 @@ export class N_for extends Node {
         return new InterpretResult(new ESUndefined());
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
 
         const indent = ' '.repeat(config.indent);
 
@@ -966,7 +966,7 @@ export class N_for extends Node {
         return new CompileResult(`for (${declaration} ${this.identifier.value} of ${iteratorRes.val}) {\n${bodyRes.val}\n${indent}}`);
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const res = new CompileResult;
 
         config.indent += 4;
@@ -1023,7 +1023,7 @@ export class N_array extends Node {
         return result;
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const res = new CompileResult('[');
         for (const item of this.items) {
             const itemRes = item.compileJS(config);
@@ -1034,7 +1034,7 @@ export class N_array extends Node {
         return res;
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const res = new CompileResult('[');
         for (const item of this.items) {
             const itemRes = res.register(item, config);
@@ -1064,7 +1064,7 @@ export class N_objectLiteral extends Node {
     }
 
     interpret_ (context: Context): InterpretResult | Error {
-        const interpreted: dict<Primitive> = {};
+        const interpreted: Map<Primitive> = {};
 
         for (const [keyNode, valueNode] of this.properties) {
             const value = valueNode.interpret(context);
@@ -1081,7 +1081,7 @@ export class N_objectLiteral extends Node {
         return new InterpretResult(new ESObject(interpreted));
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const res = new CompileResult('{');
         for (const [keyNode, valueNode] of this.properties) {
             const value = valueNode.compileJS(config);
@@ -1098,7 +1098,7 @@ export class N_objectLiteral extends Node {
         return res;
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const res = new CompileResult('{');
         for (const [keyNode, valueNode] of this.properties) {
             const value = res.register(valueNode, config);
@@ -1170,7 +1170,7 @@ export class N_statements extends Node {
         }
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const res = new CompileResult;
 
         const indent = ' '.repeat(config.indent);
@@ -1190,7 +1190,7 @@ export class N_statements extends Node {
         return res;
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const res = new CompileResult;
 
         const indent = ' '.repeat(config.indent);
@@ -1218,17 +1218,27 @@ export class N_statements extends Node {
 }
 
 export class N_functionCall extends Node {
-    arguments: Node[];
     to: Node;
+    arguments: Node[];
     indefiniteKwargs: Node[];
-    definiteKwargs: dict<Node>;
+    definiteKwargs: Map<Node>;
 
-    constructor(pos: Position, to: Node, args: Node[] = [], indefiniteKwargs: Node[] = [], definiteKwargs: dict<Node> = {}) {
+    functionType: '__call__' | '__generic__';
+
+    constructor (
+        pos: Position,
+        to: Node,
+        args: Node[] = [],
+        indefiniteKwargs: Node[] = [],
+        definiteKwargs: Map<Node> = {},
+        functionType: '__call__' | '__generic__' = '__call__'
+    ) {
         super(pos);
         this.arguments = args;
         this.to = to;
         this.indefiniteKwargs = indefiniteKwargs;
         this.definiteKwargs = definiteKwargs;
+        this.functionType = functionType;
     }
 
     interpret_ (context: Context): Error | InterpretResult {
@@ -1242,7 +1252,7 @@ export class N_functionCall extends Node {
         }
 
         let args: Primitive[] = [];
-        const kwargs: dict<Primitive> = {};
+        const kwargs: Map<Primitive> = {};
 
         for (const arg of this.arguments) {
             const res = arg.interpret(context);
@@ -1281,7 +1291,7 @@ export class N_functionCall extends Node {
             kwargs[key] = res.val;
         }
 
-        const res = val.__call__({
+        const res = val[this.functionType]({
             context,
             kwargs
         }, ...args);
@@ -1297,7 +1307,7 @@ export class N_functionCall extends Node {
         return new InterpretResult(res);
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const res = new CompileResult;
 
         const funcRes = this.to.compileJS(config);
@@ -1322,7 +1332,7 @@ export class N_functionCall extends Node {
         return res;
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const res = new CompileResult;
 
         const funcRes = res.register(this.to, config);
@@ -1366,7 +1376,7 @@ export class N_functionCall extends Node {
 
 export class N_functionDefinition extends Node {
     body: Node;
-    arguments: uninterpretedArgument[];
+    arguments: IUninterpretedArgument[];
     name: string;
     this_: ESObject;
     returnType: Node;
@@ -1378,7 +1388,7 @@ export class N_functionDefinition extends Node {
     constructor(
         pos: Position,
         body: Node,
-        argNames: uninterpretedArgument[],
+        argNames: IUninterpretedArgument[],
         returnType: Node,
         name = '(anon)',
         this_: ESObject = new ESObject(),
@@ -1395,7 +1405,7 @@ export class N_functionDefinition extends Node {
 
     interpret_ (context: Context): InterpretResult | Error {
 
-        const args: runtimeArgument[] = [];
+        const args: IRuntimeArgument[] = [];
         for (const arg of this.arguments) {
             const res = interpretArgument(arg, context);
             if (res instanceof Error)
@@ -1424,7 +1434,7 @@ export class N_functionDefinition extends Node {
         return new InterpretResult(funcPrim);
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const res = new CompileResult('function(');
 
         for (const param of this.arguments) {
@@ -1448,7 +1458,7 @@ export class N_functionDefinition extends Node {
         return res;
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const res = new CompileResult;
 
         const hoistedName = generateRandomSymbol(config.symbols);
@@ -1503,13 +1513,13 @@ export class N_return extends Node {
         return res;
     }
 
-    compileJS (config: compileConfig): CompileResult {
+    compileJS (config: ICompileConfig): CompileResult {
         const valRes = this.value?.compileJS(config);
         if (valRes?.error) return valRes;
         return new CompileResult(`return(${valRes?.val})`);
     }
 
-    compilePy (config: compileConfig): CompileResult {
+    compilePy (config: ICompileConfig): CompileResult {
         const res = new CompileResult;
         if (!this.value) {
             return new CompileResult('return');
@@ -1549,7 +1559,7 @@ export class N_yield extends Node {
         return res;
     }
 
-    compileJS (config: compileConfig): CompileResult {
+    compileJS (config: ICompileConfig): CompileResult {
         const valRes = this.value?.compileJS(config);
         if (!valRes || !valRes.val) {
             return new CompileResult('');
@@ -1557,7 +1567,7 @@ export class N_yield extends Node {
         return new CompileResult(`if(_=${valRes.val}){return(_))`);
     }
 
-    compilePy (config: compileConfig): CompileResult {
+    compilePy (config: ICompileConfig): CompileResult {
         if (!this.value) {
             return new CompileResult('');
         }
@@ -1653,7 +1663,7 @@ export class N_indexed extends Node {
         return new InterpretResult(base.__get__({context}, index));
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const objectRes = this.base.compileJS(config);
         if (objectRes.error) return objectRes;
 
@@ -1670,7 +1680,7 @@ export class N_indexed extends Node {
         return new CompileResult(`${objectRes.val}[${keyRes.val}]${this.assignType||'='}${valRes.val}`);
     }
 
-    compilePy (config: compileConfig): CompileResult {
+    compilePy (config: ICompileConfig): CompileResult {
         const res = new CompileResult;
         const objectRes = res.register(this.base, config);
         if (res.error) return res;
@@ -1711,12 +1721,12 @@ export class N_class extends Node {
     extends_?: Node;
     isDeclaration: boolean;
     abstract: boolean;
-    properties: dict<Node>;
+    properties: Map<Node>;
 
     constructor(
         pos: Position,
         methods: N_functionDefinition[],
-        properties: dict<Node>,
+        properties: Map<Node>,
         extends_?: Node,
         init?: N_functionDefinition,
         name = '<anon class>',
@@ -1735,7 +1745,7 @@ export class N_class extends Node {
 
     interpret_ (context: Context): InterpretResult | Error {
 
-        const properties: dict<Primitive> = {};
+        const properties: Map<Primitive> = {};
 
         const methods: ESFunction[] = [];
 
@@ -1861,7 +1871,7 @@ export class N_namespace extends Node {
         return new InterpretResult(n);
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const bodyRes = this.statements.compileJS(config);
         if (bodyRes.error) return bodyRes;
 
@@ -1903,7 +1913,7 @@ export class N_tryCatch extends Node {
 
         const newContext = new Context();
         newContext.parent = context;
-        newContext.setOwn(catchBlockErrorSymbolName, new ESErrorPrimitive(res.error), {
+        newContext.setOwn(CATCH_BLOCK_ERR_SYMBOL_ID, new ESErrorPrimitive(res.error), {
             isConstant: true
         });
         const catchRes = this.catchBlock.interpret(newContext);
@@ -1914,17 +1924,17 @@ export class N_tryCatch extends Node {
         return new InterpretResult();
     }
 
-    compileJS (config: compileConfig) {
+    compileJS (config: ICompileConfig) {
         const bodyRes = this.body.compileJS(config);
         if (bodyRes.error) return bodyRes;
 
         const catchRes = this.catchBlock.compileJS(config);
         if (catchRes.error) return catchRes;
 
-        return new CompileResult(`try{${bodyRes.val}}catch(${catchBlockErrorSymbolName}){${catchRes.val}}`);
+        return new CompileResult(`try{${bodyRes.val}}catch(${CATCH_BLOCK_ERR_SYMBOL_ID}){${catchRes.val}}`);
     }
 
-    compilePy (config: compileConfig) {
+    compilePy (config: ICompileConfig) {
         const res = new CompileResult;
 
         const bodyRes = res.register(this.body, config);

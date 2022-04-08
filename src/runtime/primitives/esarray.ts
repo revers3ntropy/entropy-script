@@ -1,5 +1,5 @@
 import { EndIterator, Error, InvalidOperationError, TypeError } from '../../errors';
-import { funcProps, str } from '../../util/util';
+import { IFuncProps, str } from '../../util/util';
 import { ESBoolean } from './esboolean';
 import { ESNumber } from './esnumber';
 import { ESString } from './esstring';
@@ -23,7 +23,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         return new ESNumber(this.__value__.length);
     };
 
-    override cast = (props: funcProps, type: Primitive): Primitive | Error => {
+    override cast = (props: IFuncProps, type: Primitive): Primitive | Error => {
         switch (type) {
             case types.number:
                 return new ESNumber(this.len().__value__);
@@ -40,7 +40,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         return new ESString(str(this.__value__, depth.__value__));
     }
 
-    override __eq__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __eq__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         if (!(n instanceof ESArray)) {
             return new ESBoolean();
         }
@@ -78,7 +78,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         return new ESBoolean(true);
     };
 
-    override __add__ = (props: funcProps, n: Primitive): ESArray | Error => {
+    override __add__ = (props: IFuncProps, n: Primitive): ESArray | Error => {
         if (!(n instanceof ESArray)) {
             return new TypeError('array', n.__type_name__(), str(n));
         }
@@ -89,7 +89,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
     override __bool__ = () => new ESBoolean(this.__value__.length > 0);
     override bool = this.__bool__;
 
-    override __get__ = (props: funcProps, key: Primitive): Primitive => {
+    override __get__ = (props: IFuncProps, key: Primitive): Primitive => {
         if (key instanceof ESString && str(key) in this._) {
             return wrap(this._[str(key)], true);
         }
@@ -111,7 +111,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         return new ESUndefined();
     };
 
-    override __set__(props: funcProps, key: Primitive, value: Primitive): void {
+    override __set__(props: IFuncProps, key: Primitive, value: Primitive): void {
         if (!(key instanceof ESNumber)) {
             return;
         }
@@ -125,7 +125,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         this.__value__[idx] = value;
     }
 
-    contains = (props: funcProps, val: Primitive) => {
+    contains = (props: IFuncProps, val: Primitive) => {
         for (const element of this.__value__) {
             if (val.__eq__(props, element)) {
                 return true;
@@ -142,7 +142,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         return new ESArray(newArr);
     }
 
-    override __includes__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         if (!(n instanceof ESArray) || this.len().__value__ !== n.len().__value__) {
             return new ESBoolean();
         }
@@ -157,7 +157,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         return new ESBoolean(true);
     }
 
-    override __subtype_of__ = (props: funcProps, n: Primitive): ESBoolean | Error => {
+    override __subtype_of__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         if (!(n instanceof ESArray) || this.len().__value__ !== n.len().__value__) {
             return new ESBoolean();
         }
@@ -172,10 +172,10 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         return new ESBoolean(true);
     }
 
-    override __pipe__ = (props: funcProps, n: Primitive): Primitive | Error => {
+    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ = (props: funcProps, n: Primitive): Primitive | Error => {
+    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 
@@ -196,7 +196,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements ESIterable {
         return res;
     }
 
-    add = (props: funcProps, ...args: Primitive[]) => {
+    add = (props: IFuncProps, ...args: Primitive[]) => {
         this.__value__.push(...args);
     }
 }
@@ -214,7 +214,7 @@ export class ESTypeArray extends ESType {
         return new InvalidOperationError('__call__', this);
     }
 
-    override __includes__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __includes__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
         if (!(t instanceof ESArray)) {
             return new ESBoolean();
         }
@@ -239,7 +239,7 @@ export class ESTypeArray extends ESType {
         return new ESBoolean(true);
     }
 
-    override __subtype_of__ = (props: funcProps, t: Primitive): ESBoolean | Error => {
+    override __subtype_of__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
         if (Object.is(t, types.any) || Object.is(t, types.array)) {
             return new ESBoolean(true);
         }
@@ -272,7 +272,7 @@ export class ESTypeArray extends ESType {
         return new ESTypeArray(this.__t__);
     }
 
-    override __get__ = (props: funcProps, key: Primitive) => {
+    override __get__ = (props: IFuncProps, key: Primitive) => {
         if (key instanceof ESString && str(key) in this) {
             return wrap(this._[str(key)], true);
         }

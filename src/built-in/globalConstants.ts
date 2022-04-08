@@ -1,14 +1,14 @@
 import { ESBoolean, ESJSBinding, ESNumber, ESUndefined, Primitive } from '../runtime/primitiveTypes';
 import type { Context } from "../runtime/context";
 import { types } from "../util/constants";
-import type { dict } from "../util/util";
+import type { Map } from "../util/util";
 
 import * as errors from '../errors';
 
 export default function (context: Context) {
 
     // must be declared inside function as get import error otherwise
-    const globalConstants: dict<Primitive> = {
+    const globalConstants: Map<Primitive> = {
         'false': new ESBoolean(false),
         'true': new ESBoolean(true),
         'nil': new ESUndefined(),

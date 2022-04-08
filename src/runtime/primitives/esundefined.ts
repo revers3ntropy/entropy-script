@@ -10,7 +10,7 @@ import {ESString} from './esstring';
 import { ESType, ESTypeIntersection, ESTypeUnion } from './estype';
 import {ESPrimitive} from '../esprimitive';
 import {Primitive} from '../primitive';
-import { funcProps, str } from '../../util/util';
+import { IFuncProps, str } from '../../util/util';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
 
@@ -33,7 +33,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
 
     override str = () => new ESString('nil');
 
-    override __eq__ = (props: funcProps, n: Primitive) => {
+    override __eq__ = (props: IFuncProps, n: Primitive) => {
         return new ESBoolean(
             n instanceof ESUndefined ||
             typeof n === 'undefined' ||
@@ -46,7 +46,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
 
     override clone = () => new ESUndefined();
 
-    override __get__ = (props: funcProps, key: Primitive): Primitive | Error => {
+    override __get__ = (props: IFuncProps, key: Primitive): Primitive | Error => {
 
         if (str(key) in this) {
             return wrap(this._[str(key)], true);
@@ -55,17 +55,17 @@ export class ESUndefined extends ESPrimitive <undefined> {
     };
 
     override __includes__ = this.__eq__;
-    override __subtype_of__ = (props: funcProps, n: Primitive) => {
+    override __subtype_of__ = (props: IFuncProps, n: Primitive) => {
         if (Object.is(n, types.any) || Object.is(n, types.undefined)) {
             return new ESBoolean(true);
         }
         return this.__eq__(props, n);
     };
 
-    override __pipe__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: funcProps, n: Primitive): Primitive | Error {
+    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
 

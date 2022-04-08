@@ -2,10 +2,17 @@ import {Error} from '../errors';
 import {Context} from '../runtime/context';
 import {Node} from "../runtime/nodes";
 import {ESNumber, ESPrimitive, Primitive} from '../runtime/primitiveTypes';
+import {IDENTIFIER_CHARS} from './constants';
 
-export type enumDict<T extends number, U> = { [k in T]: U };
-export type dict<T> = { [key in (string | number | symbol)]: T; };
-export interface timeData {
+export type EnumMap<T extends number, U> = {
+    [k in T]: U
+};
+
+export type Map<T> = {
+    [k in (string | number | symbol)]: T;
+};
+
+export interface ITimeData {
     total: number,
     lexerTotal: number,
     parserTotal: number,
@@ -18,13 +25,13 @@ export interface timeData {
 
 // funcProps is the props that every exposed function
 // takes as a first argument
-export interface funcProps {
+export interface IFuncProps {
     context: Context,
-    kwargs?: dict<Primitive>
+    kwargs?: Map<Primitive>
     dontTypeCheck?: boolean
 }
 
-export type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | Error | Primitive | Promise<void>;
+export type BuiltInFunction = (config: IFuncProps, ...args: Primitive[]) => void | Error | Primitive | Promise<void>;
 
 export function str (val: unknown, depth = 0): string {
     if (typeof depth !== 'number') {
@@ -81,7 +88,7 @@ export function str (val: unknown, depth = 0): string {
                 result += `{\n`;
                 let i = 0;
                 for (const item of Object.keys(val)) {
-                    result += indent(`${item}: ${str((val as dict<unknown>)[item], depth + 1) || 'nil'}`);
+                    result += indent(`${item}: ${str((val as Map<unknown>)[item], depth + 1) || 'nil'}`);
                     if (i < Object.keys(val).length-1) {
                         result += ',\n';
                     }
@@ -111,7 +118,11 @@ export function str (val: unknown, depth = 0): string {
  * Returns a promise which is resolved after a set number of ms.
  * @param {number} ms
  */
-export const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(() => resolve(), ms));
+export const sleep = (ms: number) => {
+    return new Promise<void>(resolve => {
+        setTimeout(resolve, ms);
+    });
+}
 
 export function indent (str: string, {
     depth=1,
@@ -122,9 +133,7 @@ export function indent (str: string, {
     return (indentStart ? replacement : '') + str.replace(/\n/g, '\n' + replacement);
 }
 
-export function generateRandomSymbol (symbols: string[], length=10) {
-
-    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_';
+export function generateRandomSymbol (symbols: string[], length=10, characters=IDENTIFIER_CHARS) {
 
     const gen = (): string => {
         let result = '';
@@ -132,10 +141,12 @@ export function generateRandomSymbol (symbols: string[], length=10) {
             result += characters.charAt(Math.floor(Math.random() * characters.length));
         }
         return result;
-    }
+    };
+
     let symbol = gen();
     while (symbols.indexOf(symbol) !== -1) {
         symbol = gen();
     }
+
     return symbol;
 }

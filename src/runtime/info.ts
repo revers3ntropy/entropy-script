@@ -1,6 +1,6 @@
-export type Info = PrimitiveInfo & FunctionInfo & ObjectInfo;
+export type Info = IPrimitiveInfo & IFunctionInfo & IObjectInfo;
 
-export interface PrimitiveInfo {
+export interface IPrimitiveInfo {
     name?: string;
     description?: string;
     file?: string;
@@ -8,7 +8,7 @@ export interface PrimitiveInfo {
     builtin?: boolean;
 }
 
-export interface argInfo {
+export interface IArgInfo {
     name?: string;
     type?: string;
     description?: string;
@@ -16,13 +16,13 @@ export interface argInfo {
     default_value?: string;
 }
 
-export interface FunctionInfo extends PrimitiveInfo {
-    args?: argInfo[];
+export interface IFunctionInfo extends IPrimitiveInfo {
+    args?: IArgInfo[];
     returns?: string;
     returnType?: string;
     allow_args?: boolean;
 }
 
-export interface ObjectInfo extends PrimitiveInfo {
+export interface IObjectInfo extends IPrimitiveInfo {
     contents?: Info[];
 }

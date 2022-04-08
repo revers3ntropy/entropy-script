@@ -1,7 +1,7 @@
 import { IS_NODE_INSTANCE } from "./constants";
-import type {dict} from './util';
+import type {Map} from './util';
 
-const codes: dict<number> = {
+const codes: Map<number> = {
     red: 31,
     yellow: 33,
     green: 32,
@@ -10,7 +10,7 @@ const codes: dict<number> = {
     grey: 2
 };
 
-const c: {[k: string]: (s: string | undefined) => string} = {};
+const c: Map<(s: string | undefined) => string> = {};
 
 for (const code of Object.keys(codes)) {
     c[code] = (s: string | undefined) => {

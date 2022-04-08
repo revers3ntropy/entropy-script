@@ -12,12 +12,11 @@ import {ESType} from './primitives/estype';
 import {ESUndefined} from './primitives/esundefined';
 import type {NativeObj, Primitive} from './primitive';
 import { ESJSBinding } from "./primitives/esjsbinding";
-import {dict, funcProps} from '../util/util';
+import {Map, IFuncProps} from '../util/util';
 
 /**
- * @param {any} thing
- * @param {boolean} functionsTakeProps
- * @returns {Primitive}
+ * Wrap anything in primitive.
+ * If it is already a primitive, it is returned immediately.
  */
 export function wrap (thing: any, functionsTakeProps=false): Primitive {
     if (thing instanceof ESPrimitive) {
@@ -55,9 +54,10 @@ export function wrap (thing: any, functionsTakeProps=false): Primitive {
 }
 
 /**
- * Returns the thing passed in its js form
+ * Returns the thing passed in its js form.
+ * If it's not a primitive, it is returned immediately.
  */
-export function strip (thing: Primitive | undefined, props: funcProps): NativeObj {
+export function strip (thing: Primitive | undefined, props: IFuncProps): NativeObj {
     if (!(thing instanceof ESPrimitive)) {
         return thing;
 
@@ -65,7 +65,7 @@ export function strip (thing: Primitive | undefined, props: funcProps): NativeOb
         return thing.__value__.map(m => strip(m, props), props);
 
     } else if (thing instanceof ESObject) {
-        const val: dict<NativeObj> = {};
+        const val: Map<NativeObj> = {};
         for (const key in thing.__value__) {
             val[key] = strip(thing.__value__[key], props);
         }
