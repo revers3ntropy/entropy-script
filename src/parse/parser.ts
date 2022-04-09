@@ -263,7 +263,8 @@ export class Parser {
     }
 
     /**
-     * Gets atom, and then either '(', '[', '<|', or '.' after.
+     * <atom> ((()([)|(<|)|(.))?
+     * Call, index into or generic call an atom.
      */
     private compound = (base?: Node): ParseResults => {
         const res = new ParseResults();
@@ -305,18 +306,19 @@ export class Parser {
     }
 
     /**
-     * a (^|%|&||) b
+     * <compound> ((^)|(%)|(&)|(|),(??)) <factor>
+     * Asymmetric as you can have chained <power> after each other, but not chained before.
      */
     private power = () => {
          return this.binOp(
              this.compound,
-             [tt.POW, tt.MOD, tt.AMPERSAND, tt.PIPE],
+             [tt.POW, tt.MOD, tt.AMPERSAND, tt.PIPE, tt.DOUBLE_QM],
              this.factor
          );
     }
 
     /**
-     * (+|-|~|?) power
+     * (+|-|~|?) <power>
      */
     private factor = (): ParseResults => {
         const res = new ParseResults();
@@ -334,7 +336,7 @@ export class Parser {
 
     /**
      * Multiplication
-     * a (*|/) b
+     * <factor> (*|/) <factor>
      */
     private term = () => {
         return this.binOp(this.factor, [tt.ASTRIX, tt.DIV]);
@@ -342,14 +344,14 @@ export class Parser {
 
     /**
      * Addition
-     * a (+|-) b
+     * <term> (+|-) <term>
      */
     private arithmeticExpr = () => {
         return this.binOp(this.term, [tt.ADD, tt.SUB]);
     }
 
     /**
-     * ((!|~) expr) | (a (==|!=|>|>=|<|<=) b)
+     * ((!|~) <expr>) | (<arithExpr> (==|!=|>|>=|<|<=) <arithExpr>)
      */
     private comparisonExpr = (): ParseResults => {
         const res = new ParseResults();
@@ -372,7 +374,7 @@ export class Parser {
         }
 
         const node = res.register(this.binOp(
-            () => this.arithmeticExpr(),
+            this.arithmeticExpr,
             [tt.EQUALS, tt.NOT_EQUALS, tt.GT, tt.GTE, tt.LTE, tt.LT]
         ));
 
@@ -399,12 +401,12 @@ export class Parser {
             } else if (CLASS_KEYWORDS.includes(this.currentToken.value)) {
                 return this.classExpr();
 
-            } else if (this.currentToken.value ==='namespace') {
+            } else if (this.currentToken.value === 'namespace') {
                 return this.namespace();
             }
         }
 
-        const node = res.register(this.binOp(() => this.comparisonExpr(), [tt.AND, tt.OR]));
+        const node = res.register(this.binOp(this.comparisonExpr, [tt.AND, tt.OR]));
 
         if (res.error) return res;
 
@@ -436,10 +438,11 @@ export class Parser {
         return res.success(left);
     }
 
-    private arguments = (res: ParseResults, allowKwargs=true) => {
+    private arguments = (res: ParseResults, allowKwargs=true, delimiter=tt.COMMA) => {
         const args: Node[] = [];
         const indefiniteKwargs: Node[] = [];
         const definiteKwargs: Map<Node> = {};
+
 
         while (true) {
             // check for kwargs
@@ -494,6 +497,7 @@ export class Parser {
             } else {
                 // normal argument
                 args.push(res.register(this.expr()));
+
                 if (res.error) {
                     return {
                         error: res.error,
@@ -505,7 +509,7 @@ export class Parser {
             }
 
             // @ts-ignore
-            if (this.currentToken.type === tt.COMMA) {
+            if (this.currentToken.type === delimiter) {
                 this.advance(res);
             } else {
                 // break on no more commas
@@ -557,8 +561,6 @@ export class Parser {
 
         this.consume(res, tt.OGENERIC);
         if (res.error) return res;
-        this.advance(res);
-        if (res.error) return res;
 
         // @ts-ignore
         if (this.currentToken.type === tt.CGENERIC) {
@@ -568,11 +570,13 @@ export class Parser {
             return res.success(node);
         }
 
-        const {args, definiteKwargs, indefiniteKwargs, error} = this.arguments(res, false);
-        if (error) return res.failure(error);
+        const { args, definiteKwargs, indefiniteKwargs, error } = this.arguments(res, false);
+        if (error) {
+            return res.failure(error);
+        }
 
         // @ts-ignore
-        if (this.currentToken.type !== tt.CPAREN) {
+        if (this.currentToken.type !== tt.CGENERIC) {
             return res.failure(new InvalidSyntaxError(
                 "Expected ',' or '|>'"), this.currentToken.pos);
         }
@@ -707,42 +711,34 @@ export class Parser {
         ));
     }
 
+    /**
+     * Variable Declaration
+     * (let (global)? (var)?)? identifier(: expr)? (*|/|+|-)?= expr
+     */
     private initiateVar = (res: ParseResults): ParseResults => {
         const pos = this.currentToken.pos;
 
         let isConst = true;
         let isGlobal = false;
-        let isDeclaration = false;
 
-        // (let (global)? (var)?)? identifier(: expr)? (*|/|+|-)?= expr
+        if (!this.currentToken.matches(tt.KEYWORD, 'let')) {
+            return res.failure(new InvalidSyntaxError(
+                `Expected 'let`), pos);
+        }
 
-        if (
-            this.currentToken.type === tt.KEYWORD &&
-            this.currentToken.value === 'let'
-        ) {
-            isDeclaration = true;
+        this.advance(res);
+        if (res.error) return res;
+
+        if (this.currentToken.matches(tt.KEYWORD, 'global')){
+            isGlobal = true;
             this.advance(res);
             if (res.error) return res;
+        }
 
-            if (
-                this.currentToken.type === tt.KEYWORD &&
-                this.currentToken.value === 'global'
-            ) {
-                isDeclaration = true;
-                isGlobal = true;
-                this.advance(res);
-                if (res.error) return res;
-            }
-
-            if (
-                this.currentToken.type === tt.KEYWORD &&
-                this.currentToken.value === 'var'
-            ) {
-                isDeclaration = true;
-                isConst = false;
-                this.advance(res);
-                if (res.error) return res;
-            }
+        if (this.currentToken.matches(tt.KEYWORD, 'var')) {
+            isConst = false;
+            this.advance(res);
+            if (res.error) return res;
         }
 
         if (this.currentToken.type === tt.KEYWORD) {
@@ -767,9 +763,6 @@ export class Parser {
 
         // @ts-ignore
         if (this.currentToken.type === tt.COLON) {
-            if (!isDeclaration) {
-                return res.failure(new InvalidSyntaxError('Cannot type variable outside declaration'));
-            }
             this.consume(res, tt.COLON);
             type = res.register(this.typeExpr());
         }
@@ -787,9 +780,8 @@ export class Parser {
                 new n.N_undefined(this.currentToken.pos),
                 '=',
                 isGlobal,
-                // must be false ^
                 isConst,
-                isDeclaration,
+                true,
                 type
             ));
         }
@@ -818,7 +810,7 @@ export class Parser {
             assignType,
             isGlobal,
             isConst,
-            isDeclaration,
+            true,
             type
         ));
     }
@@ -972,6 +964,144 @@ export class Parser {
     }
 
     /**
+     * Looks for arguments.
+     *
+     * arg = (*ID=<expr>) | <expr> | (*) | (**)
+     * (<arg>,)* <arg>?
+     *
+     * (**) must be last.
+     * (*) must be before (**) and after all others.
+     * kwargs (*ID=<expr>) must be after positional arguments.
+     * Positional arguments (<expr>) must come first.
+     *
+     * @param res
+     * @param allowAllowChecks whether or not (*) and (**) are permitted
+     * @param allowKeyWordArgs whether or not non-positional arguments are allowed
+     */
+    private parameters (res: ParseResults, allowKeyWordArgs=true,  allowAllowChecks=true)
+        : { args: IUninterpretedArgument[], allowArgs: boolean, allowKwargs: boolean } | undefined
+    {
+        let usingDefault = false,
+            usingKwargs = false,
+            allowArgs = false,
+            allowKwargs = false;
+
+        const args: IUninterpretedArgument[] = [];
+
+        while (true) {
+            const paramStart = this.currentToken.pos;
+
+            if (this.currentToken.type === tt.ASTRIX && this.nextToken?.type !== tt.IDENTIFIER) {
+                // must be at end, no parameters after * or ** but could have only one
+                this.advance(res);
+
+                if (this.currentToken.type === tt.ASTRIX) {
+                    if (!allowAllowChecks) {
+                        res.failure(new InvalidSyntaxError(`'**' parameter not permitted here`))
+                        return;
+                    }
+                    allowKwargs = true;
+                    this.advance(res);
+                    break;
+                } else {
+                    if (!allowAllowChecks) {
+                        res.failure(new InvalidSyntaxError(`'*' parameter not permitted here`))
+                        return;
+                    }
+                    allowArgs = true;
+                }
+
+                // @ts-ignore
+                if (this.currentToken.type !== tt.COMMA) {
+                    break;
+                }
+
+                this.advance(res);
+                if (res.error) return;
+
+                // look for kwargs
+                if (this.currentToken.type === tt.ASTRIX) {
+                    this.advance(res);
+                    if (this.currentToken.type === tt.ASTRIX) {
+                        if (!allowAllowChecks) {
+                            res.failure(new InvalidSyntaxError(`'**' parameter not permitted here`))
+                            return;
+                        }
+                        allowKwargs = true;
+                        this.advance(res);
+                    } else {
+                        res.failure(new InvalidSyntaxError(
+                            `Cannot have ** arg followed by *, try switching them around`), this.currentToken.pos);
+                        return;
+                    }
+                    if (res.error) {
+                        return;
+                    }
+                    break;
+                }
+            }
+
+            const param = this.parameter(res);
+            if (param instanceof Error) {
+                res.failure(param);
+                return;
+            }
+
+            if (!allowKeyWordArgs && param.isKwarg) {
+                res.failure(new InvalidSyntaxError(`Kwarg parameter not permitted here`))
+                return;
+            }
+
+            if (args.filter(a => a.name === param.name).length) {
+                res.failure(new InvalidSyntaxError(
+                    `Cannot have two parameters with the same name`), paramStart);
+                return;
+            }
+
+            if (usingDefault && !param.defaultValue) {
+                res.failure(new InvalidSyntaxError(
+                    'Must use default parameter here'),  this.currentToken.pos);
+                return;
+            }
+
+            if (usingKwargs && !param.isKwarg) {
+                res.failure(new InvalidSyntaxError(
+                    'Must use kwarg here'), this.currentToken.pos);
+                return;
+            }
+
+            if (param.defaultValue) {
+                usingDefault = true;
+            }
+
+            if (param.isKwarg) {
+                usingKwargs = true;
+            }
+
+            args.push(param);
+
+            if (this.currentToken.type === tt.COMMA) {
+                this.advance(res);
+            } else {
+                // finished - no more arguments.
+                break;
+            }
+        }
+
+        // @ts-ignore
+        if (this.currentToken.type !== tt.CPAREN) {
+            res.failure(new InvalidSyntaxError(
+                "Expected ',' or ')'"), this.currentToken.pos);
+            return;
+        }
+        this.advance(res);
+
+        return {
+            args, allowKwargs, allowArgs
+        };
+    }
+
+    /**
      * (a: String, *b, *c: Number=1, *, **) {}
      */
     private funcCore = (): ParseResults => {
@@ -979,10 +1109,9 @@ export class Parser {
         const pos = this.currentToken.pos;
         let body: n.Node,
             returnType: Node = new n.N_primitiveWrapper(types.any),
+            args: IUninterpretedArgument[] = [],
             allowArgs = false,
             allowKwargs = false;
-
-        const args: IUninterpretedArgument[] = [];
 
         this.consume(res, tt.OPAREN);
 
@@ -991,85 +1120,13 @@ export class Parser {
             this.advance(res);
 
         } else {
-
-            let usingDefault = false;
-            let usingKwargs = false;
-
-            while (true) {
-                const paramStart = this.currentToken.pos;
-
-                if (this.currentToken.type === tt.ASTRIX && this.nextToken?.type !== tt.IDENTIFIER) {
-                    // must be at end, no parameters after * or ** but could have only one
-                    this.advance(res);
-                    if (this.currentToken.type === tt.ASTRIX) {
-                        allowKwargs = true;
-                        this.advance(res);
-                        break;
-                    } else {
-                        allowArgs = true;
-                    }
-
-                    // @ts-ignore
-                    if (this.currentToken.type !== tt.COMMA) {
-                        break;
-                    }
-
-                    this.advance(res);
-                    if (res.error) return res;
-
-                    // look for kwargs
-                    if (this.currentToken.type === tt.ASTRIX) {
-                        this.advance(res);
-                        if (this.currentToken.type === tt.ASTRIX) {
-                            allowKwargs = true;
-                            this.advance(res);
-                        } else {
-                            return res.failure(new InvalidSyntaxError(
-                                `Cannot have ** arg followed by *, try switching them around`), this.currentToken.pos);
-                        }
-                        if (res.error) return res;
-                        break;
-                    }
-                }
-
-                const param = this.parameter(res);
-                if (param instanceof Error) {
-                    return res.failure(param);
-                }
-                if (args.filter(a => a.name === param.name).length) {
-                    return res.failure(new InvalidSyntaxError(
-                        `Cannot have two parameters with the same name`), paramStart);
-                }
-                if (usingDefault && !param.defaultValue) {
-                    return res.failure(new InvalidSyntaxError(
-                       'Must use default parameter here'),  this.currentToken.pos);
-                }
-                if (usingKwargs && !param.isKwarg) {
-                    return res.failure(new InvalidSyntaxError(
-                        'Must use kwarg here'), this.currentToken.pos);
-                }
-                if (param.defaultValue) {
-                    usingDefault = true;
-                }
-                if (param.isKwarg) {
-                    usingKwargs = true;
-                }
-
-                args.push(param);
-
-                if (this.currentToken.type === tt.COMMA) {
-                    this.advance(res);
-                } else {
-                    break;
-                }
+            const paramsRes = this.parameters(res);
+            if (res.error) return res;
+            if (paramsRes) {
+                args = paramsRes.args;
+                allowKwargs = paramsRes.allowKwargs;
+                allowArgs = paramsRes.allowArgs;
             }
-
-            // @ts-ignore
-            if (this.currentToken.type !== tt.CPAREN) {
-                return res.failure(new InvalidSyntaxError(
-                    "Expected ',' or ')'"), this.currentToken.pos);
-            }
-            this.advance(res);
         }
 
         // @ts-ignore
@@ -1085,12 +1142,16 @@ export class Parser {
             body = new n.N_return(this.currentToken.pos, res.register(this.expr()));
             if (res.error) return res;
         } else {
+
             this.consume(res, tt.OBRACES);
             if (res.error) return res;
-            if (this.currentToken.type !== tt.CBRACES)
+
+            // @ts-ignore
+            if (this.currentToken.type !== tt.CBRACES) {
                 body = res.register(this.statements());
-            else
+            } else {
                 body = new n.N_undefined(this.currentToken.pos);
+            }
             this.consume(res, tt.CBRACES);
             if (res.error) return res;
         }
@@ -1138,12 +1199,14 @@ export class Parser {
     private classExpr = (name?: string): ParseResults => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
+
         const methods: n.N_functionDefinition[] = [];
         let init: n.N_functionDefinition | undefined;
         let extends_: n.Node = new N_primitiveWrapper(types.object);
         let identifier: string | undefined;
         let abstract = false;
         const properties: Map<Node> = {};
+        let genericParams: IUninterpretedArgument[] = [];
 
         if (this.currentToken.matches(tt.KEYWORD, 'abstract')) {
             this.advance(res);
@@ -1163,6 +1226,17 @@ export class Parser {
             this.advance(res);
         }
 
+        if (this.currentToken.type === tt.OGENERIC) {
+            this.advance(res);
+            const paramRes = this.parameters(res);
+            if (res.error) return res;
+            if (paramRes) {
+                genericParams = paramRes.args;
+            }
+            this.consume(res, tt.CGENERIC);
+            if (res.error) return res;
+        }
+
         if (this.currentToken.matches(tt.KEYWORD, 'extends')) {
             this.advance(res);
 
@@ -1173,13 +1247,13 @@ export class Parser {
         this.consume(res, tt.OBRACES);
         if (res.error) return res;
 
-
         if (this.currentToken.type === tt.CBRACES) {
             this.advance(res);
             return res.success(new n.N_class(
                 pos,
                 [],
                 {},
+                genericParams,
                 extends_,
                 undefined,
                 name,
@@ -1232,6 +1306,7 @@ export class Parser {
             pos,
             methods,
             properties,
+            genericParams,
             extends_,
             init,
             name,

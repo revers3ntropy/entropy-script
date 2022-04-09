@@ -142,7 +142,9 @@ export enum TokenType {
     PIPE,
     AMPERSAND,
     BITWISE_NOT,
+
     QM,
+    DOUBLE_QM,
 
     OGENERIC,
     CGENERIC
@@ -195,6 +197,7 @@ export const ttToStr: EnumMap<TokenType, string> = {
     [tt.PIPE]: '|',
     [tt.BITWISE_NOT]: '~',
     [tt.QM]: '?',
+    [tt.DOUBLE_QM]: '??',
 
     [tt.OGENERIC]: '<|',
     [tt.CGENERIC]: '|>'
@@ -239,10 +242,13 @@ export const DOUBLE_TOKENS: Map<TokenType> = {
     '&&': tt.AND,
     '||': tt.OR,
     '<|': tt.OGENERIC,
-    '|>': tt.CGENERIC
+    '|>': tt.CGENERIC,
+    '??': tt.DOUBLE_QM
 };
 
-export const TRIPLE_TOKENS: Map<TokenType> = {};
+export const TRIPLE_TOKENS: Map<TokenType> = {
+
+};
 
 export const PROPS_TO_OVERRIDE_ON_PRIM: string[] = [
     '__add__',

@@ -201,6 +201,8 @@ export class N_binOp extends Node {
                 return new InterpretResult(l.__ampersand__({context}, r));
             case tt.PIPE:
                 return new InterpretResult(l.__pipe__({context}, r));
+            case tt.DOUBLE_QM:
+                return new InterpretResult(l.__nullish__({context}, r));
 
             default:
                 return new InvalidSyntaxError(
@@ -1722,11 +1724,13 @@ export class N_class extends Node {
     isDeclaration: boolean;
     abstract: boolean;
     properties: Map<Node>;
+    genericParams: IUninterpretedArgument[];
 
     constructor(
         pos: Position,
         methods: N_functionDefinition[],
         properties: Map<Node>,
+        genericParams: IUninterpretedArgument[],
         extends_?: Node,
         init?: N_functionDefinition,
         name = '<anon class>',
@@ -1734,23 +1738,37 @@ export class N_class extends Node {
         abstract = false
     ) {
         super(pos);
-        this.init = init;
-        this.methods = methods;
         this.name = name;
+        this.methods = methods;
+        this.properties = properties;
+        this.genericParams = genericParams;
+        this.init = init;
         this.extends_ = extends_;
         this.isDeclaration = isDeclaration;
         this.abstract = abstract;
-        this.properties = properties;
     }
 
     interpret_ (context: Context): InterpretResult | Error {
 
         const properties: Map<Primitive> = {};
-
         const methods: ESFunction[] = [];
 
+        const closure = new Context();
+        closure.parent = context;
+
+        for (const p of this.genericParams) {
+            const interpretRes = interpretArgument(p, closure);
+            if (interpretRes instanceof Error) return interpretRes;
+            if (interpretRes.defaultValue) {
+                const setErr = closure.setOwn(interpretRes.name, interpretRes.defaultValue, {
+                    isConstant: true
+                });
+                if (setErr) return setErr;
+            }
+        }
+
         for (const method of this.methods) {
-            const res = method.interpret(context);
+            const res = method.interpret(closure);
             if (res.error) {
                 return res.error;
             }
@@ -1765,14 +1783,14 @@ export class N_class extends Node {
         }
 
         for (const id of Object.keys(this.properties)) {
-            const res = this.properties[id].interpret(context);
+            const res = this.properties[id].interpret(closure);
             if (res.error) return res.error;
             properties[id] = res.val;
         }
 
         let extends_: ESType = types.object;
         if (this.extends_) {
-            const extendsRes = this.extends_.interpret(context);
+            const extendsRes = this.extends_.interpret(closure);
             if (extendsRes.error) {
                 return extendsRes.error;
             }
@@ -1785,9 +1803,10 @@ export class N_class extends Node {
             }
             extends_ = extendsRes.val;
         }
+
         let init;
         if (this.init) {
-            const initRes = this.init.interpret(context);
+            const initRes = this.init.interpret(closure);
             if (initRes.error) {
                 return initRes.error;
             }

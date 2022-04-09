@@ -81,3 +81,16 @@ expect(['(fish) | (dog)', false, true, true, true, false, false], `
     A.__subtype_of__(~Num & ~Bool & ~Str);
     A.__subtype_of__(~Num & ~(Bool | Str | 1));
 `);
+
+expect([true, true, true, true], `
+    Arr.__subtype_of__(Arr);
+    Arr<|Str|>.__subtype_of__(Arr);
+    Arr<|Str, 1|>.__subtype_of__(Arr);
+    Arr<|Str, 1|>.__subtype_of__(Arr<|Str|>);
+`);
+expect([false, false, false, false], `
+    Arr<|Str|>.__subtype_of__(Arr<|Num|>);
+    Arr<|Str|>.__subtype_of__(Arr<|Str, 1|>);
+    Arr<|Str, 1|>.__subtype_of__(Arr<|Str, 2|>);
+    Arr<|Str, 1|>.__subtype_of__(Arr<|Str, 2|>);
+`);

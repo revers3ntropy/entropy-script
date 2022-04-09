@@ -1,13 +1,7 @@
 import { Error, IndexError } from '../../errors';
-import {Context} from '../context';
-import {ESArray} from './esarray';
 import {ESBoolean} from './esboolean';
-import {ESErrorPrimitive} from './eserrorprimitive';
-import {ESFunction} from './esfunction';
-import {ESNumber} from './esnumber';
-import {ESObject} from './esobject';
 import {ESString} from './esstring';
-import { ESType, ESTypeIntersection, ESTypeUnion } from './estype';
+import { ESTypeIntersection, ESTypeUnion } from './estype';
 import {ESPrimitive} from '../esprimitive';
 import {Primitive} from '../primitive';
 import { IFuncProps, str } from '../../util/util';
@@ -15,6 +9,8 @@ import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
 
 export class ESUndefined extends ESPrimitive <undefined> {
+    override __null__ = true;
+
     constructor () {
         super(undefined, types.undefined);
 

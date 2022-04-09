@@ -92,7 +92,7 @@ export class ESType extends ESPrimitive <undefined> {
             return new ESBoolean(true);
         }
 
-        if (!t) {
+        if (!(t instanceof ESType)) {
             return new ESBoolean();
         }
 
@@ -106,6 +106,22 @@ export class ESType extends ESPrimitive <undefined> {
         if (this.__extends__) {
             return this.__extends__.__subtype_of__(props, t);
         }
+
+        for (let i = 0; i < t.__generic_types__.length; i++) {
+            let thisGarg: Primitive = types.any;
+            if (this.__generic_types__.length-1 <= i) {
+                thisGarg = this.__generic_types__[i];
+            }
+
+            const tGarg = t.__generic_types__[i];
+
+            const typeCheckRes = thisGarg.__subtype_of__(props, tGarg);
+            if (typeCheckRes instanceof Error) return typeCheckRes;
+            if (!typeCheckRes.__value__) {
+                return new ESBoolean();
+            }
+        }
+
         return new ESBoolean();
     }
 
@@ -183,7 +199,6 @@ export class ESType extends ESPrimitive <undefined> {
     override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
         return new ESTypeIntersection(this, n);
     }
-
 
     override keys = () => {
         return Object.keys(this).map(s => new ESString(s));

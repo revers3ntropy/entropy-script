@@ -9,10 +9,12 @@ import { types } from "../util/constants";
 import type { ESNumber } from "./primitives/esnumber";
 
 export abstract class ESPrimitive <T> {
+
     public __value__: T;
     public __type__: Primitive;
     public __info__: Info;
     public __iterable__ = false;
+    public __null__ = false;
     protected _: NativeObj = this;
 
     /**
@@ -26,90 +28,190 @@ export abstract class ESPrimitive <T> {
         this.__info__ = {};
     }
 
-    // casting
     /**
      * Cast to string
-     * @returns {ESString} this cast to string
      */
     public abstract str: (depth: ESNumber) => ESString;
 
     /**
-     * Casts to any type
-     * @type {(config: IFuncProps, type: Primitive) => Primitive}
+     * Tries to cast to the type passed.
+     * If it cannot be cast, a TypeError is thrown.
      */
     public abstract cast: (config: IFuncProps, type: Primitive) => Primitive | Error;
 
-    // Arithmetic
+    /**
+     * The '+' operator
+     */
     public __add__ (props: IFuncProps, n: Primitive): Primitive | Error {
-        return new InvalidOperationError('', this);
-    }
-    public __subtract__ (props: IFuncProps, n: Primitive): Primitive | Error {
-        return new InvalidOperationError('', this);
-    }
-    public __multiply__ (props: IFuncProps, n: Primitive): Primitive | Error {
-        return new InvalidOperationError('', this);
-    }
-    public __divide__ (props: IFuncProps, n: Primitive): Primitive | Error {
-        return new InvalidOperationError('', this);
-    }
-    public __pow__ (props: IFuncProps, n: Primitive): Primitive | Error {
-        return new InvalidOperationError('__pow__', this);
-    }
-    public __mod__ (props: IFuncProps, n: Primitive): Primitive | Error {
-        return new InvalidOperationError('__mod__', this);
+        return new InvalidOperationError('+', this);
     }
 
-    // Boolean Logic
+    /**
+     * The '-' operator
+     */
+    public __subtract__ (props: IFuncProps, n: Primitive): Primitive | Error {
+        return new InvalidOperationError('-', this);
+    }
+
+    /**
+     * The '*' operator
+     */
+    public __multiply__ (props: IFuncProps, n: Primitive): Primitive | Error {
+        return new InvalidOperationError('*', this);
+    }
+
+    /**
+     * The '/' operator
+     */
+    public __divide__ (props: IFuncProps, n: Primitive): Primitive | Error {
+        return new InvalidOperationError('/', this);
+    }
+
+    /**
+     * The '^' operator
+     */
+    public __pow__ (props: IFuncProps, n: Primitive): Primitive | Error {
+        return new InvalidOperationError('^', this);
+    }
+
+    /**
+     * The '%' operator
+     */
+    public __mod__ (props: IFuncProps, n: Primitive): Primitive | Error {
+        return new InvalidOperationError('%', this);
+    }
+
+    /**
+     * The '==' operator
+     */
     public __eq__ (props: IFuncProps, n: Primitive): ESBoolean | Error {
-        return new InvalidOperationError('__eq__', this);
+        return new InvalidOperationError('==', this);
     }
+
+    /**
+     * The '>' operator
+     */
     public __gt__ (props: IFuncProps, n: Primitive): ESBoolean | Error {
-        return new InvalidOperationError('__gt__', this);
+        return new InvalidOperationError('>', this);
     }
+
+    /**
+     * The '<' operator
+     */
     public __lt__ (props: IFuncProps, n: Primitive): ESBoolean | Error {
-        return new InvalidOperationError('__lt__', this);
+        return new InvalidOperationError('<', this);
     }
+
+    /**
+     * The '&&' operator
+     */
     public __and__ (props: IFuncProps, n: Primitive): ESBoolean | Error {
-        return new InvalidOperationError('__and__', this);
+        return new InvalidOperationError('&&', this);
     }
+
+    /**
+     * The '||' operator
+     */
     public __or__ (props: IFuncProps, n: Primitive): ESBoolean | Error {
-        return new InvalidOperationError('__or__', this);
+        return new InvalidOperationError('||', this);
     }
+
+    /**
+     * Implicitly called when a boolean value is required.
+     * Must return a boolean value.
+     */
     public __bool__ (props: IFuncProps): ESBoolean | Error {
         return new InvalidOperationError('__bool__', this);
     }
 
+    /**
+     * The '|' operator
+     */
     public __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
-        return new InvalidOperationError('__pipe__', this);
+        return new InvalidOperationError('|', this);
     }
+
+    /**
+     * The '&' operator
+     */
     public __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
-        return new InvalidOperationError('__ampersand__', this);
+        return new InvalidOperationError('&', this);
     }
+
+    /**
+     * Called when an object is first 'indexed into' and then directly assigned to,
+     * either through 'a.x = c' or 'a[b] = c', where a, b and c are <expr> and x is an identifier.
+     */
     public __set__ (props: IFuncProps, key: Primitive, value: Primitive): void | Error {
         return new InvalidOperationError('__set__', this, `[${str(key)}] = ${str(value)}`);
     }
+
+    /**
+     * Called when the object is 'indexed into', either through 'a.b' or 'a[b]'.
+     * Which syntax has been used is not known to this function.
+     */
     public abstract __get__: (props: IFuncProps, key: Primitive) => Primitive | Error;
 
+    /**
+     * Runs when the object is 'called' with the '( ... )' operator.
+     * Takes arguments as arguments, which can be collected into an arrray.
+     * Kwargs are passed in 'props'
+     */
     public __call__ (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive {
         return new InvalidOperationError('__call__', this);
     }
+
+    /**
+     * Called when applying the '<| ... |>' operator to an object.
+     * Generally used to make a subtype of a type with specific types attached - generic or template types.
+     * In this case, will return a type with populated '__generic_types__' array attached.
+     */
     public __generic__ (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive {
         return new InvalidOperationError('__generic__', this);
     }
 
+    /**
+     * Part of the Iterator protocol
+     * Returns a value with (hopefully) a '__next__' function, which can then be iterated over.
+     * Will often return an array.
+     */
     public __iter__(props: IFuncProps): Error | Primitive {
         return new InvalidOperationError('__iter__', this);
     }
 
+    /**
+     * Part of the Iterator protocol
+     * Returns a value which is the next value to be iterated over.
+     * Returns an instance of EndIterator Error to end the iteration.
+     * Used in for loops.
+     */
     public __next__(props: IFuncProps): Error | Primitive {
         return new InvalidOperationError('__next__', this);
     }
 
+    /**
+     * The '??' operator.
+     * Returns the right-hand value if undefined, and the left hand value if it is defined.
+     * Can be used to give a default or fallback value to, for example, the return value of a function
+     * to narrow the type from 'something | nil' to 'something'
+     */
+    public __nullish__ (props: IFuncProps, n: Primitive): Primitive | Error {
+        // if this is undefined, then return the
+        if (this.__null__) {
+            return n;
+        }
+        return this;
+    }
+
+    /**
+     * Casts to boolean.
+     * Only explicitly called.
+     * Should return a boolean, but could be overriden to not.
+     */
     public abstract bool(): ESBoolean;
 
     /**
-     * Shallow clone of Primitive
-     * @returns {Primitive} deep clone of this
+     * Shallow copy
      */
     public abstract clone: () => Primitive;
 
@@ -124,16 +226,29 @@ export abstract class ESPrimitive <T> {
         return new ESBoolean(obj === this);
     }
 
+    /**
+     * Gets the keys of the properties on the value,
+     * including the keys of the native functions such as 'keys' and '__iter__'
+     */
     public abstract keys: (props: IFuncProps) => (ESString | ESNumber)[];
 
-    // getters for private props
+    /**
+     * Gets the type name as a string.
+     */
     public __type_name__ = (): string => str(this.__type__);
 
-    // Object stuff
+    /**
+     * Returns true if the property is accessible on the object.
+     * As a default, it will check if the property exists on the native object.
+     */
     public has_property = (props: IFuncProps, key: Primitive): ESBoolean => {
         return new ESBoolean(str(key) in this);
     }
 
+    /**
+     * Adds a description to the object,
+     * which will be accessed through the built-in 'help' function.
+     */
     public describe = (props: IFuncProps, info: Primitive) => {
         if (this.__info__.builtin) {
             return;
@@ -142,6 +257,28 @@ export abstract class ESPrimitive <T> {
         this.__info__.description = str(info);
     };
 
+    /**
+     * Adds more advanced details to the object, which again will be used by 'help'
+     * The info parameter should take the following signature:
+     *  IInfo = interface({
+     *     name: ?Str,
+     *     description: ?Str,
+     *     file: ?Str,
+     *     helpLink: ?Str,
+     *     builtin: ?Bool,
+     *     args: ?Arr<|{
+     *         name: ?Str,
+     *         type: ?Str,
+     *         description: ?Str,
+     *         required: ?Bool,
+     *         default_value: ?Str,
+     *     }|>;
+     *     returns: ?Str,
+     *     returnType: ?Str,
+     *     allow_args: ?Bool,
+     *     contents: ?Arr<|IInfo|>
+     *  })
+     */
     public detail = (props: IFuncProps, info: Primitive) => {
 
         if (this.__info__.builtin) {
@@ -162,6 +299,24 @@ export abstract class ESPrimitive <T> {
         this.__info__.builtin = false;
     };
 
+    /**
+     * Checks whether, treating the current object as a type, the passed object could be an instance of that type.
+     * For example:
+     *  Str.__includes__('') // true
+     *  Str.__includes__(1)  // false
+     */
     abstract __includes__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
+
+    /**
+     * Checks whether, treating the current object as a type, it is a subtype of the passed object.
+     * For example:
+     *  ''.__subtype_of__(Str); // true
+     *  Str.__subtype_of__(''); // false
+     *
+     *  class A {};
+     *  class B extends A {};
+     *  A.__subtype_of__(B); // false
+     *  B.__subtype_of__(A); // true
+     */
     abstract __subtype_of__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
 }
