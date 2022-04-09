@@ -1594,10 +1594,13 @@ export class N_indexed extends Node {
     value: Node | undefined;
     assignType: string | undefined;
 
-    constructor(pos: Position, base: Node, index: Node) {
+    isOptionallyChained: boolean;
+
+    constructor(pos: Position, base: Node, index: Node, isOptionallyChained=false) {
         super(pos);
         this.base = base;
         this.index = index;
+        this.isOptionallyChained = isOptionallyChained;
     }
 
     interpret_ (context: Context): Error | InterpretResult {
@@ -1616,6 +1619,10 @@ export class N_indexed extends Node {
 
         // assign
         if (this.value) {
+            if (this.isOptionallyChained) {
+                return new InvalidSyntaxError('Cannot assign to optionally chained property accessor')
+                    .position(this.pos);
+            }
             const valRes = this.value.interpret(context);
             if (valRes.error) return valRes;
 
@@ -1662,7 +1669,11 @@ export class N_indexed extends Node {
                 return res;
             }
         }
-        return new InterpretResult(base.__get__({context}, index));
+        let finalVal = base.__get__({context}, index);
+        if (this.isOptionallyChained && finalVal instanceof Error) {
+            finalVal = new ESUndefined();
+        }
+        return new InterpretResult(finalVal);
     }
 
     compileJS (config: ICompileConfig) {

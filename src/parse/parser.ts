@@ -172,6 +172,8 @@ export class Parser {
             return res.success(expr);
         }
 
+        // ASSIGNMENT
+
         const assignPos = this.currentToken.pos;
         const assignType = this.currentToken.value;
 
@@ -184,12 +186,17 @@ export class Parser {
             return res.success(new N_varAssign(assignPos, expr.a, value, assignType));
 
         } else if (expr instanceof N_indexed) {
+            if (expr.isOptionallyChained) {
+                return res.failure(new InvalidSyntaxError(
+                    'Cannot assign to optionally chained property accessor'), assignPos);
+            }
             expr.assignType = assignType;
             expr.value = value;
             return res.success(expr);
 
         } else {
-            return res.failure(new InvalidSyntaxError('Cannot assign to this value. Expected identifier or index'), assignPos);
+            return res.failure(new InvalidSyntaxError(
+                'Cannot assign to this value. Expected identifier or index.'), assignPos);
         }
     }
 
@@ -298,6 +305,20 @@ export class Parser {
                 this.currentToken.pos,
                 base,
                 new N_string(this.currentToken.pos, index)
+            ));
+
+        } else if (this.currentToken.type === tt.QM && this.nextToken?.type === tt.DOT) {
+            this.advance(res);
+            this.advance(res);
+
+            const index = this.currentToken;
+            this.consume(res, tt.IDENTIFIER);
+
+            return this.compound(new n.N_indexed(
+                this.currentToken.pos,
+                base,
+                new N_string(this.currentToken.pos, index),
+                true
             ));
 
         } else {
