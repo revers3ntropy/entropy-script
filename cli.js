@@ -108,10 +108,15 @@ function runScript (file) {
  * @return {Promise<void>}
  */
 async function runTerminal () {
-	const input = String(await askQuestion('>>> '));
+	let input = String(await askQuestion('>>> '));
 
 	if (input === 'exit') {
 		return;
+	}
+
+	if (input === 'help') {
+		// assume that the user wants help, so make it run the 'help' function.
+		input = 'help()';
 	}
 
 	let res = es.run(input, {

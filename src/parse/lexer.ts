@@ -149,10 +149,6 @@ export class Lexer {
 
         let tokType = tt.IDENTIFIER;
 
-        if (KEYWORDS.indexOf(idStr) !== -1) {
-            tokType = tt.KEYWORD;
-        }
-
         return new Token(posStart, tokType, idStr);
     }
 

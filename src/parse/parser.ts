@@ -139,27 +139,27 @@ export class Parser {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
-        if (this.currentToken.matches(tt.KEYWORD, 'return')) {
+        if (this.currentToken.matches(tt.IDENTIFIER, 'return')) {
             return this.returnStatement(res);
 
-        } else if (this.currentToken.matches(tt.KEYWORD, 'yield')) {
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'yield')) {
             return this.returnStatement(res, true);
 
-        } else if (this.currentToken.matches(tt.KEYWORD, 'break')) {
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'break')) {
             this.advance(res);
             return res.success(new n.N_break(pos));
 
-        } else if (this.currentToken.matches(tt.KEYWORD, 'continue')) {
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'continue')) {
             this.advance(res);
             return res.success(new n.N_continue(pos));
 
-        } else if (this.currentToken.matches(tt.KEYWORD, 'try')) {
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'try')) {
             return this.tryCatch();
 
-        } else if (this.currentToken.matches(TokenType.KEYWORD, 'while')) {
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'while')) {
             return this.whileExpr();
 
-        } else if (this.currentToken.matches(TokenType.KEYWORD, 'for')) {
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'for')) {
             return this.forExpr();
         }
 
@@ -232,10 +232,6 @@ export class Parser {
                 this.advance(res);
                 return res.success(new n.N_string(pos, tok));
 
-            case tt.IDENTIFIER:
-                this.advance();
-                return res.success(new n.N_variable(tok));
-
             case tt.OPAREN:
                 this.advance(res);
                 const expr = res.register(this.expr());
@@ -254,14 +250,14 @@ export class Parser {
                 if (res.error) return res;
                 return res.success(objectExpr);
 
-            case tt.KEYWORD:
+            case tt.IDENTIFIER:
                 if (tok.value === 'if') {
                     const expr = res.register(this.ifExpr());
                     if (res.error) return res;
                     return res.success(expr);
                 }
-                return res.failure(new InvalidSyntaxError(
-                    `keyword '${tok.value}' not valid here`), this.currentToken.pos);
+                this.advance();
+                return res.success(new n.N_variable(tok));
 
             default:
                 return res.failure(new InvalidSyntaxError(
@@ -284,18 +280,27 @@ export class Parser {
             const call = res.register(this.makeGenericCall(base));
             if (res.error) return res;
             return this.compound(call);
+        }
 
-        } else if (this.currentToken.type === tt.OPAREN) {
+        let optionallyChained = false;
+        if (this.currentToken.type === tt.QM) {
+            this.advance(res);
+            optionallyChained = true;
+        }
+
+        if (this.currentToken.type === tt.OPAREN) {
             const call = res.register(this.makeFunctionCall(base));
             if (res.error) return res;
             return this.compound(call);
 
-        } else if (this.currentToken.type === tt.OSQUARE) {
+        }
+        if (this.currentToken.type === tt.OSQUARE) {
             const call = res.register(this.makeIndex(base));
             if (res.error) return res;
             return this.compound(call);
 
-        } else if (this.currentToken.type === tt.DOT) {
+        }
+        if (this.currentToken.type === tt.DOT) {
             this.advance(res);
 
             const index = this.currentToken;
@@ -306,24 +311,9 @@ export class Parser {
                 base,
                 new N_string(this.currentToken.pos, index)
             ));
-
-        } else if (this.currentToken.type === tt.QM && this.nextToken?.type === tt.DOT) {
-            this.advance(res);
-            this.advance(res);
-
-            const index = this.currentToken;
-            this.consume(res, tt.IDENTIFIER);
-
-            return this.compound(new n.N_indexed(
-                this.currentToken.pos,
-                base,
-                new N_string(this.currentToken.pos, index),
-                true
-            ));
-
-        } else {
-            return res.success(base);
         }
+
+        return res.success(base);
     }
 
     /**
@@ -339,13 +329,13 @@ export class Parser {
     }
 
     /**
-     * (+|-|~|?) <power>
+     * (+|-|?) <power>
      */
     private factor = (): ParseResults => {
         const res = new ParseResults();
         const tok = this.currentToken;
 
-        if (tok.type === tt.ADD || tok.type === tt.SUB || tok.type === tt.BITWISE_NOT || tok.type === tt.QM) {
+        if (tok.type === tt.ADD || tok.type === tt.SUB) {
             this.advance(res);
             const factor = res.register(this.factor());
             if (res.error) return res;
@@ -376,16 +366,7 @@ export class Parser {
      */
     private comparisonExpr = (): ParseResults => {
         const res = new ParseResults();
-        if (this.currentToken.type === tt.NOT) {
-            const opTok = this.currentToken;
-            this.advance(res);
-
-            const node = res.register(this.expr());
-            if (res.error) return res;
-            return res.success(new n.N_unaryOp(opTok.pos, node, opTok));
-        }
-
-        if (this.currentToken.type === tt.BITWISE_NOT) {
+        if (this.currentToken.type === tt.NOT || this.currentToken.type === tt.QM || this.currentToken.type === tt.BITWISE_NOT) {
             const opTok = this.currentToken;
             this.advance(res);
 
@@ -412,7 +393,7 @@ export class Parser {
 
         this.clearEndStatements(res);
 
-        if (this.currentToken.type === tt.KEYWORD) {
+        if (this.currentToken.type === tt.IDENTIFIER) {
             if (VAR_DECLARE_KEYWORDS.indexOf(this.currentToken.value) !== -1) {
                 return this.initiateVar(res);
 
@@ -648,6 +629,10 @@ export class Parser {
         return this.expr();
     }
 
+    /**
+     * let [a, b] = something
+     * kind of thing
+     */
     private destructuring = (pos: Position, isConst: boolean, isGlobal: boolean): ParseResults => {
         const res = new ParseResults();
 
@@ -742,7 +727,7 @@ export class Parser {
         let isConst = true;
         let isGlobal = false;
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'let')) {
+        if (!this.currentToken.matches(tt.IDENTIFIER, 'let')) {
             return res.failure(new InvalidSyntaxError(
                 `Expected 'let`), pos);
         }
@@ -750,21 +735,16 @@ export class Parser {
         this.advance(res);
         if (res.error) return res;
 
-        if (this.currentToken.matches(tt.KEYWORD, 'global')){
+        if (this.currentToken.matches(tt.IDENTIFIER, 'global')){
             isGlobal = true;
             this.advance(res);
             if (res.error) return res;
         }
 
-        if (this.currentToken.matches(tt.KEYWORD, 'var')) {
+        if (this.currentToken.matches(tt.IDENTIFIER, 'var')) {
             isConst = false;
             this.advance(res);
             if (res.error) return res;
-        }
-
-        if (this.currentToken.type === tt.KEYWORD) {
-            return res.failure(new InvalidSyntaxError(
-                `Expected variable declaration keyword, not ${this.currentToken.value}`), this.currentToken.pos);
         }
 
         if (this.currentToken.type === tt.OSQUARE) {
@@ -879,7 +859,7 @@ export class Parser {
         const pos = this.currentToken.pos;
         let ifFalse;
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'if')) {
+        if (!this.currentToken.matches(tt.IDENTIFIER, 'if')) {
             return res.failure(new InvalidSyntaxError("Expected 'if'"), this.currentToken.pos);
         }
 
@@ -894,7 +874,7 @@ export class Parser {
 
         this.clearEndStatements(res);
 
-        if (this.currentToken.matches(tt.KEYWORD, 'else')) {
+        if (this.currentToken.matches(tt.IDENTIFIER, 'else')) {
             this.advance(res);
 
             if (this.currentToken.type == tt.OBRACES) {
@@ -915,7 +895,7 @@ export class Parser {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'while')) {
+        if (!this.currentToken.matches(tt.IDENTIFIER, 'while')) {
             return res.failure(new InvalidSyntaxError(
                 "Expected 'while'"), this.currentToken.pos);
         }
@@ -1189,7 +1169,7 @@ export class Parser {
         const res = new ParseResults();
         let name: string | undefined;
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'func')) {
+        if (!this.currentToken.matches(tt.IDENTIFIER, 'func')) {
             return res.failure(new InvalidSyntaxError(
                 "Expected 'func'"), this.currentToken.pos);
         }
@@ -1229,19 +1209,19 @@ export class Parser {
         const properties: Map<Node> = {};
         let genericParams: IUninterpretedArgument[] = [];
 
-        if (this.currentToken.matches(tt.KEYWORD, 'abstract')) {
+        if (this.currentToken.matches(tt.IDENTIFIER, 'abstract')) {
             this.advance(res);
             abstract = true;
         }
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'class')) {
+        if (!this.currentToken.matches(tt.IDENTIFIER, 'class')) {
             return res.failure(new InvalidSyntaxError(
                 "Expected 'class'"), this.currentToken.pos);
         }
 
         this.advance(res);
 
-        if (this.currentToken.type === tt.IDENTIFIER) {
+        if (this.currentToken.type === tt.IDENTIFIER && this.currentToken.value !== 'extends') {
             identifier = this.currentToken.value;
             name = identifier;
             this.advance(res);
@@ -1258,7 +1238,7 @@ export class Parser {
             if (res.error) return res;
         }
 
-        if (this.currentToken.matches(tt.KEYWORD, 'extends')) {
+        if (this.currentToken.matches(tt.IDENTIFIER, 'extends')) {
             this.advance(res);
 
             extends_ = res.register(this.expr());
@@ -1341,17 +1321,17 @@ export class Parser {
         const pos = this.currentToken.pos;
         let isConst = true;
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'for')) {
+        if (!this.currentToken.matches(tt.IDENTIFIER, 'for')) {
             return res.failure(new InvalidSyntaxError(
                 "Expected 'for'"), this.currentToken.pos);
         }
 
         this.advance(res);
 
-        if (this.currentToken.matches(tt.KEYWORD, 'var')) {
+        if (this.currentToken.matches(tt.IDENTIFIER, 'var')) {
             isConst = false;
             this.advance(res);
-        } else if (this.currentToken.matches(tt.KEYWORD, 'let')) {
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'let')) {
             this.advance(res);
         }
 
@@ -1367,7 +1347,7 @@ export class Parser {
 
         this.advance(res);
 
-        if (!this.currentToken.matches(tt.KEYWORD, 'in')) {
+        if (!this.currentToken.matches(tt.IDENTIFIER, 'in')) {
             return res.failure(new InvalidSyntaxError(
                 "Expected keyword 'in'"), this.currentToken.pos);
         }
@@ -1549,7 +1529,7 @@ export class Parser {
 
         let name: string | undefined;
 
-        this.consume(res, tt.KEYWORD);
+        this.consume(res, tt.IDENTIFIER);
         if (res.error) return res;
 
         if (this.currentToken.type === tt.IDENTIFIER) {
@@ -1577,7 +1557,7 @@ export class Parser {
     private tryCatch = (): ParseResults => {
         const res = new ParseResults();
 
-        this.consume(res, tt.KEYWORD);
+        this.consume(res, tt.IDENTIFIER);
         if (res.error) return res;
         this.consume(res, tt.OBRACES);
         if (res.error) return res;
@@ -1594,11 +1574,10 @@ export class Parser {
         if (res.error) return res;
 
         if (this.currentToken.value !== 'catch') {
-            return res.failure(new InvalidSyntaxError(
-                'try block requires catch'), this.currentToken.pos);
+            return res.success(new N_tryCatch(this.currentToken.pos, body, new N_undefined()));
         }
 
-        this.consume(res, tt.KEYWORD);
+        this.consume(res, tt.IDENTIFIER);
         if (res.error) return res;
 
         this.consume(res, tt.OBRACES);

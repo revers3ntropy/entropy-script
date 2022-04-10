@@ -1,18 +1,22 @@
 let [ now ] = import('time');
 
-func main (n) {
+func main () {
     let var sum = 0;
-    for i in n {
-        for j in n {
+    for i in 100 {
+        for j in 100 {
             sum += i;
-         sum += j;
+         	sum += j;
         }
     }
-    sum;
+    print(sum);
 };
 
-for i in range(10, 500, 10) {
-    let start = now();
-    main(i);
-    print(i, ': ', (now() - start)/(i^2));
+if __main__ {
+	let start = now();
+
+	for i in 10 {
+		sleep(0, main);
+	}
+
+	print(now() - start);
 }

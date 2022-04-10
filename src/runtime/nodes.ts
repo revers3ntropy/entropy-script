@@ -1744,7 +1744,7 @@ export class N_class extends Node {
         genericParams: IUninterpretedArgument[],
         extends_?: Node,
         init?: N_functionDefinition,
-        name = '<anon class>',
+        name = '(anon)',
         isDeclaration=false,
         abstract = false
     ) {

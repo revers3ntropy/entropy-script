@@ -1,6 +1,6 @@
-let now = import('time').now;
+let [ now ] = import('time');
 
-let main = func () {
+func main () {
     for i in range(1, 1001) {
 
         let div3 = i % 3 == 0;
@@ -18,6 +18,8 @@ let main = func () {
     }
 };
 
-let start = now();
-main();
-print(now() - start, 'ms');
+if __main__ {
+	let start = now();
+	main();
+	print(now() - start, 'ms');
+}

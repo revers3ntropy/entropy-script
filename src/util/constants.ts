@@ -104,7 +104,6 @@ export enum TokenType {
     END_STATEMENT,
 
     IDENTIFIER,
-    KEYWORD,
 
     COMMA,
 
@@ -158,7 +157,6 @@ export const ttToStr: EnumMap<TokenType, string> = {
     [tt.END_STATEMENT]: ';',
 
     [tt.IDENTIFIER]: 'Identifier',
-    [tt.KEYWORD]: 'Keyword',
 
     [tt.COMMA]: ',',
 

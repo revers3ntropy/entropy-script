@@ -1,0 +1,110 @@
+# Atomic tokens
+COMMA           = ','
+ADD             = '+'
+SUB             = '-'
+ASTRIX          = '*'
+DIV             = '/'
+POW             = '^'
+MOD             = '%'
+OPAREN          = '('
+CPAREN          = ')'
+OBRACES         = '{'
+CBRACES         = '}'
+OSQUARE         = '['
+CSQUARE         = ']'
+EQUALS		    = '=='
+NOT_EQUALS      = '!='
+NOT             = '!'
+GT			    = '>'
+LT			    = '<'
+GTE			    = '>='
+LTE             = '<='
+AND             = '&&'
+OR              = '||'
+COLON           = ':'
+DOT             = '.'
+PIPE            = '|'
+AMPERSAND       = '&'
+BITWISE_NOT     = '~'
+QM              = '?'
+DOUBLE_QM       = '??'
+OGENERIC        = '<|'
+CGENERIC        = '|>'
+ASSIGN          = '='
+AUG_ASSIGN      = ASSIGN | '+=' | '-=' | '*=' | '/='
+
+# General
+LOWER_LETTER    = 'a'|'b'|'c'|'d'|'e'|'f'|'g'|'h'|'i'|'j'|'k'|'l'|'m'|'n'|'o'|'p'|'q'|'r'|'s'|'t'|'u'|'v'|'w'|'x'|'y'|'z'
+UPPER_LETTER    = 'A'|'B'|'C'|'D'|'E'|'F'|'G'|'H'|'I'|'J'|'K'|'L'|'M'|'N'|'O'|'P'|'Q'|'R'|'S'|'T'|'U'|'V'|'W'|'X'|'Y'|'Z'
+LETTER          = LOWER_LETTER | UPPER_LETTER
+DIGIT           = '0'|'1'|'2'|'3'|'4'|'5'|'6'|'7'|'8'|'9'
+
+IDENTIFIER_CHAR = (LETTER | '_' | '$')
+
+# Atomic Expressions
+IDENTIFIER      = IDENTIFIER_CHARS (IDENTIFIER_CHARS | DIGIT)*
+NUMBER          = DIGIT+ (DOT DIGIT+)?
+STRING          = ('\'' (^'\'')* '\'') | ('"' (^'"')* '"') | ('`' (^'`')* '`')
+
+# Structures
+SCOPE           = OBRACES STATEMENTS CBRACES
+
+RETURN_STMT     = ('return' | 'yield') EXPR
+TRY_STMT        = 'try' SCOPE 'catch' SCOPE
+WHILE_STMT      = 'while' EXPR SCOPE
+FOR_STMT        = 'for' IDENTIFIER 'in' EXPR SCOPE
+NAMESPACE_EXP   = 'namespace' IDENTIFIER? SCOPE
+
+# Function definitions
+ARG             = IDENTIFIER (ASSIGN EXPR)?
+KWARG           = ASTRIX IDENTIFIER (ASSIGN EXPR)?
+ARGS            =
+FUNC_EXPR       = 'func' IDENTIFIER? OPAREN ARGS CPAREN SCOPE
+
+TYPE            = COLON EXPR
+
+# Declaration
+SIMPLE_DEC      = IDENTIFIER TYPE? AUG_ASSIGN EXPR
+DESTRUCT_DEC    = OSQUARE (IDENTIFIER TYPE COMMA)* (IDENTIFIER TYPE)? CSQUARE AUG_ASSIGN EXPR
+DECLARATION     = 'let' ('global'? 'var'?)? SIMPLE_DEC | DESTRUCT_DEC
+
+# Class definitions
+CLASS_EXP       = 'class'
+
+# Function calls
+PARAMETERS      =
+GENERIC_PARAMS  =
+
+GENERIC_CALL    = OGENERIC GENERIC_PARAMS CGENERIC
+FUNC_CALL       = OPAREN PARAMETERS CPAREN
+
+# Indexing
+INDEX           = OSQUARE EXPR CSQUARE
+DOT_INDEX       = DOT IDENTIFIER
+
+# Expressions
+
+BIN_OP(A, ops, B) = A (ops B)*
+
+COMPOUND        = ATOM (GENERIC_CALL | (QM? FUNC_CALL|INDEX|DOT_INDEX))?
+
+POWER           = BIN_OP(COMPOUND, POW | MOD | AMPERSAND | PIPE | DOUBLE_QM, FACTOR)
+
+FACTOR          = ((ADD | SUB) FACTOR) | POWER
+
+TERM            = BIN_OP(FACTOR, ASTRIX | DIV, FACTOR)
+
+ARITH_EXPR      = BIN_OP(TERM, ADD | SUB, TERM)
+
+UNARY_OP        = (NOT | BITWISE_NOT) EXPR
+
+COMP_EXPR       = UNARY_OP | BIN_OP(ARITH_EXPR, EQUALS | NOT_EQUALS | GT | GTE | LTE | LT, ARITH_EXPR)
+
+EXPR            = FUNC_EXPR | DECLARATION | BIN_OP(COMP_EXPR, AND | OR, COMP_EXPR)
+
+# Statements
+
+STATEMENT       = ENDLN* (RETURN_STMT | 'break' | 'continue' | TRY_STMT | WHILE_STMT | FOR_STMT | EXPR) (AUG_ASSIGN EXPR)?
+STATEMENTS      = (STATEMENT ENDLN)* STATEMENT?
+
+STATEMENTS EOF

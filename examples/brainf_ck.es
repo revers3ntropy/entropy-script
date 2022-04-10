@@ -74,11 +74,11 @@ let interpret = func (code: string) {
     if code_idx < end { sleep(0, step) }
 };
 
-const main = func () {"
+func main () {/*
     input('Program path: ', func (path: string) {
         let file = open(path, 'utf-8').str();
         interpret(file);
-    });";
+    });*/;
     interpret(open('examples/hello_world.b', 'utf-8').str());
 };
 

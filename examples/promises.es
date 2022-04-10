@@ -1,8 +1,8 @@
 let Promise = import('Promise');
 
-let myPromise = Promise(func (resolve, throw) {
+let myPromise = Promise(func (resolve, fail) {
     sleep(2000, func () {
-        throw('failed');
+        fail('failed');
         resolve('hello world');
     });
 });

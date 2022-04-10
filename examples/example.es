@@ -24,7 +24,7 @@ i; // 9, as i is now defined globally
 
 
 // functions
-let my_func = func () {
+func my_func (*) {
     let output = '';
     for let arg in args {
         output += arg.str();
@@ -35,7 +35,7 @@ let my_func = func () {
 print(my_func('hi ', 123, ['hi', 1])); // hi 123[hi, 1];
 
 // callbacks and higher order functions
-var wrapper = func (f: function) {
+var wrapper = func (f: Func) {
     f('hi');
 };
 
@@ -72,7 +72,7 @@ arr.add('hi!', 2);
 print(arr); // [0, 1, 'hi!', 2, 3, 7]
 
 // classes
-const MyClass = class {
+class MyClass {
     init (a: any) {
         this.a = a;
     }
@@ -96,11 +96,11 @@ instance.output(); // MyClass: hello world
 instance.a = 2;
 print(instance);
 /*
-	<ESObject Object: {
+	{
 		setA: <Func: setA>,
 		getA: <Func: getA>,
 		output: <Func: output>,
 		a: 2
-	}>
+	}
 */
 
