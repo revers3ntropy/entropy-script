@@ -3,5 +3,5 @@ file('std/IIter');
 
 
 expect([[]], `
-	let a: IIter = [];
+	let a: IIterator = [];
 `);

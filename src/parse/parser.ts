@@ -221,7 +221,7 @@ export class Parser {
     private atom = () => {
         const res = new ParseResults();
         const tok = this.currentToken;
-        const pos = this.currentToken.pos;
+        const pos = this.currentToken?.pos;
 
         switch (tok.type) {
             case tt.NUMBER:
@@ -261,7 +261,8 @@ export class Parser {
 
             default:
                 return res.failure(new InvalidSyntaxError(
-                    `Expected identifier, number, array, object literal, 'if', string or brackets`), this.currentToken.pos);
+                    `Expected identifier, number, array, object literal, 'if', string or brackets but got ${ttToStr[this.currentToken.type]}`
+                ), this.currentToken.pos);
         }
     }
 
@@ -316,13 +317,31 @@ export class Parser {
         return res.success(base);
     }
 
+    private unaryOp = () => {
+        let res = new ParseResults();
+
+        let unaryOps = [tt.NOT, tt.QM, tt.BITWISE_NOT];
+
+        if (unaryOps.indexOf(this.currentToken.type) !== -1) {
+            const unaryOp = this.currentToken;
+            this.advance(res);
+            // recurse instead of going to compound to allow chained unary ops
+            // like !!false or ~~Str
+            let val = res.register(this.unaryOp());
+            if (res.error) return res;
+            return res.success(new n.N_unaryOp(unaryOp.pos, val, unaryOp));
+        }
+
+        return this.compound();
+    }
+
     /**
      * <compound> ((^)|(%)|(&)|(|),(??)) <factor>
      * Asymmetric as you can have chained <power> after each other, but not chained before.
      */
     private power = () => {
          return this.binOp(
-             this.compound,
+             this.unaryOp,
              [tt.POW, tt.MOD, tt.AMPERSAND, tt.PIPE, tt.DOUBLE_QM],
              this.factor
          );
@@ -366,14 +385,6 @@ export class Parser {
      */
     private comparisonExpr = (): ParseResults => {
         const res = new ParseResults();
-        if (this.currentToken.type === tt.NOT || this.currentToken.type === tt.QM || this.currentToken.type === tt.BITWISE_NOT) {
-            const opTok = this.currentToken;
-            this.advance(res);
-
-            const node = res.register(this.expr());
-            if (res.error) return res;
-            return res.success(new n.N_unaryOp(opTok.pos, node, opTok));
-        }
 
         const node = res.register(this.binOp(
             this.arithmeticExpr,
