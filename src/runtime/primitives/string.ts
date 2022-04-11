@@ -1,16 +1,17 @@
 import {Error, TypeError} from '../../errors';
 import { IFuncProps, str } from '../../util/util';
-import {ESArray} from './esarray';
-import {ESBoolean} from './esboolean';
-import {ESNumber} from './esnumber';
+import {ESArray} from './array';
+import {ESBoolean} from './boolean';
+import {ESNumber} from './number';
 import {ESPrimitive} from '../esprimitive';
 import type {Primitive} from '../primitive';
 import {wrap} from '../wrapStrip';
 import { types } from "../../util/constants";
-import { ESTypeIntersection, ESTypeUnion } from "./estype";
-import { ESIterable } from "./esiterable";
+import { Iterable } from "./iterable";
+import { ESTypeIntersection } from "./intersection";
+import { ESTypeUnion } from "./type";
 
-export class ESString extends ESPrimitive <string> implements ESIterable {
+export class ESString extends ESPrimitive <string> implements Iterable {
 
     override __iterable__ = true;
 
@@ -45,7 +46,7 @@ export class ESString extends ESPrimitive <string> implements ESIterable {
     };
     override __multiply__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('Number', n.__type_name__(), n.__value__);
+            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
         }
         return new ESString(this.__value__.repeat(n.__value__));
     };

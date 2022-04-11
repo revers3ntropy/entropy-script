@@ -3,10 +3,10 @@ import { addModule, initModules } from './built-in/builtInModules';
 import {preloadModules} from './built-in/module';
 import addNodeBIFs from './built-in/nodeLibs';
 import {config} from './config';
-import {run} from './index';
+import { IS_NODE_INSTANCE, run } from './index';
 import { Context } from "./runtime/context";
 import { Error } from "./errors";
-import { ESFunction, ESJSBinding, ESUndefined, initPrimitiveTypes } from './runtime/primitiveTypes';
+import { ESFunction, ESJSBinding, ESNull, initPrimitiveTypes } from './runtime/primitiveTypes';
 import loadGlobalConstants from "./built-in/globalConstants";
 import {GLOBAL_CTX, refreshPerformanceNow, runningInNode, setGlobalContext, STD_RAW, types} from './util/constants';
 import { Map } from "./util/util";
@@ -17,7 +17,7 @@ import { IRuntimeArgument } from "./runtime/argument";
 export default async function init ({
   print = console.log,
   input = () => void 0,
-  node = true,
+  node = undefined,
   context = new Context(),
   path = '',
   libs = {}
@@ -58,7 +58,7 @@ export default async function init ({
             .fill({
                 name: 'unknown',
                 type: types.any,
-                defaultValue: new ESUndefined()
+                defaultValue: new ESNull()
             } as IRuntimeArgument);
 
         const fn = new ESFunction(
@@ -99,7 +99,7 @@ export default async function init ({
         context.path = path;
     }
 
-    if (node) {
+    if (node ?? IS_NODE_INSTANCE) {
         runningInNode();
         await refreshPerformanceNow(true);
         addNodeBIFs(context);

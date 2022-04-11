@@ -140,7 +140,7 @@ declare module 'entropy-script' {
         'Undefined'
         | 'String'
         | 'Array'
-        | 'Number'
+        | 'ESNumber'
         | 'Any'
         | 'Function'
         | 'Boolean'

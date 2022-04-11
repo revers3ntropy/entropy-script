@@ -8,7 +8,7 @@ function parseNum (str) {
 
 const print = console.log;
 
-Number.prototype[Symbol.iterator] = function () {
+ESNumber.prototype[Symbol.iterator] = function () {
 	return {
 		current: 0,
 		last: this,

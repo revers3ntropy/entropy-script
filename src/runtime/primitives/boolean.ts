@@ -1,12 +1,13 @@
 import { Error, IndexError, TypeError } from '../../errors';
 import {ESPrimitive} from '../esprimitive';
 import { IFuncProps, str } from '../../util/util';
-import {ESNumber} from './esnumber';
-import {ESString} from './esstring';
+import {ESNumber} from './number';
+import {ESString} from './string';
 import type {Primitive} from '../primitive';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
-import { ESTypeIntersection, ESTypeUnion } from "./estype";
+import { ESTypeIntersection } from "./intersection";
+import { ESTypeUnion } from "./type";
 
 export class ESBoolean extends ESPrimitive <boolean> {
     constructor (val = false) {

@@ -1,17 +1,17 @@
 import {Error} from '../errors';
 import {ESSymbol} from './symbol';
-import {ESArray} from './primitives/esarray';
-import {ESBoolean} from './primitives/esboolean';
-import {ESErrorPrimitive} from './primitives/eserrorprimitive';
-import {ESFunction} from './primitives/esfunction';
-import {ESNumber} from './primitives/esnumber';
-import {ESObject} from './primitives/esobject';
+import {ESArray} from './primitives/array';
+import {ESBoolean} from './primitives/boolean';
+import {ESErrorPrimitive} from './primitives/error';
+import {ESFunction} from './primitives/function';
+import {ESNumber} from './primitives/number';
+import {ESObject} from './primitives/object';
 import {ESPrimitive} from './esprimitive';
-import {ESString} from './primitives/esstring';
-import {ESType} from './primitives/estype';
-import {ESUndefined} from './primitives/esundefined';
+import {ESString} from './primitives/string';
+import {ESType} from './primitives/type';
+import {ESNull} from './primitives/null';
 import type {NativeObj, Primitive} from './primitive';
-import { ESJSBinding } from "./primitives/esjsbinding";
+import { ESJSBinding } from "./primitives/jsbinding";
 import {Map, IFuncProps} from '../util/util';
 
 /**
@@ -23,7 +23,7 @@ export function wrap (thing: any, functionsTakeProps=false): Primitive {
         return thing;
 
     } else if (thing === undefined || thing === null) {
-        return new ESUndefined();
+        return new ESNull();
 
     } else if (thing instanceof Error) {
         return new ESErrorPrimitive(thing);
@@ -71,7 +71,7 @@ export function strip (thing: Primitive | undefined, props: IFuncProps): NativeO
         }
         return val;
 
-    } else if (thing instanceof ESUndefined) {
+    } else if (thing instanceof ESNull) {
         return undefined;
 
     } else if (thing instanceof ESFunction) {

@@ -1,7 +1,7 @@
 import type { Context } from '../runtime/context';
 import type { NativeObj } from '../runtime/primitive';
 import type { Map, EnumMap } from './util';
-import type { ESType } from "../runtime/primitives/estype";
+import type { ESType } from "../runtime/primitives/type";
 
 // @ts-ignore
 import PACKAGE_JSON from '../../package.json';
@@ -152,7 +152,7 @@ export enum TokenType {
 export const tt = TokenType;
 
 export const ttToStr: EnumMap<TokenType, string> = {
-    [tt.NUMBER]: 'Number',
+    [tt.NUMBER]: 'ESNumber',
     [tt.STRING]: 'String',
     [tt.END_STATEMENT]: ';',
 

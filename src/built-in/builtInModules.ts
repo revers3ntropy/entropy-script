@@ -1,10 +1,9 @@
-import type {NativeObj} from '../runtime/primitive';
-import type {ESFunction} from '../runtime/primitives/esfunction';
-import type {ESType} from '../runtime/primitives/estype';
+import type {ESFunction} from '../runtime/primitives/function';
+import type {ESType} from '../runtime/primitives/type';
 import { IS_NODE_INSTANCE, libs } from '../util/constants';
 import {Error} from '../errors';
 import type {NativeModuleBuilder} from './module';
-import { ESJSBinding } from "../runtime/primitives/esjsbinding";
+import { ESJSBinding } from "../runtime/primitives/jsbinding";
 import type { Map } from "../util/util";
 
 // All modules
@@ -15,9 +14,9 @@ import dom from './built-in-modules/dom';
 import time from './built-in-modules/time';
 import regex from "./built-in-modules/regex";
 
-import { ESNamespace } from "../runtime/primitives/esnamespace";
+import { Namespace } from "../runtime/primitives/namespace";
 
-export type modulePrimitive = ESJSBinding<NativeObj> | ESNamespace | ESFunction | ESType;
+export type modulePrimitive = ESJSBinding | Namespace | ESFunction | ESType;
 
 const BIMs: Map<NativeModuleBuilder> = {
     ascii,
@@ -25,6 +24,7 @@ const BIMs: Map<NativeModuleBuilder> = {
     time,
     regex,
     promise: () => Promise,
+    math: () => Math,
 };
 
 // memoize the modules for faster access

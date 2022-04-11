@@ -1,4 +1,4 @@
-import { ESBoolean, ESJSBinding, ESNumber, ESUndefined, Primitive } from '../runtime/primitiveTypes';
+import { ESBoolean, ESJSBinding, ESNumber, ESNull, Primitive } from '../runtime/primitiveTypes';
 import type { Context } from "../runtime/context";
 import { types } from "../util/constants";
 import type { Map } from "../util/util";
@@ -11,7 +11,7 @@ export default function (context: Context) {
     const globalConstants: Map<Primitive> = {
         'false': new ESBoolean(false),
         'true': new ESBoolean(true),
-        'nil': new ESUndefined(),
+        'nil': new ESNull(),
         'inf': new ESNumber(Infinity),
 
         '__main__': new ESBoolean(true),

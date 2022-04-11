@@ -1,4 +1,4 @@
-import {ESString} from './primitives/esstring';
+import {ESString} from './primitives/string';
 import type {Primitive} from './primitive';
 
 export interface ISymbolOptions {

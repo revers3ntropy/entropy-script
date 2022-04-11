@@ -1,12 +1,12 @@
 import {Error, InvalidOperationError, TypeError} from '../errors';
-import {ESBoolean} from './primitives/esboolean';
-import type {ESString} from './primitives/esstring';
+import {ESBoolean} from './primitives/boolean';
+import type {ESString} from './primitives/string';
 import type {Info} from './info';
 import type { NativeObj, Primitive} from './primitive';
 import { IFuncProps, str } from '../util/util';
 import { strip } from './wrapStrip';
 import { types } from "../util/constants";
-import type { ESNumber } from "./primitives/esnumber";
+import type { ESNumber } from "./primitives/number";
 
 export abstract class ESPrimitive <T> {
 

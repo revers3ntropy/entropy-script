@@ -1,19 +1,20 @@
-import { Error, ImportError, TypeError, ReferenceError } from "../errors";
+import { Error, ImportError, TypeError, ReferenceError, PermissionRequiredError, InvalidRuntimeError } from "../errors";
 import { strip, wrap } from '../runtime/wrapStrip';
 import {
-    ESArray, ESErrorPrimitive, ESFunction, ESNamespace,
+    ESArray, ESErrorPrimitive, ESFunction, Namespace,
     ESNumber,
     ESObject,
     ESPrimitive,
-    ESString, ESType, ESUndefined,
+    ESString, ESType, ESNull,
     IFunctionInfo,
 } from '../runtime/primitiveTypes';
 import { BuiltInFunction, Map, IFuncProps, indent, sleep, str } from '../util/util';
-import { ESJSBinding } from "../runtime/primitives/esjsbinding";
+import { ESJSBinding } from "../runtime/primitives/jsbinding";
 import chalk from "../util/colours";
 import {IS_NODE_INSTANCE, types} from '../util/constants';
 import {addModule, getModule, moduleExist} from './builtInModules';
-import { ESInterface } from "../runtime/primitives/esobject";
+import { config } from "../config";
+import { ESInterface } from "../runtime/primitives/interface";
 
 export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
     range: [(props, minP, maxP, stepP) => {
@@ -23,7 +24,7 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
 
         const min = minP.__value__;
 
-        if (maxP instanceof ESUndefined) {
+        if (maxP instanceof ESNull) {
             try {
                 return new ESArray([...Array(min).keys()].map(n => new ESNumber(n)));
             } catch (e) {
@@ -39,7 +40,7 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
 
         const max = maxP.__value__;
 
-        if (!(stepP instanceof ESUndefined)) {
+        if (!(stepP instanceof ESNull)) {
             if (!(stepP instanceof ESNumber)) {
                 return new TypeError('number', stepP.__type_name__(), str(stepP));
             }
@@ -147,7 +148,7 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
                     out += `    Return Type: ${info.returnType}\n\n`;
             }
 
-            if (info.contents && (thing instanceof ESObject || thing instanceof ESNamespace)) {
+            if (info.contents && (thing instanceof ESObject || thing instanceof Namespace)) {
                 out += '    Properties: \n      ';
                 for (const contents of info.contents)
                     out += contents.name + '\n      ';
@@ -210,7 +211,7 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
     }],
 
     using: [(props: IFuncProps, module, global_) => {
-        if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding) && !(module instanceof ESObject)) {
+        if (!(module instanceof Namespace) && !(module instanceof ESJSBinding) && !(module instanceof ESObject)) {
             return new TypeError('Namespace', str(module.__type_name__()));
         }
 
@@ -320,21 +321,26 @@ export function addDependencyInjectedBIFs (
 ) {
     builtInFunctions['import'] = [(props: IFuncProps, rawUrl) => {
         if (IS_NODE_INSTANCE) {
-            return new Error('ImportError', 'Is running in node instance but trying to run browser import function');
+            return new InvalidRuntimeError();
         }
+        if (!config.permissions.imports) {
+            return new PermissionRequiredError('Imports not allowed');
+        }
+
         if (!(rawUrl instanceof ESString)) {
-            return new TypeError('String', rawUrl.__type_name__(), str(rawUrl));
-        }
-        const url = str(rawUrl);
-
-        if (moduleExist(url)) {
-            return getModule(url);
+            return new TypeError('Str', rawUrl.__type_name__(), str(rawUrl));
         }
 
-        return new ImportError(url, 'Module not found. Try adding it to the pre-loaded modules.');
+        let scriptPath: string = str(rawUrl);
+
+        if (config.permissions.useSTD && moduleExist(scriptPath)) {
+            return getModule(scriptPath);
+        }
+
+        return new ImportError(scriptPath, 'Module not found. Try adding it to the pre-loaded modules.');
     }, {
         description: 'Loads a module. Cannot be used asynchronously, so add any modules to pre-load in the esconfig.json file.',
-        args: [{name: 'path', type: 'String'}]
+        args: [{name: 'path', type: 'Str'}]
     }];
 
     builtInFunctions['print'] = [(props, ...args) => {

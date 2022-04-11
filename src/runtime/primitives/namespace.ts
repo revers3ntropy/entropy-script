@@ -1,19 +1,20 @@
 import {Error, IndexError, TypeError} from '../../errors';
 import type { Map, IFuncProps } from '../../util/util';
 import {ESSymbol} from '../symbol';
-import {ESBoolean} from './esboolean';
-import {ESString} from './esstring';
+import {ESBoolean} from './boolean';
+import {ESString} from './string';
 import {ESPrimitive} from '../esprimitive';
 import {str} from '../../util/util';
 import type {Primitive} from '../primitive';
 import {wrap} from '../wrapStrip';
 import { types } from "../../util/constants";
-import { ESTypeIntersection, ESTypeUnion } from "./estype";
-import { ESArray } from "./esarray";
-import type { ESIterable } from "./esiterable";
-import { ESNumber } from "./esnumber";
+import { ESArray } from "./array";
+import type { Iterable } from "./iterable";
+import { ESNumber } from "./number";
+import { ESTypeIntersection } from "./intersection";
+import { ESTypeUnion } from "./type";
 
-export class ESNamespace extends ESPrimitive<Map<ESSymbol>> implements ESIterable {
+export class Namespace extends ESPrimitive<Map<ESSymbol>> implements Iterable {
     public __mutable__: boolean;
     override __iterable__ = true;
 
@@ -41,7 +42,7 @@ export class ESNamespace extends ESPrimitive<Map<ESSymbol>> implements ESIterabl
         for (const key of Object.keys(toClone)) {
             obj[key] = toClone[key];
         }
-        return new ESNamespace(this.name, obj);
+        return new Namespace(this.name, obj);
     }
 
     override str = (): ESString => {

@@ -1,17 +1,18 @@
 import { Error, IndexError, TypeError as ESTypeError } from '../../errors';
-import {ESBoolean} from './esboolean';
-import {ESString} from './esstring';
+import {ESBoolean} from './boolean';
+import {ESString} from './string';
 import {ESPrimitive} from '../esprimitive';
 import { Map, IFuncProps, str } from '../../util/util';
 import type {NativeObj, Primitive} from '../primitive';
 import { strip, wrap } from '../wrapStrip';
-import { ESFunction } from "./esfunction";
+import { ESFunction } from "./function";
 import { types } from "../../util/constants";
-import { ESTypeIntersection, ESTypeUnion } from "./estype";
-import { ESArray } from "./esarray";
-import { ESErrorPrimitive } from "./eserrorprimitive";
-import { ESIterable } from "./esiterable";
-import { ESNumber } from './esnumber';
+import { ESArray } from "./array";
+import { ESErrorPrimitive } from "./error";
+import { Iterable } from "./iterable";
+import { ESNumber } from './number';
+import { ESTypeIntersection } from "./intersection";
+import { ESTypeUnion } from "./type";
 
 
 function tryCall (fTakesProps: boolean, val: any, key: any, props: IFuncProps, args: Primitive[], catchErs: boolean): Primitive | Error {
@@ -53,7 +54,7 @@ function tryCall (fTakesProps: boolean, val: any, key: any, props: IFuncProps, a
 }
 
 
-export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements ESIterable {
+export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements Iterable {
 
     functionsTakeProps: boolean;
     catchErrorsToPrimitive: boolean;

@@ -2,8 +2,8 @@ import {GLOBAL_CTX} from '../util/constants';
 import {ESBoolean, ESJSBinding, run} from '../index';
 import {Context} from '../runtime/context';
 import {InterpretResult} from '../runtime/nodes';
-import {ESNamespace} from '../runtime/primitives/esnamespace';
-import {ESString} from '../runtime/primitives/esstring';
+import {Namespace} from '../runtime/primitives/namespace';
+import {ESString} from '../runtime/primitives/string';
 import type { Map } from "../util/util";
 import { Error } from "../errors";
 import {addModule, modulePrimitive} from './builtInModules';
@@ -46,7 +46,7 @@ export async function preloadModules (urls: Map<any>): Promise<Error | undefined
             const scriptName = splitUrl.pop();
             const exDir = splitUrl.join("/");
 
-            const n = new ESNamespace(new ESString(scriptName), {});
+            const n = new Namespace(new ESString(scriptName), {});
 
             // before running the code to prevent circular imports going unchecked
             loadedURls[url] = n;

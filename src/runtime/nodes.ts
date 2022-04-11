@@ -10,20 +10,21 @@ import {
     ESBoolean,
     ESErrorPrimitive,
     ESFunction, ESJSBinding,
-    ESNamespace,
+    Namespace,
     ESNumber,
     ESObject,
     ESPrimitive,
     ESString,
     ESType,
-    ESUndefined,
+    ESNull,
     Primitive
 } from "./primitiveTypes";
 import {Map, generateRandomSymbol, str} from '../util/util';
-import { ESTypeNot, ESTypeUnion } from "./primitives/estype";
+import { ESTypeNot } from "./primitives/not";
+import { ESTypeUnion } from "./primitives/type";
 
 export class InterpretResult {
-    val: Primitive = new ESUndefined();
+    val: Primitive = new ESNull();
     error: Error | undefined;
     funcReturn: Primitive | undefined;
     shouldBreak = false;
@@ -104,7 +105,7 @@ export abstract class Node {
         if (!(res.val instanceof ESPrimitive)) {
             res.error = new TypeError('Primitive',
                 'Native JS value', str(res.val));
-            res.val = new ESUndefined();
+            res.val = new ESNull();
         }
 
         res.val.__info__.file ||= this.pos.file;
@@ -267,7 +268,7 @@ export class N_unaryOp extends Node {
             case tt.ADD:
                 if (!(res.val instanceof ESNumber)) {
                     return new TypeError(
-                        'Number',
+                        'ESNumber',
                         res.val?.__type_name__().toString() || 'undefined_',
                         res.val?.__value__
                     ).position(this.pos);
@@ -423,7 +424,7 @@ export class N_varAssign extends Node {
             // simple assign
             let value = res.val;
             if (value === undefined) {
-                value = new ESUndefined();
+                value = new ESNull();
             }
 
             const type = context.getSymbol(this.varNameTok.value);
@@ -840,7 +841,7 @@ export class N_while extends Node {
                 break;
             }
         }
-        return new InterpretResult(new ESUndefined());
+        return new InterpretResult(new ESNull());
     }
 
     compileJS (config: ICompileConfig) {
@@ -938,7 +939,7 @@ export class N_for extends Node {
             }
         }
 
-        return new InterpretResult(new ESUndefined());
+        return new InterpretResult(new ESNull());
     }
 
     compileJS (config: ICompileConfig) {
@@ -1153,7 +1154,7 @@ export class N_statements extends Node {
                 last = res.val;
             }
 
-            return new InterpretResult(last || new ESUndefined());
+            return new InterpretResult(last || new ESNull());
         } else {
             const result = new InterpretResult();
             const interpreted: Primitive[] = [];
@@ -1276,7 +1277,7 @@ export class N_functionCall extends Node {
                 continue;
             }
 
-            if (!(val instanceof ESNamespace) && !(val instanceof ESJSBinding) && !(val instanceof ESObject)) {
+            if (!(val instanceof Namespace) && !(val instanceof ESJSBinding) && !(val instanceof ESObject)) {
                 return new TypeError('Namespace', str(val.__type_name__()));
             }
 
@@ -1504,7 +1505,7 @@ export class N_return extends Node {
         const res = new InterpretResult();
 
         if (this.value === undefined)  {
-            res.funcReturn = new ESUndefined();
+            res.funcReturn = new ESNull();
             return res;
         }
 
@@ -1547,7 +1548,7 @@ export class N_yield extends Node {
         const res = new InterpretResult();
 
         if (this.value === undefined)  {
-            res.funcReturn = new ESUndefined();
+            res.funcReturn = new ESNull();
             return res;
         }
 
@@ -1614,7 +1615,7 @@ export class N_indexed extends Node {
         const base = baseRes.val;
 
         if (!base || !index) {
-            return new InterpretResult(new ESUndefined());
+            return new InterpretResult(new ESNull());
         }
 
         // assign
@@ -1664,14 +1665,14 @@ export class N_indexed extends Node {
                     .position(this.pos);
             }
 
-            const res = base.__set__({context}, index, newVal ?? new ESUndefined());
+            const res = base.__set__({context}, index, newVal ?? new ESNull());
             if (res instanceof Error) {
                 return res;
             }
         }
         let finalVal = base.__get__({context}, index);
         if (this.isOptionallyChained && finalVal instanceof Error) {
-            finalVal = new ESUndefined();
+            finalVal = new ESNull();
         }
         return new InterpretResult(finalVal);
     }
@@ -1886,7 +1887,7 @@ export class N_namespace extends Node {
         const res = this.statements.interpret(newContext);
         if (res.error) return res;
 
-        const n = new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
+        const n = new Namespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {
@@ -2098,7 +2099,7 @@ export class N_undefined extends Node {
 
     interpret_ () {
         const res = new InterpretResult();
-        res.val = new ESUndefined();
+        res.val = new ESNull();
         return res;
     }
 

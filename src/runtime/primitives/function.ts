@@ -7,12 +7,13 @@ import {Context} from '../context';
 import {call} from '../functionCaller';
 import {Node} from '../nodes';
 import {str} from '../../util/util';
-import {ESBoolean} from './esboolean';
-import {ESObject} from './esobject';
-import {ESString} from './esstring';
+import {ESBoolean} from './boolean';
+import {ESObject} from './object';
+import {ESString} from './string';
 import type {Primitive} from '../primitive';
 import { wrap } from "../wrapStrip";
-import { ESTypeIntersection, ESTypeUnion } from "./estype";
+import { ESTypeIntersection } from "./intersection";
+import { ESTypeUnion } from "./type";
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     __args__: IRuntimeArgument[];

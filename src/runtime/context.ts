@@ -1,6 +1,6 @@
 import { Error, ReferenceError, TypeError } from "../errors";
 import {wrap} from './wrapStrip';
-import { ESArray, ESFunction, ESObject, ESPrimitive, ESUndefined, Primitive } from "./primitiveTypes";
+import { ESArray, ESFunction, ESObject, ESPrimitive, ESNull, Primitive } from "./primitiveTypes";
 import {Map, str} from "../util/util";
 import {ESSymbol, ISymbolOptions} from './symbol';
 import chalk from "../util/colours";
@@ -218,7 +218,7 @@ export function generateESFunctionCallContext (
 
     for (let i = 0; i < args.length || i < parameters.length; i++) {
 
-        let value: Primitive = new ESUndefined();
+        let value: Primitive = new ESNull();
         let type: Primitive = types.any;
 
         if (!parameters[i]) {

@@ -1,14 +1,15 @@
 import {ESPrimitive} from '../esprimitive';
 import {Error, IndexError, InvalidOperationError, TypeError} from '../../errors';
-import {ESBoolean} from './esboolean';
-import {ESString} from './esstring';
+import {ESBoolean} from './boolean';
+import {ESString} from './string';
 import type {Primitive} from '../primitive';
 import type { IFuncProps } from "../../util/util";
 import { wrap } from "../wrapStrip";
 import {str} from "../../util/util";
-import { ESArray } from "./esarray";
+import { ESArray } from "./array";
 import { types } from "../../util/constants";
-import { ESTypeIntersection, ESTypeUnion } from "./estype";
+import { ESTypeIntersection } from "./intersection";
+import { ESTypeUnion } from "./type";
 
 export class ESErrorPrimitive extends ESPrimitive <Error> {
     constructor (error: Error = new Error('Unknown', 'Error not specified')) {

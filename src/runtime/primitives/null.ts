@@ -1,14 +1,15 @@
 import { Error, IndexError } from '../../errors';
-import {ESBoolean} from './esboolean';
-import {ESString} from './esstring';
-import { ESTypeIntersection, ESTypeUnion } from './estype';
+import {ESBoolean} from './boolean';
+import {ESString} from './string';
 import {ESPrimitive} from '../esprimitive';
 import {Primitive} from '../primitive';
 import { IFuncProps, str } from '../../util/util';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
+import { ESTypeIntersection } from "./intersection";
+import { ESTypeUnion } from "./type";
 
-export class ESUndefined extends ESPrimitive <undefined> {
+export class ESNull extends ESPrimitive <undefined> {
     override __null__ = true;
 
     constructor () {
@@ -31,7 +32,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
 
     override __eq__ = (props: IFuncProps, n: Primitive) => {
         return new ESBoolean(
-            n instanceof ESUndefined ||
+            n instanceof ESNull ||
             typeof n === 'undefined' ||
             typeof n.__value__ === 'undefined'
         );
@@ -40,7 +41,7 @@ export class ESUndefined extends ESPrimitive <undefined> {
     override __bool__ = () => new ESBoolean();
     override bool = this.__bool__;
 
-    override clone = () => new ESUndefined();
+    override clone = () => new ESNull();
 
     override __get__ = (props: IFuncProps, key: Primitive): Primitive | Error => {
 

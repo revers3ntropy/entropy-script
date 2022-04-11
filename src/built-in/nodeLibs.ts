@@ -4,7 +4,7 @@ import {
     ESBoolean,
     ESFunction,
     ESJSBinding,
-    ESNamespace,
+    Namespace,
     ESObject,
     ESString,
     Primitive,
@@ -120,7 +120,7 @@ const import_ = (props: IFuncProps, rawPath: Primitive): Error | Primitive | und
             global: true
         });
 
-        const n = new ESNamespace(new ESString(scriptPath), {});
+        const n = new Namespace(new ESString(scriptPath), {});
 
         const res: InterpretResult = run(code, {
             env,

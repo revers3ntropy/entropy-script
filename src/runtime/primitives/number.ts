@@ -1,16 +1,17 @@
 import { Error, IndexError, TypeError } from '../../errors';
-import {ESArray} from './esarray';
-import {ESBoolean} from './esboolean';
-import {ESString} from './esstring';
+import {ESArray} from './array';
+import {ESBoolean} from './boolean';
+import {ESString} from './string';
 import {ESPrimitive} from '../esprimitive';
 import { IFuncProps, str } from '../../util/util';
 import type {Primitive} from '../primitive';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
-import { ESTypeIntersection, ESTypeUnion } from "./estype";
-import { ESIterable } from "./esiterable";
+import { Iterable } from "./iterable";
+import { ESTypeIntersection } from "./intersection";
+import { ESTypeUnion } from "./type";
 
-export class ESNumber extends ESPrimitive <number> implements ESIterable {
+export class ESNumber extends ESPrimitive <number> implements Iterable {
     override __iterable__ = true;
 
     constructor (value = 0) {
@@ -38,37 +39,37 @@ export class ESNumber extends ESPrimitive <number> implements ESIterable {
 
     override __add__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('Number', n.__type_name__(), n.__value__);
+            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ + n.__value__);
     };
     override __subtract__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('Number', n.__type_name__(), n.__value__);
+            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ - n.__value__);
     };
     override __multiply__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('Number', n.__type_name__(), n.__value__);
+            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ * n.__value__);
     };
     override __divide__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('Number', n.__type_name__(), n.__value__);
+            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ / n.__value__);
     };
     override __pow__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('Number', n.__type_name__(), n.__value__);
+            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ ** n.__value__);
     };
     override __mod__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('Number', n.__type_name__(), n.__value__);
+            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ % n.__value__);
     };
@@ -80,13 +81,13 @@ export class ESNumber extends ESPrimitive <number> implements ESIterable {
     };
     override __gt__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('Number', n.__type_name__(), n.__value__);
+            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__ > n.__value__);
     };
     override __lt__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('Number', n.__type_name__(), n.__value__);
+            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__ < n.__value__);
     };

@@ -11,7 +11,7 @@ import {
     ESNumber,
     ESObject,
     ESString, ESType,
-    ESUndefined,
+    ESNull,
     Primitive
 } from "./primitiveTypes";
 
@@ -85,7 +85,7 @@ function callPrimordial (params: Primitive[], type: ESType, props: IFuncProps) {
 
     switch (type.__name__) {
         case 'Null':
-            return new ESUndefined();
+            return new ESNull();
         case 'Type':
             if (params.length < 1) {
                 return new ESType();

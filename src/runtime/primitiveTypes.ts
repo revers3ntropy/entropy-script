@@ -2,17 +2,17 @@ import type {Primitive} from './primitive';
 import type {IFunctionInfo} from './info';
 
 import {ESPrimitive} from './esprimitive';
-import {ESArray} from './primitives/esarray';
-import {ESBoolean} from './primitives/esboolean';
-import {ESErrorPrimitive} from './primitives/eserrorprimitive';
-import {ESFunction} from './primitives/esfunction';
-import {ESNumber} from './primitives/esnumber';
-import {ESObject} from './primitives/esobject';
-import {ESString} from './primitives/esstring';
-import {ESType} from './primitives/estype';
-import {ESUndefined} from './primitives/esundefined';
-import {ESNamespace} from './primitives/esnamespace';
-import {ESJSBinding} from "./primitives/esjsbinding";
+import {ESArray} from './primitives/array';
+import {ESBoolean} from './primitives/boolean';
+import {ESErrorPrimitive} from './primitives/error';
+import {ESFunction} from './primitives/function';
+import {ESNumber} from './primitives/number';
+import {ESObject} from './primitives/object';
+import {ESString} from './primitives/string';
+import {ESType} from './primitives/type';
+import {ESNull} from './primitives/null';
+import {Namespace} from './primitives/namespace';
+import {ESJSBinding} from "./primitives/jsbinding";
 
 import {types} from "../util/constants";
 
@@ -26,8 +26,8 @@ export {
     ESString,
     ESObject,
     ESType,
-    ESUndefined,
-    ESNamespace,
+    ESNull,
+    Namespace,
     ESJSBinding,
 
     Primitive,
@@ -57,7 +57,7 @@ export function initPrimitiveTypes () {
     };
     types.number.__info__ = {
         name: 'Num',
-        description: 'The ES Number type. Is a a double-precision 64-bit binary format IEEE 754 value, like double in Java and C#',
+        description: 'The ES ESNumber type. Is a a double-precision 64-bit binary format IEEE 754 value, like double in Java and C#',
         file: 'built-in',
         builtin: true
     };

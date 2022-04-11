@@ -1114,7 +1114,7 @@ export class Parser {
     }
 
     /**
-     * (a: String, *b, *c: Number=1, *, **) {}
+     * (a: String, *b, *c: ESNumber=1, *, **) {}
      */
     private funcCore = (): ParseResults => {
         const res = new ParseResults();

@@ -3,7 +3,7 @@ import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
 import { Error, TypeError } from "../errors";
 import type {NativeObj} from './primitive';
-import {ESFunction, ESNumber, ESObject, ESPrimitive, ESUndefined, Primitive} from './primitiveTypes';
+import {ESFunction, ESNumber, ESObject, ESPrimitive, ESNull, Primitive} from './primitiveTypes';
 
 function callNode (self: ESFunction, context: Context, fn: Node, dontTypeCheck: boolean) {
 
@@ -31,13 +31,13 @@ function callNode (self: ESFunction, context: Context, fn: Node, dontTypeCheck: 
     if (res.val) {
         return res.val;
     } else {
-        return new ESUndefined();
+        return new ESNull();
     }
 }
 
 function callNative (self: ESFunction, context: Context, params: Primitive[], fn: (...args: any[]) => any, kwargs: Map<Primitive>, dontTypeCheck: boolean) {
     for (let i = params.length; i < fn.length; i++) {
-        params.push(new ESUndefined());
+        params.push(new ESNull());
     }
 
     const res = fn({
@@ -50,7 +50,7 @@ function callNative (self: ESFunction, context: Context, params: Primitive[], fn
         return res;
     }
 
-    return new ESUndefined();
+    return new ESNull();
 }
 
 /**
@@ -62,7 +62,7 @@ export function call (
     params: Primitive[] = [],
     kwargs: Map<Primitive> = {},
     dontTypeCheck = false
-): ESUndefined | Error | ESPrimitive<NativeObj> {
+): ESNull | Error | ESPrimitive<NativeObj> {
 
     // generate context
     const callContext = context;
