@@ -164,7 +164,8 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
         description: 'Logs documentation about a value',
         returns: 'value passed in',
         allow_args: true,
-        allow_kwargs: true
+        allow_kwargs: true,
+        returnType: 'Str'
     }],
 
     delete: [({context}, name) => {
@@ -182,11 +183,14 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
     }, {
         name: '__path__',
         args: [],
-        description: 'Returns the current path'
+        description: 'Returns the current path',
+        returnType: 'Str'
     }],
 
-    __symbols__: [({context}, recursive) => {
-        if (recursive.bool().__value__) {
+    __symbols__: [(props, recursive) => {
+        let {context} = props;
+
+        if (recursive.bool(props).__value__) {
             let keys = context.keys;
             while (context.parent) {
                 keys = context.parent.keys;
@@ -196,13 +200,14 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
         }
         return wrap(context.keys);
     }, {
-        name: '__symbols',
+        name: '__symbols__',
         args: [{
             name: 'recursive',
             type: 'Bool',
             description: 'if true, returns the names of all symbols available in the current scope, if false, just the symbols declared in the current scope.'
         }],
-        description: 'Returns an array of the names of all symbols in the current context'
+        returns: 'The names of all symbols in the current context',
+        returnType: 'Arr<|Str|>'
     }],
 
     using: [(props: IFuncProps, module, global_) => {
@@ -213,7 +218,7 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
         let { context } = props;
 
         // trust me, this works... hopefully
-        const global = !(global_ && !global_.bool().__value__);
+        const global = !(global_ && !global_.bool(props).__value__);
 
         const value = strip(module, props);
 
@@ -234,7 +239,8 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
             {name: 'module', type: 'Obj'},
             {name: 'global', type: 'Bool'}
         ],
-        description: 'Adds contents of a namespace to the current or global context'
+        description: 'Adds contents of a namespace to the current or global context',
+        returnType: 'nil'
     }],
 
     sleep: [({context}, time, cb) => {

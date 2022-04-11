@@ -1,5 +1,5 @@
 import { Error, IndexError, TypeError } from '../../errors';
-import {ESPrimitive} from '../esprimitive';
+import {ESPrimitive} from '../primitive';
 import { IFuncProps, Primitive, str } from '../../util/util';
 import {ESNumber} from './number';
 import {ESString} from './string';
@@ -46,10 +46,10 @@ export class ESBoolean extends ESPrimitive <boolean> {
     override __bool__ = () => this;
 
     override __and__ = (props: IFuncProps, n: Primitive) =>
-        new ESBoolean(this.__value__ && n.bool().__value__);
+        new ESBoolean(this.__value__ && n.bool(props)?.__value__ === true);
 
     override __or__ = (props: IFuncProps, n: Primitive): Error | ESBoolean => {
-        return new ESBoolean(this.__value__ || n.bool().__value__);
+        return new ESBoolean(this.__value__ || n.bool(props).__value__ === true);
     };
 
     override str = () => new ESString(this.__value__ ? 'true' : 'false');

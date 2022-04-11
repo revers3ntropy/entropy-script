@@ -1,4 +1,4 @@
-import {ESPrimitive} from '../esprimitive';
+import {ESPrimitive} from '../primitive';
 import {Error, IndexError, InvalidOperationError, TypeError} from '../../errors';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';

@@ -3,7 +3,7 @@ import { IFuncProps, Primitive, str } from '../../util/util';
 import {ESArray} from './array';
 import {ESBoolean} from './boolean';
 import {ESNumber} from './number';
-import {ESPrimitive} from '../esprimitive';
+import {ESPrimitive} from '../primitive';
 import {wrap} from '../wrapStrip';
 import { types } from "../../util/constants";
 import { Iterable } from "./iterable";
@@ -137,7 +137,7 @@ export class ESString extends ESPrimitive <string> implements Iterable {
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__ = (props: IFuncProps): Error | Primitive => {
+    override __iter__ = (): Error | Primitive => {
         const chars = this.__value__.split('');
         return new ESArray(chars.map(s => new ESString(s)));
     }

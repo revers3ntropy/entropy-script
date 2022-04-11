@@ -20,7 +20,7 @@ expect([0, undefined, 10], `
 
 expect ([undefined, undefined, 2], `
     let var output;
-    for i in [0, 1, 2] {
+    for i = [0, 1, 2] {
         output = i;
     }
     output;
@@ -31,21 +31,21 @@ expect ('InvalidSyntaxError', `
 `);
 expect ([undefined, undefined, 2], `
     let var output;
-    for i in [0, 1, 2] {
+    for i = [0, 1, 2] {
         output = i;
     }
     output;
 `);
 expect ([0, undefined, 3], `
     let var sum = 0;
-    for i in [0, 1, 2] {
+    for i = [0, 1, 2] {
         sum = sum + i;
     }
     sum;
 `);
 expect ([undefined, undefined, 2], `
     let var output;
-    for i in 3 {
+    for i = 3 {
         output = i;
     }
     output;
@@ -54,7 +54,7 @@ expect ([undefined, undefined, 2], `
 expect ([undefined, 0, undefined, 0, 1], `
     let var output;
     let var i_ = 0;
-    for i in range(3) {
+    for i = range(3) {
         if i == 1 { break; }
         output = i;
         i_ = i_ + 1;
@@ -65,7 +65,7 @@ expect ([undefined, 0, undefined, 0, 1], `
 expect ([undefined, 0,  undefined, 2, 2], `
     let var output;
     let var i_ = 0;
-    for i in range(3) {
+    for i = range(3) {
         if i == 1 { 
             continue;
         }
@@ -79,6 +79,18 @@ expect ([undefined, 0,  undefined, 2, 2], `
 // old syntax now invalid
 expect ('InvalidSyntaxError', `
     for (let i in 3)
+        let output = i;
+`);
+expect ('InvalidSyntaxError', `
+    for (let i = 3)
+        let output = i;
+`);
+expect ('InvalidSyntaxError', `
+    for (i = 3)
+        let output = i;
+`);
+expect ('InvalidSyntaxError', `
+    for (i in 3)
         let output = i;
 `);
 expect ('InvalidSyntaxError', `
@@ -110,7 +122,7 @@ expect (['Iter', [], undefined, [4, 3, 2, 1, 0]], `
     	}
     };
     let var nums = [];
-    for i in Iter() {
+    for i = Iter() {
     	nums += [i];
     }
     nums;

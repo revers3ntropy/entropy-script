@@ -3,7 +3,7 @@ import type { Map, IFuncProps, Primitive } from '../../util/util';
 import {ESSymbol} from '../symbol';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';
-import {ESPrimitive} from '../esprimitive';
+import {ESPrimitive} from '../primitive';
 import {wrap} from '../wrapStrip';
 import { types } from "../../util/constants";
 import { ESArray } from "./array";

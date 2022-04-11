@@ -6,7 +6,7 @@ import {ESErrorPrimitive} from './primitives/error';
 import {ESFunction} from './primitives/function';
 import {ESNumber} from './primitives/number';
 import {ESObject} from './primitives/object';
-import {ESPrimitive} from './esprimitive';
+import {ESPrimitive} from './primitive';
 import {ESString} from './primitives/string';
 import {ESType} from './primitives/type';
 import {ESNull} from './primitives/null';

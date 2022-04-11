@@ -1,5 +1,5 @@
 import {ESString} from './primitives/string';
-import { Primitive } from "../util/util";
+import { IFuncProps, Primitive } from "../util/util";
 
 export interface ISymbolOptions {
     isConstant?: boolean;
@@ -24,8 +24,8 @@ export class ESSymbol {
         this.type = options.type ?? value.__type__;
     }
 
-    clone = () => {
-        return new ESSymbol(this.value.clone(), this.identifier, {
+    clone = (props: IFuncProps) => {
+        return new ESSymbol(this.value.clone(props), this.identifier, {
             isConstant: this.isConstant,
             isAccessible: this.isAccessible
         });

@@ -202,7 +202,7 @@ export class N_binOp extends Node {
             case tt.PIPE:
                 return new InterpretResult(l.__pipe__({context}, r));
             case tt.DOUBLE_QM:
-                return new InterpretResult(l.__nullish__({context}, r));
+                return new InterpretResult(l.__nilish__({context}, r));
 
             default:
                 return new InvalidSyntaxError(
@@ -276,7 +276,7 @@ export class N_unaryOp extends Node {
                 return new InterpretResult(new ESNumber(
                     this.opTok.type === tt.SUB ? -numVal : Math.abs(numVal)));
             case tt.NOT:
-                return new InterpretResult(new ESBoolean(!res?.val?.bool().__value__));
+                return new InterpretResult(new ESBoolean(!res?.val?.bool({context}).__value__));
             case tt.BITWISE_NOT:
                 return new InterpretResult(new ESTypeNot(res.val));
             case tt.QM:
@@ -725,7 +725,7 @@ export class N_if extends Node {
         const compRes = this.comparison.interpret(context);
         if (compRes.error) return compRes;
 
-        if (compRes.val?.bool().__value__) {
+        if (compRes.val?.bool({context}).__value__) {
             return this.ifTrue.interpret(newContext);
 
         } else if (this.ifFalse) {
@@ -828,7 +828,7 @@ export class N_while extends Node {
             const shouldLoop = this.comparison.interpret(context);
             if (shouldLoop.error) return shouldLoop;
 
-            if (!shouldLoop.val?.bool()?.__value__) {
+            if (!shouldLoop.val?.bool({context})?.__value__) {
                 break;
             }
 
@@ -1015,7 +1015,7 @@ export class N_array extends Node {
             if (!res.val) continue;
             let val = res.val;
             if (this.shouldClone) {
-                val = val.clone();
+                val = val.clone({context});
             }
             interpreted.push(val);
         }
@@ -1162,7 +1162,7 @@ export class N_statements extends Node {
                 const res = item.interpret(context);
                 if (res.error || (res.funcReturn !== undefined)) return res;
                 if (!res.val) continue;
-                const val = res.val.clone();
+                const val = res.val.clone({context});
                 interpreted.push(val);
             }
 
@@ -1562,7 +1562,7 @@ export class N_yield extends Node {
         const val = this.value.interpret(context);
         if (val.error) return val.error;
 
-        if (val.val?.bool().__value__) {
+        if (val.val?.bool({context}).__value__) {
             res.funcReturn = val.val;
         }
 

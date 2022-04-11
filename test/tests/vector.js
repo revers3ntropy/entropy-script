@@ -1,5 +1,5 @@
 const {expect, file} = require( '../testFramework');
-file('examples/vector');
+file('vector');
 
 expect(
 	[

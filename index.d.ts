@@ -3,41 +3,38 @@
  */
 declare module 'entropy-script' {
 
-    type BuiltInFunction = (config: funcProps, ...args: Primitive[]) => void | Error | Primitive | Promise<void>;
+    type BuiltInFunction = (config: IFuncProps, ...args: Primitive[]) => void | Error | Primitive | Promise<void>;
 
     /**
      * The argument which has been populated with Primitive values
      */
-    interface runtimeArgument {
+    interface IRuntimeArgument {
         name: string;
         type: Primitive;
         defaultValue?: Primitive;
     }
 
-    export class compileResult {
+    export class CompileResult {
         val: string;
         error: Error | undefined;
 
         constructor (val?: string | Error);
     }
 
-    const global: Context;
+    const GLOBAL_CTX: Context;
     const setGlobalContext: (c: Context) => void;
     const IS_NODE_INSTANCE: boolean;
     const runningInNode: () => void;
-    const colours: { [k: string]: (s: string | undefined) => string };
+    const colours: Map<(s?: string) => string>;
 
     /**
      * The argument data before it has been interpreted
      */
-    interface uninterpretedArgument {
+    interface IUninterpretedArgument {
         name: string;
         type: Node;
         defaultValue?: Node;
     }
-
-    type enumDict<T extends number, U> = { [k in T]: U };
-    type dict<T> = { [k in (string | number)]: T; };
 
     class Context {
         initialisedAsGlobal: boolean;
@@ -56,9 +53,9 @@ declare module 'entropy-script' {
 
         get (identifier: string): Primitive | Error | undefined;
 
-        getRawSymbolTableAsDict (): dict<Primitive>;
+        getRawSymbolTableAsDict (): Map<Primitive>;
 
-        getSymbolTableAsDict (): dict<ESSymbol>;
+        getSymbolTableAsDict (): Map<ESSymbol>;
 
         getSymbol (identifier: string): undefined | ESSymbol | Error;
 
@@ -97,13 +94,25 @@ declare module 'entropy-script' {
         get clone (): Position
         get str (): string;
         get isUnknown (): boolean;
-        static get unknown (): Position;
+        static get void (): Position;
     }
 
     interface TracebackFrame {
         position: Position;
         line: string;
     }
+
+    export interface ICompileConfig {
+        minify: boolean,
+        indent: number,
+        symbols: string[]
+    }
+
+    // global store of built-in types like 'String' and 'Type'
+    export const types: Map<ESType>;
+
+    // global object of all native dependencies like node-fetch and fs.
+    export const libs: Map<NativeObj>;
 
     type symbolOptions = {
         isConstant?: boolean;
@@ -128,25 +137,21 @@ declare module 'entropy-script' {
 
     type NativeObj = any;
 
-    type JSModuleParams = {
-        [k: string]: NativeObj;
+    type JSModuleParams = Map<NativeObj>;
+
+    export type EnumMap<T extends number, U> = {
+        [k in T]: U
     };
 
-    type funcProps = {
-        context: Context
+    export type Map<T=any> = {
+        [k in (string | number | symbol)]: T;
     };
 
-    type typeName =
-        'Undefined'
-        | 'String'
-        | 'Array'
-        | 'ESNumber'
-        | 'Any'
-        | 'Function'
-        | 'Boolean'
-        | 'Type'
-        | 'Object'
-        | string;
+    export interface IFuncProps {
+        context: Context,
+        kwargs?: Map<Primitive>
+        dontTypeCheck?: boolean
+    }
 
     type Primitive =
         ESPrimitive<NativeObj>
@@ -193,16 +198,16 @@ declare module 'entropy-script' {
         str: () => string;
     }
 
-    function init (
-        printFunc?: (...args: any[]) => void,
-        inputFunc?: (msg: string, cb: (...arg: any[]) => any) => void,
-        node?: boolean,
-        libs?: JSModuleParams,
-        context?: Context,
-        path?: string,
-    ): Promise<Error | undefined>;
+    function init (props?: {
+       print: (...args: any[]) => void,
+       input?: (msg: string, cb: (...arg: any[]) => any) => void,
+       node?: boolean,
+       libs?: JSModuleParams,
+       context?: Context,
+       path?: string,
+    }): Promise<Error | undefined>;
 
-    function run (msg: string, args: {
+    function run (code: string, args: {
         env: Context | undefined,
         measurePerformance: boolean | undefined,
         fileName: string | undefined,
@@ -214,9 +219,9 @@ declare module 'entropy-script' {
         currentDir?: string
     }): {
         error?: Error
-        compileToJavaScript?: (outfile: string) => compileResult;
+        compileToJavaScript?: (outfile: string) => CompileResult;
         interpret?: (env?: Context) => interpretResult;
-    }
+    };
 
     type Info = PrimitiveInfo & FunctionInfo & ObjectInfo;
 
@@ -255,39 +260,39 @@ declare module 'entropy-script' {
         protected constructor (value: T, type?: ESType);
 
         str: () => ESString;
-        cast: (props: funcProps, type: Primitive) => Primitive | Error;
+        cast: (props: IFuncProps, type: Primitive) => Primitive | Error;
 
-        __add__ (props: funcProps, n: Primitive): Primitive | Error;
+        __add__ (props: IFuncProps, n: Primitive): Primitive | Error;
 
-        __subtract__ (props: funcProps, n: Primitive): Primitive | Error;
+        __subtract__ (props: IFuncProps, n: Primitive): Primitive | Error;
 
-        __multiply__ (props: funcProps, n: Primitive): Primitive | Error;
+        __multiply__ (props: IFuncProps, n: Primitive): Primitive | Error;
 
-        __divide__ (props: funcProps, n: Primitive): Primitive | Error;
+        __divide__ (props: IFuncProps, n: Primitive): Primitive | Error;
 
-        __pow__ (props: funcProps, n: Primitive): Primitive | Error;
+        __pow__ (props: IFuncProps, n: Primitive): Primitive | Error;
 
-        __eq__ (props: funcProps, n: Primitive): ESBoolean | Error;
+        __eq__ (props: IFuncProps, n: Primitive): ESBoolean | Error;
 
-        __gt__ (props: funcProps, n: Primitive): ESBoolean | Error;
+        __gt__ (props: IFuncProps, n: Primitive): ESBoolean | Error;
 
-        __lt__ (props: funcProps, n: Primitive): ESBoolean | Error;
+        __lt__ (props: IFuncProps, n: Primitive): ESBoolean | Error;
 
-        __and__ (props: funcProps, n: Primitive): ESBoolean | Error;
+        __and__ (props: IFuncProps, n: Primitive): ESBoolean | Error;
 
-        __or__ (props: funcProps, n: Primitive): ESBoolean | Error;
+        __or__ (props: IFuncProps, n: Primitive): ESBoolean | Error;
 
-        __bool__ (props: funcProps): ESBoolean | Error;
+        __bool__ (props: IFuncProps): ESBoolean | Error;
 
-        __set__ (props: funcProps, key: Primitive, value: Primitive): void | Error;
+        __set__ (props: IFuncProps, key: Primitive, value: Primitive): void | Error;
 
-        __get__: (props: funcProps, key: Primitive) => Primitive | Error;
+        __get__: (props: IFuncProps, key: Primitive) => Primitive | Error;
 
-        __call__ (props: funcProps, ...parameters: Primitive[]): Error | Primitive;
+        __call__ (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive;
 
-        __iter__ (props: funcProps): Error | Primitive;
+        __iter__ (props: IFuncProps): Error | Primitive;
 
-        __next__ (props: funcProps): Error | Primitive;
+        __next__ (props: IFuncProps): Error | Primitive;
 
         bool (): ESBoolean;
 
@@ -300,13 +305,13 @@ declare module 'entropy-script' {
         /**
          * @returns if this type is a subset of the type passed
          */
-        isa: (props: funcProps, type: Primitive) => ESBoolean | Error;
-        is: (props: funcProps, obj: Primitive) => ESBoolean;
+        isa: (props: IFuncProps, type: Primitive) => ESBoolean | Error;
+        is: (props: IFuncProps, obj: Primitive) => ESBoolean;
         valueOf: () => T;
         typeName: () => string;
-        hasProperty: (props: funcProps, key: Primitive) => ESBoolean;
-        describe: (props: funcProps, info: Primitive) => void;
-        detail: (props: funcProps, info: Primitive) => void;
+        hasProperty: (props: IFuncProps, key: Primitive) => ESBoolean;
+        describe: (props: IFuncProps, info: Primitive) => void;
+        detail: (props: IFuncProps, info: Primitive) => void;
     }
 
     class ESArray extends ESPrimitive <Primitive[]> {
@@ -319,13 +324,13 @@ declare module 'entropy-script' {
          * @param val value to insert
          * @param idx index to insert at, defaults to end of array
          */
-        add: (props: funcProps, val: Primitive, idx?: Primitive) => ESNumber;
+        add: (props: IFuncProps, val: Primitive, idx?: Primitive) => ESNumber;
 
         /**
          * Uses native Array.prototype.includes
          * @param val value to check for
          */
-        contains: (props: funcProps, val: Primitive) => boolean;
+        contains: (props: IFuncProps, val: Primitive) => boolean;
     }
 
     class ESBoolean extends ESPrimitive <boolean> {
@@ -337,15 +342,15 @@ declare module 'entropy-script' {
     }
 
     class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
-        __args__: runtimeArgument[];
-        __kwargs__: dict<runtimeArgument>;
+        __args__: IRuntimeArgument[];
+        __kwargs__: Map<IRuntimeArgument>;
         __this__: ESObject;
         returnType: ESType;
         __closure__: Context;
 
         constructor (
             func?: Node | BuiltInFunction,
-            arguments?: runtimeArgument[],
+            arguments?: IRuntimeArgument[],
             name?: string,
             this_?: ESObject,
             returnType?: ESType,
@@ -364,8 +369,8 @@ declare module 'entropy-script' {
         constructor (value?: number);
     }
 
-    class ESObject extends ESPrimitive <dict<Primitive>> {
-        constructor (val?: dict<Primitive>);
+    class ESObject extends ESPrimitive <Map<Primitive>> {
+        constructor (val?: Map<Primitive>);
 
         get keys (): ESString[];
         set keys (val: ESString[]);
@@ -377,7 +382,7 @@ declare module 'entropy-script' {
 
     class ESType extends ESPrimitive<undefined> {
         readonly __isPrimitive__: boolean;
-        readonly __name__: typeName;
+        readonly __name__: string;
         readonly __extends__: undefined | ESType;
         readonly __methods__: ESFunction[];
         readonly __init__: ESFunction | undefined;
@@ -385,24 +390,24 @@ declare module 'entropy-script' {
 
         constructor (
             isPrimitive?: boolean,
-            name?: typeName,
+            name?: string,
             __methods__?: ESFunction[],
             __extends__?: undefined | ESType,
             __init__?: undefined | ESFunction
         );
 
-        includesType: (props: funcProps, t: ESType) => ESBoolean;
-        equals: (props: funcProps, t: ESType) => ESBoolean;
+        includesType: (props: IFuncProps, t: ESType) => ESBoolean;
+        equals: (props: IFuncProps, t: ESType) => ESBoolean;
     }
 
     class ESUndefined extends ESPrimitive <undefined> {
         constructor ();
     }
 
-    class ESNamespace extends ESPrimitive<dict<ESSymbol>> {
+    class ESNamespace extends ESPrimitive<Map<ESSymbol>> {
         mutable: boolean;
 
-        constructor (name: ESString, value: dict<ESSymbol>, mutable?: boolean);
+        constructor (name: ESString, value: Map<ESSymbol>, mutable?: boolean);
 
         get name (): ESString;
         set name (v: ESString);
@@ -461,7 +466,7 @@ declare module 'entropy-script' {
 
     function str(v: any): string;
     function wrap(thing: any, functionsTakeProps?: boolean): Primitive;
-    function strip(thing: Primitive | undefined, props: funcProps): NativeObj;
+    function strip(thing: Primitive | undefined, props: IFuncProps): NativeObj;
 
     interface Permissions {
         networking: boolean;
@@ -474,7 +479,7 @@ declare module 'entropy-script' {
 
     function updatePermissions (newPermissions: Permissions): void;
 
-    function parseConfig (configJSON: dict<any>): void;
+    function parseConfig (configJSON: Map): void;
 
     const config: {
         permissions: {
@@ -483,9 +488,7 @@ declare module 'entropy-script' {
             accessDOM: boolean;
             useSTD: boolean;
             fileSystem: boolean,
-
-            [k: string]: any
-        }
+        } & Map
     };
 
     const configFileName: string;

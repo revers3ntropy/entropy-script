@@ -830,7 +830,10 @@ export class Parser {
         ));
     }
 
-    private bracesExp = (): ParseResults => {
+    /**
+     * <statements> surrounded by {}
+     */
+    private scope = (): ParseResults => {
         const res = new ParseResults();
 
         this.consume(res, tt.OBRACES);
@@ -883,7 +886,7 @@ export class Parser {
         if (res.error) return res;
 
 
-        const ifTrue = res.register(this.bracesExp());
+        const ifTrue = res.register(this.scope());
         if (res.error) return res;
 
         this.clearEndStatements(res);
@@ -892,7 +895,7 @@ export class Parser {
             this.advance(res);
 
             if (this.currentToken.type == tt.OBRACES) {
-                ifFalse = res.register(this.bracesExp());
+                ifFalse = res.register(this.scope());
                 if (res.error) return res;
             } else {
                 ifFalse = res.register(this.statement());
@@ -919,7 +922,7 @@ export class Parser {
         const condition = res.register(this.expr());
         if (res.error) return res;
 
-        const loop = res.register(this.bracesExp());
+        const loop = res.register(this.scope());
         if (res.error) return res;
 
         this.addEndStatement(res);
@@ -1361,25 +1364,25 @@ export class Parser {
 
         this.advance(res);
 
-        if (!this.currentToken.matches(tt.IDENTIFIER, 'in')) {
-            return res.failure(new InvalidSyntaxError(
-                "Expected keyword 'in'"), this.currentToken.pos);
+        if (this.currentToken.matches(tt.ASSIGN, '=')) {
+            this.advance(res);
+
+            const array = res.register(this.expr());
+            if (res.error) return res;
+
+            const body = res.register(this.scope());
+            if (res.error) return res;
+
+            this.addEndStatement(res);
+            if (res.error) return res;
+
+            return res.success(new n.N_for(
+                pos, body, array, identifier, false, isConst
+            ));
         }
 
-        this.advance(res);
-
-        const array = res.register(this.expr());
-        if (res.error) return res;
-
-        const body = res.register(this.bracesExp());
-        if (res.error) return res;
-
-        this.addEndStatement(res);
-        if (res.error) return res;
-
-        return res.success(new n.N_for(
-            pos, body, array, identifier, false, isConst
-        ));
+        return res.failure(new InvalidSyntaxError(
+            `Expected '='`), pos);
     }
 
     private array = () => {

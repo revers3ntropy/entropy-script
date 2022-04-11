@@ -1,7 +1,7 @@
 import { Error, IndexError } from '../../errors';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';
-import {ESPrimitive} from '../esprimitive';
+import {ESPrimitive} from '../primitive';
 import { IFuncProps, Primitive, str } from '../../util/util';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";

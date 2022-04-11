@@ -1,7 +1,7 @@
 import { Error, IndexError, TypeError as ESTypeError } from '../../errors';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';
-import {ESPrimitive} from '../esprimitive';
+import {ESPrimitive} from '../primitive';
 import { Map, IFuncProps, Primitive, NativeObj, str } from '../../util/util';
 import { strip, wrap } from '../wrapStrip';
 import { ESFunction } from "./function";

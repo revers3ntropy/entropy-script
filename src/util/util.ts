@@ -13,16 +13,16 @@ import type {
 } from '../runtime/primitiveTypes';
 import { Node } from "../runtime/nodes";
 import { ESNumber } from '../runtime/primitiveTypes';
-import { ESPrimitive } from "../runtime/esprimitive";
+import { ESPrimitive } from "../runtime/primitive";
 import { IDENTIFIER_CHARS, GLOBAL_CTX } from './constants';
 
 
-export type EnumMap<T extends number, U> = {
-    [k in T]: U
+export type EnumMap<T extends number, U=any> = {
+    [key in T]: U
 };
 
-export type Map<T> = {
-    [k in (string | number | symbol)]: T;
+export type Map<T=any> = {
+    [key in string | number | symbol]: T;
 };
 
 export interface ITimeData {

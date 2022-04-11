@@ -1,8 +1,8 @@
-import { Error, IndexError, TypeError } from '../../errors';
+import { Error, IndexError, InvalidSyntaxError, TypeError } from '../../errors';
 import {ESArray} from './array';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';
-import {ESPrimitive} from '../esprimitive';
+import {ESPrimitive} from '../primitive';
 import { IFuncProps, Primitive, str } from '../../util/util';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
@@ -38,37 +38,37 @@ export class ESNumber extends ESPrimitive <number> implements Iterable {
 
     override __add__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
+            return new TypeError('Num', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ + n.__value__);
     };
     override __subtract__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
+            return new TypeError('Num', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ - n.__value__);
     };
     override __multiply__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
+            return new TypeError('Num', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ * n.__value__);
     };
     override __divide__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
+            return new TypeError('Num', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ / n.__value__);
     };
     override __pow__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
+            return new TypeError('Num', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ ** n.__value__);
     };
     override __mod__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
+            return new TypeError('Num', n.__type_name__(), n.__value__);
         }
         return new ESNumber(this.__value__ % n.__value__);
     };
@@ -80,13 +80,13 @@ export class ESNumber extends ESPrimitive <number> implements Iterable {
     };
     override __gt__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
+            return new TypeError('Num', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__ > n.__value__);
     };
     override __lt__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
-            return new TypeError('ESNumber', n.__type_name__(), n.__value__);
+            return new TypeError('Num', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__ < n.__value__);
     };
@@ -120,7 +120,7 @@ export class ESNumber extends ESPrimitive <number> implements Iterable {
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__ = (props: IFuncProps): Error | Primitive => {
+    override __iter__ = (): Error | Primitive => {
         const arr: ESNumber[] = [];
         for (let i = 0; i < this.__value__; i++) {
             arr.push(new ESNumber(i));
@@ -130,5 +130,12 @@ export class ESNumber extends ESPrimitive <number> implements Iterable {
 
     override keys = () => {
         return Object.keys(this).map(s => new ESString(s));
+    }
+
+    override __call__ = (props: IFuncProps, ...args: Primitive[]) => {
+        if (args.length != 1) {
+            return new InvalidSyntaxError('Expected single expression');
+        }
+        return this.__multiply__(props, args[0]);
     }
 }

@@ -3,7 +3,7 @@ import { IFuncProps, Primitive, str } from '../../util/util';
 import { ESBoolean } from './boolean';
 import { ESNumber } from './number';
 import { ESString } from './string';
-import { ESPrimitive } from '../esprimitive';
+import { ESPrimitive } from '../primitive';
 import { ESNull } from './null';
 import { wrap } from '../wrapStrip';
 import { types } from "../../util/constants";
@@ -83,7 +83,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements Iterable {
             return new TypeError('IIterable', n.__type_name__(), str(n));
         }
 
-        const arr = new ESArray([...this.__value__]);
+        const arr = this.clone();
 
         let iterator = n.__iter__(props);
         if (iterator instanceof Error) return iterator;
@@ -91,10 +91,10 @@ export class ESArray extends ESPrimitive <Primitive[]> implements Iterable {
         while (true) {
             let element = iterator.__next__(props);
             if (element instanceof Error) {
-                if (element.name === 'EndIterator') {
-                    break;
-                }
                 return element;
+            }
+            if (element instanceof ESErrorPrimitive && element.__value__.name === 'EndIterator') {
+                break;
             }
             arr.add(props, element);
         }
@@ -151,11 +151,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements Iterable {
     };
 
     override clone = (): ESArray => {
-        const newArr = [];
-        for (const element of this.__value__) {
-            newArr.push(element);
-        }
-        return new ESArray(newArr);
+        return new ESArray([...this.__value__]);
     }
 
     override __includes__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
@@ -195,9 +191,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements Iterable {
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__ = (): Error | Primitive => {
-        return this.clone();
-    }
+    override __iter__ = this.clone;
 
     override __next__ = (): Error | Primitive => {
         if (this.__value__.length) {

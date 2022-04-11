@@ -1,6 +1,6 @@
 import type {IFunctionInfo} from './info';
 
-import {ESPrimitive} from './esprimitive';
+import {ESPrimitive} from './primitive';
 import {ESArray} from './primitives/array';
 import {ESBoolean} from './primitives/boolean';
 import {ESErrorPrimitive} from './primitives/error';

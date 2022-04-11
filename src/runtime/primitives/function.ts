@@ -1,4 +1,4 @@
-import {ESPrimitive} from '../esprimitive';
+import {ESPrimitive} from '../primitive';
 import { GLOBAL_CTX, types } from '../../util/constants';
 import { Error, IndexError } from '../../errors';
 import { BuiltInFunction, IFuncProps, Primitive, str } from '../../util/util';

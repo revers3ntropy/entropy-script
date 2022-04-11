@@ -4,7 +4,7 @@ import { ESArray } from './array';
 import { ESBoolean } from './boolean';
 import { ESNumber } from './number';
 import { ESString } from './string';
-import { ESPrimitive } from '../esprimitive';
+import { ESPrimitive } from '../primitive';
 import { ESNull } from './null';
 import { strip, wrap } from '../wrapStrip';
 import { types } from "../../util/constants";
