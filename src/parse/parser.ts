@@ -156,9 +156,6 @@ export class Parser {
         } else if (this.currentToken.matches(tt.IDENTIFIER, 'try')) {
             return this.tryCatch();
 
-        } else if (this.currentToken.matches(tt.IDENTIFIER, 'while')) {
-            return this.whileExpr();
-
         } else if (this.currentToken.matches(tt.IDENTIFIER, 'for')) {
             return this.forExpr();
         }
@@ -908,28 +905,6 @@ export class Parser {
         return res.success(new n.N_if(pos, condition, ifTrue, ifFalse));
     }
 
-    private whileExpr = (): ParseResults => {
-        const res = new ParseResults();
-        const pos = this.currentToken.pos;
-
-        if (!this.currentToken.matches(tt.IDENTIFIER, 'while')) {
-            return res.failure(new InvalidSyntaxError(
-                "Expected 'while'"), this.currentToken.pos);
-        }
-
-        this.advance(res);
-
-        const condition = res.register(this.expr());
-        if (res.error) return res;
-
-        const loop = res.register(this.scope());
-        if (res.error) return res;
-
-        this.addEndStatement(res);
-
-        return res.success(new n.N_while(pos, condition, loop));
-    }
-
     /**
      * Gets the __name__ and __type__ of a parameter, for example `arg1: number`
      */
@@ -1381,8 +1356,21 @@ export class Parser {
             ));
         }
 
-        return res.failure(new InvalidSyntaxError(
-            `Expected '='`), pos);
+        while (!this.currentToken.matches(tt.IDENTIFIER, 'for')) {
+            this.reverse();
+        }
+        this.advance(res);
+
+        let comp = res.register(this.expr());
+        if (res.error) return res;
+
+        let body = res.register(this.scope());
+        if (res.error) return res;
+
+        this.addEndStatement(res);
+        if (res.error) return res;
+
+        return res.success(new n.N_while(pos, comp, body));
     }
 
     private array = () => {

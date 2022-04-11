@@ -4,7 +4,7 @@ file('basic/loops');
 expect([undefined, 0, undefined, 9, 10], `
     let var output;
     let var i = 0;
-    while i < 10 {
+    for i < 10 {
         output = i;
         i = i + 1;
     }
@@ -12,7 +12,7 @@ expect([undefined, 0, undefined, 9, 10], `
 `);
 expect([0, undefined, 10], `
     let var i = 0;
-    while i < 10 {
+    for i < 10 {
         i = i + 1;
     }
     i;
@@ -97,7 +97,7 @@ expect ('InvalidSyntaxError', `
     for (let i in 3) {}
 `);
 expect ('InvalidSyntaxError', `
-    while (1)
+    for (1)
     	output = i;
 `);
 
