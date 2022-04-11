@@ -1,6 +1,6 @@
 import Position from "../position";
 import type {TokenType} from '../util/constants';
-import type {NativeObj} from '../runtime/primitive';
+import { NativeObj } from "../util/util";
 
 export class Token <T = unknown> {
     type: TokenType;

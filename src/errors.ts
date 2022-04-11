@@ -1,7 +1,6 @@
 import {IS_NODE_INSTANCE} from './util/constants';
 import Position from "./position";
-import type {Primitive} from './runtime/primitive';
-import {str} from "./util/util";
+import { Primitive, str } from "./util/util";
 import chalk from "./util/colours";
 
 export interface TracebackFrame {
@@ -92,7 +91,7 @@ export class IndexError extends Error {
 
 export class InvalidOperationError extends Error {
     constructor(op: string, value: Primitive, detail = '', pos = Position.void) {
-        super('TypeError',
+        super('InvalidOperationError',
             `Cannot perform '${op}' on value ${value?.__info__?.name || str(value)}: ${detail}`);
         this.pos = pos;
     }

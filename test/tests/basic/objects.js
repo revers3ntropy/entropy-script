@@ -95,3 +95,29 @@ expect('TypeError', `{b: 2} - Type`);
 expect('TypeError', `{b: 2} - Str`);
 expect('TypeError', `{b: 2} - (func () {})`);
 expect('TypeError', `-{b: 2}`);
+
+expect([{b: {}}, {}, {}, undefined, undefined, undefined, undefined], `
+    let a = {
+    	b: {}
+    };
+    
+    a.b;
+    a?.b;
+    a?.c;
+    a?.c?.d;
+    a?.b?.b;
+    nil?._;
+`);
+
+expect([{b: {}}, {}, {}, undefined, undefined, undefined, undefined], `
+    let a = {
+    	b: {}
+    };
+    
+    a['b'];
+    a?['b'];
+    a?['c'];
+    a?['c']?['d'];
+    a?['b']?['b'];
+    nil?['_'];
+`);

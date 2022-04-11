@@ -2,11 +2,37 @@ import {Error, InvalidOperationError, TypeError} from '../errors';
 import {ESBoolean} from './primitives/boolean';
 import type {ESString} from './primitives/string';
 import type {Info} from './info';
-import type { NativeObj, Primitive} from './primitive';
-import { IFuncProps, str } from '../util/util';
+import { IFuncProps, NativeObj, Primitive, str } from '../util/util';
 import { strip } from './wrapStrip';
 import { types } from "../util/constants";
 import type { ESNumber } from "./primitives/number";
+
+export interface ESPrimitive<T> {
+    __add__: (props: IFuncProps, n: Primitive) => Primitive | Error;
+    __subtract__: (props: IFuncProps, n: Primitive) => Primitive | Error;
+    __multiply__: (props: IFuncProps, n: Primitive) => Primitive | Error;
+    __divide__: (props: IFuncProps, n: Primitive) => Primitive | Error;
+    __pow__: (props: IFuncProps, n: Primitive) => Primitive | Error;
+    __mod__: (props: IFuncProps, n: Primitive) => Primitive | Error;
+    __eq__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
+    __gt__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
+    __lt__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
+    __and__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
+    __or__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
+    __bool__: (props: IFuncProps) => ESBoolean | Error;
+    __pipe__: (props: IFuncProps, n: Primitive) => Primitive | Error;
+    __ampersand__: (props: IFuncProps, n: Primitive) => Primitive | Error;
+    __set__: (props: IFuncProps, key: Primitive, value: Primitive) => void | Error;
+    __call__: (props: IFuncProps, ...parameters: Primitive[]) => Error | Primitive;
+    __generic__: (props: IFuncProps, ...parameters: Primitive[]) => Error | Primitive;
+    __iter__: (props: IFuncProps) => Error | Primitive;
+    __next__: (props: IFuncProps) => Error | Primitive;
+    __nullish__: (props: IFuncProps, n: Primitive) => Primitive | Error;
+    isa: (props: IFuncProps, type: Primitive) => ESBoolean | Error;
+    is: (props: IFuncProps, obj: Primitive) => ESBoolean;
+    __type_name__: () => string;
+    has_property: (props: IFuncProps, key: Primitive) => ESBoolean;
+}
 
 export abstract class ESPrimitive <T> {
 
@@ -31,7 +57,7 @@ export abstract class ESPrimitive <T> {
     /**
      * Cast to string
      */
-    public abstract str: (depth: ESNumber) => ESString;
+    public abstract str: (props: IFuncProps, depth: ESNumber) => ESString;
 
     /**
      * Tries to cast to the type passed.
@@ -42,77 +68,77 @@ export abstract class ESPrimitive <T> {
     /**
      * The '+' operator
      */
-    public __add__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    public __add__ = (props: IFuncProps, _: Primitive): Primitive | Error => {
         return new InvalidOperationError('+', this);
     }
 
     /**
      * The '-' operator
      */
-    public __subtract__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    public __subtract__ = (props: IFuncProps, _: Primitive): Primitive | Error => {
         return new InvalidOperationError('-', this);
     }
 
     /**
      * The '*' operator
      */
-    public __multiply__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    public __multiply__ = (props: IFuncProps, _: Primitive): Primitive | Error => {
         return new InvalidOperationError('*', this);
     }
 
     /**
      * The '/' operator
      */
-    public __divide__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    public __divide__ = (props: IFuncProps, _: Primitive): Primitive | Error => {
         return new InvalidOperationError('/', this);
     }
 
     /**
      * The '^' operator
      */
-    public __pow__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    public __pow__ = (props: IFuncProps, _: Primitive): Primitive | Error => {
         return new InvalidOperationError('^', this);
     }
 
     /**
      * The '%' operator
      */
-    public __mod__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    public __mod__ = (props: IFuncProps, _: Primitive): Primitive | Error => {
         return new InvalidOperationError('%', this);
     }
 
     /**
      * The '==' operator
      */
-    public __eq__ (props: IFuncProps, n: Primitive): ESBoolean | Error {
+    public __eq__ = (props: IFuncProps, _: Primitive): ESBoolean | Error => {
         return new InvalidOperationError('==', this);
     }
 
     /**
      * The '>' operator
      */
-    public __gt__ (props: IFuncProps, n: Primitive): ESBoolean | Error {
+    public __gt__ = (props: IFuncProps, _: Primitive): ESBoolean | Error => {
         return new InvalidOperationError('>', this);
     }
 
     /**
      * The '<' operator
      */
-    public __lt__ (props: IFuncProps, n: Primitive): ESBoolean | Error {
+    public __lt__ = (props: IFuncProps, _: Primitive): ESBoolean | Error => {
         return new InvalidOperationError('<', this);
     }
 
     /**
      * The '&&' operator
      */
-    public __and__ (props: IFuncProps, n: Primitive): ESBoolean | Error {
+    public __and__ = (props: IFuncProps, _: Primitive): ESBoolean | Error => {
         return new InvalidOperationError('&&', this);
     }
 
     /**
      * The '||' operator
      */
-    public __or__ (props: IFuncProps, n: Primitive): ESBoolean | Error {
+    public __or__ = (props: IFuncProps, _: Primitive): ESBoolean | Error => {
         return new InvalidOperationError('||', this);
     }
 
@@ -120,21 +146,21 @@ export abstract class ESPrimitive <T> {
      * Implicitly called when a boolean value is required.
      * Must return a boolean value.
      */
-    public __bool__ (props: IFuncProps): ESBoolean | Error {
+    public __bool__ = (_: IFuncProps): ESBoolean | Error => {
         return new InvalidOperationError('__bool__', this);
     }
 
     /**
      * The '|' operator
      */
-    public __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    public __pipe__ = (props: IFuncProps, _: Primitive): Primitive | Error => {
         return new InvalidOperationError('|', this);
     }
 
     /**
      * The '&' operator
      */
-    public __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    public __ampersand__ = (props: IFuncProps, _: Primitive): Primitive | Error => {
         return new InvalidOperationError('&', this);
     }
 
@@ -142,7 +168,7 @@ export abstract class ESPrimitive <T> {
      * Called when an object is first 'indexed into' and then directly assigned to,
      * either through 'a.x = c' or 'a[b] = c', where a, b and c are <expr> and x is an identifier.
      */
-    public __set__ (props: IFuncProps, key: Primitive, value: Primitive): void | Error {
+    public __set__ = (props: IFuncProps, key: Primitive, value: Primitive): void | Error => {
         return new InvalidOperationError('__set__', this, `[${str(key)}] = ${str(value)}`);
     }
 
@@ -157,7 +183,7 @@ export abstract class ESPrimitive <T> {
      * Takes arguments as arguments, which can be collected into an arrray.
      * Kwargs are passed in 'props'
      */
-    public __call__ (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive {
+    public __call__ = (props: IFuncProps, ..._: Primitive[]): Error | Primitive => {
         return new InvalidOperationError('__call__', this);
     }
 
@@ -166,7 +192,7 @@ export abstract class ESPrimitive <T> {
      * Generally used to make a subtype of a type with specific types attached - generic or template types.
      * In this case, will return a type with populated '__generic_types__' array attached.
      */
-    public __generic__ (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive {
+    public __generic__ = (props: IFuncProps, ..._: Primitive[]): Error | Primitive => {
         return new InvalidOperationError('__generic__', this);
     }
 
@@ -175,7 +201,7 @@ export abstract class ESPrimitive <T> {
      * Returns a value with (hopefully) a '__next__' function, which can then be iterated over.
      * Will often return an array.
      */
-    public __iter__(props: IFuncProps): Error | Primitive {
+    public __iter__ = (_: IFuncProps): Error | Primitive => {
         return new InvalidOperationError('__iter__', this);
     }
 
@@ -185,7 +211,7 @@ export abstract class ESPrimitive <T> {
      * Returns an instance of EndIterator Error to end the iteration.
      * Used in for loops.
      */
-    public __next__(props: IFuncProps): Error | Primitive {
+    public __next__ = (_: IFuncProps): Error | Primitive => {
         return new InvalidOperationError('__next__', this);
     }
 
@@ -195,7 +221,7 @@ export abstract class ESPrimitive <T> {
      * Can be used to give a default or fallback value to, for example, the return value of a function
      * to narrow the type from 'something | nil' to 'something'
      */
-    public __nullish__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    public __nilish__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         // if this is undefined, then return the
         if (this.__null__) {
             return n;

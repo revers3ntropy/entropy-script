@@ -100,13 +100,12 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
     }],
 
     help: [(props, ...things) => {
-        // I am truly disgusted by this function.
-        // But I am not going to make it look better.
+        // Not very nice...
 
-        if (!things.length) {
+        if ('NoParam' in (props.kwargs ?? {})) {
             return new ESString(
-                'Visit https://entropygames.io/entropy-script for help with Entropy Script!\n' +
-                'Try \'help(<anything>)\' for help about a particular object.'
+                'Visit https://entropygames.io/entropy-script for help\n' +
+                'Try \'help(object)\' for help about a particular object.'
             );
         }
 
@@ -131,10 +130,11 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
             if (info.args && thing instanceof ESFunction) {
                 const total = info.args.length;
                 const required = info.args.filter(a => a.required).length;
-                if (total == required)
+                if (total == required) {
                     out += chalk.yellow(`    Arguments (${total}): \n`);
-                else
+                } else {
                     out += chalk.yellow(`    Arguments (${required}-${total}): \n`);
+                }
 
                 for (const [idx, arg] of info.args.entries()) {
                     if (typeof arg !== 'object') out += `        ${idx + 1}. INVALID ARG INFO`;
@@ -142,34 +142,29 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
                 }
 
                 out += `\n\n`;
-                if (info.returns)
+                if (info.returns) {
                     out += `    Returns: ${info.returns}\n\n`;
-                if (info.returnType)
+                }
+                if (info.returnType) {
                     out += `    Return Type: ${info.returnType}\n\n`;
+                }
             }
 
             if (info.contents && (thing instanceof ESObject || thing instanceof Namespace)) {
                 out += '    Properties: \n      ';
-                for (const contents of info.contents)
+                for (const contents of info.contents) {
                     out += contents.name + '\n      ';
+                }
             }
         }
 
-        console.log(out);
-        if (things.length > 1) {
-            return new ESArray(things);
-        }
-        if (things) {
-            return things[0];
-        }
+        return new ESString(out);
+
     }, {
-        args: [{
-            name: 'value',
-             type: 'Any'
-        }],
-        description: 'logs info on value',
+        description: 'Logs documentation about a value',
         returns: 'value passed in',
-        allow_args: true
+        allow_args: true,
+        allow_kwargs: true
     }],
 
     delete: [({context}, name) => {

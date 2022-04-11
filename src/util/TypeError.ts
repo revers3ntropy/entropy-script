@@ -1,6 +1,5 @@
 import {Error} from '../errors';
-import type {Primitive} from '../runtime/primitive';
-import {IFuncProps, str} from './util';
+import { IFuncProps, Primitive, str } from './util';
 
 /**
  * Recursively checks properties until it finds an invalid match

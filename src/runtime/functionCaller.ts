@@ -1,8 +1,7 @@
-import { Map, str } from '../util/util';
+import { Map, NativeObj, str } from '../util/util';
 import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
 import { Error, TypeError } from "../errors";
-import type {NativeObj} from './primitive';
 import {ESFunction, ESNumber, ESObject, ESPrimitive, ESNull, Primitive} from './primitiveTypes';
 
 function callNode (self: ESFunction, context: Context, fn: Node, dontTypeCheck: boolean) {
@@ -22,7 +21,7 @@ function callNode (self: ESFunction, context: Context, fn: Node, dontTypeCheck: 
             return new TypeError(
                 str(self.__returns__),
                 res.val?.__type_name__() || 'undefined',
-                res.val?.str(new ESNumber).__value__,
+                res.val?.str({context}, new ESNumber).__value__,
                 '(from function return)'
             );
         }

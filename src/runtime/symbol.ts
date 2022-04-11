@@ -1,5 +1,5 @@
 import {ESString} from './primitives/string';
-import type {Primitive} from './primitive';
+import { Primitive } from "../util/util";
 
 export interface ISymbolOptions {
     isConstant?: boolean;

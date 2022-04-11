@@ -1,5 +1,4 @@
-import { Primitive } from "../primitive";
-import { IFuncProps, str } from "../../util/util";
+import { IFuncProps, Primitive, str } from "../../util/util";
 import { Error, InvalidOperationError } from "../../errors";
 import { ESBoolean } from "./boolean";
 import { types } from "../../util/constants";
@@ -72,7 +71,7 @@ export class ESTypeIntersection extends ESType {
         return new ESBoolean(leftTypeCheckRes.__value__ && rightTypeCheckRes.__value__);
     }
 
-    override __generic__ (): Error | Primitive {
+    override __generic__ = (): Error | Primitive => {
         return new InvalidOperationError('__generic__', this);
     }
 }

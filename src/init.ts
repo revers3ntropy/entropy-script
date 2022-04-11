@@ -3,14 +3,13 @@ import { addModule, initModules } from './built-in/builtInModules';
 import {preloadModules} from './built-in/module';
 import addNodeBIFs from './built-in/nodeLibs';
 import {config} from './config';
-import { IS_NODE_INSTANCE, run } from './index';
+import { IS_NODE_INSTANCE, NativeObj, run } from './index';
 import { Context } from "./runtime/context";
 import { Error } from "./errors";
 import { ESFunction, ESJSBinding, ESNull, initPrimitiveTypes } from './runtime/primitiveTypes';
 import loadGlobalConstants from "./built-in/globalConstants";
 import {GLOBAL_CTX, refreshPerformanceNow, runningInNode, setGlobalContext, STD_RAW, types} from './util/constants';
 import { Map } from "./util/util";
-import { NativeObj } from "./runtime/primitive";
 import {libs as globalLibs} from "./util/constants";
 import { IRuntimeArgument } from "./runtime/argument";
 
@@ -63,12 +62,15 @@ export default async function init ({
 
         const fn = new ESFunction(
             rawFn,
-            args,
+            // if we are allowing args, then don't make it default the args to nil
+            info.allow_args ? [] : args,
             builtIn,
             undefined,
             undefined,
             context,
-            true
+            true,
+            info.allow_args,
+            info.allow_kwargs
         );
 
         if (info.allow_args) {

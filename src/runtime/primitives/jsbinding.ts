@@ -2,8 +2,7 @@ import { Error, IndexError, TypeError as ESTypeError } from '../../errors';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';
 import {ESPrimitive} from '../esprimitive';
-import { Map, IFuncProps, str } from '../../util/util';
-import type {NativeObj, Primitive} from '../primitive';
+import { Map, IFuncProps, Primitive, NativeObj, str } from '../../util/util';
 import { strip, wrap } from '../wrapStrip';
 import { ESFunction } from "./function";
 import { types } from "../../util/constants";
@@ -73,7 +72,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements Iterab
 
     override clone = (): Primitive => new ESJSBinding<T>(this.__value__);
 
-    override str = (depth= new ESNumber): ESString => {
+    override str = (props: IFuncProps, depth= new ESNumber): ESString => {
         return new ESString(str(this.__value__, depth.__value__));
     };
 
@@ -123,7 +122,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements Iterab
         return wrap(res);
     };
 
-    override __set__ (props: IFuncProps, k: Primitive, value: Primitive): void | Error {
+    override __set__ = (props: IFuncProps, k: Primitive, value: Primitive): void | Error => {
         const key = str(k);
 
         const val: Map<NativeObj> = this.__value__;
@@ -156,14 +155,14 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements Iterab
         return this.__eq__(props, n);
     };
 
-    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__(): Error | Primitive {
+    override __iter__ = (): Error | Primitive => {
         // returns array of keys in the object
         return new ESArray(Object.keys(this.__value__).map(s => new ESString(s)));
     }

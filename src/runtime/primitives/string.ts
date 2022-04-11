@@ -1,10 +1,9 @@
 import {Error, TypeError} from '../../errors';
-import { IFuncProps, str } from '../../util/util';
+import { IFuncProps, Primitive, str } from '../../util/util';
 import {ESArray} from './array';
 import {ESBoolean} from './boolean';
 import {ESNumber} from './number';
 import {ESPrimitive} from '../esprimitive';
-import type {Primitive} from '../primitive';
 import {wrap} from '../wrapStrip';
 import { types } from "../../util/constants";
 import { Iterable } from "./iterable";
@@ -101,7 +100,7 @@ export class ESString extends ESPrimitive <string> implements Iterable {
         return new ESString();
     };
 
-    override __set__ (props: IFuncProps, key: Primitive, value: Primitive): void {
+    override __set__ = (props: IFuncProps, key: Primitive, value: Primitive) => {
         if (!(key instanceof ESNumber))
             return;
 
@@ -114,7 +113,7 @@ export class ESString extends ESPrimitive <string> implements Iterable {
             idx = this.__value__.length + idx;
         }
 
-        const strToInsert = value.str(new ESNumber).__value__;
+        const strToInsert = value.str(props, new ESNumber).__value__;
 
         const firstPart = this.__value__.substr(0, idx);
         const lastPart = this.__value__.substr(idx + strToInsert.length);
@@ -131,14 +130,14 @@ export class ESString extends ESPrimitive <string> implements Iterable {
         return this.__eq__(props, n);
     };
 
-    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__(props: IFuncProps): Error | Primitive {
+    override __iter__ = (props: IFuncProps): Error | Primitive => {
         const chars = this.__value__.split('');
         return new ESArray(chars.map(s => new ESString(s)));
     }

@@ -19,9 +19,8 @@ import {
     ESNull,
     Primitive
 } from "./primitiveTypes";
-import {Map, generateRandomSymbol, str} from '../util/util';
-import { ESTypeNot } from "./primitives/not";
-import { ESTypeUnion } from "./primitives/type";
+import { Map, generateRandomSymbol, str } from '../util/util';
+import { ESTypeNot, ESTypeUnion } from "./primitives/type";
 
 export class InterpretResult {
     val: Primitive = new ESNull();
@@ -1225,6 +1224,7 @@ export class N_functionCall extends Node {
     arguments: Node[];
     indefiniteKwargs: Node[];
     definiteKwargs: Map<Node>;
+    optionallyChained: boolean;
 
     functionType: '__call__' | '__generic__';
 
@@ -1234,7 +1234,8 @@ export class N_functionCall extends Node {
         args: Node[] = [],
         indefiniteKwargs: Node[] = [],
         definiteKwargs: Map<Node> = {},
-        functionType: '__call__' | '__generic__' = '__call__'
+        functionType: '__call__' | '__generic__' = '__call__',
+        optionallyChained = false
     ) {
         super(pos);
         this.arguments = args;
@@ -1242,6 +1243,7 @@ export class N_functionCall extends Node {
         this.indefiniteKwargs = indefiniteKwargs;
         this.definiteKwargs = definiteKwargs;
         this.functionType = functionType;
+        this.optionallyChained = optionallyChained;
     }
 
     interpret_ (context: Context): Error | InterpretResult {
@@ -1300,6 +1302,11 @@ export class N_functionCall extends Node {
         }, ...args);
 
         if (res instanceof Error) {
+            // optionally chained functions return null on InvalidOperationError
+            if (res.name === 'InvalidOperationError' && this.optionallyChained) {
+                return new InterpretResult(new ESNull());
+            }
+
             res.traceback.push({
                 position: this.pos,
                 // do the best we can to recreate line

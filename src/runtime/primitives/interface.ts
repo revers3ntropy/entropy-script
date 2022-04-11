@@ -1,5 +1,4 @@
-import { IFuncProps } from "../../util/util";
-import { Primitive } from "../primitive";
+import { IFuncProps, Primitive, str } from "../../util/util";
 import { ESBoolean } from "./boolean";
 import { Error, TypeError } from "../../errors";
 import { ESNull } from "./null";
@@ -7,13 +6,18 @@ import { types } from "../../util/constants";
 import { ESNumber } from "./number";
 import { ESString } from "./string";
 import { ESObject } from "./object";
-import {str} from "../../util/util";
 
 export class ESInterface extends ESObject {
     override __includes__ = (props: IFuncProps, n: Primitive): ESBoolean | Error => {
         for (const key of Object.keys(this.__value__)) {
             const thisType = this.__value__[key];
-            const nValue = n.__value__[key] ?? new ESNull();
+
+            let nValue: Primitive = new ESNull();
+            if (n.has_property(props, new ESString(key))) {
+                let res = n.__get__(props, new ESString(key));
+                if (res instanceof Error) return res;
+                nValue = res;
+            }
 
             const typeCheckRes = thisType.__includes__(props, nValue);
             if (typeCheckRes instanceof Error) return typeCheckRes;
@@ -38,7 +42,13 @@ export class ESInterface extends ESObject {
                 return new ESBoolean();
             }
             const thisType = this.__value__[key];
-            const nValue = n.__value__[key];
+
+            let nValue: Primitive = new ESNull();
+            if (n.has_property(props, new ESString(key))) {
+                let res = n.__get__(props, new ESString(key));
+                if (res instanceof Error) return res;
+                nValue = res;
+            }
 
             const typeCheckRes = thisType.__subtype_of__(props, nValue);
             if (typeCheckRes instanceof Error) return typeCheckRes;
@@ -54,7 +64,7 @@ export class ESInterface extends ESObject {
         return new TypeError('Mutable', 'Immutable', str(key));
     }
 
-    override str = (depth = new ESNumber) => {
+    override str = (props: IFuncProps, depth = new ESNumber) => {
         let val = str(this.__value__, depth.__value__);
         // remove trailing new line
         if (val[val.length - 1] === '\n') {

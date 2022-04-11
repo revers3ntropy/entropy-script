@@ -3,8 +3,7 @@ import {ESArray} from './array';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';
 import {ESPrimitive} from '../esprimitive';
-import { IFuncProps, str } from '../../util/util';
-import type {Primitive} from '../primitive';
+import { IFuncProps, Primitive, str } from '../../util/util';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
 import { Iterable } from "./iterable";
@@ -114,14 +113,14 @@ export class ESNumber extends ESPrimitive <number> implements Iterable {
         return this.__eq__(props, n);
     };
 
-    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__(props: IFuncProps): Error | Primitive {
+    override __iter__ = (props: IFuncProps): Error | Primitive => {
         const arr: ESNumber[] = [];
         for (let i = 0; i < this.__value__; i++) {
             arr.push(new ESNumber(i));

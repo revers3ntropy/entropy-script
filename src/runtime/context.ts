@@ -1,7 +1,7 @@
 import { Error, ReferenceError, TypeError } from "../errors";
 import {wrap} from './wrapStrip';
 import { ESArray, ESFunction, ESObject, ESPrimitive, ESNull, Primitive } from "./primitiveTypes";
-import {Map, str} from "../util/util";
+import { Map, str } from "../util/util";
 import {ESSymbol, ISymbolOptions} from './symbol';
 import chalk from "../util/colours";
 import { types } from "../util/constants";

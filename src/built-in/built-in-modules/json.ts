@@ -1,5 +1,5 @@
-import {str} from '../../util/util';
 import { NativeModuleBuilder } from "../module";
+import { str } from "../../util/util";
 
 const module: NativeModuleBuilder = () => ({
     parse: (json: unknown) => {

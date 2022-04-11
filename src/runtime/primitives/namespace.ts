@@ -1,11 +1,9 @@
 import {Error, IndexError, TypeError} from '../../errors';
-import type { Map, IFuncProps } from '../../util/util';
+import type { Map, IFuncProps, Primitive } from '../../util/util';
 import {ESSymbol} from '../symbol';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';
 import {ESPrimitive} from '../esprimitive';
-import {str} from '../../util/util';
-import type {Primitive} from '../primitive';
 import {wrap} from '../wrapStrip';
 import { types } from "../../util/constants";
 import { ESArray } from "./array";
@@ -13,6 +11,7 @@ import type { Iterable } from "./iterable";
 import { ESNumber } from "./number";
 import { ESTypeIntersection } from "./intersection";
 import { ESTypeUnion } from "./type";
+import { str } from "../../util/util";
 
 export class Namespace extends ESPrimitive<Map<ESSymbol>> implements Iterable {
     public __mutable__: boolean;
@@ -77,7 +76,7 @@ export class Namespace extends ESPrimitive<Map<ESSymbol>> implements Iterable {
         return new IndexError(key.__value__, this._);
     };
 
-    override __set__(props: IFuncProps, key: Primitive, value: Primitive): void | Error {
+    override __set__ = (props: IFuncProps, key: Primitive, value: Primitive): void | Error => {
         if (!(key instanceof ESString)) {
             return new TypeError('string', key.__type_name__(), str(key));
         }
@@ -110,14 +109,14 @@ export class Namespace extends ESPrimitive<Map<ESSymbol>> implements Iterable {
         return this.__eq__(props, n);
     };
 
-    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__(props: IFuncProps): Error | Primitive {
+    override __iter__ = (props: IFuncProps): Error | Primitive => {
         // returns array of keys in the object
         return new ESArray(Object.keys(this.__value__).map(s => new ESString(s)));
     }

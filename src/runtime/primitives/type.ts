@@ -5,13 +5,12 @@ import { ESBoolean } from './boolean';
 import type { ESFunction } from './function';
 import { ESObject } from './object';
 import { ESString } from './string';
-import type { Primitive } from '../primitive';
-import type { Map, IFuncProps } from '../../util/util';
-import { str } from "../../util/util";
+import type { IFuncProps, Map, Primitive } from '../../util/util';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
 import type { IRuntimeArgument } from "../argument";
 import { ESTypeIntersection } from "./intersection";
+import { str } from "../../util/util";
 
 export class ESType extends ESPrimitive <undefined> {
 
@@ -187,10 +186,10 @@ export class ESType extends ESPrimitive <undefined> {
         return new IndexError(str(k), this);
     };
 
-    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 
@@ -204,7 +203,7 @@ export class ESType extends ESPrimitive <undefined> {
         return res[0];
     }
 
-    override __generic__ (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive {
+    override __generic__ = (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive => {
         const T = this.clone();
         if (props.dontTypeCheck) return T;
         T.__generic_types__ = parameters;
@@ -267,7 +266,7 @@ export class ESTypeUnion extends ESType {
         return new ESTypeUnion(this.__left__, this.__right__);
     }
 
-    override __eq__ = (props: IFuncProps, t: Primitive) => {
+    override __eq__ = (props: IFuncProps, t: Primitive): Error | ESBoolean => {
         if (!(t instanceof ESTypeUnion)) return new ESBoolean();
 
         const leftTypeCheckRes = this.__left__.__eq__(props, t.__left__);
@@ -279,7 +278,74 @@ export class ESTypeUnion extends ESType {
         return new ESBoolean(leftTypeCheckRes.__value__ && rightTypeCheckRes.__value__);
     }
 
-    override __generic__ (): Error | Primitive {
+    override __generic__ = (): Error | Primitive => {
+        return new InvalidOperationError('__generic__', this);
+    }
+}
+
+export class ESTypeNot extends ESType {
+    private readonly __val__: Primitive;
+
+    constructor (type: Primitive) {
+        super(false, `~(${ str(type) })`);
+        this.__val__ = type;
+    }
+
+    override __call__ = (): Error | Primitive => {
+        return new InvalidOperationError('__call__', this);
+    }
+
+    override __includes__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
+        const res = this.__val__.__includes__(props, t);
+        if (res instanceof Error) return res;
+
+        return new ESBoolean(!res.__value__);
+    }
+
+    override __subtype_of__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
+        if (Object.is(t, types.any)) {
+            return new ESBoolean(true);
+        }
+
+        /*
+            weird case caught here:
+            (~Str).__subtype_of__(Str | Num)
+            should be false as it could be a string
+        */
+        if (t instanceof ESTypeUnion || t instanceof ESTypeIntersection) {
+            const leftRes = t.__left__.__subtype_of__(props, this.__val__);
+            if (leftRes instanceof Error) return leftRes;
+            if (leftRes.__value__) return new ESBoolean();
+
+            const rightRes = t.__right__.__subtype_of__(props, this.__val__);
+            if (rightRes instanceof Error) return rightRes;
+            if (rightRes.__value__) return new ESBoolean();
+            return new ESBoolean(true);
+        }
+
+        const res = this.__val__.__subtype_of__(props, t);
+        if (res instanceof Error) return res;
+
+        return new ESBoolean(!res.__value__);
+    }
+
+    override clone = () => {
+        return new ESTypeNot(this.__val__);
+    }
+
+    override __eq__ = (props: IFuncProps, t: Primitive) => {
+        if (!(t instanceof ESTypeNot)) {
+            return new ESBoolean();
+        }
+
+        const typeCheckRes = this.__val__.__eq__(props, t.__val__);
+        if (typeCheckRes instanceof Error) {
+            return typeCheckRes;
+        }
+        return new ESBoolean(typeCheckRes.__value__ === true);
+    }
+
+    override __generic__ = (): Error | Primitive => {
         return new InvalidOperationError('__generic__', this);
     }
 }

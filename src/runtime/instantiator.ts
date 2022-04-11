@@ -1,8 +1,7 @@
 import { PROPS_TO_OVERRIDE_ON_PRIM, types } from '../util/constants';
 import { Context } from "./context";
-import type { IFuncProps } from '../util/util';
+import type { IFuncProps, NativeObj } from '../util/util';
 import { Error, TypeError } from "../errors";
-import type {NativeObj} from './primitive';
 import {wrap} from './wrapStrip';
 import {
     ESArray,

@@ -2,8 +2,7 @@ import { Error, IndexError } from '../../errors';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';
 import {ESPrimitive} from '../esprimitive';
-import {Primitive} from '../primitive';
-import { IFuncProps, str } from '../../util/util';
+import { IFuncProps, Primitive, str } from '../../util/util';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
 import { ESTypeIntersection } from "./intersection";
@@ -59,10 +58,10 @@ export class ESNull extends ESPrimitive <undefined> {
         return this.__eq__(props, n);
     };
 
-    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 

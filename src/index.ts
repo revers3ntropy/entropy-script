@@ -206,3 +206,5 @@ export function parse (code: string, {
         }
     };
 }
+
+export { str } from "./util/util";

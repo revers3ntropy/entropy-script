@@ -1,6 +1,5 @@
 import type { Context } from '../runtime/context';
-import type { NativeObj } from '../runtime/primitive';
-import type { Map, EnumMap } from './util';
+import type { Map, EnumMap, NativeObj } from './util';
 import type { ESType } from "../runtime/primitives/type";
 
 // @ts-ignore

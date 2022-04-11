@@ -2,14 +2,13 @@ import {ESPrimitive} from '../esprimitive';
 import {Error, IndexError, InvalidOperationError, TypeError} from '../../errors';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';
-import type {Primitive} from '../primitive';
-import type { IFuncProps } from "../../util/util";
+import type { IFuncProps, Primitive } from "../../util/util";
 import { wrap } from "../wrapStrip";
-import {str} from "../../util/util";
 import { ESArray } from "./array";
 import { types } from "../../util/constants";
 import { ESTypeIntersection } from "./intersection";
 import { ESTypeUnion } from "./type";
+import { str } from "../../util/util";
 
 export class ESErrorPrimitive extends ESPrimitive <Error> {
     constructor (error: Error = new Error('Unknown', 'Error not specified')) {
@@ -64,10 +63,10 @@ export class ESErrorPrimitive extends ESPrimitive <Error> {
         }
         return new InvalidOperationError('type check', this, 'Cannot type check against an error instance');
     }
-    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 

@@ -1,16 +1,14 @@
 import {ESPrimitive} from '../esprimitive';
 import { GLOBAL_CTX, types } from '../../util/constants';
 import { Error, IndexError } from '../../errors';
-import { BuiltInFunction, IFuncProps } from '../../util/util';
+import { BuiltInFunction, IFuncProps, Primitive, str } from '../../util/util';
 import {IRuntimeArgument} from '../argument';
 import {Context} from '../context';
 import {call} from '../functionCaller';
 import {Node} from '../nodes';
-import {str} from '../../util/util';
 import {ESBoolean} from './boolean';
 import {ESObject} from './object';
 import {ESString} from './string';
-import type {Primitive} from '../primitive';
 import { wrap } from "../wrapStrip";
 import { ESTypeIntersection } from "./intersection";
 import { ESTypeUnion } from "./type";
@@ -251,10 +249,10 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         return new ESBoolean(eqRes.__value__);
     };
 
-    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 
@@ -262,7 +260,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         return Object.keys(this).map(s => new ESString(s));
     }
 
-    override __generic__ (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive {
+    override __generic__ = (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive => {
         const T = this.clone();
         if (props.dontTypeCheck) return T;
         T.__generic_types__ = parameters;

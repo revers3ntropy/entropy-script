@@ -290,13 +290,13 @@ export class Parser {
         }
 
         if (this.currentToken.type === tt.OPAREN) {
-            const call = res.register(this.makeFunctionCall(base));
+            const call = res.register(this.makeFunctionCall(base, optionallyChained));
             if (res.error) return res;
             return this.compound(call);
 
         }
         if (this.currentToken.type === tt.OSQUARE) {
-            const call = res.register(this.makeIndex(base));
+            const call = res.register(this.makeIndex(base, optionallyChained));
             if (res.error) return res;
             return this.compound(call);
 
@@ -310,7 +310,8 @@ export class Parser {
             return this.compound(new n.N_indexed(
                 this.currentToken.pos,
                 base,
-                new N_string(this.currentToken.pos, index)
+                new N_string(this.currentToken.pos, index),
+                optionallyChained
             ));
         }
 
@@ -537,7 +538,7 @@ export class Parser {
         };
     }
 
-    private makeFunctionCall = (to: Node) => {
+    private makeFunctionCall = (to: Node, optionallyChained=false) => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
@@ -565,7 +566,8 @@ export class Parser {
 
         this.advance(res);
 
-        return res.success(new n.N_functionCall(pos, to, args, indefiniteKwargs, definiteKwargs));
+        return res.success(new n.N_functionCall(
+            pos, to, args, indefiniteKwargs, definiteKwargs, '__call__', optionallyChained));
     }
 
     private makeGenericCall = (to: Node) => {
@@ -599,7 +601,7 @@ export class Parser {
         return res.success(new n.N_functionCall(pos, to, args, indefiniteKwargs, definiteKwargs, '__generic__'));
     }
 
-    private makeIndex = (to: Node) => {
+    private makeIndex = (to: Node, optionallyChained=false) => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
@@ -629,7 +631,8 @@ export class Parser {
         return res.success(new n.N_indexed(
             pos,
             base,
-            index
+            index,
+            optionallyChained
         ));
     }
 

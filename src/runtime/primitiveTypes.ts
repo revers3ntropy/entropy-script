@@ -1,4 +1,3 @@
-import type {Primitive} from './primitive';
 import type {IFunctionInfo} from './info';
 
 import {ESPrimitive} from './esprimitive';
@@ -15,6 +14,7 @@ import {Namespace} from './primitives/namespace';
 import {ESJSBinding} from "./primitives/jsbinding";
 
 import {types} from "../util/constants";
+import { Primitive } from "../util/util";
 
 export {
     ESArray,

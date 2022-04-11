@@ -1,12 +1,11 @@
 import { Error, IndexError, TypeError } from '../../errors';
-import { IFuncProps, Map, str } from '../../util/util';
+import { IFuncProps, Map, Primitive, str } from '../../util/util';
 import { ESArray } from './array';
 import { ESBoolean } from './boolean';
 import { ESNumber } from './number';
 import { ESString } from './string';
 import { ESPrimitive } from '../esprimitive';
 import { ESNull } from './null';
-import type { Primitive } from '../primitive';
 import { strip, wrap } from '../wrapStrip';
 import { types } from "../../util/constants";
 import { Iterable } from "./iterable";
@@ -31,7 +30,7 @@ export class ESObject extends ESPrimitive <Map<Primitive>> implements Iterable{
         }
     }
 
-    override str = (depth = new ESNumber) => {
+    override str = (props: IFuncProps, depth = new ESNumber) => {
         let val = str(this.__value__, depth.__value__);
         // remove trailing new line
         if (val[val.length-1] === '\n') {
@@ -256,14 +255,14 @@ export class ESObject extends ESPrimitive <Map<Primitive>> implements Iterable{
         return new cls(true);
     };
 
-    override __pipe__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ (props: IFuncProps, n: Primitive): Primitive | Error {
+    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__(): Error | Primitive {
+    override __iter__ = (): Error | Primitive => {
         // returns array of keys in the object
         return new ESArray(Object.keys(this.__value__).map(s => new ESString(s)));
     }

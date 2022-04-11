@@ -363,3 +363,12 @@ expect(['<Func>', [1, 2], {a: 2, b: 3}, [1, 3, [1, 2], {a: 2, b: 3}]], `
    	let b = {a: 2, b: 3};
     my_func(**a, **b);
 `);
+
+// #55
+expect('InvalidOperationError', `
+    nil();
+`);
+
+expect([undefined], `
+    nil?();
+`);

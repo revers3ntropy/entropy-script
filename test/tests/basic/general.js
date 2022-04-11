@@ -54,9 +54,21 @@ expect([1, 2], `let var n = 1; n = 2;`);
 expect('TypeError', `let n = 1; n = 2;`);
 expect('InvalidSyntaxError', `let n = 1; let n = 2;`);
 
-// modulo
+// %
 expect([3], `3 % 15`);
 expect([0], `15 % 3`);
 expect([1], `3 % 2`);
 expect([false], `3 % 2 == 0`);
 expect([false], `14 % 2 != 0`);
+
+// ??
+expect([1], `nil ?? 1`);
+expect([undefined], `nil ?? nil`);
+expect([1], `nil ?? 1 ?? nil`);
+expect([3], `3 ?? 4`);
+expect([0], `0 ?? 4`);
+expect([''], `'' ?? 4`);
+expect([[]], `[] ?? 4`);
+expect([{}], `{} ?? 4`);
+expect(['Null'], `Null ?? 4`);
+expect(['Null'], `nil ?? Null`);

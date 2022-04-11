@@ -10,9 +10,8 @@ import {ESPrimitive} from './esprimitive';
 import {ESString} from './primitives/string';
 import {ESType} from './primitives/type';
 import {ESNull} from './primitives/null';
-import type {NativeObj, Primitive} from './primitive';
 import { ESJSBinding } from "./primitives/jsbinding";
-import {Map, IFuncProps} from '../util/util';
+import { Map, IFuncProps, Primitive, NativeObj } from '../util/util';
 
 /**
  * Wrap anything in primitive.

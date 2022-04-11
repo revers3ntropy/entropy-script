@@ -44,12 +44,5 @@ expect('TypeError', `[] + (func () {})`);
 expect('TypeError', `+[]`);
 
 
-expect('TypeError', `[] - []`);
-expect('TypeError', `[0, 1] - [0, 1]`);
-expect('TypeError', `[] - 1`);
-expect('TypeError', `[] - ''`);
-expect('TypeError', `[] - nil`);
-expect('TypeError', `[] - Type`);
-expect('TypeError', `[] - Str`);
-expect('TypeError', `[] - (func () {})`);
-expect('TypeError', `-[]`);
+expect('InvalidOperationError', `[] - []`);
+expect('InvalidOperationError', `-[]`);

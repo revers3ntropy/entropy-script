@@ -21,6 +21,7 @@ export interface IFunctionInfo extends IPrimitiveInfo {
     returns?: string;
     returnType?: string;
     allow_args?: boolean;
+    allow_kwargs?: boolean;
 }
 
 export interface IObjectInfo extends IPrimitiveInfo {

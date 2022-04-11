@@ -116,7 +116,7 @@ async function runTerminal () {
 
 	if (input === 'help') {
 		// assume that the user wants help, so make it run the 'help' function.
-		input = 'help()';
+		input = 'help(*NoParam=1)';
 	}
 
 	let res = es.run(input, {
@@ -179,7 +179,7 @@ async function compile (path, outPath) {
 function welcomeMessage () {
 	console.log('Welcome to JS EntropyScript v' + es.VERSION);
 	console.log(`(Node ${process.versions.node}, V8 engine ${process.versions.v8})`);
-	console.log("Type 'exit' to exit");
+	console.log("Type 'exit' to exit, 'help' for more information");
 }
 
 async function main () {
