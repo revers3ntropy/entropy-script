@@ -204,6 +204,14 @@ export class N_binOp extends Node {
             case tt.DOUBLE_QM:
                 return new InterpretResult(l.__nilish__({context}, r));
 
+            case tt.IDENTIFIER:
+                if (this.opTok.value === 'in') {
+                    if (!r.__iterable__ || !('contains' in r)) {
+                        return new TypeError('Iterable', r.__type_name__(), str(r));
+                    }
+                    return new InterpretResult(r.contains({context}, l));
+                }
+
             default:
                 return new InvalidSyntaxError(
                     `Invalid binary operator: ${ttToStr[this.opTok.type]}`

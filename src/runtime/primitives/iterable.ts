@@ -7,6 +7,8 @@ export interface Iterable {
     len: (props: IFuncProps) => ESNumber | Error;
     __iter__: (props: IFuncProps) => Error | Primitive;
 
+    contains: (props: IFuncProps, val: Primitive) => ESBoolean | Error;
+
     // proposed methods
     map?: (props: IFuncProps) => (Iterable & Primitive) | Error;
     filter?: (props: IFuncProps) => (Iterable & Primitive) | Error;
@@ -14,7 +16,6 @@ export interface Iterable {
     indexof?: (props: IFuncProps) => ESNumber | Error;
     at?: (props: IFuncProps) => Primitive | Error;
     for?: (props: IFuncProps) => (Iterable & Primitive) | Error;
-    contains?: (props: IFuncProps, val: Primitive) => ESBoolean | Error;
     pop?: (props: IFuncProps) => Primitive | Error;
     reduce?: (props: IFuncProps) => Primitive | Error;
     reverse?: (props: IFuncProps) => (Iterable & Primitive) | Error;

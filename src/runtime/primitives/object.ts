@@ -270,5 +270,7 @@ export class ESObject extends ESPrimitive <Map<Primitive>> implements Iterable{
     len = () => {
         return new ESNumber(Object.keys(this.__value__).length);
     }
+
+    contains = this.has_property;
 }
 

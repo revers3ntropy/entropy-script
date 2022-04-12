@@ -131,4 +131,6 @@ export class Namespace extends ESPrimitive<Map<ESSymbol>> implements Iterable {
             ...Object.keys(this.__value__)
         ].map(s => new ESString(s));
     }
+
+    contains = this.has_property;
 }

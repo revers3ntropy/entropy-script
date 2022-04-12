@@ -39,7 +39,7 @@ export class ESString extends ESPrimitive <string> implements Iterable {
 
     override __add__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError('String', n.__type_name__(), n.__value__);
+            return new TypeError('Str', n.__type_name__(), n.__value__);
         }
         return new ESString(this.__value__ + n.__value__);
     };
@@ -57,13 +57,13 @@ export class ESString extends ESPrimitive <string> implements Iterable {
     };
     override __gt__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError('String', n.__type_name__(), n.__value__);
+            return new TypeError('Str', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__.length > n.__value__.length);
     };
     override __lt__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
-            return new TypeError('String', n.__type_name__(), n.__value__);
+            return new TypeError('Str', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__.length < n.__value__.length);
     };
@@ -101,11 +101,13 @@ export class ESString extends ESPrimitive <string> implements Iterable {
     };
 
     override __set__ = (props: IFuncProps, key: Primitive, value: Primitive) => {
-        if (!(key instanceof ESNumber))
+        if (!(key instanceof ESNumber)) {
             return;
+        }
 
-        if (!(value instanceof ESString))
+        if (!(value instanceof ESString)) {
             value = new ESString(str(value));
+        }
 
         let idx = key.__value__;
 
@@ -146,5 +148,12 @@ export class ESString extends ESPrimitive <string> implements Iterable {
         const res: (ESNumber | ESString)[] = Object.keys(this._).map(s => new ESString(s));
         res.push(...Object.keys(this.__value__).map(s => new ESNumber(parseInt(s))))
         return res;
+    }
+
+    contains = (props: IFuncProps, n: Primitive) => {
+        if (!(n instanceof ESString)) {
+            return new TypeError('Str', n.__type_name__(), n.__value__);
+        }
+        return new ESBoolean(this.__value__.includes(n.__value__));
     }
 }

@@ -10,16 +10,11 @@ import { Iterable } from "./iterable";
 import { ESTypeIntersection } from "./intersection";
 import { ESTypeUnion } from "./type";
 
-export class ESNumber extends ESPrimitive <number> implements Iterable {
-    override __iterable__ = true;
+export class ESNumber extends ESPrimitive <number> {
 
     constructor (value = 0) {
         super(value, types.number);
     }
-
-    len = () => {
-        return new ESNumber(this.__value__);
-    };
 
     override cast = (props: IFuncProps, type: Primitive): Primitive | Error => {
         switch (type) {
@@ -34,7 +29,9 @@ export class ESNumber extends ESPrimitive <number> implements Iterable {
         }
     }
 
-    override str = () => new ESString(this.__value__.toString());
+    override str = () => {
+        return new ESString(this.__value__.toString());
+    }
 
     override __add__ = (props: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
@@ -118,14 +115,6 @@ export class ESNumber extends ESPrimitive <number> implements Iterable {
     }
     override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
-    }
-
-    override __iter__ = (): Error | Primitive => {
-        const arr: ESNumber[] = [];
-        for (let i = 0; i < this.__value__; i++) {
-            arr.push(new ESNumber(i));
-        }
-        return new ESArray(arr);
     }
 
     override keys = () => {

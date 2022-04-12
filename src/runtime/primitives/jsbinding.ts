@@ -72,7 +72,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements Iterab
 
     override clone = (): Primitive => new ESJSBinding<T>(this.__value__);
 
-    override str = (props: IFuncProps, depth= new ESNumber): ESString => {
+    override str = (props: IFuncProps, depth = new ESNumber): ESString => {
         return new ESString(str(this.__value__, depth.__value__));
     };
 
@@ -140,7 +140,7 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements Iterab
             return new ESTypeError('function', typeof this.__value__, str(this));
         }
 
-       return tryCall(this.functionsTakeProps, this, '__value__', props, args, this.catchErrorsToPrimitive);
+        return tryCall(this.functionsTakeProps, this, '__value__', props, args, this.catchErrorsToPrimitive);
     };
 
     override has_property = (props: IFuncProps, key: Primitive): ESBoolean => {
@@ -177,4 +177,6 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements Iterab
             ...Object.keys(this.__value__)
         ].map(s => new ESString(s));
     }
+
+    contains = this.has_property;
 }

@@ -417,11 +417,9 @@ export class Parser {
             }
         }
 
-        const node = res.register(this.binOp(this.comparisonExpr, [tt.AND, tt.OR]));
-
-        if (res.error) return res;
-
-        return res.success(node);
+        return this.binOp(() => {
+            return this.binOp(this.comparisonExpr, [tt.AND, tt.OR]);
+        }, [[tt.IDENTIFIER, 'in']]);
     }
 
     /**
@@ -430,15 +428,21 @@ export class Parser {
      * Then checks that the current token matches the possible operators, and consumes it
      * Then uses the right-hand parsing function to get the right-hand side of the expression.
      */
-    private binOp = (func: () => ParseResults, ops: TokenType[] | [TokenType, string][], funcB=func): ParseResults => {
+    private binOp = <T=any>(func: () => ParseResults, ops: (TokenType | [TokenType, T])[], funcB=func): ParseResults => {
         const res = new ParseResults();
         let left = res.register(func());
         if (res.error) return res;
 
-        while (
-            ops.indexOf(this.currentToken.type as any) !== -1
-            || ops.indexOf([this.currentToken.type, this.currentToken.value] as any) !== -1
-        ) {
+        const self = this;
+        function checkMatch () {
+            return ops.indexOf(self.currentToken.type as any) !== -1 ||
+                ops.filter((t) => {
+                    if (typeof t === "number") return false;
+                    return t[0] === self.currentToken.type && t[1] === self.currentToken.value;
+                }).length > 0;
+        }
+
+        while (checkMatch()) {
             const opTok = this.currentToken;
             this.advance(res);
             const right = res.register(funcB());
