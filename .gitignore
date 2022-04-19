@@ -7,3 +7,5 @@ out.js
 out.py
 esconfig.json
 /build/
+*.log
+test.js

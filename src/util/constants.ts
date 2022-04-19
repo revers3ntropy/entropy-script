@@ -80,18 +80,18 @@ export const CLASS_KEYWORDS = [
     'abstract'
 ];
 
-export let now = () => Date.now();
+export let now = () => process.hrtime()[1] / 10**6 + process.hrtime()[0] * 10**3;
 export function refreshPerformanceNow (isNode = IS_NODE_INSTANCE) {
     if (!isNode) {
         now = () => {
             try {
                 return performance?.now();
             } catch (e) {
-                return Date.now();
+                return process.hrtime()[1] / 10**6 + process.hrtime()[0] * 10**3;
             }
         };
     } else {
-        now = () => Date.now();
+        now = () => process.hrtime()[1] / 10**6 + process.hrtime()[0] * 10**3;
     }
 }
 refreshPerformanceNow();

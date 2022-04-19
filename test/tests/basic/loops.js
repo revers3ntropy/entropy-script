@@ -45,7 +45,7 @@ expect ([0, undefined, 3], `
 `);
 expect ([undefined, undefined, 2], `
     let var output;
-    for i = 3 {
+    for i = range(3) {
         output = i;
     }
     output;

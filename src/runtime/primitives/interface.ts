@@ -14,7 +14,7 @@ export class ESInterface extends ESObject {
 
             let nValue: Primitive = new ESNull();
             if (n.has_property(props, new ESString(key))) {
-                let res = n.__get__(props, new ESString(key));
+                const res = n.__get__(props, new ESString(key));
                 if (res instanceof Error) return res;
                 nValue = res;
             }
@@ -45,7 +45,7 @@ export class ESInterface extends ESObject {
 
             let nValue: Primitive = new ESNull();
             if (n.has_property(props, new ESString(key))) {
-                let res = n.__get__(props, new ESString(key));
+                const res = n.__get__(props, new ESString(key));
                 if (res instanceof Error) return res;
                 nValue = res;
             }

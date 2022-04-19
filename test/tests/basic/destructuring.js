@@ -25,13 +25,12 @@ expect(['hi', 'h', 'i'], `
     a; b;
 `);
 
-expect([2, 0, 1], `
+expect('TypeError', `
     let [a, b] = 2;
-    a; b;
 `);
 
 expect('IndexError', `
-    let [a, b, c] = 2;
+    let [a, b, c] = range(2);
     a; b;
 `);
 

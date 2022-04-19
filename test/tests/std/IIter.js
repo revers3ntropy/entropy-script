@@ -1,12 +1,12 @@
 const {expect, file} = require( '../../testFramework');
 file('std/IIter');
 
-expect([[], {}, 1, ''], `
+expect([[], {}, '', {}, [0, 1, 2]], `
 	let a: IIterable = [];
 	let b: IIterable = {};
-	let c: IIterable = 1;
-	let d: IIterable = '';
-	let e: IIterable = namespace {};
+	let c: IIterable = '';
+	let d: IIterable = namespace {};
+	let e: IIterable = range(3);
 `);
 
 expect('TypeError', `
@@ -20,6 +20,9 @@ expect('TypeError', `
 `);
 expect('TypeError', `
 	let a: IIterable = 1 | 2;
+`);
+expect('TypeError', `
+	let a: IIterable = 1;
 `);
 expect('TypeError', `
 	let a: IIterable = Error();

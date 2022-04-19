@@ -28,6 +28,9 @@ export default class Position {
     }
 
     get str () {
+        if (this.isUnknown) {
+            return 'unknown';
+        }
         return `File ${this.file}, ${this.ln+1}:${this.col+1}`;
     }
 

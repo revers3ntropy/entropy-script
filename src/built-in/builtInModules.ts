@@ -1,10 +1,13 @@
 import type {ESFunction} from '../runtime/primitives/function';
 import type {ESType} from '../runtime/primitives/type';
+import type { ESNamespace } from "../runtime/primitives/namespace";
+import type { ESObject } from "../runtime/primitives/object";
+import type {NativeModuleBuilder} from './module';
+import type { Map } from "../util/util";
+
 import { IS_NODE_INSTANCE, libs } from '../util/constants';
 import {Error} from '../errors';
-import type {NativeModuleBuilder} from './module';
 import { ESJSBinding } from "../runtime/primitives/jsbinding";
-import type { Map } from "../util/util";
 
 // All modules
 // make this only import required modules in the future
@@ -14,9 +17,7 @@ import dom from './built-in-modules/dom';
 import time from './built-in-modules/time';
 import regex from "./built-in-modules/regex";
 
-import { Namespace } from "../runtime/primitives/namespace";
-
-export type modulePrimitive = ESJSBinding | Namespace | ESFunction | ESType;
+export type ModulePrim = ESJSBinding | ESNamespace | ESFunction | ESType | ESObject;
 
 const BIMs: Map<NativeModuleBuilder> = {
     ascii,
@@ -28,7 +29,7 @@ const BIMs: Map<NativeModuleBuilder> = {
 };
 
 // memoize the modules for faster access
-const initialisedModules: Map<modulePrimitive> = {};
+const initialisedModules: Map<ModulePrim> = {};
 
 export function initModules (): void | Error {
     if (!IS_NODE_INSTANCE) {
@@ -40,11 +41,11 @@ export function moduleExist (name: string): boolean {
     return name in BIMs || name in initialisedModules;
 }
 
-export function addModule (name: string, body: modulePrimitive): void {
+export function addModule (name: string, body: ModulePrim): void {
     initialisedModules[name] = body;
 }
 
-export function getModule (name: string): modulePrimitive | undefined | Error {
+export function getModule (name: string): ModulePrim | undefined | Error {
 
     if (name in initialisedModules) {
         return initialisedModules[name];

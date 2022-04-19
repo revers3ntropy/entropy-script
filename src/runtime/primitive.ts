@@ -7,7 +7,7 @@ import { strip } from './wrapStrip';
 import { types } from "../util/constants";
 import type { ESNumber } from "./primitives/number";
 
-export interface ESPrimitive<T> {
+export interface ESPrimitive <T> {
     __add__: (props: IFuncProps, n: Primitive) => Primitive | Error;
     __subtract__: (props: IFuncProps, n: Primitive) => Primitive | Error;
     __multiply__: (props: IFuncProps, n: Primitive) => Primitive | Error;

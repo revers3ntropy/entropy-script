@@ -61,7 +61,7 @@ export class Parser {
         }
     }
 
-    private get currentToken () {
+    private get currentToken() {
         return this.tokens[this.tokenIdx] as Token<any>;
     }
 
@@ -264,7 +264,7 @@ export class Parser {
     }
 
     /**
-     * <atom> ((()([)|(<|)|(.))?
+     * <atom> ((()([)|(<|)|(.))*
      * Call, index into or generic call an atom.
      */
     private compound = (base?: Node): ParseResults => {
@@ -316,16 +316,16 @@ export class Parser {
     }
 
     private unaryOp = () => {
-        let res = new ParseResults();
+        const res = new ParseResults();
 
-        let unaryOps = [tt.NOT, tt.QM, tt.BITWISE_NOT];
+        const unaryOps = [tt.NOT, tt.QM, tt.BITWISE_NOT];
 
         if (unaryOps.indexOf(this.currentToken.type) !== -1) {
             const unaryOp = this.currentToken;
             this.advance(res);
             // recurse instead of going to compound to allow chained unary ops
             // like !!false or ~~Str
-            let val = res.register(this.unaryOp());
+            const val = res.register(this.unaryOp());
             if (res.error) return res;
             return res.success(new n.N_unaryOp(unaryOp.pos, val, unaryOp));
         }
@@ -553,7 +553,8 @@ export class Parser {
         // @ts-ignore
         if (this.currentToken.type === tt.CPAREN) {
             this.advance(res);
-            return res.success(new n.N_functionCall(pos, to));
+            return res.success(new n.N_functionCall(
+                pos, to, [], [], {}, '__call__', optionallyChained));
         }
 
         const {args, definiteKwargs, indefiniteKwargs, error} = this.arguments(res);
@@ -1333,31 +1334,27 @@ export class Parser {
 
         if (res.error) return res;
 
-        // @ts-ignore - comparison again
-        if (this.currentToken.type !== tt.IDENTIFIER) {
-            return res.failure(new InvalidSyntaxError(
-                "Expected identifier"), this.currentToken.pos);
-        }
+        if (this.currentToken.type === tt.IDENTIFIER) {
+            const identifier = this.currentToken;
 
-        const identifier = this.currentToken;
-
-        this.advance(res);
-
-        if (this.currentToken.matches(tt.ASSIGN, '=')) {
             this.advance(res);
 
-            const array = res.register(this.expr());
-            if (res.error) return res;
+            if (this.currentToken.matches(tt.ASSIGN, '=')) {
+                this.advance(res);
 
-            const body = res.register(this.scope());
-            if (res.error) return res;
+                const array = res.register(this.expr());
+                if (res.error) return res;
 
-            this.addEndStatement(res);
-            if (res.error) return res;
+                const body = res.register(this.scope());
+                if (res.error) return res;
 
-            return res.success(new n.N_for(
-                pos, body, array, identifier, false, isConst
-            ));
+                this.addEndStatement(res);
+                if (res.error) return res;
+
+                return res.success(new n.N_for(
+                    pos, body, array, identifier, false, isConst
+                ));
+            }
         }
 
         while (!this.currentToken.matches(tt.IDENTIFIER, 'for')) {
@@ -1365,10 +1362,10 @@ export class Parser {
         }
         this.advance(res);
 
-        let comp = res.register(this.expr());
+        const comp = res.register(this.expr());
         if (res.error) return res;
 
-        let body = res.register(this.scope());
+        const body = res.register(this.scope());
         if (res.error) return res;
 
         this.addEndStatement(res);

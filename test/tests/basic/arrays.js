@@ -36,7 +36,7 @@ expect([[0, 1, 0, 1]], `[0, 1] + [0, 1]`);
 expect([[0, 1, '']], `[0, 1] + ['']`);
 expect([[0, 1, '', {}]], `[0, 1, ''] + [{}]`);
 expect('TypeError', `[] + 1`);
-expect('TypeError', `[] + ''`);
+expect([[]], `[] + ''`);
 expect('TypeError', `[] + nil`);
 expect('TypeError', `[] + Type`);
 expect('TypeError', `[] + Str`);
@@ -45,4 +45,4 @@ expect('TypeError', `+[]`);
 
 
 expect('InvalidOperationError', `[] - []`);
-expect('InvalidOperationError', `-[]`);
+expect('TypeError', `-[]`);

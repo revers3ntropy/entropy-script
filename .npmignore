@@ -18,6 +18,11 @@ out.js
 out.py
 esconfig.json
 
+*.js
+!cli.js
+
+*.log
+
 tsconfig.json
 webpack.config.js
 .gitignore

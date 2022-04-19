@@ -10,7 +10,7 @@ import {ESObject} from './primitives/object';
 import {ESString} from './primitives/string';
 import {ESType} from './primitives/type';
 import {ESNull} from './primitives/null';
-import {Namespace} from './primitives/namespace';
+import {ESNamespace} from './primitives/namespace';
 import {ESJSBinding} from "./primitives/jsbinding";
 
 import {types} from "../util/constants";
@@ -27,11 +27,10 @@ export {
     ESObject,
     ESType,
     ESNull,
-    Namespace,
+    ESNamespace,
     ESJSBinding,
 
     Primitive,
-
     IFunctionInfo
 };
 

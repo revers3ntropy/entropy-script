@@ -13,7 +13,7 @@ import { ESTypeIntersection } from "./intersection";
 import { ESTypeUnion } from "./type";
 import { str } from "../../util/util";
 
-export class Namespace extends ESPrimitive<Map<ESSymbol>> implements Iterable {
+export class ESNamespace extends ESPrimitive<Map<ESSymbol>> implements Iterable {
     public __mutable__: boolean;
     override __iterable__ = true;
 
@@ -41,7 +41,7 @@ export class Namespace extends ESPrimitive<Map<ESSymbol>> implements Iterable {
         for (const key of Object.keys(toClone)) {
             obj[key] = toClone[key];
         }
-        return new Namespace(this.name, obj);
+        return new ESNamespace(this.name, obj);
     }
 
     override str = (): ESString => {

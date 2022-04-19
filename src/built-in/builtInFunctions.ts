@@ -1,7 +1,7 @@
 import { Error, ImportError, TypeError, ReferenceError, PermissionRequiredError, InvalidRuntimeError } from "../errors";
 import { strip, wrap } from '../runtime/wrapStrip';
 import {
-    ESArray, ESErrorPrimitive, ESFunction, Namespace,
+    ESArray, ESErrorPrimitive, ESFunction, ESNamespace,
     ESNumber,
     ESObject,
     ESPrimitive,
@@ -100,8 +100,8 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
     }],
 
     help: [(props, ...things) => {
-        // Not very nice...
-
+        // Optional kwarg 'NoParam' which gets passed to help,
+        // which will force it to return the default help string rather than help on the nil only parameter
         if ('NoParam' in (props.kwargs ?? {})) {
             return new ESString(
                 'Visit https://entropygames.io/entropy-script for help\n' +
@@ -117,16 +117,15 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
                 return;
             }
             const info = thing.__info__;
-            out += `${chalk.yellow(`Help on '${info.name || '(anonymous)'}'`)}:
-    
-    ${chalk.yellow('Value')}: ${indent(indent(str(thing)))}
-    ${chalk.yellow('Type')}: '${str(thing.__type_name__())}'
-    ${chalk.yellow('Location')}: ${info.file || chalk.yellow('(unknown)')}
-    
-        ${chalk.green(info.description) || `No description.`}
-        
-    ${info.helpLink ? chalk.cyan(info.helpLink + '\n\n') : ''}
-`;
+
+            out += `${chalk.yellow(`Help on '${info.name || '(anonymous)'}'`)}:`;
+            out += `\n`;
+            out += `    ${chalk.yellow('Value')}: ${indent(indent(str(thing)))}`;
+            out += `    ${chalk.yellow('Type')}: '${str(thing.__type_name__())}'`;
+            out += `    ${chalk.yellow('Location')}: ${info.file || chalk.yellow('(unknown)')}`
+            out += `        ${chalk.green(info.description) || `No description.`}`
+            out += `    ${info.helpLink ? chalk.cyan(info.helpLink + '\n\n') : ''}`;
+
             if (info.args && thing instanceof ESFunction) {
                 const total = info.args.length;
                 const required = info.args.filter(a => a.required).length;
@@ -150,7 +149,7 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
                 }
             }
 
-            if (info.contents && (thing instanceof ESObject || thing instanceof Namespace)) {
+            if (info.contents && (thing instanceof ESObject || thing instanceof ESNamespace)) {
                 out += '    Properties: \n      ';
                 for (const contents of info.contents) {
                     out += contents.name + '\n      ';
@@ -211,7 +210,7 @@ export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {
     }],
 
     using: [(props: IFuncProps, module, global_) => {
-        if (!(module instanceof Namespace) && !(module instanceof ESJSBinding) && !(module instanceof ESObject)) {
+        if (!(module instanceof ESNamespace) && !(module instanceof ESJSBinding) && !(module instanceof ESObject)) {
             return new TypeError('Namespace', str(module.__type_name__()));
         }
 
@@ -332,7 +331,7 @@ export function addDependencyInjectedBIFs (
             return new TypeError('Str', rawUrl.__type_name__(), str(rawUrl));
         }
 
-        let scriptPath: string = str(rawUrl);
+        const scriptPath: string = str(rawUrl);
 
         if (config.permissions.useSTD && moduleExist(scriptPath)) {
             return getModule(scriptPath);
@@ -377,10 +376,13 @@ export function addDependencyInjectedBIFs (
         if (!(name instanceof ESString)) {
             return new TypeError('Str', name.__type_name__(), str(name));
         }
-        if (module.__type__ === types.object) {
-            addModule(str(name), new ESJSBinding(module.__value__, str(name), false));
-
-        } else if (module instanceof ESFunction || module instanceof ESType) {
+        if (
+            module instanceof ESFunction
+            || module instanceof ESType
+            || module instanceof ESObject
+            || module instanceof ESJSBinding
+            || module instanceof ESNamespace
+        ) {
             addModule(str(name), module);
 
         } else {

@@ -14,7 +14,6 @@
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
-const sql = require('sync-mysql');
 const readline = require('readline');
 const path = require('path');
 

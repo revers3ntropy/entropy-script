@@ -101,7 +101,7 @@ my_func();
 
 expect(['<Func>', 4], `
 let my_func = func (n, cb) {
-    while !cb(n) {
+    for !cb(n) {
         n = n - 1;
     }
     return n;
@@ -125,7 +125,7 @@ myOtherFunc();
 `);
 expect(['<Func>', 0], `
 let my_func = func (arr) {
-    for n in arr {
+    for n = arr {
         return n;
     }
 };
@@ -133,7 +133,7 @@ my_func([0, 1, 2, 3]);
 `);
 expect(['<Func>', 3], `
 let my_func = func (arr, cb) {
-    for n in arr {
+    for n = arr {
         if (cb(n)) {
             return n;
         }
@@ -348,7 +348,6 @@ expect(['<Func>', [1, 3, [1, 2], {a: 2, b: 3}]], `
     my_func(1, 2, **{a: 2, b: 3});
 `);
 
-// #50
 expect(['<Func>', {a: 2, b: 3}, [1, 3, [1, 2], {a: 2, b: 3}]], `
     func my_func (a: Num, *b: Num, *, **) 
     	[a, b, args, kwargs];
@@ -363,12 +362,10 @@ expect(['<Func>', [1, 2], {a: 2, b: 3}, [1, 3, [1, 2], {a: 2, b: 3}]], `
    	let b = {a: 2, b: 3};
     my_func(**a, **b);
 `);
-
-// #55
 expect('InvalidOperationError', `
     nil();
 `);
-
+// #55
 expect([undefined], `
     nil?();
 `);

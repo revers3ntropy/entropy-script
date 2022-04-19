@@ -10,7 +10,7 @@ import {
     ESBoolean,
     ESErrorPrimitive,
     ESFunction, ESJSBinding,
-    Namespace,
+    ESNamespace,
     ESNumber,
     ESObject,
     ESPrimitive,
@@ -1287,7 +1287,7 @@ export class N_functionCall extends Node {
                 continue;
             }
 
-            if (!(val instanceof Namespace) && !(val instanceof ESJSBinding) && !(val instanceof ESObject)) {
+            if (!(val instanceof ESNamespace) && !(val instanceof ESJSBinding) && !(val instanceof ESObject)) {
                 return new TypeError('Namespace', str(val.__type_name__()));
             }
 
@@ -1902,7 +1902,7 @@ export class N_namespace extends Node {
         const res = this.statements.interpret(newContext);
         if (res.error) return res;
 
-        const n = new Namespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
+        const n = new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {
