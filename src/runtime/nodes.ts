@@ -1746,17 +1746,21 @@ export class N_class extends Node {
 
     init: N_functionDefinition | undefined;
     methods: N_functionDefinition[];
+    staticMethods: N_functionDefinition[];
     name: string;
     extends_?: Node;
     isDeclaration: boolean;
     abstract: boolean;
     properties: Map<Node>;
+    staticProperties: Map<Node>;
     genericParams: IUninterpretedArgument[];
 
     constructor(
         pos: Position,
         methods: N_functionDefinition[],
         properties: Map<Node>,
+        staticMethods: N_functionDefinition[],
+        staticProperties: Map<Node>,
         genericParams: IUninterpretedArgument[],
         extends_?: Node,
         init?: N_functionDefinition,
@@ -1768,6 +1772,8 @@ export class N_class extends Node {
         this.name = name;
         this.methods = methods;
         this.properties = properties;
+        this.staticMethods = staticMethods;
+        this.staticProperties = staticProperties;
         this.genericParams = genericParams;
         this.init = init;
         this.extends_ = extends_;

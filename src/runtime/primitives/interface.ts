@@ -13,7 +13,7 @@ export class ESInterface extends ESObject {
             const thisType = this.__value__[key];
 
             let nValue: Primitive = new ESNull();
-            if (n.has_property(props, new ESString(key))) {
+            if (n.has_property(props, new ESString(key)).__value__) {
                 const res = n.__get__(props, new ESString(key));
                 if (res instanceof Error) return res;
                 nValue = res;

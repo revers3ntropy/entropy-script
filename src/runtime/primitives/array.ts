@@ -1,4 +1,4 @@
-import { EndIterator, Error, InvalidOperationError, TypeError } from '../../errors';
+import { EndIterator, Error, TypeError } from '../../errors';
 import { IFuncProps, Primitive, str } from '../../util/util';
 import { ESBoolean } from './boolean';
 import { ESNumber } from './number';
@@ -85,11 +85,11 @@ export class ESArray extends ESPrimitive <Primitive[]> implements Iterable {
 
         const arr = this.clone();
 
-        let iterator = n.__iter__(props);
+        const iterator = n.__iter__(props);
         if (iterator instanceof Error) return iterator;
 
         while (true) {
-            let element = iterator.__next__(props);
+            const element = iterator.__next__(props);
             if (element instanceof Error) {
                 return element;
             }

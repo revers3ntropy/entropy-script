@@ -102,10 +102,6 @@ export class ESType extends ESPrimitive <undefined> {
             return new ESBoolean(true);
         }
 
-        if (this.__extends__) {
-            return this.__extends__.__subtype_of__(props, t);
-        }
-
         for (let i = 0; i < t.__generic_types__.length; i++) {
             let thisGarg: Primitive = types.any;
             if (this.__generic_types__.length-1 <= i) {
@@ -121,7 +117,11 @@ export class ESType extends ESPrimitive <undefined> {
             }
         }
 
-        return new ESBoolean();
+        if (this.__extends__) {
+            return this.__extends__.__subtype_of__(props, t);
+        }
+
+        return new ESBoolean;
     }
 
     override __eq__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
@@ -203,11 +203,11 @@ export class ESType extends ESPrimitive <undefined> {
         return res[0];
     }
 
-    override __generic__ = (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive => {
-        const T = this.clone();
-        if (props.dontTypeCheck) return T;
-        T.__generic_types__ = parameters;
-        return T;
+    override __generic__ = (props: IFuncProps, ...args: Primitive[]): Error | Primitive => {
+        const generic = this.clone();
+        if (props.dontTypeCheck) return generic;
+        generic.__generic_types__ = args;
+        return generic;
     }
 }
 

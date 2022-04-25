@@ -50,7 +50,6 @@ async function init () {
 			https: [https, true],
 			http: [http, true],
 			fs: [fs, true],
-			mysql: [sql, true],
 			path: [path, true],
 			'node-fetch': [fetch, true]
 		}
@@ -144,7 +143,12 @@ async function runTerminal () {
 }
 
 async function compile (path, outPath) {
-	let {compileToJavaScript, compileToPython, error: parseErr} = es.parse(fs.readFileSync(path).toString());
+	let {
+		compileToJavaScript,
+		compileToPython,
+		error: parseErr
+	} = es.parse(fs.readFileSync(path).toString());
+
 	if (parseErr) {
 		console.log(parseErr.str);
 		return;

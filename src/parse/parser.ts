@@ -428,11 +428,12 @@ export class Parser {
      * Then checks that the current token matches the possible operators, and consumes it
      * Then uses the right-hand parsing function to get the right-hand side of the expression.
      */
-    private binOp = <T=any>(func: () => ParseResults, ops: (TokenType | [TokenType, T])[], funcB=func): ParseResults => {
+    private binOp = (func: () => ParseResults, ops: (TokenType | [TokenType, any])[], funcB=func): ParseResults => {
         const res = new ParseResults();
         let left = res.register(func());
         if (res.error) return res;
 
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this;
         function checkMatch () {
             return ops.indexOf(self.currentToken.type as any) !== -1 ||
@@ -1199,11 +1200,13 @@ export class Parser {
         const pos = this.currentToken.pos;
 
         const methods: n.N_functionDefinition[] = [];
+        const staticMethods: n.N_functionDefinition[] = [];
         let init: n.N_functionDefinition | undefined;
         let extends_: n.Node = new N_primitiveWrapper(types.object);
         let identifier: string | undefined;
         let abstract = false;
         const properties: Map<Node> = {};
+        const staticProperties: Map<Node> = {};
         let genericParams: IUninterpretedArgument[] = [];
 
         if (this.currentToken.matches(tt.IDENTIFIER, 'abstract')) {
@@ -1251,6 +1254,8 @@ export class Parser {
                 pos,
                 [],
                 {},
+                [],
+                {},
                 genericParams,
                 extends_,
                 undefined,
@@ -1261,6 +1266,12 @@ export class Parser {
         }
 
         while (this.currentToken.type === tt.IDENTIFIER) {
+
+            let isStatic = false;
+
+            if (this.currentToken.value === 'static') {
+                isStatic = true;
+            }
 
             const id = this.currentToken.value;
             this.advance(res);
@@ -1278,21 +1289,36 @@ export class Parser {
 
                 if (id === 'init') {
                     init = func;
-                } else {
+                } else if (!isStatic) {
                     methods.push(func);
                 }
 
-                properties[id] = new N_primitiveWrapper(types.function);
+                if (isStatic) {
+                    staticProperties[id] = new N_primitiveWrapper(types.function);
+                } else {
+                    properties[id] = new N_primitiveWrapper(types.function);
+                }
 
                 // @ts-ignore
             } else if (this.currentToken.type !== tt.COLON) {
                 this.consume(res, tt.END_STATEMENT);
                 if (res.error) return res;
-                properties[id] = new N_primitiveWrapper(types.any);
+                if (isStatic) {
+                    staticProperties[id] = new N_primitiveWrapper(types.any);
+                } else {
+                    properties[id] = new N_primitiveWrapper(types.any);
+                }
             } else {
                 this.consume(res, tt.COLON);
-                properties[id] = res.register(this.typeExpr());
+
+                const typeNode = res.register(this.typeExpr());
                 if (res.error) return res;
+                if (isStatic) {
+                    staticProperties[id] = typeNode;
+                } else {
+                    properties[id] = typeNode;
+                }
+
                 this.consume(res, tt.END_STATEMENT);
                 if (res.error) return res;
             }
@@ -1304,6 +1330,8 @@ export class Parser {
             pos,
             methods,
             properties,
+            staticMethods,
+            staticProperties,
             genericParams,
             extends_,
             init,

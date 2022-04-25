@@ -16,13 +16,6 @@ expect ([undefined, undefined, 2], `
     }
     res;
 `);
-expect ([undefined, undefined, 2], `
-    let var res;
-    for i = 3 {
-        res = i;
-    }
-    res;
-`);
 expect([[1]], 'range(1, 2)');
 expect([[1, 2, 3, 4]], 'range(1, 5)');
 expect([[-1]], 'range(-1, 0)');
