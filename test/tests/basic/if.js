@@ -38,8 +38,3 @@ expect([undefined, false, false], `
     }
     output;
 `);
-
-expect([true, 1], `
-    let a = true;
-    let b = if a { 1 } else { 2 };
-`);

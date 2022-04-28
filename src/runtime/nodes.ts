@@ -2,7 +2,7 @@ import { Token } from "../parse/tokens";
 import { EndIterator, Error, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
 import Position from "../position";
-import { CATCH_BLOCK_ERR_SYMBOL_ID, ICompileConfig, now, ttToStr, tt, types } from "../util/constants";
+import { CATCH_BLOCK_ERR_SYMBOL_ID, ICompileConfig, now, tt, ttAsStr, types } from "../util/constants";
 import { interpretArgument, IRuntimeArgument, IUninterpretedArgument } from "./argument";
 import { wrap } from './wrapStrip';
 import {
@@ -212,9 +212,10 @@ export class N_binOp extends Node {
                     return new InterpretResult(r.contains({context}, l));
                 }
 
+            // eslint-disable-next-line no-fallthrough
             default:
                 return new InvalidSyntaxError(
-                    `Invalid binary operator: ${ttToStr[this.opTok.type]}`
+                    `Invalid binary operator: ${this.opTok.str()}`
                 ).position(this.opTok.pos);
         }
     }
@@ -226,12 +227,12 @@ export class N_binOp extends Node {
         if (right.error) return right;
 
         if (config.minify) {
-            return new CompileResult(`${left.val}${ttToStr[this.opTok.type]}${right.val}`);
+            return new CompileResult(`${left.val}${this.opTok.str()}${right.val}`);
         }
-        return new CompileResult(`${left.val} ${ttToStr[this.opTok.type]} ${right.val}`);
+        return new CompileResult(`${left.val} ${this.opTok.str()} ${right.val}`);
     }
 
-    compilePy(config: ICompileConfig): CompileResult {
+    compilePy (config: ICompileConfig): CompileResult {
         const left = this.left.compilePy(config);
         if (left.error) return left;
         const right = this.right.compilePy(config);
@@ -243,7 +244,7 @@ export class N_binOp extends Node {
             '^': '**',
         };
 
-        let op = ttToStr[this.opTok.type];
+        let op = ttAsStr[this.opTok.type];
         if (op in switchers) {
             op = switchers[op];
         }
@@ -252,7 +253,7 @@ export class N_binOp extends Node {
     }
 
     str () {
-        return `(${this.left.str()} ${ttToStr[this.opTok.type]} ${this.right.str()})`;
+        return `(${this.left.str()} ${this.opTok.str()} ${this.right.str()})`;
     }
 }
 
@@ -292,7 +293,7 @@ export class N_unaryOp extends Node {
 
             default:
                 return new InvalidSyntaxError(
-                    `Invalid unary operator: ${ttToStr[this.opTok.type]}`
+                    `Invalid unary operator: ${this.opTok.str()}`
                 ).position(this.opTok.pos);
         }
     }
@@ -301,18 +302,18 @@ export class N_unaryOp extends Node {
         const val = this.a.compileJS(config);
         if (val.error) return val;
 
-        return new CompileResult(`${ttToStr[this.opTok.type]}${val.val}`);
+        return new CompileResult(`${this.opTok.str()}${val.val}`);
     }
 
     compilePy (config: ICompileConfig) {
         const val = this.a.compilePy(config);
         if (val.error) return val;
 
-        return new CompileResult(`${ttToStr[this.opTok.type]}${val.val}`);
+        return new CompileResult(`${this.opTok.str()}${val.val}`);
     }
 
     str () {
-        return `(${ttToStr[this.opTok.type]}${this.a.str()})`;
+        return `(${this.opTok.str()}${this.a.str()})`;
     }
 }
 
@@ -1888,12 +1889,12 @@ export class N_class extends Node {
 
 export class N_namespace extends Node {
 
-    public name: string;
+    public readonly name: Node;
     private readonly statements: Node;
     public mutable: boolean;
     private readonly isDeclaration: boolean;
 
-    constructor (pos: Position, statements: Node, name = '(anon)', mutable=false, isDeclaration=false) {
+    constructor (pos: Position, statements: Node, name: Node, mutable=false, isDeclaration=false) {
         super(pos);
         this.name = name;
         this.statements = statements;
@@ -1908,14 +1909,20 @@ export class N_namespace extends Node {
         const res = this.statements.interpret(newContext);
         if (res.error) return res;
 
-        const n = new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
+        const symbols = newContext.getSymbolTableAsDict();
 
         if (this.isDeclaration) {
-            if (context.hasOwn(this.name)) {
-                return new InvalidSyntaxError(`Cannot redeclare symbol '${this.name}'`);
+            if (this.name instanceof N_variable) {
+
+                const n = new ESNamespace(new ESString('(anon)'), symbols, this.mutable);
+
+                if (context.hasOwn(this.name)) {
+                    return new InvalidSyntaxError(`Cannot redeclare symbol '${this.name}'`);
+                }
+
+                context.setOwn(this.name, n);
             }
 
-            context.setOwn(this.name, n);
         }
 
         newContext.clear();

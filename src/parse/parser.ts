@@ -1,4 +1,4 @@
-import {CLASS_KEYWORDS, TokenType, ttToStr, tt, types, VAR_DECLARE_KEYWORDS} from '../util/constants';
+import { CLASS_KEYWORDS, TokenType, tt, ttAsStr, types, VAR_DECLARE_KEYWORDS } from '../util/constants';
 import { ParseResults } from './parseResults';
 import { Token } from "./tokens";
 import * as n from '../runtime/nodes';
@@ -17,6 +17,12 @@ import { ESType } from "../runtime/primitiveTypes";
 import { IUninterpretedArgument } from "../runtime/argument";
 import { Map } from "../util/util";
 
+interface IStatementsAllowed {
+    returns?: boolean;
+    continueBreak?: boolean;
+    topLevel?: boolean;
+}
+
 export class Parser {
     tokens: Token[];
     tokenIdx: number;
@@ -32,7 +38,7 @@ export class Parser {
             return new ParseResults();
         }
 
-        const res = this.statements(true);
+        const res = this.statements({topLevel: true});
 
         if (!res.error && this.currentToken?.type !== TokenType.EOF && !this.currentToken) {
             return res.failure(new InvalidSyntaxError(
@@ -41,7 +47,7 @@ export class Parser {
 
         if (!res.error && this.currentToken?.type !== TokenType.EOF) {
             return res.failure(new InvalidSyntaxError(
-                `Unexpected token of type '${ttToStr[this.currentToken?.type]}'`
+                `Unexpected token of type '${this.currentToken?.str()}'`
             ), this.currentToken?.pos);
         }
 
@@ -62,7 +68,7 @@ export class Parser {
     }
 
     private get currentToken() {
-        return this.tokens[this.tokenIdx] as Token<any>;
+        return this.tokens[this.tokenIdx] as Token;
     }
 
     private reverse = (amount = 1): Token => {
@@ -74,7 +80,7 @@ export class Parser {
         if (this.currentToken.type !== type)
             return res.failure(new InvalidSyntaxError(
                 errorMsg ??
-                `Expected '${ttToStr[type]}' but got '${ttToStr[this.currentToken.type]}'`
+                `Expected '${ttAsStr[type]}' but got '${this.currentToken.str()}'`
             ), this.currentToken.pos);
 
         this.advance(res);
@@ -86,14 +92,14 @@ export class Parser {
         }
     }
 
-    private statements = (topLevel = false): ParseResults => {
+    private statements = (allowed: IStatementsAllowed): ParseResults => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         const statements: Node[] = [];
 
         this.clearEndStatements(res);
 
-        const firstStatement = res.register(this.statement());
+        const firstStatement = res.register(this.statement(allowed));
         if (res.error) {
             return res;
         }
@@ -119,7 +125,7 @@ export class Parser {
                 break;
             }
 
-            const statement = res.tryRegister(this.statement());
+            const statement = res.tryRegister(this.statement(allowed));
             if (res.error) return res;
             if (!statement) {
                 this.reverse(res.reverseCount);
@@ -130,34 +136,37 @@ export class Parser {
 
         this.clearEndStatements(res);
 
-         const node = new n.N_statements(pos, statements, topLevel);
+         const node = new n.N_statements(pos, statements, allowed.topLevel);
 
         return res.success(node);
     }
 
-    private statement = () => {
+    private statement = (allowed: IStatementsAllowed) => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
-        if (this.currentToken.matches(tt.IDENTIFIER, 'return')) {
+        if (this.currentToken.matches(tt.IDENTIFIER, 'return') && allowed.returns) {
             return this.returnStatement(res);
 
-        } else if (this.currentToken.matches(tt.IDENTIFIER, 'yield')) {
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'yield') && allowed.returns) {
             return this.returnStatement(res, true);
 
-        } else if (this.currentToken.matches(tt.IDENTIFIER, 'break')) {
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'break') && allowed.continueBreak) {
             this.advance(res);
             return res.success(new n.N_break(pos));
 
-        } else if (this.currentToken.matches(tt.IDENTIFIER, 'continue')) {
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'continue') && allowed.continueBreak) {
             this.advance(res);
             return res.success(new n.N_continue(pos));
 
         } else if (this.currentToken.matches(tt.IDENTIFIER, 'try')) {
-            return this.tryCatch();
+            return this.tryCatch(allowed);
 
         } else if (this.currentToken.matches(tt.IDENTIFIER, 'for')) {
-            return this.forExpr();
+            return this.forExpr(allowed);
+
+        } else if (this.currentToken.matches(tt.IDENTIFIER, 'if')) {
+            return this.ifExpr(allowed);
         }
 
         const expr = res.register(this.expr());
@@ -248,17 +257,12 @@ export class Parser {
                 return res.success(objectExpr);
 
             case tt.IDENTIFIER:
-                if (tok.value === 'if') {
-                    const expr = res.register(this.ifExpr());
-                    if (res.error) return res;
-                    return res.success(expr);
-                }
                 this.advance();
                 return res.success(new n.N_variable(tok));
 
             default:
                 return res.failure(new InvalidSyntaxError(
-                    `Expected identifier, number, array, object literal, 'if', string or brackets but got ${ttToStr[this.currentToken.type]}`
+                    `Expected identifier, number, array, object literal, string or brackets but got ${this.currentToken.str()}`
                 ), this.currentToken.pos);
         }
     }
@@ -836,7 +840,7 @@ export class Parser {
     /**
      * <statements> surrounded by {}
      */
-    private scope = (): ParseResults => {
+    private scope = (allowed: IStatementsAllowed): ParseResults => {
         const res = new ParseResults();
 
         this.consume(res, tt.OBRACES);
@@ -851,7 +855,7 @@ export class Parser {
             this.advance(res);
             return res.success(new n.N_undefined(this.currentToken.pos));
         }
-        const expr = res.register(this.statements());
+        const expr = res.register(this.statements(allowed));
         if (res.error) {
             return res;
         }
@@ -874,7 +878,7 @@ export class Parser {
         this.advance(res);
     }
 
-    private ifExpr = (): ParseResults => {
+    private ifExpr = (allowed: IStatementsAllowed): ParseResults => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         let ifFalse;
@@ -889,7 +893,7 @@ export class Parser {
         if (res.error) return res;
 
 
-        const ifTrue = res.register(this.scope());
+        const ifTrue = res.register(this.scope(allowed));
         if (res.error) return res;
 
         this.clearEndStatements(res);
@@ -898,10 +902,10 @@ export class Parser {
             this.advance(res);
 
             if (this.currentToken.type == tt.OBRACES) {
-                ifFalse = res.register(this.scope());
+                ifFalse = res.register(this.scope(allowed));
                 if (res.error) return res;
             } else {
-                ifFalse = res.register(this.statement());
+                ifFalse = res.register(this.statement(allowed));
                 if (res.error) return res;
             }
         }
@@ -1147,7 +1151,10 @@ export class Parser {
 
             // @ts-ignore
             if (this.currentToken.type !== tt.CBRACES) {
-                body = res.register(this.statements());
+                body = res.register(this.statements({
+                    continueBreak: false,
+                    returns: true
+                }));
             } else {
                 body = new n.N_undefined(this.currentToken.pos);
             }
@@ -1341,7 +1348,7 @@ export class Parser {
         ));
     }
 
-    private forExpr = (): ParseResults => {
+    private forExpr = (allowed: IStatementsAllowed): ParseResults => {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
         let isConst = true;
@@ -1373,7 +1380,7 @@ export class Parser {
                 const array = res.register(this.expr());
                 if (res.error) return res;
 
-                const body = res.register(this.scope());
+                const body = res.register(this.scope(allowed));
                 if (res.error) return res;
 
                 this.addEndStatement(res);
@@ -1393,7 +1400,10 @@ export class Parser {
         const comp = res.register(this.expr());
         if (res.error) return res;
 
-        const body = res.register(this.scope());
+        const body = res.register(this.scope({
+            ...allowed,
+            continueBreak: true
+        }));
         if (res.error) return res;
 
         this.addEndStatement(res);
@@ -1497,7 +1507,7 @@ export class Parser {
                 if (res.error) return res;
                 if (this.currentToken.type !== tt.CSQUARE) {
                     return res.failure(new InvalidSyntaxError(
-                        `Expected ']', got '${ttToStr[this.currentToken.type]}'`), this.currentToken.pos);
+                        `Expected ']', got '${this.currentToken.str()}'`), this.currentToken.pos);
                 }
                 this.advance(res);
             } else {
@@ -1511,7 +1521,7 @@ export class Parser {
 
                 if (this.currentToken.type !== tt.COMMA && this.currentToken.type !== tt.CBRACES) {
                     return res.failure(new InvalidSyntaxError(
-                        `Expected ',' or '}', got '${ttToStr[this.currentToken.type]}'`
+                        `Expected ',' or '}', got '${this.currentToken.str()}'`
                     ), this.currentToken.pos);
                 }
 
@@ -1522,7 +1532,7 @@ export class Parser {
             } else {
                 if (this.currentToken.type !== tt.COMMA && this.currentToken.type !== tt.CBRACES) {
                     return res.failure(new InvalidSyntaxError(
-                        `Expected ',' or '}', got '${ttToStr[this.currentToken.type]}'`), this.currentToken.pos);
+                        `Expected ',' or '}', got '${this.currentToken.str()}'`), this.currentToken.pos);
                 }
 
                 if (keyType !== 'id') {
@@ -1579,7 +1589,10 @@ export class Parser {
             return res.success(new n.N_namespace(pos, new n.N_undefined()));
         }
 
-        const statements = res.register(this.statements());
+        const statements = res.register(this.statements({
+            returns: false,
+            continueBreak: false
+        }));
         if (res.error) return res;
 
         this.consume(res, tt.CBRACES);
@@ -1588,7 +1601,7 @@ export class Parser {
         return res.success(new n.N_namespace(pos, statements, name, false));
     }
 
-    private tryCatch = (): ParseResults => {
+    private tryCatch = (allowed: IStatementsAllowed): ParseResults => {
         const res = new ParseResults();
 
         this.consume(res, tt.IDENTIFIER);
@@ -1601,7 +1614,7 @@ export class Parser {
                 'No empty try block'), this.currentToken.pos);
         }
 
-        const body = res.register(this.statements());
+        const body = res.register(this.statements(allowed));
         if (res.error) return res;
 
         this.consume(res, tt.CBRACES);
@@ -1622,7 +1635,7 @@ export class Parser {
             return res.success(new N_tryCatch(this.currentToken.pos, body, new N_undefined()));
         }
 
-        const catchBlock = res.register(this.statements());
+        const catchBlock = res.register(this.statements(allowed));
         if (res.error) return res;
 
         this.consume(res, tt.CBRACES);

@@ -120,11 +120,4 @@ export class ESNumber extends ESPrimitive <number> {
     override keys = () => {
         return Object.keys(this).map(s => new ESString(s));
     }
-
-    override __call__ = (props: IFuncProps, ...args: Primitive[]) => {
-        if (args.length != 1) {
-            return new InvalidSyntaxError('Expected single expression');
-        }
-        return this.__multiply__(props, args[0]);
-    }
 }

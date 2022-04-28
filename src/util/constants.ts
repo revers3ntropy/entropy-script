@@ -150,7 +150,7 @@ export enum TokenType {
 
 export const tt = TokenType;
 
-export const ttToStr: EnumMap<TokenType, string> = {
+export const ttAsStr: EnumMap<TokenType, string> = {
     [tt.NUMBER]: 'ESNumber',
     [tt.STRING]: 'String',
     [tt.END_STATEMENT]: ';',
@@ -198,7 +198,7 @@ export const ttToStr: EnumMap<TokenType, string> = {
 
     [tt.OGENERIC]: '<|',
     [tt.CGENERIC]: '|>'
-}
+};
 
 export const SINGLE_TOKENS: Map<TokenType> = {
     '*': tt.ASTRIX,
