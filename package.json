@@ -1,22 +1,13 @@
 {
     "name": "entropy-script",
-    "version": "3.0.4b",
-    "description": "TS/JS interpreter for EntropyScript",
-    "license": "MIT",
-    "main": "build/stable.js",
     "author": {
         "name": "revers3ntropy",
         "url": "https://entropygames.io/entropy-script"
-    },
-    "bin": {
-        "entropy-script": "./bin/index.js",
-        "jses": "./bin/index.js"
     },
     "scripts": {
         "build": "node scripts/build",
         "test": "node scripts/test"
     },
-    "preferGlobal": true,
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^5.18.0",
         "@typescript-eslint/parser": "^5.18.0",

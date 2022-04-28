@@ -9,6 +9,9 @@ export interface ISymbolOptions {
     type?: Primitive
 }
 
+/**
+ * A symbol, which holds a primitive and some info about it.
+ */
 export class ESSymbol {
     isConstant: boolean;
     value: Primitive;

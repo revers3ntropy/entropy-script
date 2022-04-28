@@ -35,6 +35,10 @@ export {
 };
 
 
+/**
+ * Not very dry code, ik
+ * Adds descriptions and things to all the primitive data types
+ */
 export function initPrimitiveTypes () {
     types.type      = new ESType(true, 'Type');
     types.undefined = new ESType(true, 'Null');

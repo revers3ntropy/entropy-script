@@ -3,6 +3,9 @@ import Position from "./position";
 import { Primitive, str } from "./util/util";
 import chalk from "./util/colours";
 
+/**
+ * Call stack data for errors
+ */
 export interface TracebackFrame {
     position: Position;
     line: string;
@@ -20,6 +23,9 @@ export class Error {
         this.details = details;
     }
 
+    /**
+     * Tries to colour the warning, but this fails in lots of cases so is not default
+     */
     get colouredStr (): string {
         let out = '';
         if (this.traceback.length) {

@@ -13,7 +13,7 @@ import { ESJSBinding } from "../runtime/primitives/jsbinding";
 import chalk from "../util/colours";
 import {IS_NODE_INSTANCE, types} from '../util/constants';
 import {addModule, getModule, moduleExist} from './builtInModules';
-import { config } from "../config";
+import { Config } from "../config";
 import { ESInterface } from "../runtime/primitives/interface";
 
 export const builtInFunctions: Map<[BuiltInFunction, IFunctionInfo]> = {

@@ -1,3 +1,8 @@
+/**
+ * Position within a file.
+ * Stores column and row, filename, and index in file.
+ * Index used by lexer, rest used by error messages.
+ */
 export default class Position {
     file: string;
     idx: number;
@@ -11,6 +16,9 @@ export default class Position {
         this.file = file;
     }
 
+    /**
+     * Used by lexer to advance the current position one step.
+     */
     advance (currentChar='') {
         this.idx++;
         this.col++;
@@ -34,10 +42,17 @@ export default class Position {
         return `File ${this.file}, ${this.ln+1}:${this.col+1}`;
     }
 
+    /**
+     * Checks if the index is equal to the position of Position.void
+     * @returns {boolean}
+     */
     get isUnknown() {
         return this.idx === -2;
     }
 
+    /**
+     * Gets a void position for where a position is required, but not known.
+     */
     static get void () {
         return new Position(-2, -2, -2, '(unknown)');
     }

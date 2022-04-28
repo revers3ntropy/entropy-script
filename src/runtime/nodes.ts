@@ -2,7 +2,7 @@ import { Token } from "../parse/tokens";
 import { EndIterator, Error, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
 import Position from "../position";
-import { CATCH_BLOCK_ERR_SYMBOL_ID, ICompileConfig, now, ttToStr, tt, types } from "../util/constants";
+import { CATCH_BLOCK_ERR_SYMBOL_ID, ttToStr, tt, types } from "../util/constants";
 import { interpretArgument, IRuntimeArgument, IUninterpretedArgument } from "./argument";
 import { wrap } from './wrapStrip';
 import {
@@ -19,7 +19,7 @@ import {
     ESNull,
     Primitive
 } from "./primitiveTypes";
-import { Map, generateRandomSymbol, str } from '../util/util';
+import { Map, str } from '../util/util';
 import { ESTypeNot, ESTypeUnion } from "./primitives/type";
 
 export class InterpretResult {

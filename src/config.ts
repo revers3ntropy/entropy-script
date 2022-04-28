@@ -8,13 +8,18 @@ export type Permissions = {
     fileSystem: boolean,
 } & Map;
 
-export interface config {
+export interface Config {
     permissions: Permissions,
     modules: Map,
 }
 
 const AllowAny = Symbol('AllowAny');
 
+/**
+ * Gets the default permissions settings.
+ * Note that this is generally secure by default -
+ * no networking or filesystem for example
+ */
 export function defaultPermissions (): Permissions {
     return {
         networking: false,
@@ -33,6 +38,9 @@ export const config = {
     },
 };
 
+/**
+ * Converts a sequence of keys into a readable square-bracket indexing format
+ */
 function pathAsString (path: string[]) {
     let res = '[';
     for (const p of path) {
@@ -41,7 +49,13 @@ function pathAsString (path: string[]) {
     return res.substring(0, res.length-1);
 }
 
-function parsePartOfConfig (config: Map<any>, configJSON: Map<any>, path: string[]=[]) {
+/**
+ * Recursively looks at a config and tries to update another config based on it.
+ * @param config
+ * @param configJSON
+ * @param path the sequence of keys leading from the root JSON object
+ */
+function parsePartOfConfig (config: Map, configJSON: Map, path: string[] = []) {
     if (!config[AllowAny]) {
         const unknownProps = Object.keys(configJSON).filter(x => !(x in config));
 
@@ -66,6 +80,6 @@ function parsePartOfConfig (config: Map<any>, configJSON: Map<any>, path: string
     }
 }
 
-export function parseConfig (configJSON: Map<any>): void {
+export function parseConfig (configJSON: Map): void {
     parsePartOfConfig(config, configJSON);
 }

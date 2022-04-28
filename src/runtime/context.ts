@@ -6,6 +6,11 @@ import {ESSymbol, ISymbolOptions} from './symbol';
 import chalk from "../util/colours";
 import { types } from "../util/constants";
 
+/**
+ * A context for executing a node.
+ * Contains a map of symbols, and a parent context,
+ * to make a tree of contexts extending from a single root node.
+ */
 export class Context {
     private symbolTable: Map<ESSymbol> = {};
     private parent_: Context | undefined;

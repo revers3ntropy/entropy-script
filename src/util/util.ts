@@ -25,17 +25,6 @@ export type Map<T=any> = {
     [key in string | number | symbol]: T;
 };
 
-export interface ITimeData {
-    total: number,
-    lexerTotal: number,
-    parserTotal: number,
-    interpretTotal: number,
-    nodeMax: number,
-    nodeAvg: number,
-    nodeTotal: number,
-    interprets: number,
-}
-
 export type NativeObj = any;
 export type Primitive =
     ESPrimitive<NativeObj>

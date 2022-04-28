@@ -1,4 +1,4 @@
-import {CLASS_KEYWORDS, TokenType, ttToStr, tt, types, VAR_DECLARE_KEYWORDS} from '../util/constants';
+import {CLASS_KEYWORDS, TokenType, ttToStr, tt, types} from '../util/constants';
 import { ParseResults } from './parseResults';
 import { Token } from "./tokens";
 import * as n from '../runtime/nodes';
@@ -403,7 +403,7 @@ export class Parser {
         this.clearEndStatements(res);
 
         if (this.currentToken.type === tt.IDENTIFIER) {
-            if (VAR_DECLARE_KEYWORDS.indexOf(this.currentToken.value) !== -1) {
+            if (this.currentToken.value === 'let') {
                 return this.initiateVar(res);
 
             } else if (this.currentToken.value === 'func') {

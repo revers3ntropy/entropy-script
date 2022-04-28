@@ -2,6 +2,11 @@ import Position from "../position";
 import type {TokenType} from '../util/constants';
 import { NativeObj } from "../util/util";
 
+/**
+ * What the Lexer spits out an array of.
+ * The Lexer turns a string into an array of these.
+ * For example, you might have a string token with a value, or a '<' token.
+ */
 export class Token <T = unknown> {
     type: TokenType;
     value: T;

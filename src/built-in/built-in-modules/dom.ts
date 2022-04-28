@@ -2,7 +2,7 @@ import {IS_NODE_INSTANCE} from '../../util/constants';
 import {Error, InvalidRuntimeError, PermissionRequiredError, TypeError} from '../../errors';
 import { NativeModule, NativeModuleBuilder } from '../module';
 import { ESJSBinding } from "../../runtime/primitives/jsbinding";
-import { config } from "../../config";
+import { Config } from "../../config";
 
 const module: NativeModuleBuilder = (): NativeModule | Error => {
 

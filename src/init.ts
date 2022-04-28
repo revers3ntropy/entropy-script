@@ -2,7 +2,6 @@ import { addDependencyInjectedBIFs, builtInFunctions } from "./built-in/builtInF
 import { addModule, initModules } from './built-in/builtInModules';
 import {preloadModules} from './built-in/module';
 import addNodeBIFs from './built-in/nodeLibs';
-import {config} from './config';
 import { IS_NODE_INSTANCE, NativeObj, run } from './index';
 import { Context } from "./runtime/context";
 import { Error } from "./errors";
@@ -12,7 +11,18 @@ import {GLOBAL_CTX, refreshPerformanceNow, runningInNode, setGlobalContext, STD_
 import { Map } from "./util/util";
 import {libs as globalLibs} from "./util/constants";
 import { IRuntimeArgument } from "./runtime/argument";
+import { config } from "./config";
 
+/**
+ * Top level initialise function, which does a bunch on initialisation:
+ * - Setting global context
+ * - Setting the primitive types
+ * - Sorting out JS injected libraries
+ * - Adds built-in functions and constants to the global context
+ * - Adds built-in modules
+ * - Runs STD code
+ * - and a few more little things
+ */
 export default async function init ({
   print = console.log,
   input = () => void 0,

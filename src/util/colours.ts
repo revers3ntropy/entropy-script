@@ -1,5 +1,5 @@
 import { IS_NODE_INSTANCE } from "./constants";
-import type {Map} from './util';
+import type { Map } from './util';
 
 const codes: Map<number> = {
     red: 31,

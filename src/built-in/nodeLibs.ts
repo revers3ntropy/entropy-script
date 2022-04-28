@@ -11,7 +11,7 @@ import {
 } from '../runtime/primitiveTypes';
 import { IFuncProps, str } from "../util/util";
 import {InterpretResult} from "../runtime/nodes";
-import {config, libs, run, strip} from '../index';
+import {Config, libs, run, strip} from '../index';
 import { getModule, moduleExist } from './builtInModules';
 import { GLOBAL_CTX, types, VALID_FILE_ENCODINGS } from "../util/constants";
 

@@ -5,6 +5,7 @@ import type { ESType } from "../runtime/primitives/type";
 // @ts-ignore
 import PACKAGE_JSON from '../../package.json';
 
+// General string stuff
 export const DIGITS = '0123456789';
 export const IDENTIFIER_CHARS = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 export const ONE_LINE_COMMENT = '//';
@@ -12,6 +13,7 @@ export const MULTI_LINE_COMMENT_START = '/*';
 export const MULTI_LINE_COMMENT_END = '*/';
 export const WHITESPACE = ' \t\n';
 
+// the global execution scope
 export let GLOBAL_CTX: Context;
 export const setGlobalContext = (c: Context) => {
     GLOBAL_CTX = c;
@@ -19,11 +21,11 @@ export const setGlobalContext = (c: Context) => {
 
 export const STRING_SURROUNDS = ['\'', '`', '"'];
 
+// tries to tell if it is running in Node or the browser
 export let IS_NODE_INSTANCE = typeof window === 'undefined';
 export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 
-export const VAR_DECLARE_KEYWORDS = ['let'];
-
+// the current version of EntropyScript
 export const VERSION = PACKAGE_JSON['version'];
 
 export const CONFIG_FILE_NAME = 'esconfig.json';

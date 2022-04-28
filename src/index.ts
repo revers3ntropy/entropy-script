@@ -1,8 +1,8 @@
 import { Lexer } from "./parse/lexer";
 import { Parser } from "./parse/parser";
 import {
-    ICompileConfig,
     GLOBAL_CTX,
+    ICompileConfig,
     now,
     refreshPerformanceNow,
     runningInNode,
@@ -11,13 +11,13 @@ import {
 } from "./util/constants";
 import { Error } from "./errors";
 import Position from "./position";
-import { InterpretResult, Node } from "./runtime/nodes";
+import { InterpretResult } from "./runtime/nodes";
 import { ESArray } from "./runtime/primitiveTypes";
-import type { ITimeData } from "./util/util";
 import { Context } from "./runtime/context";
 import colours from './util/colours';
 
-import { config } from "./config";
+import { Config } from "./config";
+import init from './init';
 
 export * from './runtime/primitiveTypes';
 export {
@@ -28,10 +28,9 @@ export {
 export * from './errors';
 export * from './runtime/nodes';
 export * from './util/util';
-export {strip, wrap} from './runtime/wrapStrip';
-export {ESSymbol} from './runtime/symbol';
-export {parseConfig} from './config';
-import init from './init';
+export { strip, wrap } from './runtime/wrapStrip';
+export { ESSymbol } from './runtime/symbol';
+export { parseConfig } from './config';
 
 export {
     init,
@@ -40,43 +39,31 @@ export {
     now, refreshPerformanceNow,
     ICompileConfig,
     runningInNode,
-    config,
+    Config,
     Context,
     colours,
-    Position,
+    Position
 };
 
 /**
+ * Runs arbitrary code.
+ * Returns an InterpretResult, which holds an error and a value
  * @param {string} msg
  * @param {Context} env
  * @param {boolean} measurePerformance
  * @param {string} fileName
  * @param {string} currentDir
- * @returns {InterpretResult | ({timeData: ITimeData} & InterpretResult)}
+ * @returns {InterpretResult}
  */
 export function run (msg: string, {
     env = GLOBAL_CTX,
-    measurePerformance = false,
     fileName = '(unknown)',
     currentDir=''
-} = {}): InterpretResult | ({ timeData: ITimeData } & InterpretResult) {
+} = {}): InterpretResult {
 
     if (currentDir) {
         env.path = currentDir;
     }
-
-    const timeData: ITimeData = {
-        total: 0,
-        lexerTotal: 0,
-        parserTotal: 0,
-        interpretTotal: 0,
-        nodeMax: 0,
-        nodeAvg: 0,
-        nodeTotal: 0,
-        interprets: 0,
-    }
-
-    let start = now();
 
     if (!env.root.initialisedAsGlobal){
         const res = new InterpretResult();
@@ -94,8 +81,6 @@ export function run (msg: string, {
         res_.error = lexerRes;
         return res_;
     }
-    timeData.lexerTotal = now() - start;
-    start = now();
 
     const parser = new Parser(lexerRes);
     const res = parser.parse();
@@ -104,8 +89,6 @@ export function run (msg: string, {
         res_.error = res.error;
         return res_;
     }
-    timeData.parserTotal = now() - start;
-    start = now();
 
 
     if (!res.node) {
@@ -114,63 +97,5 @@ export function run (msg: string, {
         return res;
     }
 
-    const finalRes = res.node.interpret(env);
-    timeData.interpretTotal = now() - start;
-    timeData.total = now() - start;
-
-    if (measurePerformance) {
-        console.log(timeData);
-    }
-
-    return {...finalRes, timeData};
+    return res.node.interpret(env);
 }
-
-export function parse (code: string, {
-    fileName = '(unknown)',
-    currentDir=''
-} = {}) {
-
-    const lexer = new Lexer(code, fileName);
-    const lexerRes = lexer.generate();
-    if (lexerRes instanceof Error) {
-        return {
-            error: lexerRes
-        };
-    }
-
-    const parser = new Parser(lexerRes);
-    const res = parser.parse();
-    if (res.error) {
-        return {
-            error: res.error
-        };
-    }
-
-    if (!res.node) {
-        return {
-            error: new Error('Error', 'no output')
-        };
-    }
-
-    return {
-
-        interpret: (env=GLOBAL_CTX): InterpretResult => {
-            if (!res.node) throw 'res.node still undefined';
-
-            if (currentDir) {
-                env.path = currentDir;
-            }
-
-            if (!env.root.initialisedAsGlobal){
-                const res = new InterpretResult();
-                res.error = new Error('Uninitialised',
-                    'Global context has not been initialised with global values');
-                return res;
-            }
-
-            return res.node.interpret(env);
-        }
-    };
-}
-
-export { str } from "./util/util";
