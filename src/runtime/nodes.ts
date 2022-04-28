@@ -38,87 +38,46 @@ export class InterpretResult {
     }
 }
 
-export class CompileResult {
-    val = '';
-    // for hoisting declarations to the start of the file, gets added after STD
-    hoisted = '';
-    error: Error | undefined;
-
-    constructor (val?: string | Error) {
-        if (typeof val === 'string') {
-            this.val = val;
-        } else if (val) {
-            this.error = val;
-        }
-    }
-
-    register (node: Node, config: ICompileConfig): string {
-        const res = node.compilePy(config);
-        this.hoisted += res.hoisted;
-        if (res.error) {
-            this.error = res.error;
-            return '';
-        }
-        return res.val;
-    }
-}
-
 export abstract class Node {
-    pos: Position;
-    isTerminal;
-
-    static interprets = 0;
-    static totalTime = 0;
-    static maxTime = 0;
+    public pos: Position;
+    public isTerminal;
 
     protected constructor (pos: Position, isTerminal=false) {
         this.pos = pos;
         this.isTerminal = isTerminal;
     }
 
-    abstract interpret_ (context: Context): Error | InterpretResult;
+    protected abstract interpret_ (context: Context): Error | InterpretResult;
 
-    interpret (context: Context): InterpretResult {
-        const start = now();
+    public interpret (context: Context): InterpretResult {
         const res = new InterpretResult;
         const val = this.interpret_(context);
 
         if (val instanceof Error) {
             res.error = val;
 
-        } else if (val instanceof InterpretResult) {
-            res.val = val.val;
-            res.error = val.error;
-            res.funcReturn = val.funcReturn;
-            res.shouldBreak = val.shouldBreak;
-            res.shouldContinue = val.shouldContinue;
-
         } else {
-            res.val = val;
+            res.val = val.val;
+            {
+                res.error = val.error;
+                {
+                    res.funcReturn = val.funcReturn;
+                    {
+                        res.shouldBreak = val.shouldBreak;
+                        res.shouldContinue = val.shouldContinue;
+                    }
+                }
+            }
         }
 
         if (res.error && res.error.pos.isUnknown) {
             res.error.pos = this.pos;
         }
 
-        if (!(res.val instanceof ESPrimitive)) {
-            res.error = new TypeError('Primitive',
-                'Native JS value', str(res.val));
-            res.val = new ESNull();
-        }
-
         res.val.__info__.file ||= this.pos.file;
-
-        Node.interprets++;
-        const time = now() - start;
-        Node.totalTime += time;
-        if (time > Node.maxTime) Node.maxTime = time;
 
         return res;
     }
-
-    abstract compileJS (config: ICompileConfig): CompileResult;
-    abstract compilePy (config: ICompileConfig): CompileResult;
 
     abstract str(): string;
 }
@@ -137,7 +96,7 @@ export class N_binOp extends Node {
         this.right = right;
     }
 
-     interpret_(context: Context): Error | InterpretResult {
+     interpret_ (context: Context): Error | InterpretResult {
         const left = this.left.interpret(context);
         if (left.error) return left.error;
         const right = this.right.interpret(context);
@@ -219,38 +178,6 @@ export class N_binOp extends Node {
         }
     }
 
-    compileJS (config: ICompileConfig) {
-        const left = this.left.compileJS(config);
-        if (left.error) return left;
-        const right = this.right.compileJS(config);
-        if (right.error) return right;
-
-        if (config.minify) {
-            return new CompileResult(`${left.val}${ttToStr[this.opTok.type]}${right.val}`);
-        }
-        return new CompileResult(`${left.val} ${ttToStr[this.opTok.type]} ${right.val}`);
-    }
-
-    compilePy(config: ICompileConfig): CompileResult {
-        const left = this.left.compilePy(config);
-        if (left.error) return left;
-        const right = this.right.compilePy(config);
-        if (right.error) return right;
-
-        const switchers: Map<string> = {
-            '&&': 'and',
-            '||': 'or',
-            '^': '**',
-        };
-
-        let op = ttToStr[this.opTok.type];
-        if (op in switchers) {
-            op = switchers[op];
-        }
-
-        return new CompileResult(`${left.val} ${op} ${right.val}`);
-    }
-
     str () {
         return `(${this.left.str()} ${ttToStr[this.opTok.type]} ${this.right.str()})`;
     }
@@ -295,20 +222,6 @@ export class N_unaryOp extends Node {
                     `Invalid unary operator: ${ttToStr[this.opTok.type]}`
                 ).position(this.opTok.pos);
         }
-    }
-
-    compileJS (config: ICompileConfig) {
-        const val = this.a.compileJS(config);
-        if (val.error) return val;
-
-        return new CompileResult(`${ttToStr[this.opTok.type]}${val.val}`);
-    }
-
-    compilePy (config: ICompileConfig) {
-        const val = this.a.compilePy(config);
-        if (val.error) return val;
-
-        return new CompileResult(`${ttToStr[this.opTok.type]}${val.val}`);
     }
 
     str () {
@@ -514,59 +427,6 @@ export class N_varAssign extends Node {
         return res;
     }
 
-    compileJS (config: ICompileConfig) {
-        const val = this.value.compileJS(config);
-        if (val.error) return val;
-
-        let declaration = '';
-
-        if (this.isDeclaration) {
-            if (this.isGlobal) {
-                declaration = 'var';
-            } else if (this.isConstant) {
-                declaration = 'const';
-            } else {
-                declaration = 'let';
-            }
-        }
-
-        let assign = this.assignType;
-        if (assign !== '=') {
-            assign += '=';
-        }
-        if (config.minify) {
-            return new CompileResult(`${declaration} ${this.varNameTok.value}${assign}${val.val}`);
-        }
-        return new CompileResult(`${declaration} ${this.varNameTok.value} ${assign} ${val.val}`);
-    }
-
-    compilePy (config: ICompileConfig) {
-        const res = new CompileResult
-
-        const val = this.value.compilePy(config);
-        if (val.error) return val;
-        res.hoisted += val.hoisted;
-
-        let assign = this.assignType;
-        if (assign !== '=') {
-            assign += '=';
-        }
-
-
-        // if it is global, then define it at the top
-        if (this.isGlobal) {
-            res.hoisted += `${this.varNameTok.value}=None`;
-        }
-
-        if (config.minify) {
-            res.val = `${this.varNameTok.value}${assign}${val.val}`;
-        } else {
-            res.val = `${this.varNameTok.value} ${assign} ${val.val}`;
-        }
-
-        return res;
-    }
-
     str () {
         let assign = this.assignType;
         if (assign !== '=') {
@@ -681,33 +541,6 @@ export class N_destructAssign extends Node {
         return new InterpretResult(res.val);
     }
 
-    compileJS (config: ICompileConfig) {
-        const val = this.value.compileJS(config);
-        if (val.error) return val;
-
-        let declaration;
-
-        if (this.isGlobal) {
-            declaration = 'var';
-        } else if (this.isConstant) {
-            declaration = 'const';
-        } else {
-            declaration = 'let';
-        }
-
-        if (config.minify) {
-            return new CompileResult(`${declaration}[${this.varNames.join(',')}]=${val.val}`);
-        }
-        return new CompileResult(`${declaration} [${this.varNames.join(', ')}] = ${val.val}`);
-    }
-
-    compilePy (config: ICompileConfig) {
-        const val = this.value.compileJS(config);
-        if (val.error) return val;
-
-        return new CompileResult(`${this.varNames.join(', ')} = ${val.val}`);
-    }
-
     str () {
         return `(${this.varNames.join(', ')} = ${this.value.str()})`;
     }
@@ -743,74 +576,6 @@ export class N_if extends Node {
         newContext.clear();
 
         return res;
-    }
-
-    compileJS (config: ICompileConfig) {
-        const indent = ' '.repeat(config.indent);
-        const highIndent = ' '.repeat(config.indent+4);
-
-        config.indent += 4;
-
-        const statementRes = this.comparison.compileJS(config);
-        if (statementRes.error) return statementRes;
-
-        const ifTrueRes = this.ifTrue.compileJS(config);
-        if (ifTrueRes.error) return ifTrueRes;
-
-        if (!this.ifFalse) {
-            if (config.minify) {
-                return new CompileResult(`if(${statementRes.val}){${ifTrueRes.val}\n}`);
-            }
-            return new CompileResult(`if (${statementRes.val}) {\n${ifTrueRes.val}\n}`);
-        }
-
-        config.indent = highIndent.length;
-
-        const ifFalseRes = this.ifFalse.compileJS(config);
-        if (ifFalseRes.error) return ifFalseRes;
-
-        if (!(this.ifFalse instanceof N_statements)) {
-            ifFalseRes.val = highIndent + ifFalseRes.val;
-        }
-
-        if (config.minify) {
-            return new CompileResult(`if(${statementRes.val}){${ifTrueRes.val}}else{${ifFalseRes.val}}`);
-        }
-
-        return new CompileResult(
-            `if (${statementRes.val}) {\n${ifTrueRes.val}\n${indent}} else {\n${ifFalseRes.val}\n${indent}}`);
-    }
-
-    compilePy (config: ICompileConfig) {
-        const res = new CompileResult;
-
-        const indent = ' '.repeat(config.indent);
-        const highIndent = ' '.repeat(config.indent+4);
-
-        config.indent += 4;
-
-        const statementRes = this.comparison.compilePy(config);
-        if (statementRes.error) return statementRes;
-        res.hoisted += statementRes.hoisted;
-
-        const ifTrueRes = this.ifTrue.compilePy(config);
-        if (ifTrueRes.error) return ifTrueRes;
-        res.hoisted += ifTrueRes.hoisted;
-
-        if (!this.ifFalse) {
-            return new CompileResult(`if ${statementRes.val}:\n${highIndent}${ifTrueRes.val}`);
-        }
-
-        const ifFalseRes = this.ifFalse.compilePy(config);
-        if (ifFalseRes.error) return ifFalseRes;
-        res.hoisted += ifFalseRes.hoisted;
-
-        if (!(this.ifFalse instanceof N_statements)) {
-            ifFalseRes.val = highIndent + ifFalseRes.val;
-        }
-
-        return new CompileResult(
-            `if ${statementRes.val}:\n${ifTrueRes.val}\n${indent}else:\n${ifFalseRes.val}\n${indent}`);
     }
 
     str () {
@@ -849,38 +614,6 @@ export class N_while extends Node {
             }
         }
         return new InterpretResult(new ESNull());
-    }
-
-    compileJS (config: ICompileConfig) {
-
-        config.indent += 4;
-
-        const comparisonRes = this.comparison.compileJS(config);
-        if (comparisonRes.error) return comparisonRes;
-
-        const bodyRes = this.loop.compileJS(config);
-        if (bodyRes.error) return bodyRes;
-
-        if (config.minify) {
-            return new CompileResult(`while(${comparisonRes.val}){${bodyRes.val}}`);
-        }
-        return new CompileResult(`while (${comparisonRes.val}) {\n${bodyRes.val}}`);
-    }
-
-    compilePy (config: ICompileConfig) {
-        const res = new CompileResult;
-
-        const highIndent = ' '.repeat(config.indent || 0);
-
-        const comparisonRes = this.comparison.compilePy(config);
-        if (comparisonRes.error) return comparisonRes;
-        res.hoisted += comparisonRes.hoisted;
-
-        const bodyRes = this.loop.compilePy(config);
-        if (bodyRes.error) return bodyRes;
-        res.hoisted += bodyRes.hoisted;
-
-        return new CompileResult(`while ${comparisonRes.val}:\n${highIndent}${bodyRes.val}`);
     }
 
     str () {
@@ -949,54 +682,6 @@ export class N_for extends Node {
         return new InterpretResult(new ESNull());
     }
 
-    compileJS (config: ICompileConfig) {
-
-        const indent = ' '.repeat(config.indent);
-
-        config.indent += 4;
-
-        const iteratorRes = this.array.compileJS(config);
-        if (iteratorRes.error) return iteratorRes;
-
-        const bodyRes = this.body.compileJS(config);
-        if (bodyRes.error) return bodyRes;
-
-        let declaration = 'let';
-
-        if (this.isGlobalId) {
-            declaration = 'var';
-        } else if (this.isConstId) {
-            declaration = 'const';
-        }
-
-        if (config.minify) {
-            return new CompileResult(`for(${declaration} ${this.identifier.value} of ${iteratorRes.val}){${bodyRes.val}\n${indent}}`);
-        }
-
-        return new CompileResult(`for (${declaration} ${this.identifier.value} of ${iteratorRes.val}) {\n${bodyRes.val}\n${indent}}`);
-    }
-
-    compilePy (config: ICompileConfig) {
-        const res = new CompileResult;
-
-        config.indent += 4;
-
-        const iteratorRes = res.register(this.array, config);
-        if (res.error) return res;
-
-        const bodyRes = res.register(this.body, config);
-        if (res.error) return res;
-
-        // if it is global, then define it at the top
-        if (this.isGlobalId) {
-            res.hoisted += `${this.identifier.value}=None`;
-        }
-
-        res.val = `for ${this.identifier.value} in ${iteratorRes}:\n${bodyRes}`;
-
-        return res;
-    }
-
     str () {
         return '(for)';
     }
@@ -1033,28 +718,6 @@ export class N_array extends Node {
         return result;
     }
 
-    compileJS (config: ICompileConfig) {
-        const res = new CompileResult('[');
-        for (const item of this.items) {
-            const itemRes = item.compileJS(config);
-            if (itemRes.error) return itemRes;
-            res.val += itemRes.val + ',';
-        }
-        res.val += ']';
-        return res;
-    }
-
-    compilePy (config: ICompileConfig) {
-        const res = new CompileResult('[');
-        for (const item of this.items) {
-            const itemRes = res.register(item, config);
-            if (res.error) return res;
-            res.val += itemRes + ',';
-        }
-        res.val += ']';
-        return res;
-    }
-
     str () {
         let res = '([';
         for (const item of this.items) {
@@ -1089,40 +752,6 @@ export class N_objectLiteral extends Node {
         }
 
         return new InterpretResult(new ESObject(interpreted));
-    }
-
-    compileJS (config: ICompileConfig) {
-        const res = new CompileResult('{');
-        for (const [keyNode, valueNode] of this.properties) {
-            const value = valueNode.compileJS(config);
-            if (value.error) return value;
-
-            const key = keyNode.compileJS(config);
-            if (key.error) return key;
-
-            if (key.val && value.val) {
-                res.val += `[${key.val}]: ${value.val},`;
-            }
-        }
-        res.val += '}';
-        return res;
-    }
-
-    compilePy (config: ICompileConfig) {
-        const res = new CompileResult('{');
-        for (const [keyNode, valueNode] of this.properties) {
-            const value = res.register(valueNode, config);
-            if (res.error) return res;
-
-            const key = res.register(keyNode, config)
-            if (res.error) return res;
-
-            if (key && value) {
-                res.val += `${key}: ${value},`;
-            }
-        }
-        res.val += '}';
-        return res;
     }
 
     str () {
@@ -1178,44 +807,6 @@ export class N_statements extends Node {
 
             return result;
         }
-    }
-
-    compileJS (config: ICompileConfig) {
-        const res = new CompileResult;
-
-        const indent = ' '.repeat(config.indent);
-
-        res.val += indent;
-
-        for (const item of this.items) {
-
-            const itemRes = item.compileJS(config);
-            if (itemRes.error) return itemRes;
-            res.val += itemRes.val + ';';
-
-            if (!config.minify) {
-                res.val += '\n' + indent;
-            }
-        }
-        return res;
-    }
-
-    compilePy (config: ICompileConfig) {
-        const res = new CompileResult;
-
-        const indent = ' '.repeat(config.indent);
-
-        res.val += indent;
-
-        for (const item of this.items) {
-
-            const itemRes = res.register(item, config);
-            if (res.error) return res;
-
-            res.val += itemRes;
-            res.val += '\n' + indent;
-        }
-        return res;
     }
 
     str () {
@@ -1325,59 +916,6 @@ export class N_functionCall extends Node {
         return new InterpretResult(res);
     }
 
-    compileJS (config: ICompileConfig) {
-        const res = new CompileResult;
-
-        const funcRes = this.to.compileJS(config);
-        if (funcRes.error) return funcRes;
-        res.val = funcRes.val + '(';
-
-        for (const arg of this.arguments) {
-            const argRes = arg.compileJS(config);
-            if (argRes.error) return argRes;
-            res.val += argRes.val;
-            if (arg !== this.arguments[this.arguments.length-1]) {
-                res.val += ',';
-                if (!config.minify) {
-                    res.val += ' ';
-                }
-            }
-
-        }
-
-        res.val += ')';
-
-        return res;
-    }
-
-    compilePy (config: ICompileConfig) {
-        const res = new CompileResult;
-
-        const funcRes = res.register(this.to, config);
-        if (res.error) return res;
-
-        res.val = funcRes + '(';
-        for (const arg of this.arguments) {
-
-            const argRes = res.register(arg, config);
-            if (res.error) {
-                return res;
-            }
-
-            res.val += argRes;
-            // if it's not the last argument, add ', '
-            if (arg !== this.arguments[this.arguments.length-1]) {
-                res.val += ',';
-                if (!config.minify) {
-                    res.val += ' ';
-                }
-            }
-        }
-        res.val += ')';
-
-        return res;
-    }
-
     str () {
         let res = '(' + this.to.str() + '(';
 
@@ -1452,58 +990,6 @@ export class N_functionDefinition extends Node {
         return new InterpretResult(funcPrim);
     }
 
-    compileJS (config: ICompileConfig) {
-        const res = new CompileResult('function(');
-
-        for (const param of this.arguments) {
-            res.val += param.name + ',';
-            if (!config.minify) {
-                res.val += ' ';
-            }
-        }
-        if (config.minify) {
-            res.val += '){';
-        } else {
-            res.val += ') {\n';
-        }
-
-        const indent = ' '.repeat(config.indent);
-
-        config.indent += 4;
-        const bodyRes = this.body.compileJS(config);
-        if (bodyRes.error) return bodyRes;
-        res.val += `${bodyRes.val}\n${indent}}`;
-        return res;
-    }
-
-    compilePy (config: ICompileConfig) {
-        const res = new CompileResult;
-
-        const hoistedName = generateRandomSymbol(config.symbols);
-
-        res.hoisted = `def ${hoistedName}(`;
-
-        for (const param of this.arguments) {
-            res.hoisted += param.name + ',';
-            if (!config.minify) {
-                res.hoisted += ' ';
-            }
-        }
-
-        const indent = ' '.repeat(config.indent);
-
-        config.indent += 4;
-        const body = this.body.compilePy(config);
-        if (body.error) return body;
-
-        res.hoisted += `):\n${indent}${body.val}`;
-
-        res.hoisted = body.hoisted + res.hoisted;
-        res.val = hoistedName;
-
-        return res;
-    }
-
     str () {
         return '(func(){})';
     }
@@ -1529,22 +1015,6 @@ export class N_return extends Node {
 
         res.funcReturn = val.val;
         return res;
-    }
-
-    compileJS (config: ICompileConfig): CompileResult {
-        const valRes = this.value?.compileJS(config);
-        if (valRes?.error) return valRes;
-        return new CompileResult(`return(${valRes?.val})`);
-    }
-
-    compilePy (config: ICompileConfig): CompileResult {
-        const res = new CompileResult;
-        if (!this.value) {
-            return new CompileResult('return');
-        }
-        const valRes = res.register(this.value, config);
-        if (res.error) return res;
-        return new CompileResult(`return ${valRes}`);
     }
 
     str () {
@@ -1575,27 +1045,6 @@ export class N_yield extends Node {
         }
 
         return res;
-    }
-
-    compileJS (config: ICompileConfig): CompileResult {
-        const valRes = this.value?.compileJS(config);
-        if (!valRes || !valRes.val) {
-            return new CompileResult('');
-        }
-        return new CompileResult(`if(_=${valRes.val}){return(_))`);
-    }
-
-    compilePy (config: ICompileConfig): CompileResult {
-        if (!this.value) {
-            return new CompileResult('');
-        }
-
-        const res = new CompileResult;
-        const valRes = res.register(this.value, config);
-        if (!valRes) {
-            return new CompileResult('');
-        }
-        return new CompileResult(`if _ := ${valRes}: return _`);
     }
 
     str () {
@@ -1690,43 +1139,6 @@ export class N_indexed extends Node {
             finalVal = new ESNull();
         }
         return new InterpretResult(finalVal);
-    }
-
-    compileJS (config: ICompileConfig) {
-        const objectRes = this.base.compileJS(config);
-        if (objectRes.error) return objectRes;
-
-        const keyRes = this.index.compileJS(config);
-        if (keyRes.error) return keyRes;
-
-        if (!this.value) {
-            return new CompileResult(`${objectRes.val}[${keyRes.val}]`);
-        }
-
-        const valRes = this.value.compileJS(config);
-        if (valRes.error) return valRes;
-
-        return new CompileResult(`${objectRes.val}[${keyRes.val}]${this.assignType||'='}${valRes.val}`);
-    }
-
-    compilePy (config: ICompileConfig): CompileResult {
-        const res = new CompileResult;
-        const objectRes = res.register(this.base, config);
-        if (res.error) return res;
-
-        const keyRes = res.register(this.index, config);
-        if (res.error) return res;
-
-        if (!this.value) {
-            res.val = `${objectRes}[${keyRes}]`;
-            return res;
-        }
-
-        const valRes = res.register(this.value, config);
-        if (res.error) return res;
-
-        res.val = `${objectRes}[${keyRes}] ${this.assignType||'='} ${valRes}`;
-        return res;
     }
 
     str () {
@@ -1873,14 +1285,6 @@ export class N_class extends Node {
         return new InterpretResult(typePrim);
     }
 
-    compileJS () {
-        return new CompileResult('function(){return{};}');
-    }
-
-    compilePy () {
-        return new CompileResult(`class ${this.name}: pass`);
-    }
-
     str () {
         return 'class';
     }
@@ -1923,22 +1327,6 @@ export class N_namespace extends Node {
         return new InterpretResult(n);
     }
 
-    compileJS (config: ICompileConfig) {
-        const bodyRes = this.statements.compileJS(config);
-        if (bodyRes.error) return bodyRes;
-
-        return new CompileResult(`(() => {${bodyRes.val}})()`);
-    }
-
-    compilePy () {
-        const res = new CompileResult;
-        //const bodyRes = res.register(this.statements, config);
-        if (res.error) return res;
-
-        res.val = `'namespace'`;
-        return res;
-    }
-
     str () {
         return '(namespace {})';
     }
@@ -1976,32 +1364,6 @@ export class N_tryCatch extends Node {
         return new InterpretResult();
     }
 
-    compileJS (config: ICompileConfig) {
-        const bodyRes = this.body.compileJS(config);
-        if (bodyRes.error) return bodyRes;
-
-        const catchRes = this.catchBlock.compileJS(config);
-        if (catchRes.error) return catchRes;
-
-        return new CompileResult(`try{${bodyRes.val}}catch(${CATCH_BLOCK_ERR_SYMBOL_ID}){${catchRes.val}}`);
-    }
-
-    compilePy (config: ICompileConfig) {
-        const res = new CompileResult;
-
-        const bodyRes = res.register(this.body, config);
-        if (res.error) return res;
-
-        const catchRes = res.register(this.catchBlock, config);
-        if (res.error) return res;
-
-        const indent = ' '.repeat(config.indent);
-        const highIndent = ' '.repeat(config.indent + 1);
-
-        res.val = `try:\n${highIndent}${bodyRes}\n${indent}except:\n${highIndent}${catchRes}`;
-        return res;
-    }
-
     str () {
         return '(try {} catch {})';
     }
@@ -2020,14 +1382,6 @@ export class N_number extends Node {
         const res = new InterpretResult();
         res.val = new ESNumber(val);
         return res;
-    }
-
-    compileJS () {
-        return new CompileResult(this.a.value.toString());
-    }
-
-    compilePy () {
-        return new CompileResult(this.a.value.toString());
     }
 
     str () {
@@ -2049,13 +1403,6 @@ export class N_string extends Node {
         return new InterpretResult(new ESString(val));
     }
 
-    compileJS () {
-        return new CompileResult(`'${this.a.value}'`);
-    }
-
-    compilePy () {
-        return new CompileResult(`'${this.a.value}'`);
-    }
     str () {
         return '(' + this.a.value.toString() + ')';
     }
@@ -2091,22 +1438,6 @@ export class N_variable extends Node {
         return res;
     }
 
-    compileJS () {
-        let val = this.a.value.toString();
-        if (val === 'import') {
-            val = 'import_';
-        }
-        return new CompileResult(val);
-    }
-
-    compilePy (): CompileResult {
-        let val = this.a.value.toString();
-        if (val === 'import') {
-            val = 'import_';
-        }
-        return new CompileResult(val);
-    }
-
     str () {
         return '(' + this.a.value.toString() + ')';
     }
@@ -2124,13 +1455,6 @@ export class N_undefined extends Node {
         return res;
     }
 
-    compileJS () {
-        return new CompileResult('undefined');
-    }
-
-    compilePy () {
-        return new CompileResult('None');
-    }
     str () {
         return '(nil)';
     }
@@ -2147,13 +1471,6 @@ export class N_break extends Node {
         return res;
     }
 
-    compileJS () {
-        return new CompileResult('break');
-    }
-
-    compilePy () {
-        return new CompileResult('break');
-    }
     str () {
         return '(break)';
     }
@@ -2169,13 +1486,6 @@ export class N_continue extends Node {
         return res;
     }
 
-    compileJS () {
-        return new CompileResult('continue');
-    }
-
-    compilePy () {
-        return new CompileResult('continue');
-    }
     str () {
         return '(continue)';
     }
@@ -2184,22 +1494,15 @@ export class N_continue extends Node {
 export class N_primitiveWrapper extends Node {
     value: Primitive;
 
-    constructor(val: Primitive, pos = Position.void) {
+    constructor (val: Primitive, pos = Position.void) {
         super(pos, true);
         this.value = val;
     }
 
-    public interpret_(): InterpretResult {
+    interpret_(): InterpretResult {
         return new InterpretResult(this.value);
     }
 
-    compileJS () {
-        return new CompileResult(JSON.stringify(this.value.__value__));
-    }
-
-    compilePy () {
-        return new CompileResult(JSON.stringify(this.value.__value__));
-    }
     str () {
         return '(primitive)';
     }

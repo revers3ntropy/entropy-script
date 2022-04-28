@@ -2,12 +2,12 @@ import Position from "../position";
 import {
     DIGITS, DOUBLE_TOKENS,
     IDENTIFIER_CHARS,
-    KEYWORDS, MULTI_LINE_COMMENT_END, MULTI_LINE_COMMENT_START, SINGLE_TOKENS,
+    MULTI_LINE_COMMENT_END, MULTI_LINE_COMMENT_START, SINGLE_TOKENS,
     ONE_LINE_COMMENT,
     STRING_SURROUNDS, TRIPLE_TOKENS, tt, WHITESPACE,
 } from '../util/constants';
-import {Error, IllegalCharError} from "../errors";
-import {Token} from "./tokens";
+import { Error, IllegalCharError } from "../errors";
+import { Token } from "./tokens";
 
 function isDigit (n: string) {
     return (DIGITS+'._').includes(n);

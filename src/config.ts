@@ -6,11 +6,11 @@ export type Permissions = {
     accessDOM: boolean;
     useSTD: boolean;
     fileSystem: boolean,
-} & Map<any>;
+} & Map;
 
 export interface config {
     permissions: Permissions,
-    modules: Map<string | any>,
+    modules: Map,
 }
 
 const AllowAny = Symbol('AllowAny');
