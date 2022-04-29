@@ -11,9 +11,10 @@ import {
 } from '../runtime/primitiveTypes';
 import { IFuncProps, str } from "../util/util";
 import {InterpretResult} from "../runtime/nodes";
-import {Config, libs, run, strip} from '../index';
+import {libs, run, strip} from '../index';
 import { getModule, moduleExist } from './builtInModules';
 import { GLOBAL_CTX, types, VALID_FILE_ENCODINGS } from "../util/constants";
+import { config } from "../config";
 
 const open = (props: IFuncProps, path_: Primitive, encoding_: Primitive) => {
     if (!config.permissions.fileSystem) {

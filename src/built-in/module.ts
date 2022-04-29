@@ -1,4 +1,4 @@
-import {GLOBAL_CTX} from '../util/constants';
+import { GLOBAL_CTX, SCRIPT_EXT } from '../util/constants';
 import {ESBoolean, ESJSBinding, run} from '../index';
 import {Context} from '../runtime/context';
 import {InterpretResult} from '../runtime/nodes';
@@ -13,6 +13,9 @@ export type NativeModuleBuilder = (dependencies: Map) => NativeModule | Error;
 
 const loadedURls: Map<ModulePrim> = {};
 
+/**
+ * Pre-loads a module from a map of URLs
+ */
 export async function preloadModules (urls: Map): Promise<Error | undefined> {
 
     for (const name of Object.keys(urls)) {
@@ -27,8 +30,8 @@ export async function preloadModules (urls: Map): Promise<Error | undefined> {
             addModule(name, loadedURls[url]);
         }
 
-        if (url.substring(url.length-3) !== '.es') {
-            url = url + '.es';
+        if (url.substring(url.length-3) !== '.' + SCRIPT_EXT) {
+            url = url + '.' + SCRIPT_EXT;
         }
 
         try {
@@ -36,7 +39,7 @@ export async function preloadModules (urls: Map): Promise<Error | undefined> {
 
             const env = new Context();
             env.parent = GLOBAL_CTX;
-            env.set('__main__', new ESBoolean(), {
+            env.set('__main__', new ESBoolean(false), {
                 isConstant: true,
                 forceThroughConst: true,
                 global: true

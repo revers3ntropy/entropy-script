@@ -1,4 +1,4 @@
-import type {NativeModuleBuilder } from '../module';
+import type { NativeModuleBuilder } from '../module';
 
 const module: NativeModuleBuilder = () => RegExp;
 

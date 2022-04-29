@@ -113,7 +113,8 @@ async function runTerminal () {
 	}
 
 	if (input === 'help') {
-		// assume that the user wants help, so make it run the 'help' function.
+		// assume that the user wants help, so make it run the 'help' function with the NoParam option,
+		// so it displays the default welcome help message
 		input = 'help(*NoParam=1)';
 	}
 
@@ -142,43 +143,6 @@ async function runTerminal () {
 	runTerminal();
 }
 
-async function compile (path, outPath) {
-	let {
-		compileToJavaScript,
-		compileToPython,
-		error: parseErr
-	} = es.parse(fs.readFileSync(path).toString());
-
-	if (parseErr) {
-		console.log(parseErr.str);
-		return;
-	}
-
-	const options = {
-		minify: process.argv.indexOf('--minify') !== -1,
-		indent: 0,
-		symbols: []
-	}
-
-	let val, error;
-
-	if (process.argv.indexOf('--python') !== -1) {
-		const res = compileToPython(options);
-		val = res.val;
-		error = res.error;
-	} else {
-		const res = compileToJavaScript(options);
-		val = res.val;
-		error = res.error;
-	}
-
-	if (error) {
-		console.log(error.str);
-	}
-
-	fs.writeFileSync(outPath, val);
-}
-
 function welcomeMessage () {
 	console.log('Welcome to JS EntropyScript v' + es.VERSION);
 	console.log(`(Node ${process.versions.node}, V8 engine ${process.versions.v8})`);
@@ -187,11 +151,6 @@ function welcomeMessage () {
 
 async function main () {
 	await init();
-
-	const compileIdx = process.argv.indexOf('-compile');
-	if (compileIdx !== -1) {
-		return compile(process.argv[compileIdx+1], process.argv[compileIdx+2]);
-	}
 
 	if (process.argv.length === 2) {
 		welcomeMessage();

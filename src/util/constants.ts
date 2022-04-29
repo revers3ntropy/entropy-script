@@ -28,6 +28,8 @@ export const runningInNode = () => void (IS_NODE_INSTANCE = true);
 // the current version of EntropyScript
 export const VERSION = PACKAGE_JSON['version'];
 
+export const SCRIPT_EXT = 'es';
+
 export const CONFIG_FILE_NAME = 'esconfig.json';
 
 export const VALID_FILE_ENCODINGS: string[] = [

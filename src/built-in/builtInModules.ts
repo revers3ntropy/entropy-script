@@ -19,6 +19,7 @@ import regex from "./built-in-modules/regex";
 
 export type ModulePrim = ESJSBinding | ESNamespace | ESFunction | ESType | ESObject;
 
+// Built In Modules
 const BIMs: Map<NativeModuleBuilder> = {
     ascii,
     json,
@@ -33,18 +34,29 @@ const initialisedModules: Map<ModulePrim> = {};
 
 export function initModules (): void | Error {
     if (!IS_NODE_INSTANCE) {
+        // add the dom module if we are in a browser
         BIMs['dom'] = dom;
     }
 }
 
+/**
+ * Boolean of whether a module of that name exits
+ */
 export function moduleExist (name: string): boolean {
     return name in BIMs || name in initialisedModules;
 }
 
+/**
+ * Add a module
+ */
 export function addModule (name: string, body: ModulePrim): void {
     initialisedModules[name] = body;
 }
 
+/**
+ * Get a module.
+ * Returns an error if the module loader function returns an error
+ */
 export function getModule (name: string): ModulePrim | undefined | Error {
 
     if (name in initialisedModules) {
