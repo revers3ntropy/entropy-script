@@ -23,10 +23,20 @@ import { Map, str } from '../util/util';
 import { ESTypeNot, ESTypeUnion } from "./primitives/type";
 
 export class InterpretResult {
+    // The current value - always defined, set to null if not specified
     val: Primitive = new ESNull();
+
+    // Allows errors to be propagated back up the AST - not always defined, as there is not always an error
     error: Error | undefined;
+
+    // If a function returns a value then this needs to be stored seperately.
+    // If this is not undefined, then it should stop all the way up to the next function call,
+    // at which point it should be set to undefined again.
     funcReturn: Primitive | undefined;
+
+    // For the 'break' statement inside a loop
     shouldBreak = false;
+    // For the 'continue' statement inside a loop
     shouldContinue = false;
 
     constructor (val?: Primitive | Error) {
@@ -38,6 +48,12 @@ export class InterpretResult {
     }
 }
 
+/**
+ * A node in the Abstract Syntax Tree (AST).
+ * Each control statement, atom etc. has a node subclass of Node.
+ * Call the member function 'interpret' to traverse the AST,
+ * recursively executing the instructions associated with a node
+ */
 export abstract class Node {
     public pos: Position;
     public isTerminal;
@@ -47,29 +63,31 @@ export abstract class Node {
         this.isTerminal = isTerminal;
     }
 
+    /**
+     * As there is some overhead on every 'interpret' call,
+     * to reduce duplication, Node.interpret calls
+     * this private method interpret_ which is overriden for each Node subclass
+     */
     protected abstract interpret_ (context: Context): Error | InterpretResult;
 
+    /**
+     * Recursively walk the AST
+     */
     public interpret (context: Context): InterpretResult {
         const res = new InterpretResult;
         const val = this.interpret_(context);
 
         if (val instanceof Error) {
             res.error = val;
-
         } else {
             res.val = val.val;
-            {
-                res.error = val.error;
-                {
-                    res.funcReturn = val.funcReturn;
-                    {
-                        res.shouldBreak = val.shouldBreak;
-                        res.shouldContinue = val.shouldContinue;
-                    }
-                }
-            }
+            res.error = val.error;
+            res.funcReturn = val.funcReturn;
+            res.shouldBreak = val.shouldBreak;
+            res.shouldContinue = val.shouldContinue;
         }
 
+        // If the Error's Position is not known, then try to set it to the last known position
         if (res.error && res.error.pos.isUnknown) {
             res.error.pos = this.pos;
         }
@@ -79,11 +97,20 @@ export abstract class Node {
         return res;
     }
 
-    abstract str(): string;
+    /**
+     * For debugging
+     */
+    abstract str (): string;
 }
 
-// --- NON-TERMINAL NODES ---
+/*
+ * --- NON-TERMINAL NODES ---
+ * Nodes which call 'interpret' on other nodes.
+ */
 
+/**
+ * Any binary operator like '+', '??', 'in', or '&'
+ */
 export class N_binOp extends Node {
     left: Node;
     right: Node;
@@ -183,6 +210,9 @@ export class N_binOp extends Node {
     }
 }
 
+/**
+ * Unary operators are '?', '~', '+' and '-'
+ */
 export class N_unaryOp extends Node {
     a: Node;
     opTok: Token;

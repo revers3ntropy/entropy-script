@@ -61,10 +61,12 @@ export function run (msg: string, {
     currentDir=''
 } = {}): InterpretResult {
 
+    // set the path if one is passed
     if (currentDir) {
         env.path = currentDir;
     }
 
+    // check that the root runtime context is initialised as a global context
     if (!env.root.initialisedAsGlobal){
         const res = new InterpretResult();
         res.error = new Error(
@@ -74,6 +76,7 @@ export function run (msg: string, {
         return res;
     }
 
+    // Lex the input string and check for errors
     const lexer = new Lexer(msg, fileName);
     const lexerRes = lexer.generate();
     if (lexerRes instanceof Error) {
@@ -82,6 +85,7 @@ export function run (msg: string, {
         return res_;
     }
 
+    // Parse the result of the Lexer and check for errors
     const parser = new Parser(lexerRes);
     const res = parser.parse();
     if (res.error) {
@@ -91,11 +95,13 @@ export function run (msg: string, {
     }
 
 
+    // If empty AST, then just return an empty array as the final value
     if (!res.node) {
         const res = new InterpretResult();
         res.val = new ESArray([]);
         return res;
     }
 
+    // Returns the InterpretResult from traversing the AST
     return res.node.interpret(env);
 }
