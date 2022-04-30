@@ -1,11 +1,10 @@
-const {Test} = require('../test/testFramework.js');
+const { Test } = require('../test/testFramework.js');
 
 // libs for ES
 const es = require("../build/latest.js");
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
-const sql = require('sync-mysql');
 const readline = require('readline');
 const path = require('path');
 
@@ -43,8 +42,7 @@ async function importAll (dir='./test/tests') {
 	}
 }
 
-(async () => {
-
+async function main () {
 	await importAll();
 
 	const err = await es.init({
@@ -55,7 +53,6 @@ async function importAll (dir='./test/tests') {
 			https: [https, true],
 			http: [http, true],
 			fs: [fs, true],
-			mysql: [sql, true],
 			path: [path, true]
 		}
 	});
@@ -67,5 +64,6 @@ async function importAll (dir='./test/tests') {
 	}
 
 	console.log(Test.testAll().str(VERBOSE));
-})();
+}
 
+main();

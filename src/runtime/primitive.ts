@@ -1,7 +1,7 @@
-import {Error, InvalidOperationError, TypeError} from '../errors';
-import {ESBoolean} from './primitives/boolean';
-import type {ESString} from './primitives/string';
-import type {Info} from './info';
+import { Error, InvalidOperationError, TypeError } from '../errors';
+import { ESBoolean } from './primitives/boolean';
+import type { ESString } from './primitives/string';
+import type { Info } from './info';
 import { IFuncProps, NativeObj, Primitive, str } from '../util/util';
 import { strip } from './wrapStrip';
 import { types } from "../util/constants";

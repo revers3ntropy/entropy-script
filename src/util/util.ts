@@ -17,7 +17,7 @@ import { ESPrimitive } from "../runtime/primitive";
 import { IDENTIFIER_CHARS, GLOBAL_CTX } from './constants';
 
 
-export type EnumMap<T extends number, U=any> = {
+export type EnumMap<T extends number, U=unknown> = {
     [key in T]: U
 };
 

@@ -1,4 +1,4 @@
-import { Token } from "../parse/tokens";
+import Token from "../parse/tokens";
 import { EndIterator, Error, InvalidSyntaxError, ReferenceError, TypeError } from "../errors";
 import { Context } from './context';
 import Position from "../position";
@@ -79,7 +79,7 @@ export abstract class Node {
         return res;
     }
 
-    abstract str(): string;
+    abstract str (): string;
 }
 
 // --- NON-TERMINAL NODES ---
@@ -171,6 +171,7 @@ export class N_binOp extends Node {
                     return new InterpretResult(r.contains({context}, l));
                 }
 
+            // eslint-disable-next-line no-fallthrough
             default:
                 return new InvalidSyntaxError(
                     `Invalid binary operator: ${ttToStr[this.opTok.type]}`
@@ -1158,22 +1159,16 @@ export class N_class extends Node {
 
     init: N_functionDefinition | undefined;
     methods: N_functionDefinition[];
-    staticMethods: N_functionDefinition[];
     name: string;
     extends_?: Node;
     isDeclaration: boolean;
     abstract: boolean;
     properties: Map<Node>;
-    staticProperties: Map<Node>;
-    genericParams: IUninterpretedArgument[];
 
     constructor(
         pos: Position,
         methods: N_functionDefinition[],
         properties: Map<Node>,
-        staticMethods: N_functionDefinition[],
-        staticProperties: Map<Node>,
-        genericParams: IUninterpretedArgument[],
         extends_?: Node,
         init?: N_functionDefinition,
         name = '(anon)',
@@ -1184,9 +1179,6 @@ export class N_class extends Node {
         this.name = name;
         this.methods = methods;
         this.properties = properties;
-        this.staticMethods = staticMethods;
-        this.staticProperties = staticProperties;
-        this.genericParams = genericParams;
         this.init = init;
         this.extends_ = extends_;
         this.isDeclaration = isDeclaration;
@@ -1200,17 +1192,6 @@ export class N_class extends Node {
 
         const closure = new Context();
         closure.parent = context;
-
-        for (const p of this.genericParams) {
-            const interpretRes = interpretArgument(p, closure);
-            if (interpretRes instanceof Error) return interpretRes;
-            if (interpretRes.defaultValue) {
-                const setErr = closure.setOwn(interpretRes.name, interpretRes.defaultValue, {
-                    isConstant: true
-                });
-                if (setErr) return setErr;
-            }
-        }
 
         for (const method of this.methods) {
             const res = method.interpret(closure);

@@ -1,4 +1,4 @@
-import {ESString} from './primitives/string';
+import { ESString } from './primitives/string';
 import { IFuncProps, Primitive } from "../util/util";
 
 export interface ISymbolOptions {

@@ -1,15 +1,15 @@
 import { addDependencyInjectedBIFs, builtInFunctions } from "./built-in/builtInFunctions";
 import { addModule, initModules } from './built-in/builtInModules';
-import {preloadModules} from './built-in/module';
+import { preloadModules } from './built-in/module';
 import addNodeBIFs from './built-in/nodeLibs';
 import { IS_NODE_INSTANCE, NativeObj, run } from './index';
 import { Context } from "./runtime/context";
 import { Error } from "./errors";
 import { ESFunction, ESJSBinding, ESNull, initPrimitiveTypes } from './runtime/primitiveTypes';
 import loadGlobalConstants from "./built-in/globalConstants";
-import {GLOBAL_CTX, refreshPerformanceNow, runningInNode, setGlobalContext, STD_RAW, types} from './util/constants';
+import { GLOBAL_CTX, refreshPerformanceNow, runningInNode, setGlobalContext, STD_RAW, types } from './util/constants';
 import { Map } from "./util/util";
-import {libs as globalLibs} from "./util/constants";
+import { libs as globalLibs } from "./util/constants";
 import { IRuntimeArgument } from "./runtime/argument";
 import { config } from "./config";
 
