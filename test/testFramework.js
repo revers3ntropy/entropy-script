@@ -112,12 +112,8 @@ class Test {
             const testEnv = new es.Context();
             testEnv.parent = es.global;
             testEnv.path = path.resolve(__dirname);
-            console.log(test.batteryID);
-
             res.register(test, test.run(testEnv));
         }
-
-        console.log(es.now() - time);
 
         res.time = Math.round(es.now() - time);
 

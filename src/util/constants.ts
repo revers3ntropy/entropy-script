@@ -236,10 +236,7 @@ export const PROPS_TO_OVERRIDE_ON_PRIM: string[] = [
 
 // @ts-ignore
 import STD_ITER from 'raw-loader!../built-in/std/iter.es';
-// @ts-ignore
-import STD_TEST from 'raw-loader!../built-in/std/test.es';
 
 export const STD_RAW: string[] = [
-    STD_ITER,
-    STD_TEST
+    STD_ITER
 ];
