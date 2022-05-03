@@ -190,7 +190,5 @@ export function createInstance (
     }
 
     instance.__type__ = type;
-    type.__instances__.push(instance);
-
     return instance;
 }

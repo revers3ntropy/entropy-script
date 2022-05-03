@@ -20,7 +20,6 @@ export class ESType extends ESPrimitive <undefined> {
     readonly __extends__: undefined | ESType;
     readonly __methods__: ESFunction[];
     readonly __properties__: Map<Primitive>;
-    readonly __instances__: Primitive[] = [];
     readonly __abstract__: boolean;
 
     __generic_types__: Primitive[] = [];
@@ -169,7 +168,6 @@ export class ESType extends ESPrimitive <undefined> {
             }
         }
 
-        this.__instances__.push(res);
         return res;
     }
 

@@ -729,20 +729,21 @@ export class N_if extends Node {
     interpret_(context: Context): InterpretResult {
         const newContext = new Context();
         newContext.parent = context;
-        const res: InterpretResult = new InterpretResult();
+        let res: InterpretResult = new InterpretResult();
 
         const compRes = this.comparison.interpret(context);
         if (compRes.error) return compRes;
 
-        if (compRes.val?.bool({context}).__value__) {
-            return this.ifTrue.interpret(newContext);
+        if (compRes.val?.bool({ context }).__value__) {
+            res = this.ifTrue.interpret(newContext);
 
         } else if (this.ifFalse) {
-            return this.ifFalse.interpret(newContext);
+            res = this.ifFalse.interpret(newContext);
         }
 
         newContext.clear();
 
+        res.val = new ESNull();
         return res;
     }
 
@@ -1889,12 +1890,12 @@ export class N_class extends Node {
 
 export class N_namespace extends Node {
 
-    public readonly name: Node;
+    public name?: Node;
     private readonly statements: Node;
     public mutable: boolean;
     private readonly isDeclaration: boolean;
 
-    constructor (pos: Position, statements: Node, name: Node, mutable=false, isDeclaration=false) {
+    constructor (pos: Position, statements: Node, name?: Node, mutable=false, isDeclaration=false) {
         super(pos);
         this.name = name;
         this.statements = statements;
@@ -1914,19 +1915,21 @@ export class N_namespace extends Node {
         if (this.isDeclaration) {
             if (this.name instanceof N_variable) {
 
-                const n = new ESNamespace(new ESString('(anon)'), symbols, this.mutable);
+                const n = new ESNamespace(new ESString(this.name.a.value), symbols, this.mutable);
 
-                if (context.hasOwn(this.name)) {
+                if (context.hasOwn(this.name.a.value)) {
                     return new InvalidSyntaxError(`Cannot redeclare symbol '${this.name}'`);
                 }
 
-                context.setOwn(this.name, n);
-            }
+                context.setOwn(this.name.a.value, n);
 
+                newContext.clear();
+                return new InterpretResult(n);
+            }
         }
 
         newContext.clear();
-
+        const n = new ESNamespace(new ESString('(anon)'), symbols, this.mutable);
         return new InterpretResult(n);
     }
 

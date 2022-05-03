@@ -3,6 +3,7 @@ import { ParseResults } from './parseResults';
 import { Token } from "./tokens";
 import * as n from '../runtime/nodes';
 import {
+    N_class,
     N_functionDefinition, N_indexed,
     N_namespace,
     N_primitiveWrapper, N_string,
@@ -821,7 +822,7 @@ export class Parser {
         }
 
         if (expr instanceof N_namespace) {
-            expr.name = varName.value;
+            expr.name = new N_variable(varName.value);
             expr.mutable = !isConst;
         }
 
@@ -1571,14 +1572,14 @@ export class Parser {
         const res = new ParseResults();
         const pos = this.currentToken.pos;
 
-        let name: string | undefined;
+        let name: Node | undefined;
 
         this.consume(res, tt.IDENTIFIER);
         if (res.error) return res;
 
-        if (this.currentToken.type === tt.IDENTIFIER) {
-            name = this.currentToken.value;
-            this.advance(res);
+        if (this.currentToken.type !== tt.OBRACES) {
+            name = res.register(this.expr());
+            if (res.error) return res;
         }
 
         this.consume(res, tt.OBRACES);
@@ -1586,7 +1587,8 @@ export class Parser {
 
         if (this.currentToken.type === tt.CBRACES) {
             this.advance(res);
-            return res.success(new n.N_namespace(pos, new n.N_undefined()));
+            return res.success(new n.N_namespace(
+                pos, new n.N_undefined(), name, false, !!name));
         }
 
         const statements = res.register(this.statements({
@@ -1598,7 +1600,7 @@ export class Parser {
         this.consume(res, tt.CBRACES);
         if (res.error) return res;
 
-        return res.success(new n.N_namespace(pos, statements, name, false));
+        return res.success(new n.N_namespace(pos, statements, name, false, !!name));
     }
 
     private tryCatch = (allowed: IStatementsAllowed): ParseResults => {

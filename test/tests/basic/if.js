@@ -8,7 +8,7 @@ expect(['00', undefined], `
     let current_char = '00';
     if current_char == '>' {}
 `);
-expect([false, undefined, true, true], `
+expect([false, undefined, undefined, true], `
     let var result = false;
     let var output: Any;
     if result {
@@ -18,7 +18,7 @@ expect([false, undefined, true, true], `
     }
     output;
 `);
-expect([false, undefined, true, true], `
+expect([false, undefined, undefined, true], `
     let var result = false;
     let var output;
     if result {
@@ -28,7 +28,7 @@ expect([false, undefined, true, true], `
     }
     output;
 `);
-expect([undefined, false, false], `
+expect([undefined, undefined, false], `
     let var output: Any;
     if true {
         output = true;
