@@ -1,6 +1,6 @@
-import {CLASS_KEYWORDS, TokenType, ttToStr, tt, types} from '../util/constants';
+import { CLASS_KEYWORDS, TokenType, ttToStr, tt, types } from '../util/constants';
 import { ParseResults } from './parseResults';
-import { Token } from "./tokens";
+import Token from "./tokens";
 import * as n from '../runtime/nodes';
 import {
     N_functionDefinition, N_indexed,
@@ -215,12 +215,19 @@ export class Parser {
         return res.success(new n.N_return(pos, expr));
     }
 
+    /**
+     * The most basic part of any statement.
+     * For example, strings, numbers and identifiers are atoms.
+     * Opening brackets is parsed as an atom as well.
+     * Has the highest operator priority.
+     */
     private atom = () => {
         const res = new ParseResults();
         const tok = this.currentToken;
         const pos = this.currentToken?.pos;
 
         switch (tok.type) {
+            // Raw Values
             case tt.NUMBER:
                 this.advance(res);
                 return res.success(new n.N_number(pos, tok));
@@ -229,6 +236,7 @@ export class Parser {
                 this.advance(res);
                 return res.success(new n.N_string(pos, tok));
 
+            // Bracket expression
             case tt.OPAREN:
                 this.advance(res);
                 const expr = res.register(this.expr());
@@ -237,16 +245,19 @@ export class Parser {
                 if (res.error) return res;
                 return res.success(expr);
 
+            // Array literal
             case tt.OSQUARE:
                 const arrayExpr = res.register(this.array());
                 if (res.error) return res;
                 return res.success(arrayExpr);
 
+            // Object literal
             case tt.OBRACES:
                 const objectExpr = res.register(this.obLiteral());
                 if (res.error) return res;
                 return res.success(objectExpr);
 
+            // Identifier and 'if' statements
             case tt.IDENTIFIER:
                 if (tok.value === 'if') {
                     const expr = res.register(this.ifExpr());
@@ -273,12 +284,6 @@ export class Parser {
             base = res.register(this.atom());
         }
         if (res.error) return res;
-
-        if (this.currentToken.type === tt.OGENERIC) {
-            const call = res.register(this.makeGenericCall(base));
-            if (res.error) return res;
-            return this.compound(call);
-        }
 
         let optionallyChained = false;
         if (this.currentToken.type === tt.QM) {
@@ -424,7 +429,7 @@ export class Parser {
 
     /**
      * Does a binary operation.
-     * Takes a function to parse the left-hand side, which is immediately excecuted to get the left-hand side.
+     * Takes a function to parse the left-hand side, which is immediately executed to get the left-hand side.
      * Then checks that the current token matches the possible operators, and consumes it
      * Then uses the right-hand parsing function to get the right-hand side of the expression.
      */
@@ -571,37 +576,6 @@ export class Parser {
 
         return res.success(new n.N_functionCall(
             pos, to, args, indefiniteKwargs, definiteKwargs, '__call__', optionallyChained));
-    }
-
-    private makeGenericCall = (to: Node) => {
-        const res = new ParseResults();
-        const pos = this.currentToken.pos;
-
-        this.consume(res, tt.OGENERIC);
-        if (res.error) return res;
-
-        // @ts-ignore
-        if (this.currentToken.type === tt.CGENERIC) {
-            this.advance(res);
-            const node = new n.N_functionCall(pos, to);
-            node.functionType = '__generic__';
-            return res.success(node);
-        }
-
-        const { args, definiteKwargs, indefiniteKwargs, error } = this.arguments(res, false);
-        if (error) {
-            return res.failure(error);
-        }
-
-        // @ts-ignore
-        if (this.currentToken.type !== tt.CGENERIC) {
-            return res.failure(new InvalidSyntaxError(
-                "Expected ',' or '|>'"), this.currentToken.pos);
-        }
-
-        this.advance(res);
-
-        return res.success(new n.N_functionCall(pos, to, args, indefiniteKwargs, definiteKwargs, '__generic__'));
     }
 
     private makeIndex = (to: Node, optionallyChained=false) => {
@@ -1200,14 +1174,12 @@ export class Parser {
         const pos = this.currentToken.pos;
 
         const methods: n.N_functionDefinition[] = [];
-        const staticMethods: n.N_functionDefinition[] = [];
         let init: n.N_functionDefinition | undefined;
         let extends_: n.Node = new N_primitiveWrapper(types.object);
         let identifier: string | undefined;
         let abstract = false;
         const properties: Map<Node> = {};
         const staticProperties: Map<Node> = {};
-        let genericParams: IUninterpretedArgument[] = [];
 
         if (this.currentToken.matches(tt.IDENTIFIER, 'abstract')) {
             this.advance(res);
@@ -1227,17 +1199,6 @@ export class Parser {
             this.advance(res);
         }
 
-        if (this.currentToken.type === tt.OGENERIC) {
-            this.advance(res);
-            const paramRes = this.parameters(res);
-            if (res.error) return res;
-            if (paramRes) {
-                genericParams = paramRes.args;
-            }
-            this.consume(res, tt.CGENERIC);
-            if (res.error) return res;
-        }
-
         if (this.currentToken.matches(tt.IDENTIFIER, 'extends')) {
             this.advance(res);
 
@@ -1254,9 +1215,6 @@ export class Parser {
                 pos,
                 [],
                 {},
-                [],
-                {},
-                genericParams,
                 extends_,
                 undefined,
                 name,
@@ -1330,9 +1288,6 @@ export class Parser {
             pos,
             methods,
             properties,
-            staticMethods,
-            staticProperties,
-            genericParams,
             extends_,
             init,
             name,

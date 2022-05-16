@@ -1,5 +1,5 @@
 import Position from "../position";
-import type {TokenType} from '../util/constants';
+import type { TokenType } from '../util/constants';
 import { NativeObj } from "../util/util";
 
 /**
@@ -7,7 +7,7 @@ import { NativeObj } from "../util/util";
  * The Lexer turns a string into an array of these.
  * For example, you might have a string token with a value, or a '<' token.
  */
-export class Token <T = unknown> {
+export default class <T = unknown> {
     type: TokenType;
     value: T;
     pos: Position;
@@ -18,7 +18,7 @@ export class Token <T = unknown> {
         this.pos = pos;
     }
 
-    public matches(type: TokenType, val: NativeObj) {
+    public matches (type: TokenType, val: NativeObj) {
         return this.type === type && this.value === val;
     }
 }

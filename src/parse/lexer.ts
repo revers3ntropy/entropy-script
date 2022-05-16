@@ -4,10 +4,10 @@ import {
     IDENTIFIER_CHARS,
     MULTI_LINE_COMMENT_END, MULTI_LINE_COMMENT_START, SINGLE_TOKENS,
     ONE_LINE_COMMENT,
-    STRING_SURROUNDS, TRIPLE_TOKENS, tt, WHITESPACE,
+    STRING_SURROUNDS, tt, WHITESPACE,
 } from '../util/constants';
 import { Error, IllegalCharError } from "../errors";
-import { Token } from "./tokens";
+import Token from "./tokens";
 
 function isDigit (n: string) {
     return (DIGITS+'._').includes(n);
@@ -147,7 +147,7 @@ export class Lexer {
             this.advance();
         }
 
-        let tokType = tt.IDENTIFIER;
+        const tokType = tt.IDENTIFIER;
 
         return new Token(posStart, tokType, idStr);
     }
@@ -157,28 +157,16 @@ export class Lexer {
             return undefined;
         }
 
-        for (const triple in TRIPLE_TOKENS) {
-            if (triple[0] === this.currentChar)
-                if (triple[1] === this.text[this.position.idx + 1])
-                    if (triple[2] === this.text[this.position.idx + 2]) {
-                        const pos = this.position.clone;
-                        this.advance();
-                        this.advance();
-                        this.advance();
-
-                        return new Token(pos, TRIPLE_TOKENS[triple], undefined);
-                    }
-        }
-
         for (const double in DOUBLE_TOKENS) {
-            if (double[0] === this.currentChar)
+            if (double[0] === this.currentChar) {
                 if (double[1] === this.text[this.position.idx + 1]) {
-                        const pos = this.position.clone;
-                        this.advance();
-                        this.advance();
+                    const pos = this.position.clone;
+                    this.advance();
+                    this.advance();
 
-                        return new Token(pos, DOUBLE_TOKENS[double], undefined);
-                    }
+                    return new Token(pos, DOUBLE_TOKENS[double], undefined);
+                }
+            }
         }
 
         if (this.currentChar in SINGLE_TOKENS) {

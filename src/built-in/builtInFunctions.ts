@@ -11,8 +11,8 @@ import {
 import { BuiltInFunction, Map, IFuncProps, indent, sleep, str } from '../util/util';
 import { ESJSBinding } from "../runtime/primitives/jsbinding";
 import chalk from "../util/colours";
-import {IS_NODE_INSTANCE, types} from '../util/constants';
-import {addModule, getModule, moduleExist} from './builtInModules';
+import { IS_NODE_INSTANCE } from '../util/constants';
+import { addModule, getModule, moduleExist } from './builtInModules';
 import { ESInterface } from "../runtime/primitives/interface";
 import { config } from "../config";
 

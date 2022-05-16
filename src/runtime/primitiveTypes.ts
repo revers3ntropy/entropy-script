@@ -1,19 +1,19 @@
-import type {IFunctionInfo} from './info';
+import type { IFunctionInfo } from './info';
 
-import {ESPrimitive} from './primitive';
-import {ESArray} from './primitives/array';
-import {ESBoolean} from './primitives/boolean';
-import {ESErrorPrimitive} from './primitives/error';
-import {ESFunction} from './primitives/function';
-import {ESNumber} from './primitives/number';
-import {ESObject} from './primitives/object';
-import {ESString} from './primitives/string';
-import {ESType} from './primitives/type';
-import {ESNull} from './primitives/null';
-import {ESNamespace} from './primitives/namespace';
-import {ESJSBinding} from "./primitives/jsbinding";
+import { ESPrimitive } from './primitive';
+import { ESArray } from './primitives/array';
+import { ESBoolean } from './primitives/boolean';
+import { ESErrorPrimitive } from './primitives/error';
+import { ESFunction } from './primitives/function';
+import { ESNumber } from './primitives/number';
+import { ESObject } from './primitives/object';
+import { ESString } from './primitives/string';
+import { ESType } from './primitives/type';
+import { ESNull } from './primitives/null';
+import { ESNamespace } from './primitives/namespace';
+import { ESJSBinding } from "./primitives/jsbinding";
 
-import {types} from "../util/constants";
+import { types } from "../util/constants";
 import { Primitive } from "../util/util";
 
 export {

@@ -51,34 +51,6 @@ export const libs: Map<NativeObj> = {};
 
 export const CATCH_BLOCK_ERR_SYMBOL_ID = 'err';
 
-export const KEYWORDS = [
-    'var',
-    'let',
-    'global',
-
-    'if',
-    'else',
-
-    'while',
-    'for',
-    'in',
-    'continue',
-    'break',
-
-    'func',
-    'return',
-    'yield',
-
-    'abstract',
-    'class',
-    'extends',
-
-    'namespace',
-
-    'try',
-    'catch'
-];
-
 export const CLASS_KEYWORDS = [
     'class',
     'abstract'
@@ -147,9 +119,6 @@ export enum TokenType {
 
     QM,
     DOUBLE_QM,
-
-    OGENERIC,
-    CGENERIC
 }
 
 export const tt = TokenType;
@@ -198,10 +167,7 @@ export const ttToStr: EnumMap<TokenType, string> = {
     [tt.PIPE]: '|',
     [tt.BITWISE_NOT]: '~',
     [tt.QM]: '?',
-    [tt.DOUBLE_QM]: '??',
-
-    [tt.OGENERIC]: '<|',
-    [tt.CGENERIC]: '|>'
+    [tt.DOUBLE_QM]: '??'
 }
 
 export const SINGLE_TOKENS: Map<TokenType> = {
@@ -242,13 +208,7 @@ export const DOUBLE_TOKENS: Map<TokenType> = {
     '/=': tt.ASSIGN,
     '&&': tt.AND,
     '||': tt.OR,
-    '<|': tt.OGENERIC,
-    '|>': tt.CGENERIC,
     '??': tt.DOUBLE_QM
-};
-
-export const TRIPLE_TOKENS: Map<TokenType> = {
-
 };
 
 export const PROPS_TO_OVERRIDE_ON_PRIM: string[] = [
@@ -276,10 +236,7 @@ export const PROPS_TO_OVERRIDE_ON_PRIM: string[] = [
 
 // @ts-ignore
 import STD_ITER from 'raw-loader!../built-in/std/iter.es';
-// @ts-ignore
-import STD_TEST from 'raw-loader!../built-in/std/test.es';
 
 export const STD_RAW: string[] = [
-    STD_ITER,
-    STD_TEST
+    STD_ITER
 ];

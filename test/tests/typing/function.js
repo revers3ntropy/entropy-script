@@ -1,4 +1,4 @@
-const {expect, file} = require( '../../testFramework');
+const { expect, file } = require( '../../testFramework');
 file('typing/function');
 
 expect(['<Func>', 'hi'], `
@@ -72,9 +72,6 @@ expect('TypeError', `
 `);
 expect('TypeError', `
     let my_func: (func () Str) = func (): (1 | 'hi') 1;
-`);
-expect(['<Func>'], `
-    let my_func: (func () ~Str) = func (): Num {};
 `);
 expect('TypeError', `
     let my_func: (func () ~Str) = func (): Str '';

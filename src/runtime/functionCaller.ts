@@ -2,7 +2,7 @@ import { Map, NativeObj, str } from '../util/util';
 import { Node } from "./nodes";
 import { Context, generateESFunctionCallContext } from "./context";
 import { Error, TypeError } from "../errors";
-import {ESFunction, ESNumber, ESObject, ESPrimitive, ESNull, Primitive} from './primitiveTypes';
+import { ESFunction, ESNumber, ESObject, ESPrimitive, ESNull, Primitive } from './primitiveTypes';
 
 function callNode (self: ESFunction, context: Context, fn: Node, dontTypeCheck: boolean) {
 

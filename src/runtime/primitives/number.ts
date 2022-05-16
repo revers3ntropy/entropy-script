@@ -6,7 +6,6 @@ import {ESPrimitive} from '../primitive';
 import { IFuncProps, Primitive, str } from '../../util/util';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
-import { Iterable } from "./iterable";
 import { ESTypeIntersection } from "./intersection";
 import { ESTypeUnion } from "./type";
 

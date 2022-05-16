@@ -1,5 +1,6 @@
 {
-    "name": "entropy-script",
+    "name": "entropy-script-nea",
+    "version": "0.0.1-NEA",
     "author": {
         "name": "revers3ntropy",
         "url": "https://entropygames.io/entropy-script"

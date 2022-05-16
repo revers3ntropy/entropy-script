@@ -1,7 +1,7 @@
-import {IS_NODE_INSTANCE} from './util/constants';
+import { IS_NODE_INSTANCE } from './util/constants';
 import Position from "./position";
 import { Primitive, str } from "./util/util";
-import chalk from "./util/colours";
+import colour from "./util/colours";
 
 /**
  * Call stack data for errors
@@ -29,12 +29,12 @@ export class Error {
     get colouredStr (): string {
         let out = '';
         if (this.traceback.length) {
-            out = chalk.yellow('Error Traceback (most recent call last):\n');
+            out = colour.yellow('Error Traceback (most recent call last):\n');
             for (const pos of [...this.traceback].reverse())
-                out += `    ${chalk.cyan(pos.position.str)}:\n        ${pos.line}\n`;
+                out += `    ${colour.cyan(pos.position.str)}:\n        ${pos.line}\n`;
         }
 
-        out += `${chalk.red(this.name)}: ${this.details} \n at ${chalk.cyan(this.pos.str)}`;
+        out += `${colour.red(this.name)}: ${this.details} \n at ${colour.cyan(this.pos.str)}`;
         return out;
     }
 
