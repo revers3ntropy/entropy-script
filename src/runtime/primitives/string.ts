@@ -10,6 +10,11 @@ import { Iterable } from "./iterable";
 import { ESTypeIntersection } from "./intersection";
 import { ESTypeUnion } from "./type";
 
+
+/**
+ * Instances of these are strings.
+ * They are all type 'Str'
+ */
 export class ESString extends ESPrimitive <string> implements Iterable {
 
     override __iterable__ = true;

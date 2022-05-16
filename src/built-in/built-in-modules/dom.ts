@@ -1,8 +1,9 @@
-import {IS_NODE_INSTANCE} from '../../util/constants';
-import {Error, InvalidRuntimeError, PermissionRequiredError, TypeError} from '../../errors';
+import { IS_NODE_INSTANCE } from '../../util/constants';
+import { Error, InvalidRuntimeError, PermissionRequiredError, TypeError } from '../../errors';
 import { NativeModule, NativeModuleBuilder } from '../module';
 import { ESJSBinding } from "../../runtime/primitives/jsbinding";
 import { config } from "../../config";
+
 
 const module: NativeModuleBuilder = (): NativeModule | Error => {
 
@@ -17,7 +18,8 @@ const module: NativeModuleBuilder = (): NativeModule | Error => {
     const w: (Window & typeof globalThis & {$?: unknown}) | undefined = window;
 
     if (typeof w === 'undefined') {
-        return new TypeError('Object', 'undefined', 'window', 'Window is undefined! ES expected to be in a browser.');
+        return new TypeError('Object', 'undefined', 'window',
+            'Window is undefined! ES expected to be in a browser.');
     }
 
     if (!('$' in w)) {
@@ -26,7 +28,6 @@ const module: NativeModuleBuilder = (): NativeModule | Error => {
             document: new ESJSBinding(w['document'], 'document'),
         };
     }
-
 
     const $ = new ESJSBinding(w.$, 'jquery');
 

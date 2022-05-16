@@ -260,21 +260,8 @@ expect(['parentClass', 'childClass', {doThing: '<Func>', doOtherThing: '<Func>'}
     instance.isa(Str);
 `);
 
-
-expect(['A'], `
-    class A extends Str {};
-`);
-
 expect(['A', {}], `
-    class A extends Str {};
-    A();
-`);
-expect('ReferenceError', `
-    class A extends Str {
-        init() {
-            super();
-        }
-    };
+    class A extends Obj {};
     A();
 `);
 

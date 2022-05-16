@@ -12,6 +12,13 @@ import type { IRuntimeArgument } from "../argument";
 import { ESTypeIntersection } from "./intersection";
 import { str } from "../../util/util";
 
+/**
+ * Instances of ESType are the types.
+ * For example, Null, String and Type are all instances of this class.
+ * New instances can be created at runtime by creating classes,
+ * which are each an instance of this class as well.
+ *
+ */
 export class ESType extends ESPrimitive <undefined> {
 
     readonly __primordial__: boolean;

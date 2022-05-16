@@ -2,6 +2,7 @@ import { NativeModuleBuilder } from "../module";
 import { str } from "../../util/util";
 
 const module: NativeModuleBuilder = () => ({
+
     asciiToChar: (num: unknown) => {
         if (typeof num !== 'number') {
             throw new TypeError(`number`);

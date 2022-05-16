@@ -60,7 +60,7 @@ export default async function init ({
     addDependencyInjectedBIFs(print, input);
 
     for (const builtIn in builtInFunctions) {
-        const [rawFn, info] = builtInFunctions[builtIn];
+        const [ rawFn, info ] = builtInFunctions[builtIn];
 
         const numArgs = info.args?.length ?? rawFn.length-1;
         const args: IRuntimeArgument[] = (new Array(numArgs))

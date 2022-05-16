@@ -1,4 +1,5 @@
 import { PROPS_TO_OVERRIDE_ON_PRIM, types } from '../util/constants';
+import {str} from '../util/util';
 import { Context } from "./context";
 import type { IFuncProps, NativeObj } from '../util/util';
 import { Error, TypeError } from "../errors";
@@ -16,22 +17,31 @@ import {
 
 /**
  * Adds the properties of a parent class to an instance of a child class
- * @param {Context} context
- * @param {ESType} class_ the class that the object is currently extending
- * @param {Primitive} instance the instance to add the properties to
+ * @param context
+ * @param class_ the class that the object is currently extending
+ * @param instance the instance to add the properties to
  * @param callContext
- * @returns {Error | void}
  */
 function dealWithExtends (context: Context, class_: ESType, instance: ESObject, callContext: Context): Error | void {
     if (!(class_ instanceof ESType)) {
         return new TypeError(
             'Type',
             typeof class_,
-            class_
+            str(class_)
         );
     }
 
-    if (class_.__primordial__) return;
+    if (class_.__primordial__) {
+        // this is really key as it determines what happens if you try to
+        // extend a primitive type (like Null, Obj or Num).
+        // ignore if it is Obj, as this is the default.
+        // For everything else, throw an error
+        if (class_ === types.object) {
+            return;
+        }
+
+        return new TypeError('non-primordial Type', `primordial type '${class_.__name__}'`, str(class_));
+    }
 
     const superFunc = new ESFunction(({context}, ...args) => {
         const newContext = new Context();

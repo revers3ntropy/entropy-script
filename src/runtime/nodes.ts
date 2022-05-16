@@ -170,7 +170,7 @@ export class N_binOp extends Node {
                     }
                     return new InterpretResult(r.contains({context}, l));
                 }
-
+                // fall through to error if not 'in'
             // eslint-disable-next-line no-fallthrough
             default:
                 return new InvalidSyntaxError(
