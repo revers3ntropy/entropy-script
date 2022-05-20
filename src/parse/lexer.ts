@@ -43,7 +43,7 @@ export class Lexer {
                 this.advance();
 
             } else if (DIGITS.includes(this.currentChar)) {
-                tokens.push(this.makeESNumber());
+                tokens.push(this.makeNumber());
 
             } else if (
                 this.currentChar === ONE_LINE_COMMENT[0] &&
@@ -88,7 +88,7 @@ export class Lexer {
         return tokens;
     }
 
-    private makeESNumber () {
+    private makeNumber () {
         const pos = this.position.clone;
         let numStr = '';
         let dotCount = 0;

@@ -247,7 +247,7 @@ expect(['parentClass', 'childClass', {doThing: '<Func>', doOtherThing: '<Func>'}
         }
     };
     
-    let childClass = class extends parentClass {
+    class childClass extends parentClass {
 		doThing () {
         	return 3;
         }

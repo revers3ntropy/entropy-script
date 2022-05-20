@@ -61,7 +61,7 @@ export class Parser {
         }
     }
 
-    private get currentToken() {
+    private get currentToken(): Token<any> {
         return this.tokens[this.tokenIdx] as Token<any>;
     }
 

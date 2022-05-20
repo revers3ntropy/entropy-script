@@ -4,8 +4,8 @@ import { Error } from "../errors";
 import { N_undefined } from "../runtime/nodes";
 
 export class ParseResults {
-    node: n.Node | undefined;
-    error: Error | undefined;
+    node?: n.Node;
+    error?: Error;
 
     reverseCount: number;
     lastRegisteredAdvanceCount: number;
