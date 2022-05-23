@@ -17,7 +17,6 @@ const loadedURls: Map<ModulePrim> = {};
  * Pre-loads a module from a map of URLs
  */
 export async function preloadModules (urls: Map): Promise<Error | undefined> {
-
     for (const name of Object.keys(urls)) {
 
         let url = urls[name];
