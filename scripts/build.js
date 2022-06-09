@@ -2,7 +2,6 @@
  * '-s' option to build to stable
  */
 
-
 const start = Date.now();
 
 const { exec } = require('child_process');

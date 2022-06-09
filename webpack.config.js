@@ -1,6 +1,5 @@
 const path = require('path');
 const fs = require("fs");
-const dts = require('dts-bundle');
 
 const packageConf = JSON.parse(String(fs.readFileSync('./package.json')));
 const version = packageConf['version'];
