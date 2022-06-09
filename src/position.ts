@@ -4,10 +4,10 @@
  * Index used by lexer, rest used by error messages.
  */
 export default class Position {
-    file: string;
-    idx: number;
-    ln: number;
-    col: number;
+    public file: string;
+    public idx: number;
+    public ln: number;
+    public col: number;
 
     constructor (idx: number, ln: number, col: number, file='(unknown)') {
         this.idx = idx;
@@ -19,7 +19,7 @@ export default class Position {
     /**
      * Used by lexer to advance the current position one step.
      */
-    advance (currentChar='') {
+    public advance (currentChar='') {
         this.idx++;
         this.col++;
 
@@ -31,12 +31,12 @@ export default class Position {
         return this;
     }
 
-    get clone () {
+    public get clone () {
         return new Position(this.idx, this.ln, this.col, this.file);
     }
 
-    get str () {
-        if (this.isUnknown) {
+    public get str () {
+        if (this.isVoid) {
             return 'unknown';
         }
         return `File ${this.file}, ${this.ln+1}:${this.col+1}`;
@@ -46,7 +46,7 @@ export default class Position {
      * Checks if the index is equal to the position of Position.void
      * @returns {boolean}
      */
-    get isUnknown() {
+    public get isVoid () {
         return this.idx === -2;
     }
 

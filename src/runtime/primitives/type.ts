@@ -8,7 +8,6 @@ import { ESString } from './string';
 import type { IFuncProps, Map, Primitive } from '../../util/util';
 import { wrap } from "../wrapStrip";
 import { types } from "../../util/constants";
-import type { IRuntimeArgument } from "../argument";
 import { ESTypeIntersection } from "./intersection";
 import { str } from "../../util/util";
 
@@ -30,16 +29,12 @@ export class ESType extends ESPrimitive <undefined> {
     readonly __instances__: Primitive[] = [];
     readonly __abstract__: boolean;
 
-    __generic_types__: Primitive[] = [];
-    readonly __gargs__: IRuntimeArgument[];
-
     constructor (
         isPrimitive = false,
         name = '(anon)',
         methods: ESFunction[] = [],
         properties: Map<Primitive> = {},
         extends_?: ESType,
-        gargs: IRuntimeArgument[] = [],
         abstract = false
     ) {
         super(undefined, types?.type);
@@ -50,7 +45,6 @@ export class ESType extends ESPrimitive <undefined> {
         this.__extends__ = extends_;
         this.__methods__ = methods;
         this.__properties__ = properties;
-        this.__gargs__ = gargs;
         this.__abstract__ = abstract;
 
         if (!types.type) {
@@ -65,7 +59,6 @@ export class ESType extends ESPrimitive <undefined> {
             this.__methods__,
             this.__properties__,
             this.__extends__,
-            this.__gargs__,
             this.__abstract__,
         );
     }
@@ -107,21 +100,6 @@ export class ESType extends ESPrimitive <undefined> {
             this === t
         ) {
             return new ESBoolean(true);
-        }
-
-        for (let i = 0; i < t.__generic_types__.length; i++) {
-            let thisGarg: Primitive = types.any;
-            if (this.__generic_types__.length-1 <= i) {
-                thisGarg = this.__generic_types__[i];
-            }
-
-            const tGarg = t.__generic_types__[i];
-
-            const typeCheckRes = thisGarg.__subtype_of__(props, tGarg);
-            if (typeCheckRes instanceof Error) return typeCheckRes;
-            if (!typeCheckRes.__value__) {
-                return new ESBoolean();
-            }
         }
 
         if (this.__extends__) {
@@ -209,13 +187,6 @@ export class ESType extends ESPrimitive <undefined> {
         if (!res) return undefined;
         return res[0];
     }
-
-    override __generic__ = (props: IFuncProps, ...args: Primitive[]): Error | Primitive => {
-        const generic = this.clone();
-        if (props.dontTypeCheck) return generic;
-        generic.__generic_types__ = args;
-        return generic;
-    }
 }
 
 export class ESTypeUnion extends ESType {
@@ -284,10 +255,6 @@ export class ESTypeUnion extends ESType {
 
         return new ESBoolean(leftTypeCheckRes.__value__ && rightTypeCheckRes.__value__);
     }
-
-    override __generic__ = (): Error | Primitive => {
-        return new InvalidOperationError('__generic__', this);
-    }
 }
 
 export class ESTypeNot extends ESType {
@@ -350,9 +317,5 @@ export class ESTypeNot extends ESType {
             return typeCheckRes;
         }
         return new ESBoolean(typeCheckRes.__value__ === true);
-    }
-
-    override __generic__ = (): Error | Primitive => {
-        return new InvalidOperationError('__generic__', this);
     }
 }

@@ -1,13 +1,15 @@
-/**
- * Entropy Script for Node.js
- *
- * Syntax:
- *
- * >> node cli ./path/to/script.es
- * will run a script
- *
- * >> node cli
- * will start the REPL
+/*
+	Entropy Script for Node.js
+
+	Syntax:
+
+		$ node cli ./path/to/script.es
+
+	will run a script
+
+		$ node cli
+
+	will start the REPL
  */
 
 // node libs that scripts should have access to

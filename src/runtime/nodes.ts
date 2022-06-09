@@ -23,11 +23,11 @@ import { Map, str } from '../util/util';
 import { ESTypeNot, ESTypeUnion } from "./primitives/type";
 
 export class InterpretResult {
-    val: Primitive = new ESNull();
-    error: Error | undefined;
-    funcReturn: Primitive | undefined;
-    shouldBreak = false;
-    shouldContinue = false;
+    public val: Primitive = new ESNull();
+    public error: Error | undefined;
+    public funcReturn: Primitive | undefined;
+    public shouldBreak = false;
+    public shouldContinue = false;
 
     constructor (val?: Primitive | Error) {
         if (val instanceof Error) {
@@ -40,11 +40,9 @@ export class InterpretResult {
 
 export abstract class Node {
     public pos: Position;
-    public isTerminal;
 
     protected constructor (pos: Position, isTerminal=false) {
         this.pos = pos;
-        this.isTerminal = isTerminal;
     }
 
     protected abstract interpret_ (context: Context): Error | InterpretResult;
@@ -58,19 +56,13 @@ export abstract class Node {
 
         } else {
             res.val = val.val;
-            {
-                res.error = val.error;
-                {
-                    res.funcReturn = val.funcReturn;
-                    {
-                        res.shouldBreak = val.shouldBreak;
-                        res.shouldContinue = val.shouldContinue;
-                    }
-                }
-            }
+            res.error = val.error;
+            res.funcReturn = val.funcReturn;
+            res.shouldBreak = val.shouldBreak;
+            res.shouldContinue = val.shouldContinue;
         }
 
-        if (res.error && res.error.pos.isUnknown) {
+        if (res.error && res.error.pos.isVoid) {
             res.error.pos = this.pos;
         }
 
@@ -85,14 +77,14 @@ export abstract class Node {
 // --- NON-TERMINAL NODES ---
 
 export class N_binOp extends Node {
-    left: Node;
-    right: Node;
-    opTok: Token;
+    private readonly left: Node;
+    private readonly right: Node;
+    private readonly operator: Token;
 
     constructor (pos: Position, left: Node, opTok: Token, right: Node) {
         super(pos);
         this.left = left;
-        this.opTok = opTok;
+        this.operator = opTok;
         this.right = right;
     }
 
@@ -106,15 +98,15 @@ export class N_binOp extends Node {
         const r = right.val;
         if (typeof l === 'undefined') {
             return new TypeError('~nil', 'nil', l, 'N_binOp.interpret_')
-                .position(this.opTok.pos);
+                .position(this.operator.pos);
         }
 
         if (typeof r === 'undefined') {
             return new TypeError('~nil', 'nil', r, 'N_binOp.interpret_')
-                .position(this.opTok.pos);
+                .position(this.operator.pos);
         }
 
-        switch (this.opTok.type) {
+        switch (this.operator.type) {
             case tt.LTE: {
                 const lt = l.__lt__({context}, r);
                 const eq = l.__eq__({context}, r);
@@ -164,7 +156,7 @@ export class N_binOp extends Node {
                 return new InterpretResult(l.__nilish__({context}, r));
 
             case tt.IDENTIFIER:
-                if (this.opTok.value === 'in') {
+                if (this.operator.value === 'in') {
                     if (!r.__iterable__ || !('contains' in r)) {
                         return new TypeError('Iterable', r.__type_name__(), str(r));
                     }
@@ -174,31 +166,31 @@ export class N_binOp extends Node {
             // eslint-disable-next-line no-fallthrough
             default:
                 return new InvalidSyntaxError(
-                    `Invalid binary operator: ${ttToStr[this.opTok.type]}`
-                ).position(this.opTok.pos);
+                    `Invalid binary operator: ${ttToStr[this.operator.type]}`
+                ).position(this.operator.pos);
         }
     }
 
     str () {
-        return `(${this.left.str()} ${ttToStr[this.opTok.type]} ${this.right.str()})`;
+        return `(${this.left.str()} ${ttToStr[this.operator.type]} ${this.right.str()})`;
     }
 }
 
 export class N_unaryOp extends Node {
-    a: Node;
-    opTok: Token;
+    private readonly operand: Node;
+    private readonly operator: Token;
 
     constructor (pos: Position, a: Node, opTok: Token) {
         super(pos);
-        this.a = a;
-        this.opTok = opTok;
+        this.operand = a;
+        this.operator = opTok;
     }
 
     interpret_(context: Context): Error | InterpretResult {
-        const res = this.a.interpret(context);
+        const res = this.operand.interpret(context);
         if (res.error) return res.error;
 
-        switch (this.opTok.type) {
+        switch (this.operator.type) {
             case tt.SUB:
             case tt.ADD:
                 if (!(res.val instanceof ESNumber)) {
@@ -210,7 +202,7 @@ export class N_unaryOp extends Node {
                 }
                 const numVal = res.val.__value__;
                 return new InterpretResult(new ESNumber(
-                    this.opTok.type === tt.SUB ? -numVal : Math.abs(numVal)));
+                    this.operator.type === tt.SUB ? -numVal : Math.abs(numVal)));
             case tt.NOT:
                 return new InterpretResult(new ESBoolean(!res?.val?.bool({context}).__value__));
             case tt.BITWISE_NOT:
@@ -220,24 +212,24 @@ export class N_unaryOp extends Node {
 
             default:
                 return new InvalidSyntaxError(
-                    `Invalid unary operator: ${ttToStr[this.opTok.type]}`
-                ).position(this.opTok.pos);
+                    `Invalid unary operator: ${ttToStr[this.operator.type]}`
+                ).position(this.operator.pos);
         }
     }
 
     str () {
-        return `(${ttToStr[this.opTok.type]}${this.a.str()})`;
+        return `(${ttToStr[this.operator.type]}${this.operand.str()})`;
     }
 }
 
 export class N_varAssign extends Node {
-    value: Node;
-    varNameTok: Token<string>;
-    isGlobal: boolean;
-    isConstant: boolean;
-    isDeclaration: boolean;
-    assignType: string;
-    type: Node;
+    private readonly value: Node;
+    private readonly varNameTok: Token<string>;
+    private readonly isGlobal: boolean;
+    private readonly isConstant: boolean;
+    private readonly isDeclaration: boolean;
+    private readonly assignType: string;
+    private readonly type: Node;
 
     constructor (
         pos: Position,
@@ -438,11 +430,11 @@ export class N_varAssign extends Node {
 }
 
 export class N_destructAssign extends Node {
-    value: Node;
-    varNames: string[];
-    types: Node[];
-    isGlobal: boolean;
-    isConstant: boolean;
+    private readonly value: Node;
+    private readonly varNames: string[];
+    private readonly types: Node[];
+    private readonly isGlobal: boolean;
+    private readonly isConstant: boolean;
 
     constructor (
         pos: Position,
@@ -548,9 +540,9 @@ export class N_destructAssign extends Node {
 }
 
 export class N_if extends Node {
-    comparison: Node;
-    ifTrue: Node;
-    ifFalse: Node | undefined;
+    private readonly comparison: Node;
+    private readonly ifTrue: Node;
+    private readonly ifFalse: Node | undefined;
 
     constructor (pos: Position, comparison: Node, ifTrue: Node, ifFalse: Node | undefined) {
         super(pos);
@@ -585,8 +577,8 @@ export class N_if extends Node {
 }
 
 export class N_while extends Node {
-    comparison: Node;
-    loop: Node;
+    private readonly comparison: Node;
+    private readonly loop: Node;
 
     constructor (pos: Position, comparison: Node, loop: Node) {
         super(pos);
@@ -623,11 +615,11 @@ export class N_while extends Node {
 }
 
 export class N_for extends Node {
-    array: Node;
-    body: Node;
-    identifier: Token<string>;
-    isGlobalId: boolean;
-    isConstId: boolean;
+    private readonly array: Node;
+    private readonly body: Node;
+    private readonly identifier: Token<string>;
+    private readonly isGlobalId: boolean;
+    private readonly isConstId: boolean;
 
     constructor (pos: Position, body: Node, array: Node, identifier: Token<string>, isGlobalIdentifier: boolean, isConstIdentifier: boolean) {
         super(pos);
@@ -690,8 +682,8 @@ export class N_for extends Node {
 
 export class N_array extends Node {
 
-    items: Node[];
-    shouldClone: boolean;
+    private readonly items: Node[];
+    private readonly shouldClone: boolean;
 
     constructor(pos: Position, items: Node[], shouldClone=false) {
         super(pos);
@@ -731,7 +723,8 @@ export class N_array extends Node {
 }
 
 export class N_objectLiteral extends Node {
-    properties: [Node, Node][];
+    private readonly properties: [Node, Node][];
+
     constructor(pos: Position, properties: [Node, Node][]) {
         super(pos);
         this.properties = properties;
@@ -770,8 +763,8 @@ export class N_objectLiteral extends Node {
 
 export class N_statements extends Node {
 
-    items: Node[];
-    topLevel: boolean;
+    private readonly items: Node[];
+    private readonly topLevel: boolean;
 
     constructor(pos: Position, items: Node[], topLevel=false) {
         super(pos);
@@ -820,13 +813,13 @@ export class N_statements extends Node {
 }
 
 export class N_functionCall extends Node {
-    to: Node;
-    arguments: Node[];
-    indefiniteKwargs: Node[];
-    definiteKwargs: Map<Node>;
-    optionallyChained: boolean;
+    private readonly to: Node;
+    private readonly arguments: Node[];
+    private readonly indefiniteKwargs: Node[];
+    private readonly definiteKwargs: Map<Node>;
+    private readonly optionallyChained: boolean;
 
-    functionType: '__call__' | '__generic__';
+    private readonly functionType: '__call__' | '__generic__';
 
     constructor (
         pos: Position,
@@ -932,15 +925,15 @@ export class N_functionCall extends Node {
 }
 
 export class N_functionDefinition extends Node {
-    body: Node;
-    arguments: IUninterpretedArgument[];
-    name: string;
-    this_: ESObject;
-    returnType: Node;
-    description: string;
-    isDeclaration = false;
-    allowArgs = false;
-    allowKwargs = false;
+    private readonly body: Node;
+    private readonly arguments: IUninterpretedArgument[];
+    public name: string;
+    private readonly this_: ESObject;
+    private readonly returnType: Node;
+    private readonly description: string;
+    public isDeclaration = false;
+    public allowArgs = false;
+    public allowKwargs = false;
 
     constructor(
         pos: Position,
@@ -997,7 +990,8 @@ export class N_functionDefinition extends Node {
 }
 
 export class N_return extends Node {
-    value: Node | undefined;
+    private readonly value: Node | undefined;
+
     constructor(pos: Position, value: Node | undefined) {
         super(pos);
         this.value = value;
@@ -1024,7 +1018,8 @@ export class N_return extends Node {
 }
 
 export class N_yield extends Node {
-    value: Node | undefined;
+    private readonly value: Node | undefined;
+
     constructor(pos: Position, value: Node | undefined) {
         super(pos);
         this.value = value;
@@ -1054,13 +1049,13 @@ export class N_yield extends Node {
 }
 
 export class N_indexed extends Node {
-    base: Node;
-    index: Node;
+    private readonly base: Node;
+    private readonly index: Node;
     // not undefined if setting value
-    value: Node | undefined;
-    assignType: string | undefined;
+    public value?: Node;
+    public assignType?: string;
 
-    isOptionallyChained: boolean;
+    public readonly isOptionallyChained: boolean;
 
     constructor(pos: Position, base: Node, index: Node, isOptionallyChained=false) {
         super(pos);
@@ -1157,22 +1152,22 @@ export class N_indexed extends Node {
 
 export class N_class extends Node {
 
-    init: N_functionDefinition | undefined;
-    methods: N_functionDefinition[];
-    name: string;
-    extends_?: Node;
-    isDeclaration: boolean;
-    abstract: boolean;
-    properties: Map<Node>;
+    private readonly init: N_functionDefinition | undefined;
+    private readonly methods: N_functionDefinition[];
+    public name: string;
+    private readonly extends_?: Node;
+    private readonly isDeclaration: boolean;
+    private readonly abstract: boolean;
+    private readonly properties: Map<Node>;
 
-    constructor(
+    constructor (
         pos: Position,
         methods: N_functionDefinition[],
         properties: Map<Node>,
         extends_?: Node,
         init?: N_functionDefinition,
         name = '(anon)',
-        isDeclaration=false,
+        isDeclaration = false,
         abstract = false
     ) {
         super(pos);
@@ -1250,7 +1245,7 @@ export class N_class extends Node {
             methods.push(init);
         }
 
-        const typePrim = new ESType(false, this.name, methods, properties, extends_, [], this.abstract);
+        const typePrim = new ESType(false, this.name, methods, properties, extends_, this.abstract);
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {
@@ -1271,53 +1266,10 @@ export class N_class extends Node {
     }
 }
 
-export class N_namespace extends Node {
-
-    public name: string;
-    private readonly statements: Node;
-    public mutable: boolean;
-    private readonly isDeclaration: boolean;
-
-    constructor (pos: Position, statements: Node, name = '(anon)', mutable=false, isDeclaration=false) {
-        super(pos);
-        this.name = name;
-        this.statements = statements;
-        this.mutable = mutable;
-        this.isDeclaration = isDeclaration;
-    }
-
-    interpret_ (context: Context): Error | InterpretResult {
-        const newContext = new Context();
-        newContext.parent = context;
-
-        const res = this.statements.interpret(newContext);
-        if (res.error) return res;
-
-        const n = new ESNamespace(new ESString(this.name), newContext.getSymbolTableAsDict(), this.mutable);
-
-        if (this.isDeclaration) {
-            if (context.hasOwn(this.name)) {
-                return new InvalidSyntaxError(`Cannot redeclare symbol '${this.name}'`);
-            }
-
-            context.setOwn(this.name, n);
-        }
-
-        newContext.clear();
-
-        return new InterpretResult(n);
-    }
-
-    str () {
-        return '(namespace {})';
-    }
-}
-
-
 export class N_tryCatch extends Node {
 
-    body: Node;
-    catchBlock: Node;
+    private readonly body: Node;
+    private readonly catchBlock: Node;
 
     constructor(pos: Position, body: Node, catchBlock: Node) {
         super(pos, true);
@@ -1352,11 +1304,13 @@ export class N_tryCatch extends Node {
 
 // --- TERMINAL NODES ---
 export class N_number extends Node {
-    a: Token<number>;
+    private readonly a: Token<number>;
+
     constructor(pos: Position, a: Token<number>) {
         super(pos, true);
         this.a = a;
     }
+
     interpret_ (): InterpretResult | Error {
         const val = this.a.value;
 
@@ -1372,7 +1326,7 @@ export class N_number extends Node {
 
 export class N_string extends Node {
 
-    a: Token<string>;
+    private readonly a: Token<string>;
 
     constructor (pos: Position, a: Token<string>) {
         super(pos, true);
@@ -1391,24 +1345,24 @@ export class N_string extends Node {
 
 export class N_variable extends Node {
 
-    a: Token<string>;
+    public readonly identifier: Token<string>;
 
     constructor(a: Token<string>) {
         super(a.pos, true);
-        this.a = a;
+        this.identifier = a;
     }
 
     interpret_ (context: Context): Error | InterpretResult {
-        if (!context.has(this.a.value)) {
-            return new ReferenceError(this.a.value)
-                .position(this.a.pos);
+        if (!context.has(this.identifier.value)) {
+            return new ReferenceError(this.identifier.value)
+                .position(this.identifier.pos);
         }
 
         const res = new InterpretResult();
-        const symbol = context.getSymbol(this.a.value);
+        const symbol = context.getSymbol(this.identifier.value);
 
         if (!symbol) {
-            return new ReferenceError(`No access to undeclared variable ${this.a.value}`).position(this.pos);
+            return new ReferenceError(`No access to undeclared variable ${this.identifier.value}`).position(this.pos);
         }
         if (symbol instanceof Error) {
             return symbol;
@@ -1420,12 +1374,11 @@ export class N_variable extends Node {
     }
 
     str () {
-        return '(' + this.a.value.toString() + ')';
+        return '(' + this.identifier.value.toString() + ')';
     }
 }
 
 export class N_undefined extends Node {
-
     constructor(pos = Position.void) {
         super(pos, true);
     }
@@ -1473,7 +1426,7 @@ export class N_continue extends Node {
 }
 
 export class N_primitiveWrapper extends Node {
-    value: Primitive;
+    private readonly value: Primitive;
 
     constructor (val: Primitive, pos = Position.void) {
         super(pos, true);

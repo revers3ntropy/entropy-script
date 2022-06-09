@@ -24,7 +24,6 @@ export interface ESPrimitive <T> {
     __ampersand__: (props: IFuncProps, n: Primitive) => Primitive | Error;
     __set__: (props: IFuncProps, key: Primitive, value: Primitive) => void | Error;
     __call__: (props: IFuncProps, ...parameters: Primitive[]) => Error | Primitive;
-    __generic__: (props: IFuncProps, ...parameters: Primitive[]) => Error | Primitive;
     __iter__: (props: IFuncProps) => Error | Primitive;
     __next__: (props: IFuncProps) => Error | Primitive;
     __nilish__: (props: IFuncProps, n: Primitive) => Primitive | Error;
@@ -237,7 +236,7 @@ export abstract class ESPrimitive <T> {
     public abstract bool(props: IFuncProps): ESBoolean;
 
     /**
-     * Shallow copy
+     * Should return a shallow copy
      */
     public abstract clone: (props: IFuncProps) => Primitive;
 
@@ -331,7 +330,7 @@ export abstract class ESPrimitive <T> {
      *  Str.__includes__('') // true
      *  Str.__includes__(1)  // false
      */
-    abstract __includes__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
+    public abstract __includes__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
 
     /**
      * Checks whether, treating the current object as a type, it is a subtype of the passed object.
@@ -344,5 +343,5 @@ export abstract class ESPrimitive <T> {
      *  A.__subtype_of__(B); // false
      *  B.__subtype_of__(A); // true
      */
-    abstract __subtype_of__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
+    public abstract __subtype_of__: (props: IFuncProps, n: Primitive) => ESBoolean | Error;
 }

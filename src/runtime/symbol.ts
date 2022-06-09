@@ -13,11 +13,11 @@ export interface ISymbolOptions {
  * A symbol, which holds a primitive and some info about it.
  */
 export class ESSymbol {
-    isConstant: boolean;
-    value: Primitive;
-    identifier: string;
-    isAccessible: boolean;
-    type: Primitive;
+    public isConstant: boolean;
+    public value: Primitive;
+    public identifier: string;
+    public isAccessible: boolean;
+    public type: Primitive;
 
     constructor (value: Primitive, identifier: string, options: ISymbolOptions = {}) {
         this.value = value;
@@ -27,14 +27,14 @@ export class ESSymbol {
         this.type = options.type ?? value.__type__;
     }
 
-    clone = (props: IFuncProps) => {
+    public clone = (props: IFuncProps) => {
         return new ESSymbol(this.value.clone(props), this.identifier, {
             isConstant: this.isConstant,
             isAccessible: this.isAccessible
         });
     }
 
-    str = () => {
+    public str = () => {
         return new ESString(`<Symbol: ${this.identifier}>`);
     }
 }

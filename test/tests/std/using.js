@@ -2,7 +2,7 @@ const {expect, file} = require( '../../testFramework');
 file('std/using');
 
 expect([undefined], `
-    using(namespace {});
+    using({});
 `);
 
 expect([undefined, 1], `
@@ -16,7 +16,7 @@ expect('TypeError', `
 `);
 
 expect([undefined, 0], `
-    using(namespace { let a = 0; });
+    using({ a: 0 });
     a;
 `);
 

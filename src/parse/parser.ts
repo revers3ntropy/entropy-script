@@ -4,7 +4,6 @@ import Token from "./tokens";
 import * as n from '../runtime/nodes';
 import {
     N_functionDefinition, N_indexed,
-    N_namespace,
     N_primitiveWrapper, N_string,
     N_tryCatch,
     N_undefined, N_varAssign,
@@ -18,8 +17,8 @@ import { IUninterpretedArgument } from "../runtime/argument";
 import { Map } from "../util/util";
 
 export class Parser {
-    tokens: Token[];
-    tokenIdx: number;
+    private readonly tokens: Token[];
+    private tokenIdx: number;
 
     constructor (tokens: Token[]) {
         this.tokens = tokens;
@@ -27,7 +26,7 @@ export class Parser {
         this.advance();
     }
 
-    public parse = (): ParseResults => {
+    public readonly parse = (): ParseResults => {
         if (this.tokens.length === 1 && this.tokens[0].type === tt.EOF) {
             return new ParseResults();
         }
@@ -180,7 +179,7 @@ export class Parser {
         if (res.error) return res;
 
         if (expr instanceof N_variable) {
-            return res.success(new N_varAssign(assignPos, expr.a, value, assignType));
+            return res.success(new N_varAssign(assignPos, expr.identifier, value, assignType));
 
         } else if (expr instanceof N_indexed) {
             if (expr.isOptionallyChained) {
@@ -417,8 +416,6 @@ export class Parser {
             } else if (CLASS_KEYWORDS.includes(this.currentToken.value)) {
                 return this.classExpr();
 
-            } else if (this.currentToken.value === 'namespace') {
-                return this.namespace();
             }
         }
 
@@ -788,11 +785,6 @@ export class Parser {
 
         if (expr instanceof n.N_class || expr instanceof n.N_functionDefinition) {
             expr.name = varName.value;
-        }
-
-        if (expr instanceof N_namespace) {
-            expr.name = varName.value;
-            expr.mutable = !isConst;
         }
 
         return res.success(new n.N_varAssign(
@@ -1510,37 +1502,6 @@ export class Parser {
         this.advance(res);
 
         return res.success(new n.N_objectLiteral(pos, properties));
-    }
-
-    private namespace = () => {
-        const res = new ParseResults();
-        const pos = this.currentToken.pos;
-
-        let name: string | undefined;
-
-        this.consume(res, tt.IDENTIFIER);
-        if (res.error) return res;
-
-        if (this.currentToken.type === tt.IDENTIFIER) {
-            name = this.currentToken.value;
-            this.advance(res);
-        }
-
-        this.consume(res, tt.OBRACES);
-        if (res.error) return res;
-
-        if (this.currentToken.type === tt.CBRACES) {
-            this.advance(res);
-            return res.success(new n.N_namespace(pos, new n.N_undefined()));
-        }
-
-        const statements = res.register(this.statements());
-        if (res.error) return res;
-
-        this.consume(res, tt.CBRACES);
-        if (res.error) return res;
-
-        return res.success(new n.N_namespace(pos, statements, name, false));
     }
 
     private tryCatch = (): ParseResults => {

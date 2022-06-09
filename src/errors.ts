@@ -12,11 +12,11 @@ export interface TracebackFrame {
 }
 
 export class Error {
-    name: string;
-    details: string;
-    pos = Position.void;
+    public name: string;
+    public details: string;
+    public pos = Position.void;
 
-    traceback: TracebackFrame[] = [];
+    public traceback: TracebackFrame[] = [];
 
     constructor (name: string, details: string) {
         this.name = name;

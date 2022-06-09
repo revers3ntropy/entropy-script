@@ -15,8 +15,8 @@ function isDigit (n: string) {
 
 export class Lexer {
     private readonly text: string;
-    private currentChar: string | undefined;
     private readonly position: Position;
+    private currentChar?: string;
 
     constructor (program: string, fileName: string) {
         this.text = program;

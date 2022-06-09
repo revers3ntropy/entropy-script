@@ -49,7 +49,7 @@ class TestResult {
             ${this.failed === 0 ? es.colours.green('All tests passed!') : ''}
             
             ${this.fails.map(([test, error]) =>
-                `\n ${test.batteryName} (#${test.batteryID+1}${error.pos.isUnknown ? '' : ` ${error.pos.ln+1}:${error.pos.col+1}`})`
+                `\n ${test.batteryName} (#${test.batteryID+1}${error.pos.isVoid ? '' : ` ${error.pos.ln+1}:${error.pos.col+1}`})`
             )}
         
             ${!verbose ? '' :this.fails.map(([test, error]) =>

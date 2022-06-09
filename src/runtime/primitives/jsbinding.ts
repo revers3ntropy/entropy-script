@@ -55,8 +55,8 @@ function tryCall (fTakesProps: boolean, val: any, key: any, props: IFuncProps, a
 
 export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements Iterable {
 
-    functionsTakeProps: boolean;
-    catchErrorsToPrimitive: boolean;
+    private readonly functionsTakeProps: boolean;
+    private readonly catchErrorsToPrimitive: boolean;
     override __iterable__ = true;
 
     constructor (value: T, name = '<AnonNative>', functionsTakeProps = false, catchErrors = false) {

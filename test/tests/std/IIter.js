@@ -1,11 +1,10 @@
 const {expect, file} = require( '../../testFramework');
 file('std/IIter');
 
-expect([[], {}, '', {}, [0, 1, 2]], `
+expect([[], {}, '', [0, 1, 2]], `
 	let a: IIterable = [];
 	let b: IIterable = {};
 	let c: IIterable = '';
-	let d: IIterable = namespace {};
 	let e: IIterable = range(3);
 `);
 

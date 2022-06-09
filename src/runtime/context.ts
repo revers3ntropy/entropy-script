@@ -18,7 +18,7 @@ export class Context {
     public initialisedAsGlobal = false;
     public deleted = false;
 
-    public path_ = '';
+    private path_ = '';
 
     get path() {
         if (this.path_ || !this.parent) {

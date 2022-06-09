@@ -4,12 +4,12 @@ import { Error } from "../errors";
 import { N_undefined } from "../runtime/nodes";
 
 export class ParseResults {
-    node?: n.Node;
-    error?: Error;
+    public node?: n.Node;
+    public error?: Error;
 
-    reverseCount: number;
-    lastRegisteredAdvanceCount: number;
-    advanceCount: number;
+    public reverseCount: number;
+    public lastRegisteredAdvanceCount: number;
+    public advanceCount: number;
 
     constructor () {
         this.advanceCount = 0;
@@ -17,12 +17,12 @@ export class ParseResults {
         this.reverseCount = 0;
     }
 
-    registerAdvance (): void {
+    public registerAdvance (): void {
         this.advanceCount = 1;
         this.lastRegisteredAdvanceCount++;
     }
 
-    register (res: ParseResults): n.Node {
+    public register (res: ParseResults): n.Node {
         this.lastRegisteredAdvanceCount = res.advanceCount;
         this.advanceCount += res.advanceCount;
         if (res.error) {
@@ -31,7 +31,7 @@ export class ParseResults {
         return res.node || new N_undefined();
     }
 
-    tryRegister (res: ParseResults) {
+    public tryRegister (res: ParseResults) {
         if (res.error) {
             this.reverseCount += res.advanceCount;
             return;
@@ -39,12 +39,12 @@ export class ParseResults {
         return this.register(res);
     }
 
-    success (node: n.Node): ParseResults {
+    public success (node: n.Node): ParseResults {
         this.node = node;
         return this;
     }
 
-    failure (error: Error, pos?: Position): ParseResults {
+    public failure (error: Error, pos?: Position): ParseResults {
         this.error = error;
         if (pos) {
             this.error.pos = pos;

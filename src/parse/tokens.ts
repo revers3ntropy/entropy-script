@@ -8,9 +8,9 @@ import { NativeObj } from "../util/util";
  * For example, you might have a string token with a value, or a '<' token.
  */
 export default class <T = unknown> {
-    type: TokenType;
-    value: T;
-    pos: Position;
+    public type: TokenType;
+    public value: T;
+    public pos: Position;
 
     constructor (pos: Position, type: TokenType, value: T) {
         this.type = type;

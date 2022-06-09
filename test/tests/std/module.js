@@ -6,13 +6,10 @@ expect('ImportError', `
     import(${mName});
 `);
 expect([undefined], `
-    module(${mName}, namespace {});
+    module(${mName}, {});
 `);
 expect([undefined], `
     module(${mName}, class {});
-`);
-expect([undefined], `
-    module(${mName}, {});
 `);
 expect([undefined], `
     module(${mName}, import('ascii'));
