@@ -1,6 +1,0 @@
-{
-    "permissions": {
-        "fileSystem": true,
-        "networking": true
-    }
-}

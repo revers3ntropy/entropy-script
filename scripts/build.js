@@ -7,6 +7,7 @@ const start = Date.now();
 
 const { exec } = require('child_process');
 const fs = require('fs');
+const dts = require('dts-bundle');
 
 const packageConf = JSON.parse(String(fs.readFileSync('./package.json')));
 const version = packageConf['version'];
@@ -51,9 +52,17 @@ if (!fs.existsSync('build')) {
 		await run(`cp build/${version}.js.map build/stable.js.map`);
 	}
 
+	// log the contents of the log file and then delete it
 	console.log(String(fs.readFileSync(WP_LOG_FILE)));
-
 	await run (`rm ${WP_LOG_FILE}`);
+
+	// bundle the generated type definition files into a single index.d.ts with everything in it
+	dts.bundle({
+		name: 'entropy-script',
+		main: 'src/index.d.ts',
+		// idk why but ../ puts it in the right place
+		out: '../index.d.ts',
+	});
 
 	console.log(`Compiled and bundled in ${Date.now() - start}ms`);
 })();

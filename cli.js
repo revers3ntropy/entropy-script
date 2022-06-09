@@ -66,15 +66,23 @@ async function init () {
 	}
 }
 
+function dealWithFlags (args) {
+
+}
+
 /**
  * Runs a .es script
- * @param {string} file
+ * @param {string[]} args
  */
-function runScript (file) {
+function runScript (args) {
+
+	let file = args[args.length-1];
 
 	if (file.substring(file.length-3) !== '.es') {
 		file = file + '.es';
 	}
+
+	dealWithFlags(args.slice(0, -1));
 
 	if (!fs.existsSync(file)) {
 		console.log(new es.ImportError(
@@ -159,7 +167,7 @@ async function main () {
 		return runTerminal();
 	}
 
-	runScript(process.argv[2]);
+	runScript(process.argv.slice(2));
 }
 
 main();

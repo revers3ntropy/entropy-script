@@ -1,0 +1,2592 @@
+<svg version="1.1" baseProfile="full" width="22194.0" height="1524.0" viewbox="0 0 22194 1524" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ev="http://www.w3.org/2001/xml-events">
+<desc >#.interface: fill=lightblue
+#.enumeration: fill=lightgreen
+#.type: fill=lightgray
+[&lt;interface&gt;Config|+permissions: Permissions;+modules: Map&lt;any&gt;|]
+[Error|+name: string;+details: string;+pos: default;+traceback: TracebackFrame\[\]|+position(): this]
+[IllegalCharError||]
+[InvalidSyntaxError||]
+[TypeError||]
+[ImportError||]
+[ReferenceError||]
+[IndexError||]
+[InvalidOperationError||]
+[InvalidRuntimeError||]
+[TestFailed||]
+[PermissionRequiredError||]
+[MissingNativeDependencyError||]
+[EndIterator||]
+[&lt;interface&gt;TracebackFrame|+position: default;+line: string|]
+[Error]&lt;:-[IllegalCharError]
+[Error]&lt;:-[InvalidSyntaxError]
+[Error]&lt;:-[TypeError]
+[Error]&lt;:-[ImportError]
+[Error]&lt;:-[ReferenceError]
+[Error]&lt;:-[IndexError]
+[Error]&lt;:-[InvalidOperationError]
+[Error]&lt;:-[InvalidRuntimeError]
+[Error]&lt;:-[TestFailed]
+[Error]&lt;:-[PermissionRequiredError]
+[Error]&lt;:-[MissingNativeDependencyError]
+[Error]&lt;:-[EndIterator]
+[default|+file: string;+idx: number;+ln: number;+col: number|+advance(): this]
+[Lexer|-text: string;-position: default;-currentChar: string \| undefined|-advance(): void;+generate(): Error \| default&lt;unknown&gt;\[\];-makeNumber(): default&lt;number&gt;;-makeString(): default&lt;string&gt;;-makeIdentifier(): default&lt;string&gt;;-unknownChar(): default&lt;any&gt; \| undefined;-singleLineComment(): void;-multiLineComment(): void]
+[Parser|-tokens: default&lt;unknown&gt;\[\];-tokenIdx: number;+parse: () =&gt; ParseResults;-advance: (res?: ParseResults \| undefined) =&gt; default&lt;unknown&gt;;-reverse: (amount?: number) =&gt; default&lt;unknown&gt;;-consume: (res: ParseResults, type: TokenType, errorMsg?: string \| undefined) =&gt; void \| ParseResults;-clearEndStatements: (res: ParseResults) =&gt; void;-statements: (topLevel?: boolean) =&gt; ParseResults;-statement: () =&gt; ParseResults;-returnStatement: (res: ParseResults, isYield?: boolean) =&gt; ParseResults;-atom: () =&gt; ParseResults;-compound: (base?: Node \| undefined) =&gt; ParseResults;-unaryOp: () =&gt; ParseResults;-power: () =&gt; ParseResults;-factor: () =&gt; ParseResults;-term: () =&gt; ParseResults;-arithmeticExpr: () =&gt; ParseResults;-comparisonExpr: () =&gt; ParseResults;-expr: () =&gt; ParseResults;-binOp: (func: () =&gt; ParseResults, ops: (TokenType \| \[TokenType, any\])\[\], funcB?: () =&gt; ParseResults) =&gt; ParseResults;-arguments: (res: ParseResults, allowKwargs?: boolean, delimiter?: TokenType) =&gt; { error: InvalidSyntaxError; args: Node\[\]; indefiniteKwargs: Node\[\]; definiteKwargs: Map&lt;Node&gt;; } \| { args: Node\[\]; indefiniteKwargs: Node\[\]; definiteKwargs: Map&lt;Node&gt;; error?: undefined; };-makeFunctionCall: (to: Node, optionallyChained?: boolean) =&gt; ParseResults;-makeIndex: (to: Node, optionallyChained?: boolean) =&gt; ParseResults;-typeExpr: () =&gt; ParseResults;-destructuring: (pos: default, isConst: boolean, isGlobal: boolean) =&gt; ParseResults;-initiateVar: (res: ParseResults) =&gt; ParseResults;-scope: () =&gt; ParseResults;-addEndStatement: (res: ParseResults) =&gt; void;-ifExpr: () =&gt; ParseResults;-parameter: (res: ParseResults) =&gt; Error \| IUninterpretedArgument;-funcCore: () =&gt; ParseResults;-funcExpr: () =&gt; ParseResults;-classExpr: (name?: string \| undefined) =&gt; ParseResults;-forExpr: () =&gt; ParseResults;-array: () =&gt; ParseResults;-obLiteral: () =&gt; ParseResults;-tryCatch: () =&gt; ParseResults|-parameters(): { args: IUninterpretedArgument\[\]; allowArgs: boolean; allowKwargs: boolean; } \| undefined]
+[ParseResults|+node: Node \| undefined;+error: Error \| undefined;+reverseCount: number;+lastRegisteredAdvanceCount: number;+advanceCount: number|+registerAdvance(): void;+register(): Node;+tryRegister(): Node \| undefined;+success(): ParseResults;+failure(): ParseResults]
+[default&lt;T&gt;|+type: TokenType;+value: T;+pos: default|+matches(): boolean]
+[&lt;interface&gt;IRuntimeArgument|+name: string;+type: Primitive;+defaultValue: Primitive \| undefined;+isKwarg: boolean \| undefined|]
+[&lt;interface&gt;IUninterpretedArgument|+name: string;+type: Node;+defaultValue: Node \| undefined;+isKwarg: boolean \| undefined|]
+[Context|-symbolTable: Map&lt;ESSymbol&gt;;-parent_: Context \| undefined;+initialisedAsGlobal: boolean;+deleted: boolean;-path_: string|+has(): boolean;+hasOwn(): boolean;+get(): Error \| Primitive \| undefined;+getSymbolTableAsDict(): Map&lt;ESSymbol&gt;;+getSymbol(): Error \| ESSymbol \| undefined;+set(): void \| Error;+setOwn(): void \| Error;+remove(): true \| Error;+clear(): void;+clone(): Context;+log(): void]
+[&lt;interface&gt;IPrimitiveInfo|+name: string \| undefined;+description: string \| undefined;+file: string \| undefined;+helpLink: string \| undefined;+builtin: boolean \| undefined|]
+[&lt;interface&gt;IArgInfo|+name: string \| undefined;+type: string \| undefined;+description: string \| undefined;+required: boolean \| undefined;+default_value: string \| undefined|]
+[&lt;interface&gt;IFunctionInfo|+args: IArgInfo\[\] \| undefined;+returns: string \| undefined;+returnType: string \| undefined;+allow_args: boolean \| undefined;+allow_kwargs: boolean \| undefined|]
+[&lt;interface&gt;IObjectInfo|+contents: Info\[\] \| undefined|]
+[IPrimitiveInfo]&lt;:--[IFunctionInfo]
+[IPrimitiveInfo]&lt;:--[IObjectInfo]
+[InterpretResult|+val: Primitive;+error: Error \| undefined;+funcReturn: Primitive \| undefined;+shouldBreak: boolean;+shouldContinue: boolean|]
+[Node|+pos: default|#interpret_(): Error \| InterpretResult;+interpret(): InterpretResult;+str(): string]
+[N_binOp|-left: Node;-right: Node;-operator: default&lt;unknown&gt;|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_unaryOp|-operand: Node;-operator: default&lt;unknown&gt;|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_varAssign|-value: Node;-varNameTok: default&lt;string&gt;;-isGlobal: boolean;-isConstant: boolean;-isDeclaration: boolean;-assignType: string;-type: Node|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_destructAssign|-value: Node;-varNames: string\[\];-types: Node\[\];-isGlobal: boolean;-isConstant: boolean|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_if|-comparison: Node;-ifTrue: Node;-ifFalse: Node \| undefined|+interpret_(): InterpretResult;+str(): string]
+[N_while|-comparison: Node;-loop: Node|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_for|-array: Node;-body: Node;-identifier: default&lt;string&gt;;-isGlobalId: boolean;-isConstId: boolean|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_array|-items: Node\[\];-shouldClone: boolean|+interpret_(): InterpretResult;+str(): string]
+[N_objectLiteral|-properties: \[Node, Node\]\[\]|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_statements|-items: Node\[\];-topLevel: boolean|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_functionCall|-to: Node;-arguments: Node\[\];-indefiniteKwargs: Node\[\];-definiteKwargs: Map&lt;Node&gt;;-optionallyChained: boolean;-functionType: &quot;__call__&quot; \| &quot;__generic__&quot;|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_functionDefinition|-body: Node;-arguments: IUninterpretedArgument\[\];+name: string;-this_: ESObject;-returnType: Node;-description: string;+isDeclaration: boolean;+allowArgs: boolean;+allowKwargs: boolean|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_return|-value: Node \| undefined|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_yield|-value: Node \| undefined|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_indexed|-base: Node;-index: Node;+value: Node \| undefined;+assignType: string \| undefined;+isOptionallyChained: boolean|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_class|-init: N_functionDefinition \| undefined;-methods: N_functionDefinition\[\];+name: string;-extends_: Node \| undefined;-isDeclaration: boolean;-abstract: boolean;-properties: Map&lt;Node&gt;|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_tryCatch|-body: Node;-catchBlock: Node|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_number|-a: default&lt;number&gt;|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_string|-a: default&lt;string&gt;|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_variable|+identifier: default&lt;string&gt;|+interpret_(): Error \| InterpretResult;+str(): string]
+[N_undefined||+interpret_(): InterpretResult;+str(): string]
+[N_break||+interpret_(): InterpretResult;+str(): string]
+[N_continue||+interpret_(): InterpretResult;+str(): string]
+[N_primitiveWrapper|-value: Primitive|+interpret_(): InterpretResult;+str(): string]
+[Node]&lt;:-[N_binOp]
+[Node]&lt;:-[N_unaryOp]
+[Node]&lt;:-[N_varAssign]
+[Node]&lt;:-[N_destructAssign]
+[Node]&lt;:-[N_if]
+[Node]&lt;:-[N_while]
+[Node]&lt;:-[N_for]
+[Node]&lt;:-[N_array]
+[Node]&lt;:-[N_objectLiteral]
+[Node]&lt;:-[N_statements]
+[Node]&lt;:-[N_functionCall]
+[Node]&lt;:-[N_functionDefinition]
+[Node]&lt;:-[N_return]
+[Node]&lt;:-[N_yield]
+[Node]&lt;:-[N_indexed]
+[Node]&lt;:-[N_class]
+[Node]&lt;:-[N_tryCatch]
+[Node]&lt;:-[N_number]
+[Node]&lt;:-[N_string]
+[Node]&lt;:-[N_variable]
+[Node]&lt;:-[N_undefined]
+[Node]&lt;:-[N_break]
+[Node]&lt;:-[N_continue]
+[Node]&lt;:-[N_primitiveWrapper]
+[ESPrimitive&lt;T&gt;|+__value__: T;+__type__: Primitive;+__info__: Info;+__iterable__: boolean;+__null__: boolean;#_: any;+str: (props: IFuncProps, depth: ESNumber) =&gt; ESString;+cast: (config: IFuncProps, type: Primitive) =&gt; Error \| Primitive;+__add__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__subtract__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__multiply__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__divide__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__pow__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__mod__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__eq__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__gt__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__lt__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__and__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__or__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__bool__: (props: IFuncProps) =&gt; Error \| ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void \| Error;+__get__: (props: IFuncProps, key: Primitive) =&gt; Error \| Primitive;+__call__: (props: IFuncProps, ...parameters: Primitive\[\]) =&gt; Error \| Primitive;+__generic__: (props: IFuncProps, ..._: Primitive\[\]) =&gt; Error \| Primitive;+__iter__: (props: IFuncProps) =&gt; Error \| Primitive;+__next__: (props: IFuncProps) =&gt; Error \| Primitive;+__nilish__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+clone: (props: IFuncProps) =&gt; Primitive;+isa: (props: IFuncProps, type: Primitive) =&gt; Error \| ESBoolean;+is: (props: IFuncProps, obj: Primitive) =&gt; ESBoolean;+keys: (props: IFuncProps) =&gt; (ESString \| ESNumber)\[\];+__type_name__: () =&gt; string;+has_property: (props: IFuncProps, key: Primitive) =&gt; ESBoolean;+describe: (props: IFuncProps, info: Primitive) =&gt; void;+detail: (props: IFuncProps, info: Primitive) =&gt; TypeError \| undefined;+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean|+bool(): ESBoolean]
+[&lt;interface&gt;ESPrimitive&lt;T&gt;|+__add__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__subtract__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__multiply__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__divide__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__pow__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__mod__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__eq__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__gt__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__lt__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__and__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__or__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__bool__: (props: IFuncProps) =&gt; Error \| ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void \| Error;+__call__: (props: IFuncProps, ...parameters: Primitive\[\]) =&gt; Error \| Primitive;+__iter__: (props: IFuncProps) =&gt; Error \| Primitive;+__next__: (props: IFuncProps) =&gt; Error \| Primitive;+__nilish__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+isa: (props: IFuncProps, type: Primitive) =&gt; Error \| ESBoolean;+is: (props: IFuncProps, obj: Primitive) =&gt; ESBoolean;+__type_name__: () =&gt; string;+has_property: (props: IFuncProps, key: Primitive) =&gt; ESBoolean|]
+[ESSymbol|+isConstant: boolean;+value: Primitive;+identifier: string;+isAccessible: boolean;+type: Primitive;+clone: (props: IFuncProps) =&gt; ESSymbol;+str: () =&gt; ESString|]
+[&lt;interface&gt;ISymbolOptions|+isConstant: boolean \| undefined;+isAccessible: boolean \| undefined;+global: boolean \| undefined;+forceThroughConst: boolean \| undefined;+type: Primitive \| undefined|]
+[&lt;interface&gt;ICompileConfig|+minify: boolean;+indent: number;+symbols: string\[\]|]
+[&lt;enumeration&gt;TokenType|NUMBER;STRING;END_STATEMENT;IDENTIFIER;COMMA;ASSIGN;ADD;SUB;ASTRIX;DIV;POW;MOD;OPAREN;CPAREN;OBRACES;CBRACES;OSQUARE;CSQUARE;EQUALS;NOT_EQUALS;NOT;GT;LT;GTE;LTE;AND;OR;COLON;DOT;EOF;PIPE;AMPERSAND;BITWISE_NOT;QM;DOUBLE_QM]
+[&lt;interface&gt;IFuncProps|+context: Context;+kwargs: Map&lt;Primitive&gt; \| undefined;+dontTypeCheck: boolean \| undefined|]
+[ESArray|+__iterable__: boolean;+len: () =&gt; ESNumber;+cast: (props: IFuncProps, type: Primitive) =&gt; Error \| Primitive;+str: (props: IFuncProps, depth?: ESNumber) =&gt; ESString;+__eq__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__add__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESArray;+__bool__: () =&gt; ESBoolean;+bool: () =&gt; ESBoolean;+__get__: (props: IFuncProps, key: Primitive) =&gt; Primitive;+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void;+contains: (props: IFuncProps, val: Primitive) =&gt; ESBoolean;+clone: () =&gt; ESArray;+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__iter__: () =&gt; ESArray;+__next__: () =&gt; Error \| Primitive;+keys: () =&gt; (ESString \| ESNumber)\[\];+add: (props: IFuncProps, ...args: Primitive\[\]) =&gt; void|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESArray]
+[Iterable]&lt;:--[ESArray]
+[ESBoolean|+__get__: (props: IFuncProps, key: Primitive) =&gt; Error \| Primitive;+cast: (props: IFuncProps, type: Primitive) =&gt; Error \| ESNumber;+__eq__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESBoolean;+__bool__: () =&gt; this;+__and__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__or__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+str: () =&gt; ESString;+clone: () =&gt; ESBoolean;+bool: () =&gt; this;+__includes__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+keys: () =&gt; ESString\[\]|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESBoolean]
+[ESErrorPrimitive|+__get__: (props: IFuncProps, key: Primitive) =&gt; Error \| Primitive;+cast: () =&gt; Error;+str: () =&gt; ESString;+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__bool__: () =&gt; ESBoolean;+bool: () =&gt; ESBoolean;+clone: () =&gt; ESErrorPrimitive;+__includes__: () =&gt; Error;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+keys: () =&gt; ESString\[\]|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESErrorPrimitive]
+[ESFunction|+__args__: IRuntimeArgument\[\];+__this__: ESObject;+__returns__: Primitive;+__closure__: Context;+__allow_args__: boolean;+__allow_kwargs__: boolean;+takeCallContextAsClosure: boolean;+__generic_types__: Primitive\[\];+__gargs__: IRuntimeArgument\[\];+cast: () =&gt; Error;+clone: () =&gt; ESFunction;+valueOf: () =&gt; this;+str: () =&gt; ESString;+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__bool__: () =&gt; ESBoolean;+bool: () =&gt; ESBoolean;+__call__: ({ context, kwargs, dontTypeCheck }: IFuncProps, ...params: Primitive\[\]) =&gt; Error \| Primitive;+__get__: (props: IFuncProps, key: Primitive) =&gt; Error \| Primitive;+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+keys: () =&gt; ESString\[\];+__generic__: (props: IFuncProps, ...parameters: Primitive\[\]) =&gt; Error \| Primitive|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESFunction]
+[ESInterface|+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__set__: (props: IFuncProps, key: Primitive) =&gt; void \| Error;+str: (props: IFuncProps, depth?: ESNumber) =&gt; ESString|]
+[ESObject]&lt;:-[ESInterface]
+[ESTypeIntersection|+__left__: Primitive;+__right__: Primitive;+__call__: () =&gt; Error \| Primitive;+__includes__: (props: IFuncProps, t: Primitive) =&gt; Error \| ESBoolean;+__subtype_of__: (props: IFuncProps, t: Primitive) =&gt; Error \| ESBoolean;+clone: () =&gt; ESTypeIntersection;+__eq__: (props: IFuncProps, t: Primitive) =&gt; any;+__generic__: () =&gt; Error \| Primitive|]
+[ESType]&lt;:-[ESTypeIntersection]
+[&lt;interface&gt;Iterable|+len: (props: IFuncProps) =&gt; Error \| ESNumber;+__iter__: (props: IFuncProps) =&gt; Error \| Primitive;+contains: (props: IFuncProps, val: Primitive) =&gt; Error \| ESBoolean;+map: ((props: IFuncProps) =&gt; Error \| (Iterable &amp; Primitive)) \| undefined;+filter: ((props: IFuncProps) =&gt; Error \| (Iterable &amp; Primitive)) \| undefined;+find: ((props: IFuncProps) =&gt; Error \| Primitive) \| undefined;+indexof: ((props: IFuncProps) =&gt; Error \| ESNumber) \| undefined;+at: ((props: IFuncProps) =&gt; Error \| Primitive) \| undefined;+for: ((props: IFuncProps) =&gt; Error \| (Iterable &amp; Primitive)) \| undefined;+pop: ((props: IFuncProps) =&gt; Error \| Primitive) \| undefined;+reduce: ((props: IFuncProps) =&gt; Error \| Primitive) \| undefined;+reverse: ((props: IFuncProps) =&gt; Error \| (Iterable &amp; Primitive)) \| undefined;+splice: ((props: IFuncProps) =&gt; Error \| (Iterable &amp; Primitive)) \| undefined;+insert: ((props: IFuncProps) =&gt; Error \| (Iterable &amp; Primitive)) \| undefined;+shift: ((props: IFuncProps) =&gt; Error \| (Iterable &amp; Primitive)) \| undefined;+unshift: ((props: IFuncProps) =&gt; Error \| (Iterable &amp; Primitive)) \| undefined|]
+[ESJSBinding&lt;T&gt;|-functionsTakeProps: boolean;-catchErrorsToPrimitive: boolean;+__iterable__: boolean;+cast: () =&gt; Error \| Primitive;+clone: () =&gt; Primitive;+str: (props: IFuncProps, depth?: ESNumber) =&gt; ESString;+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__bool__: () =&gt; ESBoolean;+bool: () =&gt; ESBoolean;+__get__: (props: IFuncProps, k: Primitive) =&gt; Error \| Primitive;+__set__: (props: IFuncProps, k: Primitive, value: Primitive) =&gt; void \| Error;+__call__: (props: IFuncProps, ...args: Primitive\[\]) =&gt; Error \| Primitive;+has_property: (props: IFuncProps, key: Primitive) =&gt; ESBoolean;+__includes__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__iter__: () =&gt; Error \| Primitive;+len: () =&gt; ESNumber;+keys: () =&gt; ESString\[\];+contains: (props: IFuncProps, key: Primitive) =&gt; ESBoolean|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESJSBinding&lt;T&gt;]
+[Iterable]&lt;:--[ESJSBinding&lt;T&gt;]
+[ESNamespace|+__mutable__: boolean;+__iterable__: boolean;+cast: () =&gt; Error;+clone: () =&gt; Primitive;+str: () =&gt; ESString;+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__bool__: () =&gt; ESBoolean;+bool: () =&gt; ESBoolean;+__get__: (props: IFuncProps, key: Primitive) =&gt; Error \| Primitive;+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void \| Error;+__includes__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__iter__: (props: IFuncProps) =&gt; Error \| Primitive;+len: () =&gt; ESNumber;+keys: () =&gt; ESString\[\];+contains: (props: IFuncProps, key: Primitive) =&gt; ESBoolean|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESNamespace]
+[Iterable]&lt;:--[ESNamespace]
+[ESNull|+__null__: boolean;+cast: () =&gt; Error \| Primitive;+str: () =&gt; ESString;+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__bool__: () =&gt; ESBoolean;+bool: () =&gt; ESBoolean;+clone: () =&gt; ESNull;+__get__: (props: IFuncProps, key: Primitive) =&gt; Error \| Primitive;+__includes__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+keys: () =&gt; ESString\[\]|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESNull]
+[ESNumber|+cast: (props: IFuncProps, type: Primitive) =&gt; Error \| Primitive;+str: () =&gt; ESString;+__add__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESNumber;+__subtract__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESNumber;+__multiply__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESNumber;+__divide__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESNumber;+__pow__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESNumber;+__mod__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESNumber;+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__gt__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESBoolean;+__lt__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESBoolean;+__bool__: () =&gt; ESBoolean;+bool: () =&gt; ESBoolean;+clone: () =&gt; ESNumber;+__get__: (props: IFuncProps, key: Primitive) =&gt; Error \| Primitive;+__includes__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+keys: () =&gt; ESString\[\];+__call__: (props: IFuncProps, ...args: Primitive\[\]) =&gt; InvalidSyntaxError \| TypeError \| ESNumber|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESNumber]
+[ESObject|+__iterable__: boolean;+__type_map__: Map&lt;Primitive&gt; \| undefined;+cast: (props: IFuncProps, type: Primitive) =&gt; Error \| ESNumber;+str: (props: IFuncProps, depth?: ESNumber) =&gt; ESString;+keys: () =&gt; ESString\[\];+__eq__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__bool__: () =&gt; ESBoolean;+bool: () =&gt; ESBoolean;+__add__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESObject;+__subtract__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__get__: (props: IFuncProps, k: Primitive) =&gt; Error \| Primitive;+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void \| Error;+has_property: (props: IFuncProps, k: Primitive) =&gt; ESBoolean;+clone: () =&gt; ESObject;+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__iter__: () =&gt; Error \| Primitive;+len: () =&gt; ESNumber;+contains: (props: IFuncProps, k: Primitive) =&gt; ESBoolean|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESObject]
+[Iterable]&lt;:--[ESObject]
+[ESString|+__iterable__: boolean;+str: () =&gt; this;+cast: (props: IFuncProps, type: Primitive) =&gt; Error \| Primitive;+__add__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESString;+__multiply__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESString;+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__gt__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESBoolean;+__lt__: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESBoolean;+__bool__: () =&gt; ESBoolean;+bool: () =&gt; ESBoolean;+len: () =&gt; ESNumber;+clone: () =&gt; ESString;+__get__: (props: IFuncProps, key: Primitive) =&gt; Primitive;+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void;+__includes__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__iter__: () =&gt; Error \| Primitive;+keys: () =&gt; (ESString \| ESNumber)\[\];+contains: (props: IFuncProps, n: Primitive) =&gt; TypeError \| ESBoolean|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESString]
+[Iterable]&lt;:--[ESString]
+[ESType|+__primordial__: boolean;+__name__: string;+__extends__: ESType \| undefined;+__methods__: ESFunction\[\];+__properties__: Map&lt;Primitive&gt;;+__instances__: Primitive\[\];+__abstract__: boolean;+clone: () =&gt; ESType;+isa: (props: IFuncProps, type: Primitive) =&gt; ESBoolean;+cast: () =&gt; Error;+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error \| ESBoolean;+__subtype_of__: (props: IFuncProps, t: Primitive) =&gt; Error \| ESBoolean;+__eq__: (props: IFuncProps, t: Primitive) =&gt; Error \| ESBoolean;+__call__: (props: IFuncProps, ...params: Primitive\[\]) =&gt; Error \| Primitive;+str: () =&gt; ESString;+__bool__: () =&gt; ESBoolean;+bool: () =&gt; ESBoolean;+__get__: (props: IFuncProps, k: Primitive) =&gt; Error \| Primitive;+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error \| Primitive;+keys: () =&gt; ESString\[\];+__get_init__: () =&gt; ESFunction \| undefined|]
+[ESTypeUnion|+__left__: Primitive;+__right__: Primitive;+__call__: () =&gt; Error \| Primitive;+__includes__: (props: IFuncProps, t: Primitive) =&gt; Error \| ESBoolean;+__subtype_of__: (props: IFuncProps, t: Primitive) =&gt; Error \| ESBoolean;+clone: () =&gt; ESType;+__eq__: (props: IFuncProps, t: Primitive) =&gt; Error \| ESBoolean|]
+[ESTypeNot|-__val__: Primitive;+__call__: () =&gt; Error \| Primitive;+__includes__: (props: IFuncProps, t: Primitive) =&gt; Error \| ESBoolean;+__subtype_of__: (props: IFuncProps, t: Primitive) =&gt; Error \| ESBoolean;+clone: () =&gt; ESTypeNot;+__eq__: (props: IFuncProps, t: Primitive) =&gt; any|]
+[ESPrimitive&lt;T&gt;]&lt;:-[ESType]
+[ESType]&lt;:-[ESTypeUnion]
+[ESType]&lt;:-[ESTypeNot]</desc>
+<g stroke-width="1.0" text-align="left" font="12pt Helvetica, Arial, sans-serif" font-size="12pt" font-family="Helvetica" font-weight="normal" font-style="normal">
+<g transform="translate(0.5, 0.5)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" stroke-width="3.0" stroke-linejoin="round" stroke-linecap="round" stroke="#33322E">
+<g stroke="transparent" fill="transparent">
+<rect x="0.0" y="0.0" height="1524.0" width="22194.0" stroke="none"></rect>
+</g>
+<g transform="translate(8, 8)" fill="#33322E">
+<g transform="translate(20, 20)" fill="#eee8d5" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal">
+<path d="M518.2 476.1 L70 818 L70 1022 L70.0 1022.0 " fill="none"></path>
+<path d="M521.4 480.3 L518.2 476.1 L515.0 471.8 L528.8 468.0 Z"></path>
+<path d="M551.5 478.1 L260.5 818 L260.5 1022 L260.5 1022.0 " fill="none"></path>
+<path d="M555.6 481.6 L551.5 478.1 L547.4 474.7 L560.2 468.0 Z"></path>
+<path d="M582.2 480.1 L428 818 L428 1022 L428.0 1022.0 " fill="none"></path>
+<path d="M587.1 482.3 L582.2 480.1 L577.4 477.9 L587.8 468.0 Z"></path>
+<path d="M609.1 481.2 L567.5 818 L567.5 1022 L567.5 1022.0 " fill="none"></path>
+<path d="M614.4 481.9 L609.1 481.2 L603.8 480.6 L610.7 468.0 Z"></path>
+<path d="M640.6 480.9 L728.5 818 L728.5 1022 L728.5 1022.0 " fill="none"></path>
+<path d="M645.8 479.6 L640.6 480.9 L635.4 482.2 L637.2 468.0 Z"></path>
+<path d="M670.4 479.2 L886.5 818 L886.5 1022 L886.5 1022.0 " fill="none"></path>
+<path d="M674.9 476.4 L670.4 479.2 L665.9 482.1 L663.3 468.0 Z"></path>
+<path d="M760.4 445.7 L1885.5 818 L1885.5 1022 L1885.5 1022.0 " fill="none"></path>
+<path d="M762.1 440.6 L760.4 445.7 L758.7 450.8 L747.8 441.5 Z"></path>
+<path d="M760.6 438.9 L2104 818 L2104 1022 L2104.0 1022.0 " fill="none"></path>
+<path d="M762.0 433.8 L760.6 438.9 L759.1 444.0 L747.8 435.3 Z"></path>
+<path d="M760.7 434.7 L2279 818 L2279 1022 L2279.0 1022.0 " fill="none"></path>
+<path d="M762.0 429.5 L760.7 434.7 L759.4 439.9 L747.8 431.4 Z"></path>
+<path d="M760.8 430.9 L2475 818 L2475 1022 L2475.0 1022.0 " fill="none"></path>
+<path d="M761.9 425.7 L760.8 430.9 L759.6 436.2 L747.8 428.0 Z"></path>
+<path d="M760.8 426.8 L2754.5 818 L2754.5 1022 L2754.5 1022.0 " fill="none"></path>
+<path d="M761.9 421.5 L760.8 426.8 L759.8 432.0 L747.8 424.2 Z"></path>
+<path d="M760.9 424.1 L2979 818 L2979 1022 L2979.0 1022.0 " fill="none"></path>
+<path d="M761.8 418.9 L760.9 424.1 L759.9 429.4 L747.8 421.8 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M4162.3 454.2 L3221 818 L3221 980.5 L3221.0 980.5 " fill="none"></path>
+</g>
+<path d="M4164.2 459.2 L4162.3 454.2 L4160.4 449.3 L4174.8 449.4 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M4379.7 473.4 L4724.5 818 L4724.5 1010.5 L4724.5 1010.5 " fill="none"></path>
+</g>
+<path d="M4383.5 469.7 L4379.7 473.4 L4375.9 477.2 L4370.3 464.0 Z"></path>
+<path d="M8767.2 416.3 L5031 818 L5031 976.5 L5031.0 976.5 " fill="none"></path>
+<path d="M8767.8 421.6 L8767.2 416.3 L8766.7 411.0 L8780.5 414.9 Z"></path>
+<path d="M8767.3 417.9 L5366 818 L5366 984 L5366.0 984.0 " fill="none"></path>
+<path d="M8767.9 423.2 L8767.3 417.9 L8766.6 412.6 L8780.5 416.4 Z"></path>
+<path d="M8767.3 419.9 L5701 818 L5701 946.5 L5701.0 946.5 " fill="none"></path>
+<path d="M8768.0 425.2 L8767.3 419.9 L8766.6 414.6 L8780.5 418.2 Z"></path>
+<path d="M8767.3 422.3 L6036 818 L6036 961.5 L6036.0 961.5 " fill="none"></path>
+<path d="M8768.1 427.6 L8767.3 422.3 L8766.5 417.0 L8780.5 420.4 Z"></path>
+<path d="M8767.3 425.1 L6344 818 L6344 976.5 L6344.0 976.5 " fill="none"></path>
+<path d="M8768.2 430.3 L8767.3 425.1 L8766.5 419.8 L8780.5 422.9 Z"></path>
+<path d="M8767.4 428.6 L6652 818 L6652 984 L6652.0 984.0 " fill="none"></path>
+<path d="M8768.4 433.8 L8767.4 428.6 L8766.4 423.3 L8780.5 426.2 Z"></path>
+<path d="M8767.5 433.7 L6987 818 L6987 961.5 L6987.0 961.5 " fill="none"></path>
+<path d="M8768.6 438.9 L8767.5 433.7 L8766.3 428.4 L8780.5 430.8 Z"></path>
+<path d="M8767.6 440.2 L7295 818 L7295 984 L7295.0 984.0 " fill="none"></path>
+<path d="M8768.9 445.3 L8767.6 440.2 L8766.3 435.0 L8780.5 436.8 Z"></path>
+<path d="M8767.8 449.7 L7603 818 L7603 991.5 L7603.0 991.5 " fill="none"></path>
+<path d="M8769.4 454.7 L8767.8 449.7 L8766.2 444.6 L8780.5 445.6 Z"></path>
+<path d="M8770.4 465.7 L7938 818 L7938 984 L7938.0 984.0 " fill="none"></path>
+<path d="M8772.5 470.6 L8770.4 465.7 L8768.3 460.8 L8782.7 460.5 Z"></path>
+<path d="M8824.0 467.9 L8295 818 L8295 954 L8295.0 954.0 " fill="none"></path>
+<path d="M8826.9 472.3 L8824.0 467.9 L8821.0 463.4 L8835.1 460.5 Z"></path>
+<path d="M8881.8 471.8 L8662 818 L8662 931.5 L8662.0 931.5 " fill="none"></path>
+<path d="M8886.3 474.6 L8881.8 471.8 L8877.3 468.9 L8889.0 460.5 Z"></path>
+<path d="M8942.1 473.6 L9007 818 L9007 991.5 L9007.0 991.5 " fill="none"></path>
+<path d="M8947.3 472.6 L8942.1 473.6 L8936.8 474.6 L8939.6 460.5 Z"></path>
+<path d="M8998.1 470.0 L9342 818 L9342 991.5 L9342.0 991.5 " fill="none"></path>
+<path d="M9001.9 466.2 L8998.1 470.0 L8994.3 473.7 L8988.8 460.5 Z"></path>
+<path d="M9049.6 467.0 L9677 818 L9677 961.5 L9677.0 961.5 " fill="none"></path>
+<path d="M9052.2 462.4 L9049.6 467.0 L9047.0 471.7 L9037.9 460.5 Z"></path>
+<path d="M9087.9 460.5 L10018.5 818 L10018.5 946.5 L10018.5 946.5 " fill="none"></path>
+<path d="M9089.9 455.5 L9087.9 460.5 L9086.0 465.4 L9075.5 455.7 Z"></path>
+<path d="M9088.3 445.9 L10360 818 L10360 984 L10360.0 984.0 " fill="none"></path>
+<path d="M9089.8 440.8 L9088.3 445.9 L9086.8 451.0 L9075.5 442.2 Z"></path>
+<path d="M9088.5 437.1 L10695 818 L10695 991.5 L10695.0 991.5 " fill="none"></path>
+<path d="M9089.7 431.9 L9088.5 437.1 L9087.2 442.2 L9075.5 434.0 Z"></path>
+<path d="M9088.6 431.0 L11030 818 L11030 991.5 L11030.0 991.5 " fill="none"></path>
+<path d="M9089.6 425.8 L9088.6 431.0 L9087.5 436.2 L9075.5 428.4 Z"></path>
+<path d="M9088.6 426.6 L11365 818 L11365 991.5 L11365.0 991.5 " fill="none"></path>
+<path d="M9089.5 421.4 L9088.6 426.6 L9087.7 431.9 L9075.5 424.4 Z"></path>
+<path d="M9088.7 423.5 L11673 818 L11673 1003 L11673.0 1003.0 " fill="none"></path>
+<path d="M9089.5 418.3 L9088.7 423.5 L9087.9 428.8 L9075.5 421.5 Z"></path>
+<path d="M9088.7 421.3 L11954 818 L11954 1003 L11954.0 1003.0 " fill="none"></path>
+<path d="M9089.4 416.0 L9088.7 421.3 L9088.0 426.5 L9075.5 419.4 Z"></path>
+<path d="M9088.7 419.4 L12235 818 L12235 1003 L12235.0 1003.0 " fill="none"></path>
+<path d="M9089.4 414.1 L9088.7 419.4 L9088.1 424.7 L9075.5 417.7 Z"></path>
+<path d="M9088.7 417.8 L12516 818 L12516 991.5 L12516.0 991.5 " fill="none"></path>
+<path d="M9089.4 412.5 L9088.7 417.8 L9088.1 423.1 L9075.5 416.2 Z"></path>
+<path d="M15875.0 438.4 L12763.5 818 L12809.104395604396 868 L12809.1 868.0 " fill="none"></path>
+<path d="M15875.7 443.7 L15875.0 438.4 L15874.4 433.1 L15888.3 436.8 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M17859.0 426.4 L13368.75 818 L13265.5 877.0556253928347 L13265.5 877.1 " fill="none"></path>
+</g>
+<path d="M17859.4 431.8 L17859.0 426.4 L17858.5 421.1 L17872.3 425.3 Z"></path>
+<path d="M15875.1 453.4 L13713 818 L13713 913 L13713.0 913.0 " fill="none"></path>
+<path d="M15876.0 458.7 L15875.1 453.4 L15874.2 448.1 L15888.3 451.2 Z"></path>
+<path d="M15875.3 472.6 L14361.5 818 L14361.5 928 L14361.5 928.0 " fill="none"></path>
+<path d="M15876.4 477.8 L15875.3 472.6 L15874.1 467.4 L15888.3 469.6 Z"></path>
+<path d="M15875.8 522.4 L15104.5 818 L15104.5 838 L15104.5 838.0 " fill="none"></path>
+<path d="M15877.7 527.4 L15875.8 522.4 L15873.9 517.4 L15888.3 517.6 Z"></path>
+<path d="M19859.0 1243.8 L19859 1273 L19859 1323 L19859.0 1323.0 " fill="none"></path>
+<path d="M19864.3 1243.8 L19859.0 1243.8 L19853.7 1243.8 L19859.0 1230.5 Z"></path>
+<path d="M20817.2 1176.2 L20592 1273 L20592 1293 L20592.0 1293.0 " fill="none"></path>
+<path d="M20819.4 1181.1 L20817.2 1176.2 L20815.1 1171.3 L20829.5 1171.0 Z"></path>
+<path d="M15876.8 591.4 L15498.75 818 L15564.92857142857 860.5 L15564.9 860.5 " fill="none"></path>
+<path d="M15879.6 596.0 L15876.8 591.4 L15874.1 586.8 L15888.3 584.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M17859.2 464.4 L16157.75 818 L16100.818681318682 860.5 L16100.8 860.5 " fill="none"></path>
+</g>
+<path d="M17860.3 469.6 L17859.2 464.4 L17858.1 459.2 L17872.3 461.7 Z"></path>
+<path d="M16197.8 743.8 L16197.75 818 L16846.75 972.0401669274909 L16846.8 972.0 " fill="none"></path>
+<path d="M16203.1 743.8 L16197.8 743.8 L16192.4 743.8 L16197.8 730.5 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M18135.3 559.5 L18073.25 818 L17465.75 968.7156488549618 L17465.8 968.7 " fill="none"></path>
+</g>
+<path d="M18140.4 560.7 L18135.3 559.5 L18130.1 558.2 L18138.4 546.5 Z"></path>
+<path d="M16520.4 460.1 L18410.5 818 L18410.5 920.5 L18410.5 920.5 " fill="none"></path>
+<path d="M16521.3 454.8 L16520.4 460.1 L16519.4 465.3 L16507.3 457.6 Z"></path>
+<path d="M16520.4 445.2 L19122.5 818 L19122.5 860.5 L19122.5 860.5 " fill="none"></path>
+<path d="M16521.2 440.0 L16520.4 445.2 L16519.7 450.5 L16507.3 443.3 Z"></path>
+<path d="M16520.5 439.8 L19510.75 818 L19575.80769230769 860.5 L19575.8 860.5 " fill="none"></path>
+<path d="M16521.1 434.5 L16520.5 439.8 L16519.8 445.1 L16507.3 438.1 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M18488.3 465.4 L20159 818 L20102.956043956045 860.5 L20103.0 860.5 " fill="none"></path>
+</g>
+<path d="M18489.4 460.2 L18488.3 465.4 L18487.2 470.6 L18475.3 462.6 Z"></path>
+<path d="M16520.5 432.8 L20199 818 L20255.043956043955 860.5 L20255.0 860.5 " fill="none"></path>
+<path d="M16521.1 427.5 L16520.5 432.8 L16520.0 438.1 L16507.3 431.4 Z"></path>
+<g stroke-dasharray="6 6">
+<path d="M18488.4 449.4 L20790.25 818 L20735.840659340658 860.5 L20735.8 860.5 " fill="none"></path>
+</g>
+<path d="M18489.3 444.1 L18488.4 449.4 L18487.6 454.7 L18475.3 447.3 Z"></path>
+<path d="M16520.5 426.5 L21121.5 818 L21121.5 853 L21121.5 853.0 " fill="none"></path>
+<path d="M16521.0 421.2 L16520.5 426.5 L16520.1 431.8 L16507.3 425.3 Z"></path>
+<path d="M21211.9 1250.2 L21222 1273 L21222 1300.5 L21222.0 1300.5 " fill="none"></path>
+<path d="M21216.8 1248.0 L21211.9 1250.2 L21207.0 1252.4 L21206.5 1238.0 Z"></path>
+<path d="M21426.2 1141.2 L21846 1273 L21846 1308 L21846.0 1308.0 " fill="none"></path>
+<path d="M21427.8 1136.1 L21426.2 1141.2 L21424.6 1146.3 L21413.5 1137.2 Z"></path>
+<g data-name="Config">
+<g fill="lightblue" stroke="#33322E" data-name="Config">
+<rect x="224.0" y="357.0" height="85.0" width="227.0" data-name="Config"></rect>
+<path d="M224.0 388.0 L451.0 388.0" fill="none" data-name="Config"></path>
+<path d="M224.0 434.0 L451.0 434.0" fill="none" data-name="Config"></path>
+</g>
+<g transform="translate(224, 357)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Config">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="Config">
+<a id="src/config.ts.Config" xlink:href="src/config.ts"><text x="105.5" y="13.5" stroke="none" text-anchor="middle" data-name="Config">Config</text></a>
+
+</g>
+</g>
+<g transform="translate(224, 388)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Config">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Config">
+<text x="0.0" y="13.5" stroke="none" data-name="Config">+permissions: Permissions</text>
+<text x="0.0" y="28.5" stroke="none" data-name="Config">+modules: Map&lt;any&gt;</text>
+
+</g>
+</g>
+<g transform="translate(224, 434)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Config">
+<g transform="translate(8, 8)" fill="#33322E" data-name="Config">
+
+</g>
+</g>
+</g>
+<g data-name="Error">
+<g fill="#eee8d5" stroke="#33322E" data-name="Error">
+<rect x="491.0" y="330.0" height="138.0" width="257.0" data-name="Error"></rect>
+<path d="M491.0 361.0 L748.0 361.0" fill="none" data-name="Error"></path>
+<path d="M491.0 437.0 L748.0 437.0" fill="none" data-name="Error"></path>
+</g>
+<g transform="translate(491, 330)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="Error">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="Error">
+<a id="src/errors.ts.Error" xlink:href="src/errors.ts"><text x="120.5" y="13.5" stroke="none" text-anchor="middle" data-name="Error">Error</text></a>
+
+</g>
+</g>
+<g transform="translate(491, 361)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Error">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Error">
+<text x="0.0" y="13.5" stroke="none" data-name="Error">+name: string</text>
+<text x="0.0" y="28.5" stroke="none" data-name="Error">+details: string</text>
+<text x="0.0" y="43.5" stroke="none" data-name="Error">+pos: default</text>
+<text x="0.0" y="58.5" stroke="none" data-name="Error">+traceback: TracebackFrame[]</text>
+
+</g>
+</g>
+<g transform="translate(491, 437)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Error">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Error">
+<text x="0.0" y="13.5" stroke="none" data-name="Error">+position(): this</text>
+
+</g>
+</g>
+</g>
+<g data-name="IllegalCharError">
+<g fill="#eee8d5" stroke="#33322E" data-name="IllegalCharError">
+<rect x="0.0" y="1022.0" height="47.0" width="140.0" data-name="IllegalCharError"></rect>
+<path d="M0.0 1053.0 L140.0 1053.0" fill="none" data-name="IllegalCharError"></path>
+<path d="M0.0 1061.0 L140.0 1061.0" fill="none" data-name="IllegalCharError"></path>
+</g>
+<g transform="translate(0, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="IllegalCharError">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IllegalCharError">
+<a id="src/errors.ts.IllegalCharError" xlink:href="src/errors.ts"><text x="62.0" y="13.5" stroke="none" text-anchor="middle" data-name="IllegalCharError">IllegalCharError</text></a>
+
+</g>
+</g>
+<g transform="translate(0, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IllegalCharError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IllegalCharError">
+
+</g>
+</g>
+<g transform="translate(0, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IllegalCharError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IllegalCharError">
+
+</g>
+</g>
+</g>
+<g data-name="InvalidSyntaxError">
+<g fill="#eee8d5" stroke="#33322E" data-name="InvalidSyntaxError">
+<rect x="180.0" y="1022.0" height="47.0" width="161.0" data-name="InvalidSyntaxError"></rect>
+<path d="M180.0 1053.0 L341.0 1053.0" fill="none" data-name="InvalidSyntaxError"></path>
+<path d="M180.0 1061.0 L341.0 1061.0" fill="none" data-name="InvalidSyntaxError"></path>
+</g>
+<g transform="translate(180, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="InvalidSyntaxError">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="InvalidSyntaxError">
+<a id="src/errors.ts.InvalidSyntaxError" xlink:href="src/errors.ts"><text x="72.5" y="13.5" stroke="none" text-anchor="middle" data-name="InvalidSyntaxError">InvalidSyntaxError</text></a>
+
+</g>
+</g>
+<g transform="translate(180, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="InvalidSyntaxError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="InvalidSyntaxError">
+
+</g>
+</g>
+<g transform="translate(180, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="InvalidSyntaxError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="InvalidSyntaxError">
+
+</g>
+</g>
+</g>
+<g data-name="TypeError">
+<g fill="#eee8d5" stroke="#33322E" data-name="TypeError">
+<rect x="381.0" y="1022.0" height="47.0" width="94.0" data-name="TypeError"></rect>
+<path d="M381.0 1053.0 L475.0 1053.0" fill="none" data-name="TypeError"></path>
+<path d="M381.0 1061.0 L475.0 1061.0" fill="none" data-name="TypeError"></path>
+</g>
+<g transform="translate(381, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="TypeError">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="TypeError">
+<a id="src/errors.ts.TypeError" xlink:href="src/errors.ts"><text x="39.0" y="13.5" stroke="none" text-anchor="middle" data-name="TypeError">TypeError</text></a>
+
+</g>
+</g>
+<g transform="translate(381, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TypeError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="TypeError">
+
+</g>
+</g>
+<g transform="translate(381, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TypeError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="TypeError">
+
+</g>
+</g>
+</g>
+<g data-name="ImportError">
+<g fill="#eee8d5" stroke="#33322E" data-name="ImportError">
+<rect x="515.0" y="1022.0" height="47.0" width="105.0" data-name="ImportError"></rect>
+<path d="M515.0 1053.0 L620.0 1053.0" fill="none" data-name="ImportError"></path>
+<path d="M515.0 1061.0 L620.0 1061.0" fill="none" data-name="ImportError"></path>
+</g>
+<g transform="translate(515, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ImportError">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ImportError">
+<a id="src/errors.ts.ImportError" xlink:href="src/errors.ts"><text x="44.5" y="13.5" stroke="none" text-anchor="middle" data-name="ImportError">ImportError</text></a>
+
+</g>
+</g>
+<g transform="translate(515, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ImportError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ImportError">
+
+</g>
+</g>
+<g transform="translate(515, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ImportError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ImportError">
+
+</g>
+</g>
+</g>
+<g data-name="ReferenceError">
+<g fill="#eee8d5" stroke="#33322E" data-name="ReferenceError">
+<rect x="660.0" y="1022.0" height="47.0" width="137.0" data-name="ReferenceError"></rect>
+<path d="M660.0 1053.0 L797.0 1053.0" fill="none" data-name="ReferenceError"></path>
+<path d="M660.0 1061.0 L797.0 1061.0" fill="none" data-name="ReferenceError"></path>
+</g>
+<g transform="translate(660, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ReferenceError">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ReferenceError">
+<a id="src/errors.ts.ReferenceError" xlink:href="src/errors.ts"><text x="60.5" y="13.5" stroke="none" text-anchor="middle" data-name="ReferenceError">ReferenceError</text></a>
+
+</g>
+</g>
+<g transform="translate(660, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ReferenceError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ReferenceError">
+
+</g>
+</g>
+<g transform="translate(660, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ReferenceError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ReferenceError">
+
+</g>
+</g>
+</g>
+<g data-name="IndexError">
+<g fill="#eee8d5" stroke="#33322E" data-name="IndexError">
+<rect x="837.0" y="1022.0" height="47.0" width="99.0" data-name="IndexError"></rect>
+<path d="M837.0 1053.0 L936.0 1053.0" fill="none" data-name="IndexError"></path>
+<path d="M837.0 1061.0 L936.0 1061.0" fill="none" data-name="IndexError"></path>
+</g>
+<g transform="translate(837, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="IndexError">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IndexError">
+<a id="src/errors.ts.IndexError" xlink:href="src/errors.ts"><text x="41.5" y="13.5" stroke="none" text-anchor="middle" data-name="IndexError">IndexError</text></a>
+
+</g>
+</g>
+<g transform="translate(837, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IndexError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IndexError">
+
+</g>
+</g>
+<g transform="translate(837, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IndexError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IndexError">
+
+</g>
+</g>
+</g>
+<g data-name="InvalidOperationError">
+<g fill="#eee8d5" stroke="#33322E" data-name="InvalidOperationError">
+<rect x="1793.0" y="1022.0" height="47.0" width="185.0" data-name="InvalidOperationError"></rect>
+<path d="M1793.0 1053.0 L1978.0 1053.0" fill="none" data-name="InvalidOperationError"></path>
+<path d="M1793.0 1061.0 L1978.0 1061.0" fill="none" data-name="InvalidOperationError"></path>
+</g>
+<g transform="translate(1793, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="InvalidOperationError">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="InvalidOperationError">
+<a id="src/errors.ts.InvalidOperationError" xlink:href="src/errors.ts"><text x="84.5" y="13.5" stroke="none" text-anchor="middle" data-name="InvalidOperationError">InvalidOperationError</text></a>
+
+</g>
+</g>
+<g transform="translate(1793, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="InvalidOperationError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="InvalidOperationError">
+
+</g>
+</g>
+<g transform="translate(1793, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="InvalidOperationError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="InvalidOperationError">
+
+</g>
+</g>
+</g>
+<g data-name="InvalidRuntimeError">
+<g fill="#eee8d5" stroke="#33322E" data-name="InvalidRuntimeError">
+<rect x="2018.0" y="1022.0" height="47.0" width="172.0" data-name="InvalidRuntimeError"></rect>
+<path d="M2018.0 1053.0 L2190.0 1053.0" fill="none" data-name="InvalidRuntimeError"></path>
+<path d="M2018.0 1061.0 L2190.0 1061.0" fill="none" data-name="InvalidRuntimeError"></path>
+</g>
+<g transform="translate(2018, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="InvalidRuntimeError">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="InvalidRuntimeError">
+<a id="src/errors.ts.InvalidRuntimeError" xlink:href="src/errors.ts"><text x="78.0" y="13.5" stroke="none" text-anchor="middle" data-name="InvalidRuntimeError">InvalidRuntimeError</text></a>
+
+</g>
+</g>
+<g transform="translate(2018, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="InvalidRuntimeError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="InvalidRuntimeError">
+
+</g>
+</g>
+<g transform="translate(2018, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="InvalidRuntimeError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="InvalidRuntimeError">
+
+</g>
+</g>
+</g>
+<g data-name="TestFailed">
+<g fill="#eee8d5" stroke="#33322E" data-name="TestFailed">
+<rect x="2230.0" y="1022.0" height="47.0" width="98.0" data-name="TestFailed"></rect>
+<path d="M2230.0 1053.0 L2328.0 1053.0" fill="none" data-name="TestFailed"></path>
+<path d="M2230.0 1061.0 L2328.0 1061.0" fill="none" data-name="TestFailed"></path>
+</g>
+<g transform="translate(2230, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="TestFailed">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="TestFailed">
+<a id="src/errors.ts.TestFailed" xlink:href="src/errors.ts"><text x="41.0" y="13.5" stroke="none" text-anchor="middle" data-name="TestFailed">TestFailed</text></a>
+
+</g>
+</g>
+<g transform="translate(2230, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TestFailed">
+<g transform="translate(8, 8)" fill="#33322E" data-name="TestFailed">
+
+</g>
+</g>
+<g transform="translate(2230, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TestFailed">
+<g transform="translate(8, 8)" fill="#33322E" data-name="TestFailed">
+
+</g>
+</g>
+</g>
+<g data-name="PermissionRequiredError">
+<g fill="#eee8d5" stroke="#33322E" data-name="PermissionRequiredError">
+<rect x="2368.0" y="1022.0" height="47.0" width="214.0" data-name="PermissionRequiredError"></rect>
+<path d="M2368.0 1053.0 L2582.0 1053.0" fill="none" data-name="PermissionRequiredError"></path>
+<path d="M2368.0 1061.0 L2582.0 1061.0" fill="none" data-name="PermissionRequiredError"></path>
+</g>
+<g transform="translate(2368, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="PermissionRequiredError">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="PermissionRequiredError">
+<a id="src/errors.ts.PermissionRequiredError" xlink:href="src/errors.ts"><text x="99.0" y="13.5" stroke="none" text-anchor="middle" data-name="PermissionRequiredError">PermissionRequiredError</text></a>
+
+</g>
+</g>
+<g transform="translate(2368, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PermissionRequiredError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PermissionRequiredError">
+
+</g>
+</g>
+<g transform="translate(2368, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="PermissionRequiredError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="PermissionRequiredError">
+
+</g>
+</g>
+</g>
+<g data-name="MissingNativeDependencyError">
+<g fill="#eee8d5" stroke="#33322E" data-name="MissingNativeDependencyError">
+<rect x="2622.0" y="1022.0" height="47.0" width="265.0" data-name="MissingNativeDependencyError"></rect>
+<path d="M2622.0 1053.0 L2887.0 1053.0" fill="none" data-name="MissingNativeDependencyError"></path>
+<path d="M2622.0 1061.0 L2887.0 1061.0" fill="none" data-name="MissingNativeDependencyError"></path>
+</g>
+<g transform="translate(2622, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="MissingNativeDependencyError">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="MissingNativeDependencyError">
+<a id="src/errors.ts.MissingNativeDependencyError" xlink:href="src/errors.ts"><text x="124.5" y="13.5" stroke="none" text-anchor="middle" data-name="MissingNativeDependencyError">MissingNativeDependencyError</text></a>
+
+</g>
+</g>
+<g transform="translate(2622, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="MissingNativeDependencyError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="MissingNativeDependencyError">
+
+</g>
+</g>
+<g transform="translate(2622, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="MissingNativeDependencyError">
+<g transform="translate(8, 8)" fill="#33322E" data-name="MissingNativeDependencyError">
+
+</g>
+</g>
+</g>
+<g data-name="EndIterator">
+<g fill="#eee8d5" stroke="#33322E" data-name="EndIterator">
+<rect x="2927.0" y="1022.0" height="47.0" width="104.0" data-name="EndIterator"></rect>
+<path d="M2927.0 1053.0 L3031.0 1053.0" fill="none" data-name="EndIterator"></path>
+<path d="M2927.0 1061.0 L3031.0 1061.0" fill="none" data-name="EndIterator"></path>
+</g>
+<g transform="translate(2927, 1022)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="EndIterator">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="EndIterator">
+<a id="src/errors.ts.EndIterator" xlink:href="src/errors.ts"><text x="44.0" y="13.5" stroke="none" text-anchor="middle" data-name="EndIterator">EndIterator</text></a>
+
+</g>
+</g>
+<g transform="translate(2927, 1053)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="EndIterator">
+<g transform="translate(8, 8)" fill="#33322E" data-name="EndIterator">
+
+</g>
+</g>
+<g transform="translate(2927, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="EndIterator">
+<g transform="translate(8, 8)" fill="#33322E" data-name="EndIterator">
+
+</g>
+</g>
+</g>
+<g data-name="TracebackFrame">
+<g fill="lightblue" stroke="#33322E" data-name="TracebackFrame">
+<rect x="788.0" y="357.0" height="85.0" width="152.0" data-name="TracebackFrame"></rect>
+<path d="M788.0 388.0 L940.0 388.0" fill="none" data-name="TracebackFrame"></path>
+<path d="M788.0 434.0 L940.0 434.0" fill="none" data-name="TracebackFrame"></path>
+</g>
+<g transform="translate(788, 357)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TracebackFrame">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="TracebackFrame">
+<a id="src/errors.ts.TracebackFrame" xlink:href="src/errors.ts"><text x="68.0" y="13.5" stroke="none" text-anchor="middle" data-name="TracebackFrame">TracebackFrame</text></a>
+
+</g>
+</g>
+<g transform="translate(788, 388)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TracebackFrame">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="TracebackFrame">
+<text x="0.0" y="13.5" stroke="none" data-name="TracebackFrame">+position: default</text>
+<text x="0.0" y="28.5" stroke="none" data-name="TracebackFrame">+line: string</text>
+
+</g>
+</g>
+<g transform="translate(788, 434)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TracebackFrame">
+<g transform="translate(8, 8)" fill="#33322E" data-name="TracebackFrame">
+
+</g>
+</g>
+</g>
+<g data-name="default">
+<g fill="#eee8d5" stroke="#33322E" data-name="default">
+<rect x="980.0" y="330.0" height="138.0" width="144.0" data-name="default"></rect>
+<path d="M980.0 361.0 L1124.0 361.0" fill="none" data-name="default"></path>
+<path d="M980.0 437.0 L1124.0 437.0" fill="none" data-name="default"></path>
+</g>
+<g transform="translate(980, 330)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="default">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="default">
+<a id="src/position.ts.default" xlink:href="src/position.ts"><text x="64.0" y="13.5" stroke="none" text-anchor="middle" data-name="default">default</text></a>
+
+</g>
+</g>
+<g transform="translate(980, 361)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="default">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="default">
+<text x="0.0" y="13.5" stroke="none" data-name="default">+file: string</text>
+<text x="0.0" y="28.5" stroke="none" data-name="default">+idx: number</text>
+<text x="0.0" y="43.5" stroke="none" data-name="default">+ln: number</text>
+<text x="0.0" y="58.5" stroke="none" data-name="default">+col: number</text>
+
+</g>
+</g>
+<g transform="translate(980, 437)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="default">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="default">
+<text x="0.0" y="13.5" stroke="none" data-name="default">+advance(): this</text>
+
+</g>
+</g>
+</g>
+<g data-name="Lexer">
+<g fill="#eee8d5" stroke="#33322E" data-name="Lexer">
+<rect x="1164.0" y="285.0" height="228.0" width="350.0" data-name="Lexer"></rect>
+<path d="M1164.0 316.0 L1514.0 316.0" fill="none" data-name="Lexer"></path>
+<path d="M1164.0 377.0 L1514.0 377.0" fill="none" data-name="Lexer"></path>
+</g>
+<g transform="translate(1164, 285)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="Lexer">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="Lexer">
+<a id="src/parse/lexer.ts.Lexer" xlink:href="src/parse/lexer.ts"><text x="167.0" y="13.5" stroke="none" text-anchor="middle" data-name="Lexer">Lexer</text></a>
+
+</g>
+</g>
+<g transform="translate(1164, 316)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Lexer">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Lexer">
+<text x="0.0" y="13.5" stroke="none" data-name="Lexer">-text: string</text>
+<text x="0.0" y="28.5" stroke="none" data-name="Lexer">-position: default</text>
+<text x="0.0" y="43.5" stroke="none" data-name="Lexer">-currentChar: string | undefined</text>
+
+</g>
+</g>
+<g transform="translate(1164, 377)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Lexer">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Lexer">
+<text x="0.0" y="13.5" stroke="none" data-name="Lexer">-advance(): void</text>
+<text x="0.0" y="28.5" stroke="none" data-name="Lexer">+generate(): Error | default&lt;unknown&gt;[]</text>
+<text x="0.0" y="43.5" stroke="none" data-name="Lexer">-makeNumber(): default&lt;number&gt;</text>
+<text x="0.0" y="58.5" stroke="none" data-name="Lexer">-makeString(): default&lt;string&gt;</text>
+<text x="0.0" y="73.5" stroke="none" data-name="Lexer">-makeIdentifier(): default&lt;string&gt;</text>
+<text x="0.0" y="88.5" stroke="none" data-name="Lexer">-unknownChar(): default&lt;any&gt; | undefined</text>
+<text x="0.0" y="103.5" stroke="none" data-name="Lexer">-singleLineComment(): void</text>
+<text x="0.0" y="118.5" stroke="none" data-name="Lexer">-multiLineComment(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="Parser">
+<g fill="#eee8d5" stroke="#33322E" data-name="Parser">
+<rect x="1554.0" y="0.0" height="798.0" width="950.0" data-name="Parser"></rect>
+<path d="M1554.0 31.0 L2504.0 31.0" fill="none" data-name="Parser"></path>
+<path d="M1554.0 722.0 L2504.0 722.0" fill="none" data-name="Parser"></path>
+</g>
+<g transform="translate(1554, 0)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="Parser">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="Parser">
+<a id="src/parse/parser.ts.Parser" xlink:href="src/parse/parser.ts"><text x="467.0" y="13.5" stroke="none" text-anchor="middle" data-name="Parser">Parser</text></a>
+
+</g>
+</g>
+<g transform="translate(1554, 31)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Parser">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Parser">
+<text x="0.0" y="13.5" stroke="none" data-name="Parser">-tokens: default&lt;unknown&gt;[]</text>
+<text x="0.0" y="28.5" stroke="none" data-name="Parser">-tokenIdx: number</text>
+<text x="0.0" y="43.5" stroke="none" data-name="Parser">+parse: () =&gt; ParseResults</text>
+<text x="0.0" y="58.5" stroke="none" data-name="Parser">-advance: (res?: ParseResults | undefined) =&gt; default&lt;unknown&gt;</text>
+<text x="0.0" y="73.5" stroke="none" data-name="Parser">-reverse: (amount?: number) =&gt; default&lt;unknown&gt;</text>
+<text x="0.0" y="88.5" stroke="none" data-name="Parser">-consume: (res: ParseResults, type: TokenType, errorMsg?: string | undefined) =&gt; void | ParseResults</text>
+<text x="0.0" y="103.5" stroke="none" data-name="Parser">-clearEndStatements: (res: ParseResults) =&gt; void</text>
+<text x="0.0" y="118.5" stroke="none" data-name="Parser">-statements: (topLevel?: boolean) =&gt; ParseResults</text>
+<text x="0.0" y="133.5" stroke="none" data-name="Parser">-statement: () =&gt; ParseResults</text>
+<text x="0.0" y="148.5" stroke="none" data-name="Parser">-returnStatement: (res: ParseResults, isYield?: boolean) =&gt; ParseResults</text>
+<text x="0.0" y="163.5" stroke="none" data-name="Parser">-atom: () =&gt; ParseResults</text>
+<text x="0.0" y="178.5" stroke="none" data-name="Parser">-compound: (base?: Node | undefined) =&gt; ParseResults</text>
+<text x="0.0" y="193.5" stroke="none" data-name="Parser">-unaryOp: () =&gt; ParseResults</text>
+<text x="0.0" y="208.5" stroke="none" data-name="Parser">-power: () =&gt; ParseResults</text>
+<text x="0.0" y="223.5" stroke="none" data-name="Parser">-factor: () =&gt; ParseResults</text>
+<text x="0.0" y="238.5" stroke="none" data-name="Parser">-term: () =&gt; ParseResults</text>
+<text x="0.0" y="253.5" stroke="none" data-name="Parser">-arithmeticExpr: () =&gt; ParseResults</text>
+<text x="0.0" y="268.5" stroke="none" data-name="Parser">-comparisonExpr: () =&gt; ParseResults</text>
+<text x="0.0" y="283.5" stroke="none" data-name="Parser">-expr: () =&gt; ParseResults</text>
+<text x="0.0" y="298.5" stroke="none" data-name="Parser">-binOp: (func: () =&gt; ParseResults, ops: (TokenType | [TokenType, any])[], funcB?: () =&gt; ParseResults) =&gt; ParseResults</text>
+<text x="0.0" y="313.5" stroke="none" data-name="Parser">-arguments: (res: ParseResults, allowKwargs?: boolean, delimiter?: TokenType) =&gt; { error: InvalidSyntaxError</text>
+<text x="0.0" y="328.5" stroke="none" data-name="Parser">args: Node[]</text>
+<text x="0.0" y="343.5" stroke="none" data-name="Parser">indefiniteKwargs: Node[]</text>
+<text x="0.0" y="358.5" stroke="none" data-name="Parser">definiteKwargs: Map&lt;Node&gt;</text>
+<text x="0.0" y="373.5" stroke="none" data-name="Parser">} | { args: Node[]</text>
+<text x="0.0" y="388.5" stroke="none" data-name="Parser">indefiniteKwargs: Node[]</text>
+<text x="0.0" y="403.5" stroke="none" data-name="Parser">definiteKwargs: Map&lt;Node&gt;</text>
+<text x="0.0" y="418.5" stroke="none" data-name="Parser">error?: undefined</text>
+<text x="0.0" y="433.5" stroke="none" data-name="Parser">}</text>
+<text x="0.0" y="448.5" stroke="none" data-name="Parser">-makeFunctionCall: (to: Node, optionallyChained?: boolean) =&gt; ParseResults</text>
+<text x="0.0" y="463.5" stroke="none" data-name="Parser">-makeIndex: (to: Node, optionallyChained?: boolean) =&gt; ParseResults</text>
+<text x="0.0" y="478.5" stroke="none" data-name="Parser">-typeExpr: () =&gt; ParseResults</text>
+<text x="0.0" y="493.5" stroke="none" data-name="Parser">-destructuring: (pos: default, isConst: boolean, isGlobal: boolean) =&gt; ParseResults</text>
+<text x="0.0" y="508.5" stroke="none" data-name="Parser">-initiateVar: (res: ParseResults) =&gt; ParseResults</text>
+<text x="0.0" y="523.5" stroke="none" data-name="Parser">-scope: () =&gt; ParseResults</text>
+<text x="0.0" y="538.5" stroke="none" data-name="Parser">-addEndStatement: (res: ParseResults) =&gt; void</text>
+<text x="0.0" y="553.5" stroke="none" data-name="Parser">-ifExpr: () =&gt; ParseResults</text>
+<text x="0.0" y="568.5" stroke="none" data-name="Parser">-parameter: (res: ParseResults) =&gt; Error | IUninterpretedArgument</text>
+<text x="0.0" y="583.5" stroke="none" data-name="Parser">-funcCore: () =&gt; ParseResults</text>
+<text x="0.0" y="598.5" stroke="none" data-name="Parser">-funcExpr: () =&gt; ParseResults</text>
+<text x="0.0" y="613.5" stroke="none" data-name="Parser">-classExpr: (name?: string | undefined) =&gt; ParseResults</text>
+<text x="0.0" y="628.5" stroke="none" data-name="Parser">-forExpr: () =&gt; ParseResults</text>
+<text x="0.0" y="643.5" stroke="none" data-name="Parser">-array: () =&gt; ParseResults</text>
+<text x="0.0" y="658.5" stroke="none" data-name="Parser">-obLiteral: () =&gt; ParseResults</text>
+<text x="0.0" y="673.5" stroke="none" data-name="Parser">-tryCatch: () =&gt; ParseResults</text>
+
+</g>
+</g>
+<g transform="translate(1554, 722)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Parser">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Parser">
+<text x="0.0" y="13.5" stroke="none" data-name="Parser">-parameters(): { args: IUninterpretedArgument[]</text>
+<text x="0.0" y="28.5" stroke="none" data-name="Parser">allowArgs: boolean</text>
+<text x="0.0" y="43.5" stroke="none" data-name="Parser">allowKwargs: boolean</text>
+<text x="0.0" y="58.5" stroke="none" data-name="Parser">} | undefined</text>
+
+</g>
+</g>
+</g>
+<g data-name="ParseResults">
+<g fill="#eee8d5" stroke="#33322E" data-name="ParseResults">
+<rect x="2544.0" y="293.0" height="213.0" width="326.0" data-name="ParseResults"></rect>
+<path d="M2544.0 324.0 L2870.0 324.0" fill="none" data-name="ParseResults"></path>
+<path d="M2544.0 415.0 L2870.0 415.0" fill="none" data-name="ParseResults"></path>
+</g>
+<g transform="translate(2544, 293)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ParseResults">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ParseResults">
+<a id="src/parse/parseResults.ts.ParseResults" xlink:href="src/parse/parseResults.ts"><text x="155.0" y="13.5" stroke="none" text-anchor="middle" data-name="ParseResults">ParseResults</text></a>
+
+</g>
+</g>
+<g transform="translate(2544, 324)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ParseResults">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ParseResults">
+<text x="0.0" y="13.5" stroke="none" data-name="ParseResults">+node: Node | undefined</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ParseResults">+error: Error | undefined</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ParseResults">+reverseCount: number</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ParseResults">+lastRegisteredAdvanceCount: number</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ParseResults">+advanceCount: number</text>
+
+</g>
+</g>
+<g transform="translate(2544, 415)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ParseResults">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ParseResults">
+<text x="0.0" y="13.5" stroke="none" data-name="ParseResults">+registerAdvance(): void</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ParseResults">+register(): Node</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ParseResults">+tryRegister(): Node | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ParseResults">+success(): ParseResults</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ParseResults">+failure(): ParseResults</text>
+
+</g>
+</g>
+</g>
+<g data-name="default&lt;T&gt;">
+<g fill="#eee8d5" stroke="#33322E" data-name="default&lt;T&gt;">
+<rect x="2910.0" y="338.0" height="123.0" width="179.0" data-name="default&lt;T&gt;"></rect>
+<path d="M2910.0 369.0 L3089.0 369.0" fill="none" data-name="default&lt;T&gt;"></path>
+<path d="M2910.0 430.0 L3089.0 430.0" fill="none" data-name="default&lt;T&gt;"></path>
+</g>
+<g transform="translate(2910, 338)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="default&lt;T&gt;">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="default&lt;T&gt;">
+<a id="src/parse/tokens.ts.default&lt;T&gt;" xlink:href="src/parse/tokens.ts"><text x="81.5" y="13.5" stroke="none" text-anchor="middle" data-name="default&lt;T&gt;">default&lt;T&gt;</text></a>
+
+</g>
+</g>
+<g transform="translate(2910, 369)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="default&lt;T&gt;">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="default&lt;T&gt;">
+<text x="0.0" y="13.5" stroke="none" data-name="default&lt;T&gt;">+type: TokenType</text>
+<text x="0.0" y="28.5" stroke="none" data-name="default&lt;T&gt;">+value: T</text>
+<text x="0.0" y="43.5" stroke="none" data-name="default&lt;T&gt;">+pos: default</text>
+
+</g>
+</g>
+<g transform="translate(2910, 430)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="default&lt;T&gt;">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="default&lt;T&gt;">
+<text x="0.0" y="13.5" stroke="none" data-name="default&lt;T&gt;">+matches(): boolean</text>
+
+</g>
+</g>
+</g>
+<g data-name="IRuntimeArgument">
+<g fill="lightblue" stroke="#33322E" data-name="IRuntimeArgument">
+<rect x="3129.0" y="342.0" height="115.0" width="296.0" data-name="IRuntimeArgument"></rect>
+<path d="M3129.0 373.0 L3425.0 373.0" fill="none" data-name="IRuntimeArgument"></path>
+<path d="M3129.0 449.0 L3425.0 449.0" fill="none" data-name="IRuntimeArgument"></path>
+</g>
+<g transform="translate(3129, 342)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IRuntimeArgument">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IRuntimeArgument">
+<a id="src/runtime/argument.ts.IRuntimeArgument" xlink:href="src/runtime/argument.ts"><text x="140.0" y="13.5" stroke="none" text-anchor="middle" data-name="IRuntimeArgument">IRuntimeArgument</text></a>
+
+</g>
+</g>
+<g transform="translate(3129, 373)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IRuntimeArgument">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IRuntimeArgument">
+<text x="0.0" y="13.5" stroke="none" data-name="IRuntimeArgument">+name: string</text>
+<text x="0.0" y="28.5" stroke="none" data-name="IRuntimeArgument">+type: Primitive</text>
+<text x="0.0" y="43.5" stroke="none" data-name="IRuntimeArgument">+defaultValue: Primitive | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="IRuntimeArgument">+isKwarg: boolean | undefined</text>
+
+</g>
+</g>
+<g transform="translate(3129, 449)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IRuntimeArgument">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IRuntimeArgument">
+
+</g>
+</g>
+</g>
+<g data-name="IUninterpretedArgument">
+<g fill="lightblue" stroke="#33322E" data-name="IUninterpretedArgument">
+<rect x="3465.0" y="342.0" height="115.0" width="271.0" data-name="IUninterpretedArgument"></rect>
+<path d="M3465.0 373.0 L3736.0 373.0" fill="none" data-name="IUninterpretedArgument"></path>
+<path d="M3465.0 449.0 L3736.0 449.0" fill="none" data-name="IUninterpretedArgument"></path>
+</g>
+<g transform="translate(3465, 342)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IUninterpretedArgument">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IUninterpretedArgument">
+<a id="src/runtime/argument.ts.IUninterpretedArgument" xlink:href="src/runtime/argument.ts"><text x="127.5" y="13.5" stroke="none" text-anchor="middle" data-name="IUninterpretedArgument">IUninterpretedArgument</text></a>
+
+</g>
+</g>
+<g transform="translate(3465, 373)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IUninterpretedArgument">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IUninterpretedArgument">
+<text x="0.0" y="13.5" stroke="none" data-name="IUninterpretedArgument">+name: string</text>
+<text x="0.0" y="28.5" stroke="none" data-name="IUninterpretedArgument">+type: Node</text>
+<text x="0.0" y="43.5" stroke="none" data-name="IUninterpretedArgument">+defaultValue: Node | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="IUninterpretedArgument">+isKwarg: boolean | undefined</text>
+
+</g>
+</g>
+<g transform="translate(3465, 449)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IUninterpretedArgument">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IUninterpretedArgument">
+
+</g>
+</g>
+</g>
+<g data-name="Context">
+<g fill="#eee8d5" stroke="#33322E" data-name="Context">
+<rect x="3776.0" y="248.0" height="303.0" width="359.0" data-name="Context"></rect>
+<path d="M3776.0 279.0 L4135.0 279.0" fill="none" data-name="Context"></path>
+<path d="M3776.0 370.0 L4135.0 370.0" fill="none" data-name="Context"></path>
+</g>
+<g transform="translate(3776, 248)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="Context">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="Context">
+<a id="src/runtime/context.ts.Context" xlink:href="src/runtime/context.ts"><text x="171.5" y="13.5" stroke="none" text-anchor="middle" data-name="Context">Context</text></a>
+
+</g>
+</g>
+<g transform="translate(3776, 279)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Context">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Context">
+<text x="0.0" y="13.5" stroke="none" data-name="Context">-symbolTable: Map&lt;ESSymbol&gt;</text>
+<text x="0.0" y="28.5" stroke="none" data-name="Context">-parent_: Context | undefined</text>
+<text x="0.0" y="43.5" stroke="none" data-name="Context">+initialisedAsGlobal: boolean</text>
+<text x="0.0" y="58.5" stroke="none" data-name="Context">+deleted: boolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="Context">-path_: string</text>
+
+</g>
+</g>
+<g transform="translate(3776, 370)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Context">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Context">
+<text x="0.0" y="13.5" stroke="none" data-name="Context">+has(): boolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="Context">+hasOwn(): boolean</text>
+<text x="0.0" y="43.5" stroke="none" data-name="Context">+get(): Error | Primitive | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="Context">+getSymbolTableAsDict(): Map&lt;ESSymbol&gt;</text>
+<text x="0.0" y="73.5" stroke="none" data-name="Context">+getSymbol(): Error | ESSymbol | undefined</text>
+<text x="0.0" y="88.5" stroke="none" data-name="Context">+set(): void | Error</text>
+<text x="0.0" y="103.5" stroke="none" data-name="Context">+setOwn(): void | Error</text>
+<text x="0.0" y="118.5" stroke="none" data-name="Context">+remove(): true | Error</text>
+<text x="0.0" y="133.5" stroke="none" data-name="Context">+clear(): void</text>
+<text x="0.0" y="148.5" stroke="none" data-name="Context">+clone(): Context</text>
+<text x="0.0" y="163.5" stroke="none" data-name="Context">+log(): void</text>
+
+</g>
+</g>
+</g>
+<g data-name="IPrimitiveInfo">
+<g fill="lightblue" stroke="#33322E" data-name="IPrimitiveInfo">
+<rect x="4175.0" y="334.0" height="130.0" width="261.0" data-name="IPrimitiveInfo"></rect>
+<path d="M4175.0 365.0 L4436.0 365.0" fill="none" data-name="IPrimitiveInfo"></path>
+<path d="M4175.0 456.0 L4436.0 456.0" fill="none" data-name="IPrimitiveInfo"></path>
+</g>
+<g transform="translate(4175, 334)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IPrimitiveInfo">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IPrimitiveInfo">
+<a id="src/runtime/info.ts.IPrimitiveInfo" xlink:href="src/runtime/info.ts"><text x="122.5" y="13.5" stroke="none" text-anchor="middle" data-name="IPrimitiveInfo">IPrimitiveInfo</text></a>
+
+</g>
+</g>
+<g transform="translate(4175, 365)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IPrimitiveInfo">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IPrimitiveInfo">
+<text x="0.0" y="13.5" stroke="none" data-name="IPrimitiveInfo">+name: string | undefined</text>
+<text x="0.0" y="28.5" stroke="none" data-name="IPrimitiveInfo">+description: string | undefined</text>
+<text x="0.0" y="43.5" stroke="none" data-name="IPrimitiveInfo">+file: string | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="IPrimitiveInfo">+helpLink: string | undefined</text>
+<text x="0.0" y="73.5" stroke="none" data-name="IPrimitiveInfo">+builtin: boolean | undefined</text>
+
+</g>
+</g>
+<g transform="translate(4175, 456)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IPrimitiveInfo">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IPrimitiveInfo">
+
+</g>
+</g>
+</g>
+<g data-name="IArgInfo">
+<g fill="lightblue" stroke="#33322E" data-name="IArgInfo">
+<rect x="4567.0" y="334.0" height="130.0" width="281.0" data-name="IArgInfo"></rect>
+<path d="M4567.0 365.0 L4848.0 365.0" fill="none" data-name="IArgInfo"></path>
+<path d="M4567.0 456.0 L4848.0 456.0" fill="none" data-name="IArgInfo"></path>
+</g>
+<g transform="translate(4567, 334)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IArgInfo">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IArgInfo">
+<a id="src/runtime/info.ts.IArgInfo" xlink:href="src/runtime/info.ts"><text x="132.5" y="13.5" stroke="none" text-anchor="middle" data-name="IArgInfo">IArgInfo</text></a>
+
+</g>
+</g>
+<g transform="translate(4567, 365)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IArgInfo">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IArgInfo">
+<text x="0.0" y="13.5" stroke="none" data-name="IArgInfo">+name: string | undefined</text>
+<text x="0.0" y="28.5" stroke="none" data-name="IArgInfo">+type: string | undefined</text>
+<text x="0.0" y="43.5" stroke="none" data-name="IArgInfo">+description: string | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="IArgInfo">+required: boolean | undefined</text>
+<text x="0.0" y="73.5" stroke="none" data-name="IArgInfo">+default_value: string | undefined</text>
+
+</g>
+</g>
+<g transform="translate(4567, 456)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IArgInfo">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IArgInfo">
+
+</g>
+</g>
+</g>
+<g data-name="IFunctionInfo">
+<g fill="lightblue" stroke="#33322E" data-name="IFunctionInfo">
+<rect x="3071.0" y="981.0" height="130.0" width="300.0" data-name="IFunctionInfo"></rect>
+<path d="M3071.0 1012.0 L3371.0 1012.0" fill="none" data-name="IFunctionInfo"></path>
+<path d="M3071.0 1103.0 L3371.0 1103.0" fill="none" data-name="IFunctionInfo"></path>
+</g>
+<g transform="translate(3071, 981)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IFunctionInfo">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IFunctionInfo">
+<a id="src/runtime/info.ts.IFunctionInfo" xlink:href="src/runtime/info.ts"><text x="142.0" y="13.5" stroke="none" text-anchor="middle" data-name="IFunctionInfo">IFunctionInfo</text></a>
+
+</g>
+</g>
+<g transform="translate(3071, 1012)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IFunctionInfo">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IFunctionInfo">
+<text x="0.0" y="13.5" stroke="none" data-name="IFunctionInfo">+args: IArgInfo[] | undefined</text>
+<text x="0.0" y="28.5" stroke="none" data-name="IFunctionInfo">+returns: string | undefined</text>
+<text x="0.0" y="43.5" stroke="none" data-name="IFunctionInfo">+returnType: string | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="IFunctionInfo">+allow_args: boolean | undefined</text>
+<text x="0.0" y="73.5" stroke="none" data-name="IFunctionInfo">+allow_kwargs: boolean | undefined</text>
+
+</g>
+</g>
+<g transform="translate(3071, 1103)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IFunctionInfo">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IFunctionInfo">
+
+</g>
+</g>
+</g>
+<g data-name="IObjectInfo">
+<g fill="lightblue" stroke="#33322E" data-name="IObjectInfo">
+<rect x="4606.0" y="1011.0" height="70.0" width="238.0" data-name="IObjectInfo"></rect>
+<path d="M4606.0 1042.0 L4844.0 1042.0" fill="none" data-name="IObjectInfo"></path>
+<path d="M4606.0 1073.0 L4844.0 1073.0" fill="none" data-name="IObjectInfo"></path>
+</g>
+<g transform="translate(4606, 1011)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IObjectInfo">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IObjectInfo">
+<a id="src/runtime/info.ts.IObjectInfo" xlink:href="src/runtime/info.ts"><text x="111.0" y="13.5" stroke="none" text-anchor="middle" data-name="IObjectInfo">IObjectInfo</text></a>
+
+</g>
+</g>
+<g transform="translate(4606, 1042)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IObjectInfo">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IObjectInfo">
+<text x="0.0" y="13.5" stroke="none" data-name="IObjectInfo">+contents: Info[] | undefined</text>
+
+</g>
+</g>
+<g transform="translate(4606, 1073)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IObjectInfo">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IObjectInfo">
+
+</g>
+</g>
+</g>
+<g data-name="InterpretResult">
+<g fill="#eee8d5" stroke="#33322E" data-name="InterpretResult">
+<rect x="4888.0" y="334.0" height="130.0" width="284.0" data-name="InterpretResult"></rect>
+<path d="M4888.0 365.0 L5172.0 365.0" fill="none" data-name="InterpretResult"></path>
+<path d="M4888.0 456.0 L5172.0 456.0" fill="none" data-name="InterpretResult"></path>
+</g>
+<g transform="translate(4888, 334)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="InterpretResult">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="InterpretResult">
+<a id="src/runtime/nodes.ts.InterpretResult" xlink:href="src/runtime/nodes.ts"><text x="134.0" y="13.5" stroke="none" text-anchor="middle" data-name="InterpretResult">InterpretResult</text></a>
+
+</g>
+</g>
+<g transform="translate(4888, 365)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="InterpretResult">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="InterpretResult">
+<text x="0.0" y="13.5" stroke="none" data-name="InterpretResult">+val: Primitive</text>
+<text x="0.0" y="28.5" stroke="none" data-name="InterpretResult">+error: Error | undefined</text>
+<text x="0.0" y="43.5" stroke="none" data-name="InterpretResult">+funcReturn: Primitive | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="InterpretResult">+shouldBreak: boolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="InterpretResult">+shouldContinue: boolean</text>
+
+</g>
+</g>
+<g transform="translate(4888, 456)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="InterpretResult">
+<g transform="translate(8, 8)" fill="#33322E" data-name="InterpretResult">
+
+</g>
+</g>
+</g>
+<g data-name="Node">
+<g fill="#eee8d5" stroke="#33322E" data-name="Node">
+<rect x="8781.0" y="338.0" height="123.0" width="295.0" data-name="Node"></rect>
+<path d="M8781.0 369.0 L9076.0 369.0" fill="none" data-name="Node"></path>
+<path d="M8781.0 400.0 L9076.0 400.0" fill="none" data-name="Node"></path>
+</g>
+<g transform="translate(8781, 338)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="Node">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="Node">
+<a id="src/runtime/nodes.ts.Node" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="Node">Node</text></a>
+
+</g>
+</g>
+<g transform="translate(8781, 369)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Node">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Node">
+<text x="0.0" y="13.5" stroke="none" data-name="Node">+pos: default</text>
+
+</g>
+</g>
+<g transform="translate(8781, 400)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Node">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Node">
+<text x="0.0" y="13.5" stroke="none" data-name="Node">#interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="Node">+interpret(): InterpretResult</text>
+<text x="0.0" y="43.5" stroke="none" data-name="Node">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_binOp">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_binOp">
+<rect x="4884.0" y="977.0" height="138.0" width="295.0" data-name="N_binOp"></rect>
+<path d="M4884.0 1008.0 L5179.0 1008.0" fill="none" data-name="N_binOp"></path>
+<path d="M4884.0 1069.0 L5179.0 1069.0" fill="none" data-name="N_binOp"></path>
+</g>
+<g transform="translate(4884, 977)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_binOp">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_binOp">
+<a id="src/runtime/nodes.ts.N_binOp" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_binOp">N_binOp</text></a>
+
+</g>
+</g>
+<g transform="translate(4884, 1008)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_binOp">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_binOp">
+<text x="0.0" y="13.5" stroke="none" data-name="N_binOp">-left: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_binOp">-right: Node</text>
+<text x="0.0" y="43.5" stroke="none" data-name="N_binOp">-operator: default&lt;unknown&gt;</text>
+
+</g>
+</g>
+<g transform="translate(4884, 1069)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_binOp">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_binOp">
+<text x="0.0" y="13.5" stroke="none" data-name="N_binOp">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_binOp">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_unaryOp">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_unaryOp">
+<rect x="5219.0" y="984.0" height="123.0" width="295.0" data-name="N_unaryOp"></rect>
+<path d="M5219.0 1015.0 L5514.0 1015.0" fill="none" data-name="N_unaryOp"></path>
+<path d="M5219.0 1061.0 L5514.0 1061.0" fill="none" data-name="N_unaryOp"></path>
+</g>
+<g transform="translate(5219, 984)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_unaryOp">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_unaryOp">
+<a id="src/runtime/nodes.ts.N_unaryOp" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_unaryOp">N_unaryOp</text></a>
+
+</g>
+</g>
+<g transform="translate(5219, 1015)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_unaryOp">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_unaryOp">
+<text x="0.0" y="13.5" stroke="none" data-name="N_unaryOp">-operand: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_unaryOp">-operator: default&lt;unknown&gt;</text>
+
+</g>
+</g>
+<g transform="translate(5219, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_unaryOp">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_unaryOp">
+<text x="0.0" y="13.5" stroke="none" data-name="N_unaryOp">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_unaryOp">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_varAssign">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_varAssign">
+<rect x="5554.0" y="947.0" height="198.0" width="295.0" data-name="N_varAssign"></rect>
+<path d="M5554.0 978.0 L5849.0 978.0" fill="none" data-name="N_varAssign"></path>
+<path d="M5554.0 1099.0 L5849.0 1099.0" fill="none" data-name="N_varAssign"></path>
+</g>
+<g transform="translate(5554, 947)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_varAssign">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_varAssign">
+<a id="src/runtime/nodes.ts.N_varAssign" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_varAssign">N_varAssign</text></a>
+
+</g>
+</g>
+<g transform="translate(5554, 978)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_varAssign">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_varAssign">
+<text x="0.0" y="13.5" stroke="none" data-name="N_varAssign">-value: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_varAssign">-varNameTok: default&lt;string&gt;</text>
+<text x="0.0" y="43.5" stroke="none" data-name="N_varAssign">-isGlobal: boolean</text>
+<text x="0.0" y="58.5" stroke="none" data-name="N_varAssign">-isConstant: boolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="N_varAssign">-isDeclaration: boolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="N_varAssign">-assignType: string</text>
+<text x="0.0" y="103.5" stroke="none" data-name="N_varAssign">-type: Node</text>
+
+</g>
+</g>
+<g transform="translate(5554, 1099)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_varAssign">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_varAssign">
+<text x="0.0" y="13.5" stroke="none" data-name="N_varAssign">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_varAssign">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_destructAssign">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_destructAssign">
+<rect x="5889.0" y="962.0" height="168.0" width="295.0" data-name="N_destructAssign"></rect>
+<path d="M5889.0 993.0 L6184.0 993.0" fill="none" data-name="N_destructAssign"></path>
+<path d="M5889.0 1084.0 L6184.0 1084.0" fill="none" data-name="N_destructAssign"></path>
+</g>
+<g transform="translate(5889, 962)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_destructAssign">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_destructAssign">
+<a id="src/runtime/nodes.ts.N_destructAssign" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_destructAssign">N_destructAssign</text></a>
+
+</g>
+</g>
+<g transform="translate(5889, 993)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_destructAssign">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_destructAssign">
+<text x="0.0" y="13.5" stroke="none" data-name="N_destructAssign">-value: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_destructAssign">-varNames: string[]</text>
+<text x="0.0" y="43.5" stroke="none" data-name="N_destructAssign">-types: Node[]</text>
+<text x="0.0" y="58.5" stroke="none" data-name="N_destructAssign">-isGlobal: boolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="N_destructAssign">-isConstant: boolean</text>
+
+</g>
+</g>
+<g transform="translate(5889, 1084)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_destructAssign">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_destructAssign">
+<text x="0.0" y="13.5" stroke="none" data-name="N_destructAssign">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_destructAssign">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_if">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_if">
+<rect x="6224.0" y="977.0" height="138.0" width="241.0" data-name="N_if"></rect>
+<path d="M6224.0 1008.0 L6465.0 1008.0" fill="none" data-name="N_if"></path>
+<path d="M6224.0 1069.0 L6465.0 1069.0" fill="none" data-name="N_if"></path>
+</g>
+<g transform="translate(6224, 977)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_if">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_if">
+<a id="src/runtime/nodes.ts.N_if" xlink:href="src/runtime/nodes.ts"><text x="112.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_if">N_if</text></a>
+
+</g>
+</g>
+<g transform="translate(6224, 1008)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_if">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_if">
+<text x="0.0" y="13.5" stroke="none" data-name="N_if">-comparison: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_if">-ifTrue: Node</text>
+<text x="0.0" y="43.5" stroke="none" data-name="N_if">-ifFalse: Node | undefined</text>
+
+</g>
+</g>
+<g transform="translate(6224, 1069)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_if">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_if">
+<text x="0.0" y="13.5" stroke="none" data-name="N_if">+interpret_(): InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_if">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_while">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_while">
+<rect x="6505.0" y="984.0" height="123.0" width="295.0" data-name="N_while"></rect>
+<path d="M6505.0 1015.0 L6800.0 1015.0" fill="none" data-name="N_while"></path>
+<path d="M6505.0 1061.0 L6800.0 1061.0" fill="none" data-name="N_while"></path>
+</g>
+<g transform="translate(6505, 984)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_while">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_while">
+<a id="src/runtime/nodes.ts.N_while" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_while">N_while</text></a>
+
+</g>
+</g>
+<g transform="translate(6505, 1015)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_while">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_while">
+<text x="0.0" y="13.5" stroke="none" data-name="N_while">-comparison: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_while">-loop: Node</text>
+
+</g>
+</g>
+<g transform="translate(6505, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_while">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_while">
+<text x="0.0" y="13.5" stroke="none" data-name="N_while">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_while">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_for">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_for">
+<rect x="6840.0" y="962.0" height="168.0" width="295.0" data-name="N_for"></rect>
+<path d="M6840.0 993.0 L7135.0 993.0" fill="none" data-name="N_for"></path>
+<path d="M6840.0 1084.0 L7135.0 1084.0" fill="none" data-name="N_for"></path>
+</g>
+<g transform="translate(6840, 962)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_for">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_for">
+<a id="src/runtime/nodes.ts.N_for" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_for">N_for</text></a>
+
+</g>
+</g>
+<g transform="translate(6840, 993)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_for">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_for">
+<text x="0.0" y="13.5" stroke="none" data-name="N_for">-array: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_for">-body: Node</text>
+<text x="0.0" y="43.5" stroke="none" data-name="N_for">-identifier: default&lt;string&gt;</text>
+<text x="0.0" y="58.5" stroke="none" data-name="N_for">-isGlobalId: boolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="N_for">-isConstId: boolean</text>
+
+</g>
+</g>
+<g transform="translate(6840, 1084)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_for">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_for">
+<text x="0.0" y="13.5" stroke="none" data-name="N_for">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_for">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_array">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_array">
+<rect x="7175.0" y="984.0" height="123.0" width="241.0" data-name="N_array"></rect>
+<path d="M7175.0 1015.0 L7416.0 1015.0" fill="none" data-name="N_array"></path>
+<path d="M7175.0 1061.0 L7416.0 1061.0" fill="none" data-name="N_array"></path>
+</g>
+<g transform="translate(7175, 984)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_array">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_array">
+<a id="src/runtime/nodes.ts.N_array" xlink:href="src/runtime/nodes.ts"><text x="112.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_array">N_array</text></a>
+
+</g>
+</g>
+<g transform="translate(7175, 1015)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_array">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_array">
+<text x="0.0" y="13.5" stroke="none" data-name="N_array">-items: Node[]</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_array">-shouldClone: boolean</text>
+
+</g>
+</g>
+<g transform="translate(7175, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_array">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_array">
+<text x="0.0" y="13.5" stroke="none" data-name="N_array">+interpret_(): InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_array">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_objectLiteral">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_objectLiteral">
+<rect x="7456.0" y="992.0" height="108.0" width="295.0" data-name="N_objectLiteral"></rect>
+<path d="M7456.0 1023.0 L7751.0 1023.0" fill="none" data-name="N_objectLiteral"></path>
+<path d="M7456.0 1054.0 L7751.0 1054.0" fill="none" data-name="N_objectLiteral"></path>
+</g>
+<g transform="translate(7456, 992)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_objectLiteral">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_objectLiteral">
+<a id="src/runtime/nodes.ts.N_objectLiteral" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_objectLiteral">N_objectLiteral</text></a>
+
+</g>
+</g>
+<g transform="translate(7456, 1023)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_objectLiteral">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_objectLiteral">
+<text x="0.0" y="13.5" stroke="none" data-name="N_objectLiteral">-properties: [Node, Node][]</text>
+
+</g>
+</g>
+<g transform="translate(7456, 1054)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_objectLiteral">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_objectLiteral">
+<text x="0.0" y="13.5" stroke="none" data-name="N_objectLiteral">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_objectLiteral">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_statements">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_statements">
+<rect x="7791.0" y="984.0" height="123.0" width="295.0" data-name="N_statements"></rect>
+<path d="M7791.0 1015.0 L8086.0 1015.0" fill="none" data-name="N_statements"></path>
+<path d="M7791.0 1061.0 L8086.0 1061.0" fill="none" data-name="N_statements"></path>
+</g>
+<g transform="translate(7791, 984)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_statements">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_statements">
+<a id="src/runtime/nodes.ts.N_statements" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_statements">N_statements</text></a>
+
+</g>
+</g>
+<g transform="translate(7791, 1015)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_statements">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_statements">
+<text x="0.0" y="13.5" stroke="none" data-name="N_statements">-items: Node[]</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_statements">-topLevel: boolean</text>
+
+</g>
+</g>
+<g transform="translate(7791, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_statements">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_statements">
+<text x="0.0" y="13.5" stroke="none" data-name="N_statements">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_statements">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_functionCall">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_functionCall">
+<rect x="8126.0" y="954.0" height="183.0" width="339.0" data-name="N_functionCall"></rect>
+<path d="M8126.0 985.0 L8465.0 985.0" fill="none" data-name="N_functionCall"></path>
+<path d="M8126.0 1091.0 L8465.0 1091.0" fill="none" data-name="N_functionCall"></path>
+</g>
+<g transform="translate(8126, 954)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_functionCall">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_functionCall">
+<a id="src/runtime/nodes.ts.N_functionCall" xlink:href="src/runtime/nodes.ts"><text x="161.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_functionCall">N_functionCall</text></a>
+
+</g>
+</g>
+<g transform="translate(8126, 985)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_functionCall">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_functionCall">
+<text x="0.0" y="13.5" stroke="none" data-name="N_functionCall">-to: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_functionCall">-arguments: Node[]</text>
+<text x="0.0" y="43.5" stroke="none" data-name="N_functionCall">-indefiniteKwargs: Node[]</text>
+<text x="0.0" y="58.5" stroke="none" data-name="N_functionCall">-definiteKwargs: Map&lt;Node&gt;</text>
+<text x="0.0" y="73.5" stroke="none" data-name="N_functionCall">-optionallyChained: boolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="N_functionCall">-functionType: &quot;__call__&quot; | &quot;__generic__&quot;</text>
+
+</g>
+</g>
+<g transform="translate(8126, 1091)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_functionCall">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_functionCall">
+<text x="0.0" y="13.5" stroke="none" data-name="N_functionCall">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_functionCall">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_functionDefinition">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_functionDefinition">
+<rect x="8505.0" y="932.0" height="228.0" width="315.0" data-name="N_functionDefinition"></rect>
+<path d="M8505.0 963.0 L8820.0 963.0" fill="none" data-name="N_functionDefinition"></path>
+<path d="M8505.0 1114.0 L8820.0 1114.0" fill="none" data-name="N_functionDefinition"></path>
+</g>
+<g transform="translate(8505, 932)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_functionDefinition">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_functionDefinition">
+<a id="src/runtime/nodes.ts.N_functionDefinition" xlink:href="src/runtime/nodes.ts"><text x="149.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_functionDefinition">N_functionDefinition</text></a>
+
+</g>
+</g>
+<g transform="translate(8505, 963)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_functionDefinition">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_functionDefinition">
+<text x="0.0" y="13.5" stroke="none" data-name="N_functionDefinition">-body: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_functionDefinition">-arguments: IUninterpretedArgument[]</text>
+<text x="0.0" y="43.5" stroke="none" data-name="N_functionDefinition">+name: string</text>
+<text x="0.0" y="58.5" stroke="none" data-name="N_functionDefinition">-this_: ESObject</text>
+<text x="0.0" y="73.5" stroke="none" data-name="N_functionDefinition">-returnType: Node</text>
+<text x="0.0" y="88.5" stroke="none" data-name="N_functionDefinition">-description: string</text>
+<text x="0.0" y="103.5" stroke="none" data-name="N_functionDefinition">+isDeclaration: boolean</text>
+<text x="0.0" y="118.5" stroke="none" data-name="N_functionDefinition">+allowArgs: boolean</text>
+<text x="0.0" y="133.5" stroke="none" data-name="N_functionDefinition">+allowKwargs: boolean</text>
+
+</g>
+</g>
+<g transform="translate(8505, 1114)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_functionDefinition">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_functionDefinition">
+<text x="0.0" y="13.5" stroke="none" data-name="N_functionDefinition">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_functionDefinition">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_return">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_return">
+<rect x="8860.0" y="992.0" height="108.0" width="295.0" data-name="N_return"></rect>
+<path d="M8860.0 1023.0 L9155.0 1023.0" fill="none" data-name="N_return"></path>
+<path d="M8860.0 1054.0 L9155.0 1054.0" fill="none" data-name="N_return"></path>
+</g>
+<g transform="translate(8860, 992)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_return">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_return">
+<a id="src/runtime/nodes.ts.N_return" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_return">N_return</text></a>
+
+</g>
+</g>
+<g transform="translate(8860, 1023)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_return">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_return">
+<text x="0.0" y="13.5" stroke="none" data-name="N_return">-value: Node | undefined</text>
+
+</g>
+</g>
+<g transform="translate(8860, 1054)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_return">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_return">
+<text x="0.0" y="13.5" stroke="none" data-name="N_return">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_return">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_yield">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_yield">
+<rect x="9195.0" y="992.0" height="108.0" width="295.0" data-name="N_yield"></rect>
+<path d="M9195.0 1023.0 L9490.0 1023.0" fill="none" data-name="N_yield"></path>
+<path d="M9195.0 1054.0 L9490.0 1054.0" fill="none" data-name="N_yield"></path>
+</g>
+<g transform="translate(9195, 992)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_yield">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_yield">
+<a id="src/runtime/nodes.ts.N_yield" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_yield">N_yield</text></a>
+
+</g>
+</g>
+<g transform="translate(9195, 1023)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_yield">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_yield">
+<text x="0.0" y="13.5" stroke="none" data-name="N_yield">-value: Node | undefined</text>
+
+</g>
+</g>
+<g transform="translate(9195, 1054)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_yield">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_yield">
+<text x="0.0" y="13.5" stroke="none" data-name="N_yield">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_yield">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_indexed">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_indexed">
+<rect x="9530.0" y="962.0" height="168.0" width="295.0" data-name="N_indexed"></rect>
+<path d="M9530.0 993.0 L9825.0 993.0" fill="none" data-name="N_indexed"></path>
+<path d="M9530.0 1084.0 L9825.0 1084.0" fill="none" data-name="N_indexed"></path>
+</g>
+<g transform="translate(9530, 962)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_indexed">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_indexed">
+<a id="src/runtime/nodes.ts.N_indexed" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_indexed">N_indexed</text></a>
+
+</g>
+</g>
+<g transform="translate(9530, 993)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_indexed">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_indexed">
+<text x="0.0" y="13.5" stroke="none" data-name="N_indexed">-base: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_indexed">-index: Node</text>
+<text x="0.0" y="43.5" stroke="none" data-name="N_indexed">+value: Node | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="N_indexed">+assignType: string | undefined</text>
+<text x="0.0" y="73.5" stroke="none" data-name="N_indexed">+isOptionallyChained: boolean</text>
+
+</g>
+</g>
+<g transform="translate(9530, 1084)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_indexed">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_indexed">
+<text x="0.0" y="13.5" stroke="none" data-name="N_indexed">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_indexed">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_class">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_class">
+<rect x="9865.0" y="947.0" height="198.0" width="308.0" data-name="N_class"></rect>
+<path d="M9865.0 978.0 L10173.0 978.0" fill="none" data-name="N_class"></path>
+<path d="M9865.0 1099.0 L10173.0 1099.0" fill="none" data-name="N_class"></path>
+</g>
+<g transform="translate(9865, 947)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_class">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_class">
+<a id="src/runtime/nodes.ts.N_class" xlink:href="src/runtime/nodes.ts"><text x="146.0" y="13.5" stroke="none" text-anchor="middle" data-name="N_class">N_class</text></a>
+
+</g>
+</g>
+<g transform="translate(9865, 978)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_class">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_class">
+<text x="0.0" y="13.5" stroke="none" data-name="N_class">-init: N_functionDefinition | undefined</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_class">-methods: N_functionDefinition[]</text>
+<text x="0.0" y="43.5" stroke="none" data-name="N_class">+name: string</text>
+<text x="0.0" y="58.5" stroke="none" data-name="N_class">-extends_: Node | undefined</text>
+<text x="0.0" y="73.5" stroke="none" data-name="N_class">-isDeclaration: boolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="N_class">-abstract: boolean</text>
+<text x="0.0" y="103.5" stroke="none" data-name="N_class">-properties: Map&lt;Node&gt;</text>
+
+</g>
+</g>
+<g transform="translate(9865, 1099)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_class">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_class">
+<text x="0.0" y="13.5" stroke="none" data-name="N_class">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_class">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_tryCatch">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_tryCatch">
+<rect x="10213.0" y="984.0" height="123.0" width="295.0" data-name="N_tryCatch"></rect>
+<path d="M10213.0 1015.0 L10508.0 1015.0" fill="none" data-name="N_tryCatch"></path>
+<path d="M10213.0 1061.0 L10508.0 1061.0" fill="none" data-name="N_tryCatch"></path>
+</g>
+<g transform="translate(10213, 984)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_tryCatch">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_tryCatch">
+<a id="src/runtime/nodes.ts.N_tryCatch" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_tryCatch">N_tryCatch</text></a>
+
+</g>
+</g>
+<g transform="translate(10213, 1015)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_tryCatch">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_tryCatch">
+<text x="0.0" y="13.5" stroke="none" data-name="N_tryCatch">-body: Node</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_tryCatch">-catchBlock: Node</text>
+
+</g>
+</g>
+<g transform="translate(10213, 1061)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_tryCatch">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_tryCatch">
+<text x="0.0" y="13.5" stroke="none" data-name="N_tryCatch">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_tryCatch">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_number">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_number">
+<rect x="10548.0" y="992.0" height="108.0" width="295.0" data-name="N_number"></rect>
+<path d="M10548.0 1023.0 L10843.0 1023.0" fill="none" data-name="N_number"></path>
+<path d="M10548.0 1054.0 L10843.0 1054.0" fill="none" data-name="N_number"></path>
+</g>
+<g transform="translate(10548, 992)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_number">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_number">
+<a id="src/runtime/nodes.ts.N_number" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_number">N_number</text></a>
+
+</g>
+</g>
+<g transform="translate(10548, 1023)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_number">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_number">
+<text x="0.0" y="13.5" stroke="none" data-name="N_number">-a: default&lt;number&gt;</text>
+
+</g>
+</g>
+<g transform="translate(10548, 1054)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_number">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_number">
+<text x="0.0" y="13.5" stroke="none" data-name="N_number">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_number">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_string">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_string">
+<rect x="10883.0" y="992.0" height="108.0" width="295.0" data-name="N_string"></rect>
+<path d="M10883.0 1023.0 L11178.0 1023.0" fill="none" data-name="N_string"></path>
+<path d="M10883.0 1054.0 L11178.0 1054.0" fill="none" data-name="N_string"></path>
+</g>
+<g transform="translate(10883, 992)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_string">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_string">
+<a id="src/runtime/nodes.ts.N_string" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_string">N_string</text></a>
+
+</g>
+</g>
+<g transform="translate(10883, 1023)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_string">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_string">
+<text x="0.0" y="13.5" stroke="none" data-name="N_string">-a: default&lt;string&gt;</text>
+
+</g>
+</g>
+<g transform="translate(10883, 1054)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_string">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_string">
+<text x="0.0" y="13.5" stroke="none" data-name="N_string">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_string">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_variable">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_variable">
+<rect x="11218.0" y="992.0" height="108.0" width="295.0" data-name="N_variable"></rect>
+<path d="M11218.0 1023.0 L11513.0 1023.0" fill="none" data-name="N_variable"></path>
+<path d="M11218.0 1054.0 L11513.0 1054.0" fill="none" data-name="N_variable"></path>
+</g>
+<g transform="translate(11218, 992)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_variable">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_variable">
+<a id="src/runtime/nodes.ts.N_variable" xlink:href="src/runtime/nodes.ts"><text x="139.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_variable">N_variable</text></a>
+
+</g>
+</g>
+<g transform="translate(11218, 1023)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_variable">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_variable">
+<text x="0.0" y="13.5" stroke="none" data-name="N_variable">+identifier: default&lt;string&gt;</text>
+
+</g>
+</g>
+<g transform="translate(11218, 1054)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_variable">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_variable">
+<text x="0.0" y="13.5" stroke="none" data-name="N_variable">+interpret_(): Error | InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_variable">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_undefined">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_undefined">
+<rect x="11553.0" y="1003.0" height="85.0" width="241.0" data-name="N_undefined"></rect>
+<path d="M11553.0 1034.0 L11794.0 1034.0" fill="none" data-name="N_undefined"></path>
+<path d="M11553.0 1042.0 L11794.0 1042.0" fill="none" data-name="N_undefined"></path>
+</g>
+<g transform="translate(11553, 1003)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_undefined">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_undefined">
+<a id="src/runtime/nodes.ts.N_undefined" xlink:href="src/runtime/nodes.ts"><text x="112.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_undefined">N_undefined</text></a>
+
+</g>
+</g>
+<g transform="translate(11553, 1034)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_undefined">
+<g transform="translate(8, 8)" fill="#33322E" data-name="N_undefined">
+
+</g>
+</g>
+<g transform="translate(11553, 1042)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_undefined">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_undefined">
+<text x="0.0" y="13.5" stroke="none" data-name="N_undefined">+interpret_(): InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_undefined">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_break">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_break">
+<rect x="11834.0" y="1003.0" height="85.0" width="241.0" data-name="N_break"></rect>
+<path d="M11834.0 1034.0 L12075.0 1034.0" fill="none" data-name="N_break"></path>
+<path d="M11834.0 1042.0 L12075.0 1042.0" fill="none" data-name="N_break"></path>
+</g>
+<g transform="translate(11834, 1003)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_break">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_break">
+<a id="src/runtime/nodes.ts.N_break" xlink:href="src/runtime/nodes.ts"><text x="112.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_break">N_break</text></a>
+
+</g>
+</g>
+<g transform="translate(11834, 1034)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_break">
+<g transform="translate(8, 8)" fill="#33322E" data-name="N_break">
+
+</g>
+</g>
+<g transform="translate(11834, 1042)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_break">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_break">
+<text x="0.0" y="13.5" stroke="none" data-name="N_break">+interpret_(): InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_break">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_continue">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_continue">
+<rect x="12115.0" y="1003.0" height="85.0" width="241.0" data-name="N_continue"></rect>
+<path d="M12115.0 1034.0 L12356.0 1034.0" fill="none" data-name="N_continue"></path>
+<path d="M12115.0 1042.0 L12356.0 1042.0" fill="none" data-name="N_continue"></path>
+</g>
+<g transform="translate(12115, 1003)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_continue">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_continue">
+<a id="src/runtime/nodes.ts.N_continue" xlink:href="src/runtime/nodes.ts"><text x="112.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_continue">N_continue</text></a>
+
+</g>
+</g>
+<g transform="translate(12115, 1034)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_continue">
+<g transform="translate(8, 8)" fill="#33322E" data-name="N_continue">
+
+</g>
+</g>
+<g transform="translate(12115, 1042)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_continue">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_continue">
+<text x="0.0" y="13.5" stroke="none" data-name="N_continue">+interpret_(): InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_continue">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="N_primitiveWrapper">
+<g fill="#eee8d5" stroke="#33322E" data-name="N_primitiveWrapper">
+<rect x="12396.0" y="992.0" height="108.0" width="241.0" data-name="N_primitiveWrapper"></rect>
+<path d="M12396.0 1023.0 L12637.0 1023.0" fill="none" data-name="N_primitiveWrapper"></path>
+<path d="M12396.0 1054.0 L12637.0 1054.0" fill="none" data-name="N_primitiveWrapper"></path>
+</g>
+<g transform="translate(12396, 992)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="N_primitiveWrapper">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="N_primitiveWrapper">
+<a id="src/runtime/nodes.ts.N_primitiveWrapper" xlink:href="src/runtime/nodes.ts"><text x="112.5" y="13.5" stroke="none" text-anchor="middle" data-name="N_primitiveWrapper">N_primitiveWrapper</text></a>
+
+</g>
+</g>
+<g transform="translate(12396, 1023)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_primitiveWrapper">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_primitiveWrapper">
+<text x="0.0" y="13.5" stroke="none" data-name="N_primitiveWrapper">-value: Primitive</text>
+
+</g>
+</g>
+<g transform="translate(12396, 1054)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="N_primitiveWrapper">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="N_primitiveWrapper">
+<text x="0.0" y="13.5" stroke="none" data-name="N_primitiveWrapper">+interpret_(): InterpretResult</text>
+<text x="0.0" y="28.5" stroke="none" data-name="N_primitiveWrapper">+str(): string</text>
+
+</g>
+</g>
+</g>
+<g data-name="ESPrimitive&lt;T&gt;">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESPrimitive&lt;T&gt;">
+<rect x="15888.0" y="68.0" height="663.0" width="619.0" data-name="ESPrimitive&lt;T&gt;"></rect>
+<path d="M15888.0 99.0 L16507.0 99.0" fill="none" data-name="ESPrimitive&lt;T&gt;"></path>
+<path d="M15888.0 700.0 L16507.0 700.0" fill="none" data-name="ESPrimitive&lt;T&gt;"></path>
+</g>
+<g transform="translate(15888, 68)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESPrimitive&lt;T&gt;">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESPrimitive&lt;T&gt;">
+<a id="src/runtime/primitive.ts.ESPrimitive&lt;T&gt;" xlink:href="src/runtime/primitive.ts"><text x="301.5" y="13.5" stroke="none" text-anchor="middle" data-name="ESPrimitive&lt;T&gt;">ESPrimitive&lt;T&gt;</text></a>
+
+</g>
+</g>
+<g transform="translate(15888, 99)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESPrimitive&lt;T&gt;">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESPrimitive&lt;T&gt;">
+<text x="0.0" y="13.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__value__: T</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__type__: Primitive</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__info__: Info</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__iterable__: boolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__null__: boolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">#_: any</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+str: (props: IFuncProps, depth: ESNumber) =&gt; ESString</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+cast: (config: IFuncProps, type: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__add__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__subtract__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__multiply__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__divide__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__pow__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="208.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__mod__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="223.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__eq__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="238.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__gt__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="253.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__lt__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="268.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__and__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="283.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__or__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="298.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__bool__: (props: IFuncProps) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="313.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="328.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="343.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void | Error</text>
+<text x="0.0" y="358.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__get__: (props: IFuncProps, key: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="373.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__call__: (props: IFuncProps, ...parameters: Primitive[]) =&gt; Error | Primitive</text>
+<text x="0.0" y="388.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__generic__: (props: IFuncProps, ..._: Primitive[]) =&gt; Error | Primitive</text>
+<text x="0.0" y="403.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__iter__: (props: IFuncProps) =&gt; Error | Primitive</text>
+<text x="0.0" y="418.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__next__: (props: IFuncProps) =&gt; Error | Primitive</text>
+<text x="0.0" y="433.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__nilish__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="448.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+clone: (props: IFuncProps) =&gt; Primitive</text>
+<text x="0.0" y="463.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+isa: (props: IFuncProps, type: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="478.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+is: (props: IFuncProps, obj: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="493.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+keys: (props: IFuncProps) =&gt; (ESString | ESNumber)[]</text>
+<text x="0.0" y="508.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__type_name__: () =&gt; string</text>
+<text x="0.0" y="523.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+has_property: (props: IFuncProps, key: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="538.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+describe: (props: IFuncProps, info: Primitive) =&gt; void</text>
+<text x="0.0" y="553.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+detail: (props: IFuncProps, info: Primitive) =&gt; TypeError | undefined</text>
+<text x="0.0" y="568.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="583.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+
+</g>
+</g>
+<g transform="translate(15888, 700)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESPrimitive&lt;T&gt;">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESPrimitive&lt;T&gt;">
+<text x="0.0" y="13.5" stroke="none" data-name="ESPrimitive&lt;T&gt;">+bool(): ESBoolean</text>
+
+</g>
+</g>
+</g>
+<g data-name="ESSymbol">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESSymbol">
+<rect x="16547.0" y="319.0" height="160.0" width="346.0" data-name="ESSymbol"></rect>
+<path d="M16547.0 350.0 L16893.0 350.0" fill="none" data-name="ESSymbol"></path>
+<path d="M16547.0 471.0 L16893.0 471.0" fill="none" data-name="ESSymbol"></path>
+</g>
+<g transform="translate(16547, 319)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESSymbol">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESSymbol">
+<a id="src/runtime/symbol.ts.ESSymbol" xlink:href="src/runtime/symbol.ts"><text x="165.0" y="13.5" stroke="none" text-anchor="middle" data-name="ESSymbol">ESSymbol</text></a>
+
+</g>
+</g>
+<g transform="translate(16547, 350)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESSymbol">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESSymbol">
+<text x="0.0" y="13.5" stroke="none" data-name="ESSymbol">+isConstant: boolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESSymbol">+value: Primitive</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESSymbol">+identifier: string</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESSymbol">+isAccessible: boolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESSymbol">+type: Primitive</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESSymbol">+clone: (props: IFuncProps) =&gt; ESSymbol</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESSymbol">+str: () =&gt; ESString</text>
+
+</g>
+</g>
+<g transform="translate(16547, 471)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESSymbol">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESSymbol">
+
+</g>
+</g>
+</g>
+<g data-name="ISymbolOptions">
+<g fill="lightblue" stroke="#33322E" data-name="ISymbolOptions">
+<rect x="16933.0" y="334.0" height="130.0" width="346.0" data-name="ISymbolOptions"></rect>
+<path d="M16933.0 365.0 L17279.0 365.0" fill="none" data-name="ISymbolOptions"></path>
+<path d="M16933.0 456.0 L17279.0 456.0" fill="none" data-name="ISymbolOptions"></path>
+</g>
+<g transform="translate(16933, 334)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ISymbolOptions">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ISymbolOptions">
+<a id="src/runtime/symbol.ts.ISymbolOptions" xlink:href="src/runtime/symbol.ts"><text x="165.0" y="13.5" stroke="none" text-anchor="middle" data-name="ISymbolOptions">ISymbolOptions</text></a>
+
+</g>
+</g>
+<g transform="translate(16933, 365)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ISymbolOptions">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ISymbolOptions">
+<text x="0.0" y="13.5" stroke="none" data-name="ISymbolOptions">+isConstant: boolean | undefined</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ISymbolOptions">+isAccessible: boolean | undefined</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ISymbolOptions">+global: boolean | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ISymbolOptions">+forceThroughConst: boolean | undefined</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ISymbolOptions">+type: Primitive | undefined</text>
+
+</g>
+</g>
+<g transform="translate(16933, 456)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ISymbolOptions">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ISymbolOptions">
+
+</g>
+</g>
+</g>
+<g data-name="ICompileConfig">
+<g fill="lightblue" stroke="#33322E" data-name="ICompileConfig">
+<rect x="17319.0" y="349.0" height="100.0" width="155.0" data-name="ICompileConfig"></rect>
+<path d="M17319.0 380.0 L17474.0 380.0" fill="none" data-name="ICompileConfig"></path>
+<path d="M17319.0 441.0 L17474.0 441.0" fill="none" data-name="ICompileConfig"></path>
+</g>
+<g transform="translate(17319, 349)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ICompileConfig">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ICompileConfig">
+<a id="src/util/constants.ts.ICompileConfig" xlink:href="src/util/constants.ts"><text x="69.5" y="13.5" stroke="none" text-anchor="middle" data-name="ICompileConfig">ICompileConfig</text></a>
+
+</g>
+</g>
+<g transform="translate(17319, 380)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ICompileConfig">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ICompileConfig">
+<text x="0.0" y="13.5" stroke="none" data-name="ICompileConfig">+minify: boolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ICompileConfig">+indent: number</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ICompileConfig">+symbols: string[]</text>
+
+</g>
+</g>
+<g transform="translate(17319, 441)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ICompileConfig">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ICompileConfig">
+
+</g>
+</g>
+</g>
+<g data-name="IFuncProps">
+<g fill="lightblue" stroke="#33322E" data-name="IFuncProps">
+<rect x="17514.0" y="349.0" height="100.0" width="318.0" data-name="IFuncProps"></rect>
+<path d="M17514.0 380.0 L17832.0 380.0" fill="none" data-name="IFuncProps"></path>
+<path d="M17514.0 441.0 L17832.0 441.0" fill="none" data-name="IFuncProps"></path>
+</g>
+<g transform="translate(17514, 349)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IFuncProps">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="IFuncProps">
+<a id="src/util/util.ts.IFuncProps" xlink:href="src/util/util.ts"><text x="151.0" y="13.5" stroke="none" text-anchor="middle" data-name="IFuncProps">IFuncProps</text></a>
+
+</g>
+</g>
+<g transform="translate(17514, 380)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IFuncProps">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="IFuncProps">
+<text x="0.0" y="13.5" stroke="none" data-name="IFuncProps">+context: Context</text>
+<text x="0.0" y="28.5" stroke="none" data-name="IFuncProps">+kwargs: Map&lt;Primitive&gt; | undefined</text>
+<text x="0.0" y="43.5" stroke="none" data-name="IFuncProps">+dontTypeCheck: boolean | undefined</text>
+
+</g>
+</g>
+<g transform="translate(17514, 441)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="IFuncProps">
+<g transform="translate(8, 8)" fill="#33322E" data-name="IFuncProps">
+
+</g>
+</g>
+</g>
+<g data-name="ESArray">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESArray">
+<rect x="12677.0" y="868.0" height="355.0" width="589.0" data-name="ESArray"></rect>
+<path d="M12677.0 899.0 L13266.0 899.0" fill="none" data-name="ESArray"></path>
+<path d="M12677.0 1215.0 L13266.0 1215.0" fill="none" data-name="ESArray"></path>
+</g>
+<g transform="translate(12677, 868)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESArray">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESArray">
+<a id="src/runtime/primitives/array.ts.ESArray" xlink:href="src/runtime/primitives/array.ts"><text x="286.5" y="13.5" stroke="none" text-anchor="middle" data-name="ESArray">ESArray</text></a>
+
+</g>
+</g>
+<g transform="translate(12677, 899)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESArray">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESArray">
+<text x="0.0" y="13.5" stroke="none" data-name="ESArray">+__iterable__: boolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESArray">+len: () =&gt; ESNumber</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESArray">+cast: (props: IFuncProps, type: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESArray">+str: (props: IFuncProps, depth?: ESNumber) =&gt; ESString</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESArray">+__eq__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESArray">+__add__: (props: IFuncProps, n: Primitive) =&gt; Error | ESArray</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESArray">+__bool__: () =&gt; ESBoolean</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESArray">+bool: () =&gt; ESBoolean</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESArray">+__get__: (props: IFuncProps, key: Primitive) =&gt; Primitive</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESArray">+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESArray">+contains: (props: IFuncProps, val: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESArray">+clone: () =&gt; ESArray</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESArray">+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="208.5" stroke="none" data-name="ESArray">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="223.5" stroke="none" data-name="ESArray">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="238.5" stroke="none" data-name="ESArray">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="253.5" stroke="none" data-name="ESArray">+__iter__: () =&gt; ESArray</text>
+<text x="0.0" y="268.5" stroke="none" data-name="ESArray">+__next__: () =&gt; Error | Primitive</text>
+<text x="0.0" y="283.5" stroke="none" data-name="ESArray">+keys: () =&gt; (ESString | ESNumber)[]</text>
+<text x="0.0" y="298.5" stroke="none" data-name="ESArray">+add: (props: IFuncProps, ...args: Primitive[]) =&gt; void</text>
+
+</g>
+</g>
+<g transform="translate(12677, 1215)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESArray">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESArray">
+
+</g>
+</g>
+</g>
+<g data-name="ESBoolean">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESBoolean">
+<rect x="13399.0" y="913.0" height="265.0" width="628.0" data-name="ESBoolean"></rect>
+<path d="M13399.0 944.0 L14027.0 944.0" fill="none" data-name="ESBoolean"></path>
+<path d="M13399.0 1170.0 L14027.0 1170.0" fill="none" data-name="ESBoolean"></path>
+</g>
+<g transform="translate(13399, 913)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESBoolean">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESBoolean">
+<a id="src/runtime/primitives/boolean.ts.ESBoolean" xlink:href="src/runtime/primitives/boolean.ts"><text x="306.0" y="13.5" stroke="none" text-anchor="middle" data-name="ESBoolean">ESBoolean</text></a>
+
+</g>
+</g>
+<g transform="translate(13399, 944)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESBoolean">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESBoolean">
+<text x="0.0" y="13.5" stroke="none" data-name="ESBoolean">+__get__: (props: IFuncProps, key: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESBoolean">+cast: (props: IFuncProps, type: Primitive) =&gt; Error | ESNumber</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESBoolean">+__eq__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESBoolean</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESBoolean">+__bool__: () =&gt; this</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESBoolean">+__and__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESBoolean">+__or__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESBoolean">+str: () =&gt; ESString</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESBoolean">+clone: () =&gt; ESBoolean</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESBoolean">+bool: () =&gt; this</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESBoolean">+__includes__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESBoolean</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESBoolean">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESBoolean</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESBoolean">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESBoolean">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="208.5" stroke="none" data-name="ESBoolean">+keys: () =&gt; ESString[]</text>
+
+</g>
+</g>
+<g transform="translate(13399, 1170)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESBoolean">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESBoolean">
+
+</g>
+</g>
+</g>
+<g data-name="ESErrorPrimitive">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESErrorPrimitive">
+<rect x="14067.0" y="928.0" height="235.0" width="589.0" data-name="ESErrorPrimitive"></rect>
+<path d="M14067.0 959.0 L14656.0 959.0" fill="none" data-name="ESErrorPrimitive"></path>
+<path d="M14067.0 1155.0 L14656.0 1155.0" fill="none" data-name="ESErrorPrimitive"></path>
+</g>
+<g transform="translate(14067, 928)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESErrorPrimitive">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESErrorPrimitive">
+<a id="src/runtime/primitives/error.ts.ESErrorPrimitive" xlink:href="src/runtime/primitives/error.ts"><text x="286.5" y="13.5" stroke="none" text-anchor="middle" data-name="ESErrorPrimitive">ESErrorPrimitive</text></a>
+
+</g>
+</g>
+<g transform="translate(14067, 959)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESErrorPrimitive">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESErrorPrimitive">
+<text x="0.0" y="13.5" stroke="none" data-name="ESErrorPrimitive">+__get__: (props: IFuncProps, key: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESErrorPrimitive">+cast: () =&gt; Error</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESErrorPrimitive">+str: () =&gt; ESString</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESErrorPrimitive">+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESErrorPrimitive">+__bool__: () =&gt; ESBoolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESErrorPrimitive">+bool: () =&gt; ESBoolean</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESErrorPrimitive">+clone: () =&gt; ESErrorPrimitive</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESErrorPrimitive">+__includes__: () =&gt; Error</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESErrorPrimitive">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESErrorPrimitive">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESErrorPrimitive">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESErrorPrimitive">+keys: () =&gt; ESString[]</text>
+
+</g>
+</g>
+<g transform="translate(14067, 1155)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESErrorPrimitive">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESErrorPrimitive">
+
+</g>
+</g>
+</g>
+<g data-name="ESFunction">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESFunction">
+<rect x="14696.0" y="838.0" height="415.0" width="817.0" data-name="ESFunction"></rect>
+<path d="M14696.0 869.0 L15513.0 869.0" fill="none" data-name="ESFunction"></path>
+<path d="M14696.0 1245.0 L15513.0 1245.0" fill="none" data-name="ESFunction"></path>
+</g>
+<g transform="translate(14696, 838)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESFunction">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESFunction">
+<a id="src/runtime/primitives/function.ts.ESFunction" xlink:href="src/runtime/primitives/function.ts"><text x="400.5" y="13.5" stroke="none" text-anchor="middle" data-name="ESFunction">ESFunction</text></a>
+
+</g>
+</g>
+<g transform="translate(14696, 869)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESFunction">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESFunction">
+<text x="0.0" y="13.5" stroke="none" data-name="ESFunction">+__args__: IRuntimeArgument[]</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESFunction">+__this__: ESObject</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESFunction">+__returns__: Primitive</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESFunction">+__closure__: Context</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESFunction">+__allow_args__: boolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESFunction">+__allow_kwargs__: boolean</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESFunction">+takeCallContextAsClosure: boolean</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESFunction">+__generic_types__: Primitive[]</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESFunction">+__gargs__: IRuntimeArgument[]</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESFunction">+cast: () =&gt; Error</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESFunction">+clone: () =&gt; ESFunction</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESFunction">+valueOf: () =&gt; this</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESFunction">+str: () =&gt; ESString</text>
+<text x="0.0" y="208.5" stroke="none" data-name="ESFunction">+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="223.5" stroke="none" data-name="ESFunction">+__bool__: () =&gt; ESBoolean</text>
+<text x="0.0" y="238.5" stroke="none" data-name="ESFunction">+bool: () =&gt; ESBoolean</text>
+<text x="0.0" y="253.5" stroke="none" data-name="ESFunction">+__call__: ({ context, kwargs, dontTypeCheck }: IFuncProps, ...params: Primitive[]) =&gt; Error | Primitive</text>
+<text x="0.0" y="268.5" stroke="none" data-name="ESFunction">+__get__: (props: IFuncProps, key: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="283.5" stroke="none" data-name="ESFunction">+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="298.5" stroke="none" data-name="ESFunction">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="313.5" stroke="none" data-name="ESFunction">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="328.5" stroke="none" data-name="ESFunction">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="343.5" stroke="none" data-name="ESFunction">+keys: () =&gt; ESString[]</text>
+<text x="0.0" y="358.5" stroke="none" data-name="ESFunction">+__generic__: (props: IFuncProps, ...parameters: Primitive[]) =&gt; Error | Primitive</text>
+
+</g>
+</g>
+<g transform="translate(14696, 1245)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESFunction">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESFunction">
+
+</g>
+</g>
+</g>
+<g data-name="ESInterface">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESInterface">
+<rect x="19565.0" y="1323.0" height="115.0" width="589.0" data-name="ESInterface"></rect>
+<path d="M19565.0 1354.0 L20154.0 1354.0" fill="none" data-name="ESInterface"></path>
+<path d="M19565.0 1430.0 L20154.0 1430.0" fill="none" data-name="ESInterface"></path>
+</g>
+<g transform="translate(19565, 1323)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESInterface">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESInterface">
+<a id="src/runtime/primitives/interface.ts.ESInterface" xlink:href="src/runtime/primitives/interface.ts"><text x="286.5" y="13.5" stroke="none" text-anchor="middle" data-name="ESInterface">ESInterface</text></a>
+
+</g>
+</g>
+<g transform="translate(19565, 1354)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESInterface">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESInterface">
+<text x="0.0" y="13.5" stroke="none" data-name="ESInterface">+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESInterface">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESInterface">+__set__: (props: IFuncProps, key: Primitive) =&gt; void | Error</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESInterface">+str: (props: IFuncProps, depth?: ESNumber) =&gt; ESString</text>
+
+</g>
+</g>
+<g transform="translate(19565, 1430)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESInterface">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESInterface">
+
+</g>
+</g>
+</g>
+<g data-name="ESTypeIntersection">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESTypeIntersection">
+<rect x="20300.0" y="1293.0" height="175.0" width="584.0" data-name="ESTypeIntersection"></rect>
+<path d="M20300.0 1324.0 L20884.0 1324.0" fill="none" data-name="ESTypeIntersection"></path>
+<path d="M20300.0 1460.0 L20884.0 1460.0" fill="none" data-name="ESTypeIntersection"></path>
+</g>
+<g transform="translate(20300, 1293)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESTypeIntersection">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESTypeIntersection">
+<a id="src/runtime/primitives/intersection.ts.ESTypeIntersection" xlink:href="src/runtime/primitives/intersection.ts"><text x="284.0" y="13.5" stroke="none" text-anchor="middle" data-name="ESTypeIntersection">ESTypeIntersection</text></a>
+
+</g>
+</g>
+<g transform="translate(20300, 1324)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESTypeIntersection">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESTypeIntersection">
+<text x="0.0" y="13.5" stroke="none" data-name="ESTypeIntersection">+__left__: Primitive</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESTypeIntersection">+__right__: Primitive</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESTypeIntersection">+__call__: () =&gt; Error | Primitive</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESTypeIntersection">+__includes__: (props: IFuncProps, t: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESTypeIntersection">+__subtype_of__: (props: IFuncProps, t: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESTypeIntersection">+clone: () =&gt; ESTypeIntersection</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESTypeIntersection">+__eq__: (props: IFuncProps, t: Primitive) =&gt; any</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESTypeIntersection">+__generic__: () =&gt; Error | Primitive</text>
+
+</g>
+</g>
+<g transform="translate(20300, 1460)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESTypeIntersection">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESTypeIntersection">
+
+</g>
+</g>
+</g>
+<g data-name="Iterable">
+<g fill="lightblue" stroke="#33322E" data-name="Iterable">
+<rect x="17872.0" y="252.0" height="295.0" width="603.0" data-name="Iterable"></rect>
+<path d="M17872.0 283.0 L18475.0 283.0" fill="none" data-name="Iterable"></path>
+<path d="M17872.0 539.0 L18475.0 539.0" fill="none" data-name="Iterable"></path>
+</g>
+<g transform="translate(17872, 252)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Iterable">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="Iterable">
+<a id="src/runtime/primitives/iterable.ts.Iterable" xlink:href="src/runtime/primitives/iterable.ts"><text x="293.5" y="13.5" stroke="none" text-anchor="middle" data-name="Iterable">Iterable</text></a>
+
+</g>
+</g>
+<g transform="translate(17872, 283)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Iterable">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="Iterable">
+<text x="0.0" y="13.5" stroke="none" data-name="Iterable">+len: (props: IFuncProps) =&gt; Error | ESNumber</text>
+<text x="0.0" y="28.5" stroke="none" data-name="Iterable">+__iter__: (props: IFuncProps) =&gt; Error | Primitive</text>
+<text x="0.0" y="43.5" stroke="none" data-name="Iterable">+contains: (props: IFuncProps, val: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="58.5" stroke="none" data-name="Iterable">+map: ((props: IFuncProps) =&gt; Error | (Iterable &amp; Primitive)) | undefined</text>
+<text x="0.0" y="73.5" stroke="none" data-name="Iterable">+filter: ((props: IFuncProps) =&gt; Error | (Iterable &amp; Primitive)) | undefined</text>
+<text x="0.0" y="88.5" stroke="none" data-name="Iterable">+find: ((props: IFuncProps) =&gt; Error | Primitive) | undefined</text>
+<text x="0.0" y="103.5" stroke="none" data-name="Iterable">+indexof: ((props: IFuncProps) =&gt; Error | ESNumber) | undefined</text>
+<text x="0.0" y="118.5" stroke="none" data-name="Iterable">+at: ((props: IFuncProps) =&gt; Error | Primitive) | undefined</text>
+<text x="0.0" y="133.5" stroke="none" data-name="Iterable">+for: ((props: IFuncProps) =&gt; Error | (Iterable &amp; Primitive)) | undefined</text>
+<text x="0.0" y="148.5" stroke="none" data-name="Iterable">+pop: ((props: IFuncProps) =&gt; Error | Primitive) | undefined</text>
+<text x="0.0" y="163.5" stroke="none" data-name="Iterable">+reduce: ((props: IFuncProps) =&gt; Error | Primitive) | undefined</text>
+<text x="0.0" y="178.5" stroke="none" data-name="Iterable">+reverse: ((props: IFuncProps) =&gt; Error | (Iterable &amp; Primitive)) | undefined</text>
+<text x="0.0" y="193.5" stroke="none" data-name="Iterable">+splice: ((props: IFuncProps) =&gt; Error | (Iterable &amp; Primitive)) | undefined</text>
+<text x="0.0" y="208.5" stroke="none" data-name="Iterable">+insert: ((props: IFuncProps) =&gt; Error | (Iterable &amp; Primitive)) | undefined</text>
+<text x="0.0" y="223.5" stroke="none" data-name="Iterable">+shift: ((props: IFuncProps) =&gt; Error | (Iterable &amp; Primitive)) | undefined</text>
+<text x="0.0" y="238.5" stroke="none" data-name="Iterable">+unshift: ((props: IFuncProps) =&gt; Error | (Iterable &amp; Primitive)) | undefined</text>
+
+</g>
+</g>
+<g transform="translate(17872, 539)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="Iterable">
+<g transform="translate(8, 8)" fill="#33322E" data-name="Iterable">
+
+</g>
+</g>
+</g>
+<g data-name="ESJSBinding&lt;T&gt;">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESJSBinding&lt;T&gt;">
+<rect x="15553.0" y="861.0" height="370.0" width="600.0" data-name="ESJSBinding&lt;T&gt;"></rect>
+<path d="M15553.0 892.0 L16153.0 892.0" fill="none" data-name="ESJSBinding&lt;T&gt;"></path>
+<path d="M15553.0 1223.0 L16153.0 1223.0" fill="none" data-name="ESJSBinding&lt;T&gt;"></path>
+</g>
+<g transform="translate(15553, 861)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESJSBinding&lt;T&gt;">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESJSBinding&lt;T&gt;">
+<a id="src/runtime/primitives/jsbinding.ts.ESJSBinding&lt;T&gt;" xlink:href="src/runtime/primitives/jsbinding.ts"><text x="292.0" y="13.5" stroke="none" text-anchor="middle" data-name="ESJSBinding&lt;T&gt;">ESJSBinding&lt;T&gt;</text></a>
+
+</g>
+</g>
+<g transform="translate(15553, 892)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESJSBinding&lt;T&gt;">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESJSBinding&lt;T&gt;">
+<text x="0.0" y="13.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">-functionsTakeProps: boolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">-catchErrorsToPrimitive: boolean</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__iterable__: boolean</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+cast: () =&gt; Error | Primitive</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+clone: () =&gt; Primitive</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+str: (props: IFuncProps, depth?: ESNumber) =&gt; ESString</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__bool__: () =&gt; ESBoolean</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+bool: () =&gt; ESBoolean</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__get__: (props: IFuncProps, k: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__set__: (props: IFuncProps, k: Primitive, value: Primitive) =&gt; void | Error</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__call__: (props: IFuncProps, ...args: Primitive[]) =&gt; Error | Primitive</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+has_property: (props: IFuncProps, key: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="208.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__includes__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="223.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="238.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="253.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="268.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+__iter__: () =&gt; Error | Primitive</text>
+<text x="0.0" y="283.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+len: () =&gt; ESNumber</text>
+<text x="0.0" y="298.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+keys: () =&gt; ESString[]</text>
+<text x="0.0" y="313.5" stroke="none" data-name="ESJSBinding&lt;T&gt;">+contains: (props: IFuncProps, key: Primitive) =&gt; ESBoolean</text>
+
+</g>
+</g>
+<g transform="translate(15553, 1223)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESJSBinding&lt;T&gt;">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESJSBinding&lt;T&gt;">
+
+</g>
+</g>
+</g>
+<g data-name="ESNamespace">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESNamespace">
+<rect x="16847.0" y="883.0" height="325.0" width="619.0" data-name="ESNamespace"></rect>
+<path d="M16847.0 914.0 L17466.0 914.0" fill="none" data-name="ESNamespace"></path>
+<path d="M16847.0 1200.0 L17466.0 1200.0" fill="none" data-name="ESNamespace"></path>
+</g>
+<g transform="translate(16847, 883)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESNamespace">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESNamespace">
+<a id="src/runtime/primitives/namespace.ts.ESNamespace" xlink:href="src/runtime/primitives/namespace.ts"><text x="301.5" y="13.5" stroke="none" text-anchor="middle" data-name="ESNamespace">ESNamespace</text></a>
+
+</g>
+</g>
+<g transform="translate(16847, 914)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESNamespace">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESNamespace">
+<text x="0.0" y="13.5" stroke="none" data-name="ESNamespace">+__mutable__: boolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESNamespace">+__iterable__: boolean</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESNamespace">+cast: () =&gt; Error</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESNamespace">+clone: () =&gt; Primitive</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESNamespace">+str: () =&gt; ESString</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESNamespace">+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESNamespace">+__bool__: () =&gt; ESBoolean</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESNamespace">+bool: () =&gt; ESBoolean</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESNamespace">+__get__: (props: IFuncProps, key: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESNamespace">+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void | Error</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESNamespace">+__includes__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESNamespace">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESNamespace">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="208.5" stroke="none" data-name="ESNamespace">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="223.5" stroke="none" data-name="ESNamespace">+__iter__: (props: IFuncProps) =&gt; Error | Primitive</text>
+<text x="0.0" y="238.5" stroke="none" data-name="ESNamespace">+len: () =&gt; ESNumber</text>
+<text x="0.0" y="253.5" stroke="none" data-name="ESNamespace">+keys: () =&gt; ESString[]</text>
+<text x="0.0" y="268.5" stroke="none" data-name="ESNamespace">+contains: (props: IFuncProps, key: Primitive) =&gt; ESBoolean</text>
+
+</g>
+</g>
+<g transform="translate(16847, 1200)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESNamespace">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESNamespace">
+
+</g>
+</g>
+</g>
+<g data-name="ESNull">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESNull">
+<rect x="18126.0" y="921.0" height="250.0" width="570.0" data-name="ESNull"></rect>
+<path d="M18126.0 952.0 L18696.0 952.0" fill="none" data-name="ESNull"></path>
+<path d="M18126.0 1163.0 L18696.0 1163.0" fill="none" data-name="ESNull"></path>
+</g>
+<g transform="translate(18126, 921)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESNull">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESNull">
+<a id="src/runtime/primitives/null.ts.ESNull" xlink:href="src/runtime/primitives/null.ts"><text x="277.0" y="13.5" stroke="none" text-anchor="middle" data-name="ESNull">ESNull</text></a>
+
+</g>
+</g>
+<g transform="translate(18126, 952)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESNull">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESNull">
+<text x="0.0" y="13.5" stroke="none" data-name="ESNull">+__null__: boolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESNull">+cast: () =&gt; Error | Primitive</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESNull">+str: () =&gt; ESString</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESNull">+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESNull">+__bool__: () =&gt; ESBoolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESNull">+bool: () =&gt; ESBoolean</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESNull">+clone: () =&gt; ESNull</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESNull">+__get__: (props: IFuncProps, key: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESNull">+__includes__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESNull">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESNull">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESNull">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESNull">+keys: () =&gt; ESString[]</text>
+
+</g>
+</g>
+<g transform="translate(18126, 1163)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESNull">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESNull">
+
+</g>
+</g>
+</g>
+<g data-name="ESNumber">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESNumber">
+<rect x="18736.0" y="861.0" height="370.0" width="774.0" data-name="ESNumber"></rect>
+<path d="M18736.0 892.0 L19510.0 892.0" fill="none" data-name="ESNumber"></path>
+<path d="M18736.0 1223.0 L19510.0 1223.0" fill="none" data-name="ESNumber"></path>
+</g>
+<g transform="translate(18736, 861)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESNumber">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESNumber">
+<a id="src/runtime/primitives/number.ts.ESNumber" xlink:href="src/runtime/primitives/number.ts"><text x="379.0" y="13.5" stroke="none" text-anchor="middle" data-name="ESNumber">ESNumber</text></a>
+
+</g>
+</g>
+<g transform="translate(18736, 892)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESNumber">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESNumber">
+<text x="0.0" y="13.5" stroke="none" data-name="ESNumber">+cast: (props: IFuncProps, type: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESNumber">+str: () =&gt; ESString</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESNumber">+__add__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESNumber</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESNumber">+__subtract__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESNumber</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESNumber">+__multiply__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESNumber</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESNumber">+__divide__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESNumber</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESNumber">+__pow__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESNumber</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESNumber">+__mod__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESNumber</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESNumber">+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESNumber">+__gt__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESBoolean</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESNumber">+__lt__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESBoolean</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESNumber">+__bool__: () =&gt; ESBoolean</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESNumber">+bool: () =&gt; ESBoolean</text>
+<text x="0.0" y="208.5" stroke="none" data-name="ESNumber">+clone: () =&gt; ESNumber</text>
+<text x="0.0" y="223.5" stroke="none" data-name="ESNumber">+__get__: (props: IFuncProps, key: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="238.5" stroke="none" data-name="ESNumber">+__includes__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="253.5" stroke="none" data-name="ESNumber">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="268.5" stroke="none" data-name="ESNumber">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="283.5" stroke="none" data-name="ESNumber">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="298.5" stroke="none" data-name="ESNumber">+keys: () =&gt; ESString[]</text>
+<text x="0.0" y="313.5" stroke="none" data-name="ESNumber">+__call__: (props: IFuncProps, ...args: Primitive[]) =&gt; InvalidSyntaxError | TypeError | ESNumber</text>
+
+</g>
+</g>
+<g transform="translate(18736, 1223)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESNumber">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESNumber">
+
+</g>
+</g>
+</g>
+<g data-name="ESObject">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESObject">
+<rect x="19550.0" y="861.0" height="370.0" width="619.0" data-name="ESObject"></rect>
+<path d="M19550.0 892.0 L20169.0 892.0" fill="none" data-name="ESObject"></path>
+<path d="M19550.0 1223.0 L20169.0 1223.0" fill="none" data-name="ESObject"></path>
+</g>
+<g transform="translate(19550, 861)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESObject">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESObject">
+<a id="src/runtime/primitives/object.ts.ESObject" xlink:href="src/runtime/primitives/object.ts"><text x="301.5" y="13.5" stroke="none" text-anchor="middle" data-name="ESObject">ESObject</text></a>
+
+</g>
+</g>
+<g transform="translate(19550, 892)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESObject">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESObject">
+<text x="0.0" y="13.5" stroke="none" data-name="ESObject">+__iterable__: boolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESObject">+__type_map__: Map&lt;Primitive&gt; | undefined</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESObject">+cast: (props: IFuncProps, type: Primitive) =&gt; Error | ESNumber</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESObject">+str: (props: IFuncProps, depth?: ESNumber) =&gt; ESString</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESObject">+keys: () =&gt; ESString[]</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESObject">+__eq__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESObject">+__bool__: () =&gt; ESBoolean</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESObject">+bool: () =&gt; ESBoolean</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESObject">+__add__: (props: IFuncProps, n: Primitive) =&gt; Error | ESObject</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESObject">+__subtract__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESObject">+__get__: (props: IFuncProps, k: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESObject">+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void | Error</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESObject">+has_property: (props: IFuncProps, k: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="208.5" stroke="none" data-name="ESObject">+clone: () =&gt; ESObject</text>
+<text x="0.0" y="223.5" stroke="none" data-name="ESObject">+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="238.5" stroke="none" data-name="ESObject">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="253.5" stroke="none" data-name="ESObject">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="268.5" stroke="none" data-name="ESObject">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="283.5" stroke="none" data-name="ESObject">+__iter__: () =&gt; Error | Primitive</text>
+<text x="0.0" y="298.5" stroke="none" data-name="ESObject">+len: () =&gt; ESNumber</text>
+<text x="0.0" y="313.5" stroke="none" data-name="ESObject">+contains: (props: IFuncProps, k: Primitive) =&gt; ESBoolean</text>
+
+</g>
+</g>
+<g transform="translate(19550, 1223)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESObject">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESObject">
+
+</g>
+</g>
+</g>
+<g data-name="ESString">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESString">
+<rect x="20209.0" y="861.0" height="370.0" width="581.0" data-name="ESString"></rect>
+<path d="M20209.0 892.0 L20790.0 892.0" fill="none" data-name="ESString"></path>
+<path d="M20209.0 1223.0 L20790.0 1223.0" fill="none" data-name="ESString"></path>
+</g>
+<g transform="translate(20209, 861)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESString">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESString">
+<a id="src/runtime/primitives/string.ts.ESString" xlink:href="src/runtime/primitives/string.ts"><text x="282.5" y="13.5" stroke="none" text-anchor="middle" data-name="ESString">ESString</text></a>
+
+</g>
+</g>
+<g transform="translate(20209, 892)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESString">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESString">
+<text x="0.0" y="13.5" stroke="none" data-name="ESString">+__iterable__: boolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESString">+str: () =&gt; this</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESString">+cast: (props: IFuncProps, type: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESString">+__add__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESString</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESString">+__multiply__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESString</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESString">+__eq__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESString">+__gt__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESBoolean</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESString">+__lt__: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESBoolean</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESString">+__bool__: () =&gt; ESBoolean</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESString">+bool: () =&gt; ESBoolean</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESString">+len: () =&gt; ESNumber</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESString">+clone: () =&gt; ESString</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESString">+__get__: (props: IFuncProps, key: Primitive) =&gt; Primitive</text>
+<text x="0.0" y="208.5" stroke="none" data-name="ESString">+__set__: (props: IFuncProps, key: Primitive, value: Primitive) =&gt; void</text>
+<text x="0.0" y="223.5" stroke="none" data-name="ESString">+__includes__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="238.5" stroke="none" data-name="ESString">+__subtype_of__: (props: IFuncProps, n: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="253.5" stroke="none" data-name="ESString">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="268.5" stroke="none" data-name="ESString">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="283.5" stroke="none" data-name="ESString">+__iter__: () =&gt; Error | Primitive</text>
+<text x="0.0" y="298.5" stroke="none" data-name="ESString">+keys: () =&gt; (ESString | ESNumber)[]</text>
+<text x="0.0" y="313.5" stroke="none" data-name="ESString">+contains: (props: IFuncProps, n: Primitive) =&gt; TypeError | ESBoolean</text>
+
+</g>
+</g>
+<g transform="translate(20209, 1223)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESString">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESString">
+
+</g>
+</g>
+</g>
+<g data-name="ESType">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESType">
+<rect x="20830.0" y="853.0" height="385.0" width="584.0" data-name="ESType"></rect>
+<path d="M20830.0 884.0 L21414.0 884.0" fill="none" data-name="ESType"></path>
+<path d="M20830.0 1230.0 L21414.0 1230.0" fill="none" data-name="ESType"></path>
+</g>
+<g transform="translate(20830, 853)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESType">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESType">
+<a id="src/runtime/primitives/type.ts.ESType" xlink:href="src/runtime/primitives/type.ts"><text x="284.0" y="13.5" stroke="none" text-anchor="middle" data-name="ESType">ESType</text></a>
+
+</g>
+</g>
+<g transform="translate(20830, 884)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESType">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESType">
+<text x="0.0" y="13.5" stroke="none" data-name="ESType">+__primordial__: boolean</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESType">+__name__: string</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESType">+__extends__: ESType | undefined</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESType">+__methods__: ESFunction[]</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESType">+__properties__: Map&lt;Primitive&gt;</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESType">+__instances__: Primitive[]</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESType">+__abstract__: boolean</text>
+<text x="0.0" y="118.5" stroke="none" data-name="ESType">+clone: () =&gt; ESType</text>
+<text x="0.0" y="133.5" stroke="none" data-name="ESType">+isa: (props: IFuncProps, type: Primitive) =&gt; ESBoolean</text>
+<text x="0.0" y="148.5" stroke="none" data-name="ESType">+cast: () =&gt; Error</text>
+<text x="0.0" y="163.5" stroke="none" data-name="ESType">+__includes__: (props: IFuncProps, n: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="178.5" stroke="none" data-name="ESType">+__subtype_of__: (props: IFuncProps, t: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="193.5" stroke="none" data-name="ESType">+__eq__: (props: IFuncProps, t: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="208.5" stroke="none" data-name="ESType">+__call__: (props: IFuncProps, ...params: Primitive[]) =&gt; Error | Primitive</text>
+<text x="0.0" y="223.5" stroke="none" data-name="ESType">+str: () =&gt; ESString</text>
+<text x="0.0" y="238.5" stroke="none" data-name="ESType">+__bool__: () =&gt; ESBoolean</text>
+<text x="0.0" y="253.5" stroke="none" data-name="ESType">+bool: () =&gt; ESBoolean</text>
+<text x="0.0" y="268.5" stroke="none" data-name="ESType">+__get__: (props: IFuncProps, k: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="283.5" stroke="none" data-name="ESType">+__pipe__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="298.5" stroke="none" data-name="ESType">+__ampersand__: (props: IFuncProps, n: Primitive) =&gt; Error | Primitive</text>
+<text x="0.0" y="313.5" stroke="none" data-name="ESType">+keys: () =&gt; ESString[]</text>
+<text x="0.0" y="328.5" stroke="none" data-name="ESType">+__get_init__: () =&gt; ESFunction | undefined</text>
+
+</g>
+</g>
+<g transform="translate(20830, 1230)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESType">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESType">
+
+</g>
+</g>
+</g>
+<g data-name="ESTypeUnion">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESTypeUnion">
+<rect x="20930.0" y="1301.0" height="160.0" width="584.0" data-name="ESTypeUnion"></rect>
+<path d="M20930.0 1332.0 L21514.0 1332.0" fill="none" data-name="ESTypeUnion"></path>
+<path d="M20930.0 1453.0 L21514.0 1453.0" fill="none" data-name="ESTypeUnion"></path>
+</g>
+<g transform="translate(20930, 1301)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESTypeUnion">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESTypeUnion">
+<a id="src/runtime/primitives/type.ts.ESTypeUnion" xlink:href="src/runtime/primitives/type.ts"><text x="284.0" y="13.5" stroke="none" text-anchor="middle" data-name="ESTypeUnion">ESTypeUnion</text></a>
+
+</g>
+</g>
+<g transform="translate(20930, 1332)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESTypeUnion">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESTypeUnion">
+<text x="0.0" y="13.5" stroke="none" data-name="ESTypeUnion">+__left__: Primitive</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESTypeUnion">+__right__: Primitive</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESTypeUnion">+__call__: () =&gt; Error | Primitive</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESTypeUnion">+__includes__: (props: IFuncProps, t: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESTypeUnion">+__subtype_of__: (props: IFuncProps, t: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESTypeUnion">+clone: () =&gt; ESType</text>
+<text x="0.0" y="103.5" stroke="none" data-name="ESTypeUnion">+__eq__: (props: IFuncProps, t: Primitive) =&gt; Error | ESBoolean</text>
+
+</g>
+</g>
+<g transform="translate(20930, 1453)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESTypeUnion">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESTypeUnion">
+
+</g>
+</g>
+</g>
+<g data-name="ESTypeNot">
+<g fill="#eee8d5" stroke="#33322E" data-name="ESTypeNot">
+<rect x="21554.0" y="1308.0" height="145.0" width="584.0" data-name="ESTypeNot"></rect>
+<path d="M21554.0 1339.0 L22138.0 1339.0" fill="none" data-name="ESTypeNot"></path>
+<path d="M21554.0 1445.0 L22138.0 1445.0" fill="none" data-name="ESTypeNot"></path>
+</g>
+<g transform="translate(21554, 1308)" font-family="Helvetica" font-size="12pt" font-weight="bold" font-style="normal" data-name="ESTypeNot">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="ESTypeNot">
+<a id="src/runtime/primitives/type.ts.ESTypeNot" xlink:href="src/runtime/primitives/type.ts"><text x="284.0" y="13.5" stroke="none" text-anchor="middle" data-name="ESTypeNot">ESTypeNot</text></a>
+
+</g>
+</g>
+<g transform="translate(21554, 1339)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESTypeNot">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="ESTypeNot">
+<text x="0.0" y="13.5" stroke="none" data-name="ESTypeNot">-__val__: Primitive</text>
+<text x="0.0" y="28.5" stroke="none" data-name="ESTypeNot">+__call__: () =&gt; Error | Primitive</text>
+<text x="0.0" y="43.5" stroke="none" data-name="ESTypeNot">+__includes__: (props: IFuncProps, t: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="58.5" stroke="none" data-name="ESTypeNot">+__subtype_of__: (props: IFuncProps, t: Primitive) =&gt; Error | ESBoolean</text>
+<text x="0.0" y="73.5" stroke="none" data-name="ESTypeNot">+clone: () =&gt; ESTypeNot</text>
+<text x="0.0" y="88.5" stroke="none" data-name="ESTypeNot">+__eq__: (props: IFuncProps, t: Primitive) =&gt; any</text>
+
+</g>
+</g>
+<g transform="translate(21554, 1445)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="ESTypeNot">
+<g transform="translate(8, 8)" fill="#33322E" data-name="ESTypeNot">
+
+</g>
+</g>
+</g>
+<g data-name="TokenType">
+<g fill="lightgreen" stroke="#33322E" data-name="TokenType">
+<rect x="18515.0" y="113.0" height="572.0" width="161.0" data-name="TokenType"></rect>
+<path d="M18515.0 144.0 L18676.0 144.0" fill="none" data-name="TokenType"></path>
+</g>
+<g transform="translate(18515, 113)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TokenType">
+<g transform="translate(8, 8)" fill="#33322E" text-align="center" data-name="TokenType">
+<a id="src/util/constants.ts.TokenType" xlink:href="src/util/constants.ts"><text x="72.5" y="13.5" stroke="none" text-anchor="middle" data-name="TokenType">TokenType</text></a>
+
+</g>
+</g>
+<g transform="translate(18515, 144)" font-family="Helvetica" font-size="12pt" font-weight="normal" font-style="normal" data-name="TokenType">
+<g transform="translate(8, 8)" fill="#33322E" text-align="left" data-name="TokenType">
+<text x="0.0" y="13.5" stroke="none" data-name="TokenType">NUMBER</text>
+<text x="0.0" y="28.5" stroke="none" data-name="TokenType">STRING</text>
+<text x="0.0" y="43.5" stroke="none" data-name="TokenType">END_STATEMENT</text>
+<text x="0.0" y="58.5" stroke="none" data-name="TokenType">IDENTIFIER</text>
+<text x="0.0" y="73.5" stroke="none" data-name="TokenType">COMMA</text>
+<text x="0.0" y="88.5" stroke="none" data-name="TokenType">ASSIGN</text>
+<text x="0.0" y="103.5" stroke="none" data-name="TokenType">ADD</text>
+<text x="0.0" y="118.5" stroke="none" data-name="TokenType">SUB</text>
+<text x="0.0" y="133.5" stroke="none" data-name="TokenType">ASTRIX</text>
+<text x="0.0" y="148.5" stroke="none" data-name="TokenType">DIV</text>
+<text x="0.0" y="163.5" stroke="none" data-name="TokenType">POW</text>
+<text x="0.0" y="178.5" stroke="none" data-name="TokenType">MOD</text>
+<text x="0.0" y="193.5" stroke="none" data-name="TokenType">OPAREN</text>
+<text x="0.0" y="208.5" stroke="none" data-name="TokenType">CPAREN</text>
+<text x="0.0" y="223.5" stroke="none" data-name="TokenType">OBRACES</text>
+<text x="0.0" y="238.5" stroke="none" data-name="TokenType">CBRACES</text>
+<text x="0.0" y="253.5" stroke="none" data-name="TokenType">OSQUARE</text>
+<text x="0.0" y="268.5" stroke="none" data-name="TokenType">CSQUARE</text>
+<text x="0.0" y="283.5" stroke="none" data-name="TokenType">EQUALS</text>
+<text x="0.0" y="298.5" stroke="none" data-name="TokenType">NOT_EQUALS</text>
+<text x="0.0" y="313.5" stroke="none" data-name="TokenType">NOT</text>
+<text x="0.0" y="328.5" stroke="none" data-name="TokenType">GT</text>
+<text x="0.0" y="343.5" stroke="none" data-name="TokenType">LT</text>
+<text x="0.0" y="358.5" stroke="none" data-name="TokenType">GTE</text>
+<text x="0.0" y="373.5" stroke="none" data-name="TokenType">LTE</text>
+<text x="0.0" y="388.5" stroke="none" data-name="TokenType">AND</text>
+<text x="0.0" y="403.5" stroke="none" data-name="TokenType">OR</text>
+<text x="0.0" y="418.5" stroke="none" data-name="TokenType">COLON</text>
+<text x="0.0" y="433.5" stroke="none" data-name="TokenType">DOT</text>
+<text x="0.0" y="448.5" stroke="none" data-name="TokenType">EOF</text>
+<text x="0.0" y="463.5" stroke="none" data-name="TokenType">PIPE</text>
+<text x="0.0" y="478.5" stroke="none" data-name="TokenType">AMPERSAND</text>
+<text x="0.0" y="493.5" stroke="none" data-name="TokenType">BITWISE_NOT</text>
+<text x="0.0" y="508.5" stroke="none" data-name="TokenType">QM</text>
+<text x="0.0" y="523.5" stroke="none" data-name="TokenType">DOUBLE_QM</text>
+
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</svg>
