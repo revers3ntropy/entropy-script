@@ -1370,6 +1370,11 @@ export class Parser {
 
         if (res.error) return res;
 
+        allowed = {
+            ...allowed,
+            continueBreak: true
+        };
+
         if (this.currentToken.type === tt.IDENTIFIER) {
             const identifier = this.currentToken;
 

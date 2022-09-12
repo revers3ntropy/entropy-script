@@ -11,6 +11,5 @@
         "noImplicitAny": true,
         "noImplicitOverride": true,
         "noImplicitThis": true,
-
     }
 }

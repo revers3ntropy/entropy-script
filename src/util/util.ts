@@ -14,7 +14,7 @@ import type {
 import { Node } from "../runtime/nodes";
 import { ESNumber } from '../runtime/primitiveTypes';
 import { ESPrimitive } from "../runtime/primitive";
-import { IDENTIFIER_CHARS, GLOBAL_CTX } from './constants';
+import { DIGITS, GLOBAL_CTX, IDENTIFIER_CHARS } from './constants';
 
 
 export type EnumMap<T extends number, U=any> = {
@@ -59,6 +59,10 @@ export interface IFuncProps {
 }
 
 export type BuiltInFunction = (config: IFuncProps, ...args: Primitive[]) => void | Error | Primitive | Promise<void>;
+
+export function isDigit (n: string) {
+    return (DIGITS + '._').includes(n);
+}
 
 /**
  * Returns a promise which is resolved after a set number of ms.

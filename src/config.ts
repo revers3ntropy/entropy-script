@@ -6,12 +6,7 @@ export type Permissions = {
     accessDOM: boolean;
     useSTD: boolean;
     fileSystem: boolean,
-} & Map<any>;
-
-export interface config {
-    permissions: Permissions,
-    modules: Map<string | any>,
-}
+} & Map;
 
 const AllowAny = Symbol('AllowAny');
 
@@ -25,7 +20,12 @@ export function defaultPermissions (): Permissions {
     };
 }
 
-export const config = {
+interface IConfiguration {
+    permissions: Permissions;
+    modules: Map;
+}
+
+export const config: IConfiguration = {
     permissions: defaultPermissions(),
     modules: {
         // should really be boolean but resolves to true anyway, and prevents type clashes expecting strings
@@ -41,7 +41,7 @@ function pathAsString (path: string[]) {
     return res.substring(0, res.length-1);
 }
 
-function parsePartOfConfig (config: Map<any>, configJSON: Map<any>, path: string[]=[]) {
+function parsePartOfConfig (config: Map, configJSON: Map, path: string[]=[]) {
     if (!config[AllowAny]) {
         const unknownProps = Object.keys(configJSON).filter(x => !(x in config));
 
@@ -66,6 +66,6 @@ function parsePartOfConfig (config: Map<any>, configJSON: Map<any>, path: string
     }
 }
 
-export function parseConfig (configJSON: Map<any>): void {
+export function parseConfig (configJSON: Map): void {
     parsePartOfConfig(config, configJSON);
 }

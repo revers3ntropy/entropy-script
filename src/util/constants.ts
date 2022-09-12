@@ -47,34 +47,6 @@ export const libs: Map<NativeObj> = {};
 
 export const CATCH_BLOCK_ERR_SYMBOL_ID = 'err';
 
-export const KEYWORDS = [
-    'var',
-    'let',
-    'global',
-
-    'if',
-    'else',
-
-    'while',
-    'for',
-    'in',
-    'continue',
-    'break',
-
-    'func',
-    'return',
-    'yield',
-
-    'abstract',
-    'class',
-    'extends',
-
-    'namespace',
-
-    'try',
-    'catch'
-];
-
 export const CLASS_KEYWORDS = [
     'class',
     'abstract'

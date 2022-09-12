@@ -2,7 +2,7 @@ import { addDependencyInjectedBIFs, builtInFunctions } from "./built-in/builtInF
 import { addModule, initModules } from './built-in/builtInModules';
 import {preloadModules} from './built-in/module';
 import addNodeBIFs from './built-in/nodeLibs';
-import {config} from './config';
+import { config } from './config';
 import { IS_NODE_INSTANCE, NativeObj, run } from './index';
 import { Context } from "./runtime/context";
 import { Error } from "./errors";

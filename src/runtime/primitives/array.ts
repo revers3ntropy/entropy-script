@@ -194,7 +194,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements Iterable {
     override __iter__ = this.clone;
 
     override __next__ = (): Error | Primitive => {
-        if (this.__value__.length) {
+        if (this.__value__.length > 0) {
             return wrap(this.__value__.shift());
         }
         return new ESErrorPrimitive(new EndIterator());

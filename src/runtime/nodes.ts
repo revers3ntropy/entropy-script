@@ -939,6 +939,8 @@ export class N_for extends Node {
             if (bodyRes.error || (bodyRes.funcReturn !== undefined)) {
                 return bodyRes;
             }
+
+            console.log(bodyRes.shouldBreak);
             if (bodyRes.shouldBreak) {
                 bodyRes.shouldBreak = false;
                 break;
@@ -1156,7 +1158,7 @@ export class N_statements extends Node {
             let last;
             for (const item of this.items) {
                 const res = item.interpret(context);
-                if (res.error || (typeof res.funcReturn !== 'undefined') || res.shouldBreak || res.shouldContinue) {
+                if (res.error || res.funcReturn || res.shouldBreak || res.shouldContinue) {
                     return res;
                 }
                 // return last statement
@@ -1170,7 +1172,9 @@ export class N_statements extends Node {
 
             for (const item of this.items) {
                 const res = item.interpret(context);
-                if (res.error || (res.funcReturn !== undefined)) return res;
+                if (res.error || res.funcReturn || res.shouldBreak || res.shouldContinue) {
+                    return res;
+                }
                 if (!res.val) continue;
                 const val = res.val.clone({context});
                 interpreted.push(val);

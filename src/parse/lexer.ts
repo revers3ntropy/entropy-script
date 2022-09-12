@@ -1,22 +1,25 @@
 import Position from "../position";
 import {
-    DIGITS, DOUBLE_TOKENS,
+    DIGITS,
+    DOUBLE_TOKENS,
     IDENTIFIER_CHARS,
-    MULTI_LINE_COMMENT_END, MULTI_LINE_COMMENT_START, SINGLE_TOKENS,
+    MULTI_LINE_COMMENT_END,
+    MULTI_LINE_COMMENT_START,
     ONE_LINE_COMMENT,
-    STRING_SURROUNDS, TRIPLE_TOKENS, tt, WHITESPACE,
+    SINGLE_TOKENS,
+    STRING_SURROUNDS,
+    TRIPLE_TOKENS,
+    tt,
+    WHITESPACE,
 } from '../util/constants';
-import {Error, IllegalCharError} from "../errors";
-import {Token} from "./tokens";
-
-function isDigit (n: string) {
-    return (DIGITS+'._').includes(n);
-}
+import { Error, IllegalCharError } from "../errors";
+import { Token } from "./tokens";
+import { isDigit } from "../util/util";
 
 export class Lexer {
     private readonly text: string;
-    private currentChar: string | undefined;
     private readonly position: Position;
+    private currentChar: string | undefined;
 
     constructor (program: string, fileName: string) {
         this.text = program;
@@ -35,7 +38,7 @@ export class Lexer {
             return [new Token(this.position, tt.EOF, undefined)];
         }
 
-        const tokens: Token<any>[] = [];
+        const tokens: Token[] = [];
 
         while (this.currentChar !== undefined) {
             // add semi-colon after
@@ -147,12 +150,12 @@ export class Lexer {
             this.advance();
         }
 
-        let tokType = tt.IDENTIFIER;
+        const tokType = tt.IDENTIFIER;
 
         return new Token(posStart, tokType, idStr);
     }
 
-    private unknownChar (): Token<any> | undefined {
+    private unknownChar (): Token | undefined {
         if (this.currentChar === undefined) {
             return undefined;
         }

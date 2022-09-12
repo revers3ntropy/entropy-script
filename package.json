@@ -1,6 +1,6 @@
 {
     "name": "entropy-script",
-    "version": "3.0.4b",
+    "version": "3.0.4c",
     "description": "TS/JS interpreter for EntropyScript",
     "license": "MIT",
     "main": "build/stable.js",
@@ -13,8 +13,8 @@
         "jses": "./bin/index.js"
     },
     "scripts": {
-        "build": "node scripts/build",
-        "test": "node scripts/test"
+        "build": "node --enable-source-maps scripts/build",
+        "test": "node --enable-source-maps scripts/test"
     },
     "preferGlobal": true,
     "devDependencies": {
@@ -22,11 +22,10 @@
         "@typescript-eslint/parser": "^5.18.0",
         "eslint": "^8.12.0",
         "json-loader": "^0.5.7",
+        "node-fetch": "^3.2.3",
         "raw-loader": "^4.0.2",
+        "sync-mysql": "^3.0.1",
         "ts-loader": "^9.2.6",
         "webpack-cli": "^4.9.2"
-    },
-    "dependencies": {
-        "node-fetch": "^3.2.3"
     }
 }
