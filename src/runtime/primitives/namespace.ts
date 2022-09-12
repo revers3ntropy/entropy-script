@@ -76,7 +76,10 @@ export class ESNamespace extends ESPrimitive<Map<ESSymbol>> implements Iterable 
         return new IndexError(key.__value__, this._);
     };
 
-    override __set__ = (props: IFuncProps, key: Primitive, value: Primitive): void | Error => {
+    override __set__ = (props: IFuncProps, key: Primitive | string, value: Primitive): void | Error => {
+        if (typeof key === 'string') {
+            key = new ESString(key);
+        }
         if (!(key instanceof ESString)) {
             return new TypeError('string', key.__type_name__(), str(key));
         }
@@ -116,7 +119,7 @@ export class ESNamespace extends ESPrimitive<Map<ESSymbol>> implements Iterable 
         return new ESTypeIntersection(this, n);
     }
 
-    override __iter__ = (props: IFuncProps): Error | Primitive => {
+    override __iter__ = (_: IFuncProps): Error | Primitive => {
         // returns array of keys in the object
         return new ESArray(Object.keys(this.__value__).map(s => new ESString(s)));
     }

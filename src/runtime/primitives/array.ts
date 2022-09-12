@@ -127,7 +127,7 @@ export class ESArray extends ESPrimitive <Primitive[]> implements Iterable {
         return new ESNull();
     };
 
-    override __set__ = (props: IFuncProps, key: Primitive, value: Primitive): void => {
+    override __set__ = (props: IFuncProps, key: Primitive | string, value: Primitive): void => {
         if (!(key instanceof ESNumber)) {
             return;
         }

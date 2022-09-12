@@ -22,7 +22,7 @@ export interface ESPrimitive <T> {
     __bool__: (props: IFuncProps) => ESBoolean | Error;
     __pipe__: (props: IFuncProps, n: Primitive) => Primitive | Error;
     __ampersand__: (props: IFuncProps, n: Primitive) => Primitive | Error;
-    __set__: (props: IFuncProps, key: Primitive, value: Primitive) => void | Error;
+    __set__: (props: IFuncProps, key: string | Primitive, value: Primitive) => void | Error;
     __call__: (props: IFuncProps, ...parameters: Primitive[]) => Error | Primitive;
     __generic__: (props: IFuncProps, ...parameters: Primitive[]) => Error | Primitive;
     __iter__: (props: IFuncProps) => Error | Primitive;
@@ -168,7 +168,7 @@ export abstract class ESPrimitive <T> {
      * Called when an object is first 'indexed into' and then directly assigned to,
      * either through 'a.x = c' or 'a[b] = c', where a, b and c are <expr> and x is an identifier.
      */
-    public __set__ = (props: IFuncProps, key: Primitive, value: Primitive): void | Error => {
+    public __set__ = (props: IFuncProps, key: Primitive | string, value: Primitive): void | Error => {
         return new InvalidOperationError('__set__', this, `[${str(key)}] = ${str(value)}`);
     }
 

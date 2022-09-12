@@ -60,7 +60,7 @@ export class ESInterface extends ESObject {
         return new ESBoolean(true);
     };
 
-    override __set__ = (props: IFuncProps, key: Primitive): void | Error => {
+    override __set__ = (props: IFuncProps, key: Primitive | string): void | Error => {
         return new TypeError('Mutable', 'Immutable', str(key));
     }
 

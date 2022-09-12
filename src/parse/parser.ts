@@ -979,10 +979,16 @@ export class Parser {
      * Positional arguments (<expr>) must come first.
      *
      * @param res
-     * @param allowAllowChecks whether or not (*) and (**) are permitted
-     * @param allowKeyWordArgs whether or not non-positional arguments are allowed
+     * @param [allowAllowChecks=true] whether or not (*) and (**) are permitted
+     * @param [allowKeyWordArgs=true] whether or not non-positional arguments are allowed
+     * @param [closingToken=tt.CPAREN] the token that closes the argument list
      */
-    private parameters (res: ParseResults, allowKeyWordArgs=true,  allowAllowChecks=true)
+    private parameters (
+        res: ParseResults,
+        allowKeyWordArgs=true,
+        allowAllowChecks=true,
+        closingToken=tt.CPAREN
+    )
         : { args: IUninterpretedArgument[], allowArgs: boolean, allowKwargs: boolean } | undefined
     {
         let usingDefault = false,
@@ -1093,7 +1099,7 @@ export class Parser {
         }
 
         // @ts-ignore
-        if (this.currentToken.type !== tt.CPAREN) {
+        if (this.currentToken.type !== closingToken) {
             res.failure(new InvalidSyntaxError(
                 "Expected ',' or ')'"), this.currentToken.pos);
             return;
@@ -1237,12 +1243,11 @@ export class Parser {
 
         if (this.currentToken.type === tt.OGENERIC) {
             this.advance(res);
-            const paramRes = this.parameters(res);
+            const paramRes = this.parameters(res, false, false, tt.CGENERIC);
             if (res.error) return res;
             if (paramRes) {
                 genericParams = paramRes.args;
             }
-            this.consume(res, tt.CGENERIC);
             if (res.error) return res;
         }
 

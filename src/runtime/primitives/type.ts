@@ -132,7 +132,7 @@ export class ESType extends ESPrimitive <undefined> {
             return new Error('TypeError', 'Cannot construct abstract class');
         }
 
-        const res = createInstance(this, props, params || []);
+        const res = createInstance(this, props, params || [], this.__generic_types__);
 
         if (res instanceof Error) return res;
 

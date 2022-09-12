@@ -122,17 +122,15 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements Iterab
         return wrap(res);
     };
 
-    override __set__ = (props: IFuncProps, k: Primitive, value: Primitive): void | Error => {
+    override __set__ = (props: IFuncProps, k: Primitive | string, value: Primitive): void | Error => {
         const key = str(k);
-
-        const val: Map<NativeObj> = this.__value__;
 
         if (key in this) {
             this._[str(key)] = value;
             return;
         }
 
-        val[key] = strip(value, props);
+        this._.__value__[key] = strip(value, props);
     }
 
     override __call__ = (props: IFuncProps, ...args: Primitive[]): Error | Primitive => {
@@ -164,17 +162,17 @@ export class ESJSBinding<T = NativeObj> extends ESPrimitive<T> implements Iterab
 
     override __iter__ = (): Error | Primitive => {
         // returns array of keys in the object
-        return new ESArray(Object.keys(this.__value__).map(s => new ESString(s)));
+        return new ESArray(Object.keys(this.__value__ as NativeObj).map(s => new ESString(s)));
     }
 
     len = () => {
-        return new ESNumber(Object.keys(this.__value__).length);
+        return new ESNumber(Object.keys(this.__value__ as NativeObj).length);
     }
 
     override keys = () => {
         return [
             ...Object.keys(this),
-            ...Object.keys(this.__value__)
+            ...Object.keys(this.__value__ as NativeObj)
         ].map(s => new ESString(s));
     }
 

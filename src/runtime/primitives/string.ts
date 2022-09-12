@@ -79,6 +79,7 @@ export class ESString extends ESPrimitive <string> implements Iterable {
     override clone = () => new ESString(this.__value__);
 
     override __get__ = (props: IFuncProps, key: Primitive): Primitive => {
+        // eslint-disable-next-line no-prototype-builtins
         if (key instanceof ESString && this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
         }
@@ -100,7 +101,7 @@ export class ESString extends ESPrimitive <string> implements Iterable {
         return new ESString();
     };
 
-    override __set__ = (props: IFuncProps, key: Primitive, value: Primitive) => {
+    override __set__ = (props: IFuncProps, key: Primitive | string, value: Primitive) => {
         if (!(key instanceof ESNumber)) {
             return;
         }

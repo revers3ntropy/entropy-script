@@ -73,7 +73,7 @@ function dealWithExtends (context: Context, class_: ESType, instance: ESObject, 
     }
 
     // recurse with extended class
-    const res = createInstance(class_, {context}, [], false, instance);
+    const res = createInstance(class_, {context}, [], [], false, instance);
     if (res instanceof Error) {
         return res;
     }
@@ -142,6 +142,7 @@ export function createInstance (
     type: ESType,
     props: IFuncProps,
     params: Primitive[],
+    gargs: Primitive[],
     runInit=true,
     instance = new ESObject,
 ): Error | Primitive {
@@ -156,6 +157,17 @@ export function createInstance (
 
     const newContext = new Context();
     newContext.parent = __init__?.__closure__;
+
+    for (const genericParam of type.__gargs__) {
+        let genericType = gargs.shift();
+        if (!genericType) {
+            genericType = genericParam.defaultValue;
+        }
+        if (!genericType) {
+            return new Error('ArgumentError', `Not enough generic arguments provided for type ${type.__name__}`);
+        }
+        instance.__set__(props, genericParam.name, genericType);
+    }
 
     if (type.__extends__) {
         const res = dealWithExtends(newContext, type.__extends__, instance, context);

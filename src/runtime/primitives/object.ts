@@ -171,7 +171,11 @@ export class ESObject extends ESPrimitive <Map<Primitive>> implements Iterable{
         return new IndexError(str(key), this);
     };
 
-    override __set__ = (props: IFuncProps, key: Primitive, value: Primitive): void | Error => {
+    override __set__ = (props: IFuncProps, key: Primitive | string, value: Primitive): void | Error => {
+        if (typeof key === 'string') {
+            this.__value__[key] = value;
+            return;
+        }
         if (!(key instanceof ESString)) {
             return new TypeError('String', key.__type_name__(), str(key));
         }

@@ -940,7 +940,6 @@ export class N_for extends Node {
                 return bodyRes;
             }
 
-            console.log(bodyRes.shouldBreak);
             if (bodyRes.shouldBreak) {
                 bodyRes.shouldBreak = false;
                 break;
@@ -1795,17 +1794,6 @@ export class N_class extends Node {
         const closure = new Context();
         closure.parent = context;
 
-        for (const p of this.genericParams) {
-            const interpretRes = interpretArgument(p, closure);
-            if (interpretRes instanceof Error) return interpretRes;
-            if (interpretRes.defaultValue) {
-                const setErr = closure.setOwn(interpretRes.name, interpretRes.defaultValue, {
-                    isConstant: true
-                });
-                if (setErr) return setErr;
-            }
-        }
-
         for (const method of this.methods) {
             const res = method.interpret(closure);
             if (res.error) {
@@ -1863,7 +1851,24 @@ export class N_class extends Node {
             methods.push(init);
         }
 
-        const typePrim = new ESType(false, this.name, methods, properties, extends_, [], this.abstract);
+        const genericParams: IRuntimeArgument[] = [];
+        for (const param of this.genericParams) {
+            const res = interpretArgument(param, context);
+            if (res instanceof Error) {
+                return res;
+            }
+            genericParams.push(res);
+        }
+
+        const typePrim = new ESType(
+            false,
+            this.name,
+            methods,
+            properties,
+            extends_,
+            genericParams,
+            this.abstract
+        );
 
         if (this.isDeclaration) {
             if (context.hasOwn(this.name)) {
