@@ -41,8 +41,6 @@ function askQuestion(query) {
  * @return {Promise<void>}
  */
 async function init () {
-	let fetch = await import('node-fetch');
-
 	let err = await es.init({
 		print: console.log,
 		input: async (msg, cb) => cb(await askQuestion(msg).catch(console.log)),
@@ -51,7 +49,7 @@ async function init () {
 			http: [http, true],
 			fs: [fs, true],
 			path: [path, true],
-			'node-fetch': [fetch, true]
+			fetch: [fetch, true]
 		}
 	});
 
@@ -59,8 +57,8 @@ async function init () {
 		console.log(err.str);
 	}
 
-	if (fs.existsSync(es.configFileName)) {
-		es.parseConfig(JSON.parse(fs.readFileSync(es.configFileName).toString()));
+	if (fs.existsSync(es.CONFIG_FILE_NAME)) {
+		es.parseConfig(JSON.parse(fs.readFileSync(es.CONFIG_FILE_NAME).toString()));
 	}
 }
 

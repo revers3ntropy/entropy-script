@@ -57,17 +57,16 @@ const open = (props: IFuncProps, path_: Primitive, encoding_: Primitive) => {
 };
 
 const fetch_ = (props: IFuncProps, ...args: Primitive[]) => {
-    if (!('node-fetch' in libs)) {
-        return new MissingNativeDependencyError('node-fetch');
-    }
-
     if (!config.permissions.networking) {
         return new PermissionRequiredError(`Networking not allowed but is required for 'fetch'`);
     }
 
-    const nFetch = libs['node-fetch'].default;
+    const result = (fetch as any)(...args.map(a => strip(a, props)))
+        .catch((e: any) => {
+            console.error(`Failed to fetch: ${e}`);
+        });
 
-    return new ESJSBinding(nFetch(...args.map(a => strip(a, props))));
+    return new ESJSBinding(result);
 }
 
 const import_ = (props: IFuncProps, rawPath: Primitive): Error | Primitive | undefined => {

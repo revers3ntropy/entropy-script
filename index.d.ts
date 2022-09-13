@@ -525,7 +525,7 @@ declare module 'entropy-script' {
         } & Map
     };
 
-    const configFileName: string;
+    const CONFIG_FILE_NAME: string;
 
     const VERSION: string;
 }

@@ -5,19 +5,19 @@ let message = 'hi my name is ' + name;
 print(message); // hi my name is bob
 
 // loops
-for i in 3 {
+for i = range(3) {
     print(i);
 }
 // 0, 1, 2
 // accessing i would give error
 
-for i in [0, 1, 2] {
+for i = [0, 1, 2] {
 	print(i);
 }
     // 0, 1, 2
 i; // 2
 
-while i < 10 {
+for i < 10 {
     i += 1;
 }
 i; // 9, as i is now defined globally

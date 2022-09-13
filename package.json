@@ -1,6 +1,6 @@
 {
     "name": "entropy-script",
-    "version": "3.0.4c",
+    "version": "3.0.4g",
     "description": "TS/JS interpreter for EntropyScript",
     "license": "MIT",
     "main": "build/stable.js",
@@ -27,7 +27,8 @@
         "webpack-cli": "^4.9.2"
     },
     "files": [
-        "build",
+        "build/latest.js",
+        "build/stable.js",
         "bin",
         "cli.js"
     ],
