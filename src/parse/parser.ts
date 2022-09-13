@@ -3,7 +3,6 @@ import { ParseResults } from './parseResults';
 import { Token } from "./tokens";
 import * as n from '../runtime/nodes';
 import {
-    N_class,
     N_functionDefinition, N_indexed,
     N_namespace,
     N_primitiveWrapper, N_string,
@@ -1221,7 +1220,6 @@ export class Parser {
         let abstract = false;
         const properties: Map<Node> = {};
         const staticProperties: Map<Node> = {};
-        let genericParams: IUninterpretedArgument[] = [];
 
         if (this.currentToken.matches(tt.IDENTIFIER, 'abstract')) {
             this.advance(res);
@@ -1239,16 +1237,6 @@ export class Parser {
             identifier = this.currentToken.value;
             name = identifier;
             this.advance(res);
-        }
-
-        if (this.currentToken.type === tt.OGENERIC) {
-            this.advance(res);
-            const paramRes = this.parameters(res, false, false, tt.CGENERIC);
-            if (res.error) return res;
-            if (paramRes) {
-                genericParams = paramRes.args;
-            }
-            if (res.error) return res;
         }
 
         if (this.currentToken.matches(tt.IDENTIFIER, 'extends')) {
@@ -1269,7 +1257,7 @@ export class Parser {
                 {},
                 [],
                 {},
-                genericParams,
+                [],
                 extends_,
                 undefined,
                 name,
@@ -1345,7 +1333,7 @@ export class Parser {
             properties,
             staticMethods,
             staticProperties,
-            genericParams,
+            [],
             extends_,
             init,
             name,

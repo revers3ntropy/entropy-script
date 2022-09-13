@@ -234,14 +234,18 @@ export function generateESFunctionCallContext (
         }
 
         if (param.defaultValue && args.length <= i) {
-            newContext.setOwn(param.name, param.defaultValue, {
+            const { val: defaultValue, error } = param.defaultValue.interpret(newContext);
+            if (error) return error;
+            newContext.setOwn(param.name, defaultValue, {
                 forceThroughConst: true
             });
             continue;
         }
 
         if (!dontTypeCheck) {
-            const typeIncludes = param.type.__includes__({context: parent}, args[i]);
+            const { error, val: paramType } = param.type.interpret(newContext);
+            if (error) return error;
+            const typeIncludes = paramType.__includes__({ context: parent }, args[i]);
             if (typeIncludes instanceof Error) return typeIncludes;
             if (!typeIncludes.__value__) {
                 return new TypeError(str(param.type), str(type), str(value));
@@ -268,7 +272,9 @@ export function generateESFunctionCallContext (
 
         if (!arg) {
             if (kwarg.defaultValue) {
-                arg = kwarg.defaultValue;
+                const { val: defaultValue, error } = kwarg.defaultValue.interpret(newContext);
+                if (error) return error;
+                arg = defaultValue;
             } else {
                 return new TypeError('Any', 'Undefined');
             }
@@ -276,7 +282,9 @@ export function generateESFunctionCallContext (
 
         if (!dontTypeCheck) {
             const type = arg.__type__;
-            const typeIncludes = kwarg.type.__includes__({context: parent}, arg);
+            const { val: kwargType, error } = kwarg.type.interpret(parent);
+            if (error) return error;
+            const typeIncludes = kwargType.__includes__({ context: parent }, arg);
             if (typeIncludes instanceof Error) return typeIncludes;
             if (!typeIncludes.__value__) {
                 return new TypeError(str(kwarg.type), str(type), str(arg));

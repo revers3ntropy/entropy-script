@@ -10,7 +10,7 @@ import {
     Primitive,
 } from '../runtime/primitiveTypes';
 import { IFuncProps, str } from "../util/util";
-import {InterpretResult} from "../runtime/nodes";
+import {InterpretResult, N_primitiveWrapper} from "../runtime/nodes";
 import {config, libs, run, strip} from '../index';
 import { getModule, moduleExist } from './builtInModules';
 import { GLOBAL_CTX, types, VALID_FILE_ENCODINGS } from "../util/constants";
@@ -48,11 +48,11 @@ const open = (props: IFuncProps, path_: Primitive, encoding_: Primitive) => {
 
         write: new ESFunction(({context}, data: Primitive) => {
             fs.writeFileSync(context.path + filePath, str(data));
-        }, [{name: 'path', type: types.string}]),
+        }, [{name: 'path', type: new N_primitiveWrapper(types.string) }]),
 
         append: new ESFunction(({context}, data: Primitive) => {
             fs.appendFileSync(context.path + filePath, str(data));
-        }, [{name: 'path', type: types.string}]),
+        }, [{name: 'path', type: new N_primitiveWrapper(types.string)}]),
     });
 };
 
@@ -146,7 +146,7 @@ const import_ = (props: IFuncProps, rawPath: Primitive): Error | Primitive | und
 function addNodeBIFs (context: Context) {
 
     context.set('import', new ESFunction(import_,
-            [{name: 'path', type: types.string}],
+            [{name: 'path', type: new N_primitiveWrapper(types.string)}],
             'import', undefined, types.object
     ), {
         forceThroughConst: true,
@@ -155,8 +155,8 @@ function addNodeBIFs (context: Context) {
 
     context.set('open', new ESFunction(open,
         [
-            {name: 'path', type: types.string},
-            {name: 'encoding', type: types.string}
+            {name: 'path', type: new N_primitiveWrapper(types.string)},
+            {name: 'encoding', type: new N_primitiveWrapper(types.string)}
         ],
         'open', undefined, types.object
     ), {

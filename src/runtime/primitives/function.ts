@@ -2,7 +2,7 @@ import {ESPrimitive} from '../primitive';
 import { GLOBAL_CTX, types } from '../../util/constants';
 import { Error, IndexError } from '../../errors';
 import { BuiltInFunction, IFuncProps, Primitive, str } from '../../util/util';
-import {IRuntimeArgument} from '../argument';
+import {interpretArgument, IRuntimeArgument, IUninterpretedArgument} from '../argument';
 import {Context} from '../context';
 import {call} from '../functionCaller';
 import {Node} from '../nodes';
@@ -14,7 +14,7 @@ import { ESTypeIntersection } from "./intersection";
 import { ESTypeUnion } from "./type";
 
 export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
-    __args__: IRuntimeArgument[];
+    __args__: IUninterpretedArgument[];
     __this__: ESObject;
     __returns__: Primitive;
     __closure__: Context;
@@ -22,24 +22,19 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     __allow_kwargs__: boolean;
     takeCallContextAsClosure: boolean;
 
-    __generic_types__: Primitive[] = [];
-    readonly __gargs__: IRuntimeArgument[];
-
     constructor (
         func: Node | BuiltInFunction = (() => void 0),
-        arguments_: IRuntimeArgument[] = [],
+        arguments_: IUninterpretedArgument[] = [],
         name='(anon)',
         this_: ESObject = new ESObject(),
         returnType: Primitive = types.any,
         closure?: Context,
         takeCallContextAsClosure = false,
         allowArgs = false,
-        allowKwargs = false,
-        gargs: IRuntimeArgument[] = [],
+        allowKwargs = false
     ) {
         super(func, types.function);
         this.__args__ = arguments_;
-        this.__gargs__ = gargs;
         this.__info__.name = name;
         this.__this__ = this_;
         this.__returns__ = returnType;
@@ -52,12 +47,16 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         this.takeCallContextAsClosure = takeCallContextAsClosure;
 
         this.__info__.returnType = str(returnType);
-        this.__info__.args = arguments_.map(arg => ({
-            name: arg.name,
-            default_value: str(arg.defaultValue),
-            type: arg.type.__info__.name,
-            required: true
-        }));
+
+        const interpretedArgs = arguments_.map(a => interpretArgument(a, this.__closure__));
+        this.__info__.args = interpretedArgs
+            .filter((arg): arg is IRuntimeArgument => !(arg instanceof Error))
+            .map(arg => ({
+                name: arg.name,
+                default_value: str(arg.defaultValue),
+                type: arg.type.__info__.name,
+                required: true
+            }));
 
         this.__allow_args__ = allowArgs;
         this.__allow_kwargs__ = allowKwargs;
@@ -99,7 +98,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __call__ = ({context, kwargs, dontTypeCheck}: IFuncProps, ...params: Primitive[]): Error | Primitive => {
+    override __call__ = ({ context, kwargs, dontTypeCheck}: IFuncProps, ...params: Primitive[]): Error | Primitive => {
         let ctx = context;
         if (!this.takeCallContextAsClosure) {
             ctx = this.__closure__;
@@ -136,7 +135,11 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             }
 
             for (let i = 0; i < nPosArgs.length; i++) {
-                const typeCheckRes = thisPosArgs[i].type.__subtype_of__(props, nPosArgs[i].type);
+                const { val: typeCheckInterpretResult, error } = thisPosArgs[i].type.interpret(props.context);
+                if (error) return error;
+                const {val: posArgInterpretResult, error: posArgInterpretError } = nPosArgs[i].type.interpret(props.context);
+                if (posArgInterpretError) return posArgInterpretError;
+                const typeCheckRes = typeCheckInterpretResult.__subtype_of__(props, posArgInterpretResult);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes.__value__) {
                     return new ESBoolean();
@@ -155,9 +158,20 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
             for (const name of thisKwargs.map(n => n.name)) {
                 const nKwarg = nKwargs.find(n => n.name === name);
-                if (!nKwarg) return new ESBoolean();
+                if (!nKwarg) {
+                    return new ESBoolean();
+                }
 
-                const typeCheckRes = thisKwargs.find(n => n.name === name)?.type.__subtype_of__(props, nKwarg.type);
+                const kwargTypeNode = thisKwargs.find(n => n.name === name)?.type;
+                if (!kwargTypeNode) {
+                    return new ESBoolean();
+                }
+                const { val: kwargTypeVal, error} = kwargTypeNode.interpret(props.context);
+                if (error) return error;
+
+                const { val: nkwargVal, error: nkwargError } = nKwarg.type.interpret(props.context);
+                if (nkwargError) return nkwargError;
+                const typeCheckRes = kwargTypeVal.__subtype_of__(props, nkwargVal);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes?.__value__) {
                     return new ESBoolean();
@@ -175,7 +189,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
         }
         const eqRes = n.__returns__.__subtype_of__(props, thisReturnVal);
         if (eqRes instanceof Error) return eqRes;
-        return new ESBoolean(eqRes.__value__);
+        return eqRes.__bool__();
     };
 
     override __subtype_of__ = (props: IFuncProps, n: Primitive): Error | ESBoolean => {
@@ -196,7 +210,11 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             }
 
             for (let i = 0; i < nPosArgs.length; i++) {
-                const typeCheckRes = nPosArgs[i].type.__subtype_of__(props, thisPosArgs[i].type);
+                const { val: typeCheckInterpretResult, error } = thisPosArgs[i].type.interpret(props.context);
+                if (error) return error;
+                const {val: posArgInterpretResult, error: posArgInterpretError } = nPosArgs[i].type.interpret(props.context);
+                if (posArgInterpretError) return posArgInterpretError;
+                const typeCheckRes = typeCheckInterpretResult.__subtype_of__(props, posArgInterpretResult);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes.__value__) {
                     return new ESBoolean();
@@ -217,11 +235,16 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
                 const nKwarg = nKwargs.find(n => n.name === name);
                 if (!nKwarg) return new ESBoolean();
 
-                const thisKwargType = thisKwargs.find(n => n.name === name)?.type;
-                if (!thisKwargType) {
+                const kwargTypeNode = thisKwargs.find(n => n.name === name)?.type;
+                if (!kwargTypeNode) {
                     return new ESBoolean();
                 }
-                const typeCheckRes = nKwarg.type.__subtype_of__(props, thisKwargType);
+                const { val: kwargTypeVal, error } = kwargTypeNode.interpret(props.context);
+                if (error) return error;
+
+                const { val: nkwargVal, error: nkwargError } = nKwarg.type.interpret(props.context);
+                if (nkwargError) return nkwargError;
+                const typeCheckRes = kwargTypeVal.__subtype_of__(props, nkwargVal);
                 if (typeCheckRes instanceof Error) return typeCheckRes;
                 if (!typeCheckRes?.__value__) {
                     return new ESBoolean();
@@ -246,7 +269,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
         const eqRes = nReturnsVal.__subtype_of__(props, thisReturnVal);
         if (eqRes instanceof Error) return eqRes;
-        return new ESBoolean(eqRes.__value__);
+        return eqRes.__bool__();
     };
 
     override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
@@ -258,12 +281,5 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
 
     override keys = () => {
         return Object.keys(this).map(s => new ESString(s));
-    }
-
-    override __generic__ = (props: IFuncProps, ...parameters: Primitive[]): Error | Primitive => {
-        const T = this.clone();
-        if (props.dontTypeCheck) return T;
-        T.__generic_types__ = parameters;
-        return T;
     }
 }

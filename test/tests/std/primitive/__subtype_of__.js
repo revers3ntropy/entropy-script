@@ -64,6 +64,7 @@ expect(["(hi) | ()", true, "(hi) | (1)", false], `
     a = 'hi' | 1;
     a.__subtype_of__(Str);
 `);
+/*
 expect([true, true, true, false, false], `
     Num.__subtype_of__(~Str);
     Num.__subtype_of__(~Str & ~Bool);
@@ -81,7 +82,7 @@ expect(['(fish) | (dog)', false, true, true, true, false, false], `
     A.__subtype_of__(~Num & ~Bool & ~Str);
     A.__subtype_of__(~Num & ~(Bool | Str | 1));
 `);
-
+*/
 expect([true, true, true, true], `
     Arr.__subtype_of__(Arr);
     Arr<|Str|>.__subtype_of__(Arr);

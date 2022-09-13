@@ -240,7 +240,7 @@ exports.file = file;
  * @param {string} from
  */
 function expect (expected, from) {
-    currentID++;
+    const id = currentID++;
 
     Test.test(currentFile, env => {
         /** @type {interpretResult | ({ timeData: timeData } & interpretResult)} */
@@ -248,7 +248,7 @@ function expect (expected, from) {
         try {
             result = es.run(from, {
                 env,
-                fileName: 'TEST_ENV'
+                fileName: 'TEST_CASE_' + currentFile + '_' + id,
             });
         } catch (err) {
             return new es.TestFailed(err.stack);
@@ -277,7 +277,8 @@ function expect (expected, from) {
             const res = arraysSame(expected, es.strip(result.val, {context: env}));
 
             if (!res && process.argv.indexOf('-d') !== -1) {
-                console.log('\n%%%', expected, es.str(es.strip(result.val, {context: env})), '@@');
+                console.log('\n%%%', expected, es.str(es.strip(
+                     result.val, {context: env})), '@@');
             }
 
             return res;

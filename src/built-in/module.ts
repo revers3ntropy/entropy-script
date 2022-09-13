@@ -8,12 +8,12 @@ import type { Map } from "../util/util";
 import { Error } from "../errors";
 import {addModule, ModulePrim} from './builtInModules';
 
-export type NativeModule = Map<any>;
-export type NativeModuleBuilder = (dependencies: Map<any>) => NativeModule | Error;
+export type NativeModule = Map;
+export type NativeModuleBuilder = (dependencies: Map) => NativeModule | Error;
 
 const loadedURls: Map<ModulePrim> = {};
 
-export async function preloadModules (urls: Map<any>): Promise<Error | undefined> {
+export async function preloadModules (urls: Map): Promise<Error | undefined> {
 
     for (const name of Object.keys(urls)) {
 

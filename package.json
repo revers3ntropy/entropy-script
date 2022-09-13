@@ -14,7 +14,7 @@
     },
     "scripts": {
         "build": "node --enable-source-maps scripts/build",
-        "test": "node --enable-source-maps scripts/test"
+        "test": "npm run build; node --enable-source-maps scripts/test"
     },
     "preferGlobal": true,
     "devDependencies": {

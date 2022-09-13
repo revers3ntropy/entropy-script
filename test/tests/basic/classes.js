@@ -315,3 +315,19 @@ a.a;
 a.do_other_thing();
 a.a;
 `);
+
+expect(['A', {a: 0, init: '<Func>', do_thing: '<Func>', do_other_thing: '<Func>'}, 0, undefined, 1, undefined, 2], `
+class A {
+    init (T: Type) {
+    	this.T = T;
+    	this.a = 0;
+    }
+    
+    do (a: this.T = this.a) {
+        return a;
+    }
+};
+
+let a = A(Num);
+a.do();
+`);

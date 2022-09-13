@@ -14,7 +14,8 @@ import {ESNamespace} from './primitives/namespace';
 import {ESJSBinding} from "./primitives/jsbinding";
 
 import {types} from "../util/constants";
-import { Primitive } from "../util/util";
+import { Primitive, str } from "../util/util";
+import { Error } from "../errors";
 
 export {
     ESArray,
@@ -46,6 +47,39 @@ export function initPrimitiveTypes () {
     types.bool      = new ESType(true, 'Bool');
     types.object    = new ESType(true, 'Obj');
     types.error     = new ESType(true, 'Err');
+
+    types.array.__generics_match__ = (props, gargs,  instance): Error | ESBoolean => {
+        console.log(str(gargs), str(instance.__value__));
+        if (gargs.length < 1) {
+            return new ESBoolean(true);
+        }
+        if (!Array.isArray(instance.__value__)) {
+            return new ESBoolean();
+        }
+        for (const element of instance.__value__) {
+            const matchesRes = gargs[0].__includes__(props, element);
+            if (matchesRes instanceof Error) {
+                return matchesRes;
+            }
+            if (!matchesRes.__bool__().__value__) {
+                return new ESBoolean();
+            }
+        }
+        if (gargs.length > 1) {
+            const n = gargs[1].__value__;
+            if (typeof n !== 'number') {
+                return new Error('TypeError', 'Array 2nd generic argument must be a number');
+            }
+            console.log('VALL', instance.__value__.length, n);
+            if (instance.__value__.length !== n && n > -1) {
+                return new ESBoolean();
+            }
+        }
+        if (gargs.length > 2) {
+            return new Error('TypeError', 'Too many generic arguments for array: expected 0-2');
+        }
+        return new ESBoolean(true);
+    }
 
     // Documentation for types
     types.any.__info__ = {

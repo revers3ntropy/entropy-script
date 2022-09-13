@@ -17,7 +17,7 @@ const fs = require('fs');
 const readline = require('readline');
 const path = require('path');
 
-/** @type module:entropy-script */
+/** @type {import('entropy-script').} */
 const es = require('./build/latest');
 
 /**
@@ -140,6 +140,11 @@ async function runTerminal () {
 	runTerminal();
 }
 
+/**
+ * @param {string} path
+ * @param {string} outPath
+ * @returns {Promise<void>}
+ */
 async function compile (path, outPath) {
 	let {
 		compileToJavaScript,
@@ -177,12 +182,17 @@ async function compile (path, outPath) {
 	fs.writeFileSync(outPath, val);
 }
 
+/**
+ * @returns {void}
+ */
 function welcomeMessage () {
-	console.log('Welcome to JS EntropyScript v' + es.VERSION);
-	console.log(`(Node ${process.versions.node}, V8 engine ${process.versions.v8})`);
+	console.log(`Welcome to Entropy Script JS [esjs@${es.VERSION}, nodejs@${process.versions.node}]`);
 	console.log("Type 'exit' to exit, 'help' for more information");
 }
 
+/**
+ * @returns {Promise<void>}
+ */
 async function main () {
 	await init();
 

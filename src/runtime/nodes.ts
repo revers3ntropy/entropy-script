@@ -1428,17 +1428,10 @@ export class N_functionDefinition extends Node {
 
     interpret_ (context: Context): InterpretResult | Error {
 
-        const args: IRuntimeArgument[] = [];
-        for (const arg of this.arguments) {
-            const res = interpretArgument(arg, context);
-            if (res instanceof Error)
-                return res;
-            args.push(res);
-        }
         const returnTypeRes = this.returnType.interpret(context);
         if (returnTypeRes.error) return returnTypeRes.error;
 
-        const funcPrim = new ESFunction(this.body, args, this.name, this.this_, returnTypeRes.val, context);
+        const funcPrim = new ESFunction(this.body, this.arguments, this.name, this.this_, returnTypeRes.val, context);
 
         funcPrim.__allow_kwargs__ = this.allowKwargs;
         funcPrim.__allow_args__ = this.allowArgs;

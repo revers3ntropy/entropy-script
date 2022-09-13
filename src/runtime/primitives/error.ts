@@ -1,5 +1,5 @@
 import {ESPrimitive} from '../primitive';
-import {Error, IndexError, InvalidOperationError, TypeError} from '../../errors';
+import {Error, IndexError, InvalidOperationError} from '../../errors';
 import {ESBoolean} from './boolean';
 import {ESString} from './string';
 import type { IFuncProps, Primitive } from "../../util/util";
