@@ -16,6 +16,7 @@ import { ESArray } from "./runtime/primitiveTypes";
 import type { ITimeData } from "./util/util";
 import { Context } from "./runtime/context";
 import colours from './util/colours';
+import {wrap} from "./runtime/wrapStrip";
 
 // @ts-ignore
 import JS_STD_TXT_RAW from 'raw-loader!./built-in/compiledSTD/std.txt';
@@ -51,20 +52,57 @@ export {
     Position,
 };
 
+export interface IRunConfig {
+    env?: Context,
+    measurePerformance?: boolean,
+    fileName?: string,
+    currentDir?: string,
+    compileToJS?: boolean,
+    compileJSConfig?: ICompileConfig,
+}
+
 /**
- * @param {string} msg
- * @param {Context} env
- * @param {boolean} measurePerformance
- * @param {string} fileName
- * @param {string} currentDir
- * @returns {InterpretResult | ({timeData: ITimeData} & InterpretResult)}
+ * Runs the given code in the given environment.
  */
 export function run (msg: string, {
     env = GLOBAL_CTX,
     measurePerformance = false,
     fileName = '(unknown)',
-    currentDir=''
-} = {}): InterpretResult | ({ timeData: ITimeData } & InterpretResult) {
+    currentDir='',
+    compileToJS = false,
+    compileJSConfig = {
+        minify: false,
+        symbols: [],
+        indent: 0
+    },
+}: IRunConfig = {}): InterpretResult | ({ timeData: ITimeData } & InterpretResult) {
+
+    if (compileToJS) {
+        const { compileToJavaScript, error } = parse(msg, { fileName, currentDir });
+        if (error) {
+            const res_ = new InterpretResult();
+            res_.error = error;
+            return res_;
+        }
+        const js = compileToJavaScript(compileJSConfig);
+        if (js.error) {
+            const res_ = new InterpretResult();
+            res_.error = js.error;
+            return res_;
+        }
+        const executor = new Function(js.val);
+        let result: any;
+        try {
+            result = executor.call({});
+        } catch (e: any) {
+            const res_ = new InterpretResult();
+            res_.error = new Error('RuntimeError', e.message);
+            return res_;
+        }
+        const res_ = new InterpretResult();
+        res_.val = wrap(result);
+        return res_;
+    }
 
     if (currentDir) {
         env.path = currentDir;
@@ -87,7 +125,7 @@ export function run (msg: string, {
 
     let start = now();
 
-    if (!env.root.initialisedAsGlobal){
+    if (!env.root.initialisedAsGlobal) {
         const res = new InterpretResult();
         res.error = new Error(
             'UninitialisedError',
@@ -115,7 +153,6 @@ export function run (msg: string, {
     }
     timeData.parserTotal = now() - start;
     start = now();
-
 
     if (!res.node) {
         const res = new InterpretResult();

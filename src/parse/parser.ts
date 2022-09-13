@@ -463,7 +463,6 @@ export class Parser {
         const indefiniteKwargs: Node[] = [];
         const definiteKwargs: Map<Node> = {};
 
-
         while (true) {
             // check for kwargs
             // @ts-ignore

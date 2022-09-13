@@ -5,7 +5,9 @@
     <title>ES Web test</title>
     <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 
+    <meta name="esconfig:permissions:accessDOM" content="1">
     <script defer type="module" src="include.js"></script>
+
     <script type="es">
         using(import('dom'));
 
@@ -15,7 +17,6 @@
         div.css({ color: 'green' });
 
         div.click(func () div.html('You clicked me!'));
-
     </script>
 
     <script>

@@ -318,6 +318,8 @@ a.a;
 
 expect(['A', {a: 0, init: '<Func>', do_thing: '<Func>', do_other_thing: '<Func>'}, 0, undefined, 1, undefined, 2], `
 class A {
+	a: Num;
+	T: Type;
     init (T: Type) {
     	this.T = T;
     	this.a = 0;

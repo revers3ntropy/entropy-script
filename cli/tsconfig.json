@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "module": "es2015",
+        "target": "es6",
+        "lib": [ "es2015", "dom" ],
+        "strict": true,
+        "experimentalDecorators": true,
+        "noEmit": false,
+        "removeComments": true,
+        "moduleResolution": "Node",
+        "noImplicitAny": true,
+        "noImplicitOverride": true,
+        "noImplicitThis": true,
+    }
+}

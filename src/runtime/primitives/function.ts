@@ -1,14 +1,14 @@
-import {ESPrimitive} from '../primitive';
+import { ESPrimitive } from '../primitive';
 import { GLOBAL_CTX, types } from '../../util/constants';
 import { Error, IndexError } from '../../errors';
 import { BuiltInFunction, IFuncProps, Primitive, str } from '../../util/util';
-import {interpretArgument, IRuntimeArgument, IUninterpretedArgument} from '../argument';
-import {Context} from '../context';
-import {call} from '../functionCaller';
-import {Node} from '../nodes';
-import {ESBoolean} from './boolean';
-import {ESObject} from './object';
-import {ESString} from './string';
+import { interpretArgument, IRuntimeArgument, IUninterpretedArgument } from '../argument';
+import { Context } from '../context';
+import { call } from '../functionCaller';
+import { Node } from '../nodes';
+import { ESBoolean } from './boolean';
+import { ESObject } from './object';
+import { ESString } from './string';
 import { wrap } from "../wrapStrip";
 import { ESTypeIntersection } from "./intersection";
 import { ESTypeUnion } from "./type";
@@ -99,7 +99,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     override bool = this.__bool__;
 
     override __call__ = ({ context, kwargs, dontTypeCheck}: IFuncProps, ...params: Primitive[]): Error | Primitive => {
-        let ctx = context;
+        let ctx = context.clone();
         if (!this.takeCallContextAsClosure) {
             ctx = this.__closure__;
             ctx.path = context.path;
