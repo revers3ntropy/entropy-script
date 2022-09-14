@@ -11,48 +11,27 @@
  */
 
 // node libs that scripts should have access to
-const https = require('https');
-const http = require('http');
-const fs = require('fs');
-const readline = require('readline');
-const path = require('path');
-const commandLineArgs = require('command-line-args');
+import https from 'https';
+import http from 'http';
+import fs from 'fs';
+import readline from 'readline';
+import path from 'path';
+import commandLineArgs from 'command-line-args';
 
-/** @type {import('entropy-script').} */
-const es = require('./build/latest');
+import * as es from '../../src/index';
 
 export const flags = {
     compile: false,
     minify: false,
     outputPy: '',
     outputJS: '',
+    path: '',
     ...commandLineArgs([
-        {
-            name: 'compile',
-            type: Boolean,
-            alias: 'c'
-        },
-        {
-            name: 'outputJS',
-            type: String,
-            alias: 'j'
-        },
-        {
-            name: 'outputPy',
-            type: String,
-            alias: 'j'
-        },
-        {
-            name: 'minify',
-            type: Boolean,
-            alias: 'm'
-        },
-        {
-            name: 'path',
-            type: String,
-            alias: 'p',
-            defaultValue: true
-        },
+        { name: 'compile', type: Boolean, alias: 'c' },
+        { name: 'outputJS', type: String },
+        { name: 'outputPy', type: String },
+        { name: 'minify', type: Boolean, alias: 'm' },
+        { name: 'path', type: String, alias: 'p', defaultOption: true },
     ]),
 };
 
@@ -100,9 +79,8 @@ async function init () {
 
 /**
  * Runs a .es script
- * @param {string} file
  */
-function runScript (file) {
+function runScript (file: string) {
 
     if (file.substring(file.length-3) !== '.es') {
         file = file + '.es';
@@ -110,10 +88,9 @@ function runScript (file) {
 
     if (!fs.existsSync(file)) {
         console.log(new es.ImportError(
-            new es.Position(0, 0, 0, 'JSES-CLI'),
             file,
             `Can't resolve file '${file}'`
-        ).str);
+        ).position(new es.Position(0, 0, 0, 'JSES-CLI')).str);
         return;
     }
 
@@ -238,6 +215,7 @@ async function main () {
     }
 
 
+    console.log(flags.path);
     if (!flags.path) {
         welcomeMessage();
         return runTerminal();

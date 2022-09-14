@@ -26,7 +26,7 @@ if (!fs.existsSync('build')) {
 (async () => {
 
 	await run (`touch ${WP_LOG_FILE}`);
-	await run(`webpack --config webpack.config.js > ${WP_LOG_FILE}`);
+	await run(`webpack > ${WP_LOG_FILE}`);
 
 	if (!fs.existsSync(`build/${version}.js`)) {
 		console.log(String(fs.readFileSync(WP_LOG_FILE)));

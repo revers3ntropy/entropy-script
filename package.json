@@ -4,17 +4,19 @@
     "description": "TS/JS interpreter for EntropyScript",
     "license": "MIT",
     "main": "build/stable.js",
+    "types": "index.d.ts",
     "author": {
         "name": "revers3ntropy",
         "url": "https://entropygames.io/entropy-script"
     },
     "bin": {
         "entropy-script": "./bin/index.js",
-        "jses": "./bin/index.js"
+        "esn": "./bin/index.js"
     },
     "scripts": {
-        "build": "node --enable-source-maps scripts/build",
-        "test": "npm run build; node --enable-source-maps scripts/test"
+        "build": "cd cli; webpack;",
+        "build-all": "node --enable-source-maps scripts/build; cd cli; webpack;",
+        "test": "npm run build-all; node --enable-source-maps scripts/test"
     },
     "preferGlobal": true,
     "devDependencies": {
@@ -31,6 +33,5 @@
         "build/stable.js",
         "bin",
         "cli.js"
-    ],
-    "types": "index.d.ts"
+    ]
 }

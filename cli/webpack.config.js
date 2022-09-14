@@ -1,29 +1,31 @@
 const path = require('path');
-const fs = require("fs");
-
-const packageConf = JSON.parse(String(fs.readFileSync('./package.json')));
-const version = packageConf['version'];
 
 module.exports = {
-    entry: './src/index.ts',
+    entry: path.join(path.resolve(__dirname), './src/index.ts'),
+    output: {
+        filename: './cli.js',
+        path: path.join(path.resolve(__dirname), '../')
+    },
+    mode: 'production',
+    // very important lol
+    target: 'node',
+    resolve: {
+        extensions: ['.ts', '.js']
+    },
     module: {
         rules: [
             {
                 test: /\.ts$/,
-                use: 'ts-loader'
+                loader: 'ts-loader',
+                options: {
+                    configFile: path.join(path.resolve(__dirname), 'tsconfig.json')
+                }
             }
         ]
     },
-    resolve: {
-        extensions: ['.ts', '.js'],
-    },
-    output: {
-        filename: version + '.js',
-        path: path.resolve(__dirname, 'build'),
-        library: 'es',
-        libraryTarget: 'umd',
-        globalObject: 'this'
-    },
-    mode: 'production',
     devtool: 'source-map',
+    optimization: {
+        // sadly must be false to support the MySQL module
+        minimize: false
+    }
 };

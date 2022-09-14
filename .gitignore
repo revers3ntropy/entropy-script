@@ -3,15 +3,17 @@
 node_modules
 package-lock.json
 
+*.log
+*.txt
 
 *.es
 !src/**/*.es
+test.js
+esconfig.json
 
 out.js
 out.py
-*.log
-test.js
-
-esconfig.json
 /build/
+cli.js
+*.js.map
 

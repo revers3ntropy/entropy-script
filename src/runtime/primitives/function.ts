@@ -99,12 +99,15 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     override bool = this.__bool__;
 
     override __call__ = ({ context, kwargs, dontTypeCheck}: IFuncProps, ...params: Primitive[]): Error | Primitive => {
-        let ctx = context.clone();
+        let ctx = context;
+        const oldPath = ctx.path;
         if (!this.takeCallContextAsClosure) {
             ctx = this.__closure__;
             ctx.path = context.path;
         }
-        return call(ctx, this, params, kwargs, dontTypeCheck);
+        const res = call(ctx, this, params, kwargs, dontTypeCheck);
+        ctx.path = oldPath;
+        return res;
     }
 
     override __get__ = (props: IFuncProps, key: Primitive): Primitive | Error => {
