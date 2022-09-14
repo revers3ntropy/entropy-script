@@ -1188,13 +1188,16 @@ export class Parser {
         
         if (this.currentToken.type === tt.IDENTIFIER) {
             name = this.currentToken.value;
+            if (typeof name !== 'string' && typeof name !== 'undefined') {
+                return res.failure(new InvalidSyntaxError('Expected identifier'));
+            }
             this.advance(res);
         }
 
         const func = res.register(this.funcCore());
         if (res.error) return res;
-        
-        if (name !== undefined) {
+
+        if (name) {
             if (!(func instanceof N_functionDefinition)) {
                 console.error('expected function');
                 throw 'expected function';
@@ -1202,6 +1205,7 @@ export class Parser {
 
             func.name = name;
             func.isDeclaration = true;
+            this.addEndStatement(res);
         }
 
         return res.success(func);

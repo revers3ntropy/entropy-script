@@ -112,7 +112,6 @@ class Test {
             const testEnv = new es.Context();
             testEnv.parent = es.global;
             testEnv.path = path.resolve(__dirname);
-            console.log(test.batteryID);
 
             res.register(test, test.run(testEnv));
         }
@@ -253,6 +252,24 @@ function expect (expected, from) {
         } catch (err) {
             return new es.TestFailed(err.stack);
         }
+
+        /*
+        let resultCompiled;
+        try {
+            resultCompiled = es.run(from, {
+                env,
+                fileName: 'TEST_CASE_' + currentFile + '_' + id,
+                compileToJS: true,
+                compileJSConfig: {
+                    minify: false,
+                    symbols: [],
+                    indent: 0
+                }
+            });
+        } catch (err) {
+            return new es.TestFailed(err.stack);
+        }
+         */
 
         let resVal = es.strip(result.val);
 

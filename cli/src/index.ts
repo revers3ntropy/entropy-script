@@ -105,7 +105,13 @@ function runScript (file: string) {
     const res = es.run(fs.readFileSync(file, 'utf-8').toString(), {
         env,
         fileName: file,
-        currentDir: path.dirname(file)
+        currentDir: path.dirname(file),
+        compileToJS: flags.compile,
+        compileJSConfig: {
+            minify: false,
+            indent: 0,
+            symbols: []
+        }
     });
     if (res.error) {
         console.log(res.error.str);
@@ -214,8 +220,6 @@ async function main () {
         return compile(flags.path, flags.outputPy);
     }
 
-
-    console.log(flags.path);
     if (!flags.path) {
         welcomeMessage();
         return runTerminal();

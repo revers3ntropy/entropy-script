@@ -8,24 +8,7 @@ function parseNum (str) {
 
 const print = console.log;
 
-ESNumber.prototype[Symbol.iterator] = function () {
-	return {
-		current: 0,
-		last: this,
-		next() {
-			if (this.current <= this.last) {
-				return {
-					done: false,
-					value: this.current++
-				};
-			} else {
-				return { done: true };
-			}
-		}
-	};
-};
-
-const __private__ = {
+const __js_std__ = {
 	bims: {
 		math: Math,
 		time: {
@@ -36,12 +19,12 @@ const __private__ = {
 };
 
 if (typeof performance !== 'undefined') {
-	__private__.bims.time.now = performance.now;
+	__js_std__.bims.time.now = performance.now;
 }
 
 function import_ (path) {
-	if (__private__.bims.hasOwnProperty(path)) {
-		return __private__.bims[path];
+	if (__js_std__.bims.hasOwnProperty(path)) {
+		return __js_std__.bims[path];
 	}
 }
 

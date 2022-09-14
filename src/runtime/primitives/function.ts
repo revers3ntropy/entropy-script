@@ -20,7 +20,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     __closure__: Context;
     __allow_args__: boolean;
     __allow_kwargs__: boolean;
-    takeCallContextAsClosure: boolean;
+    __take_call_context_as_closure__: boolean;
 
     constructor (
         func: Node | BuiltInFunction = (() => void 0),
@@ -44,7 +44,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
             this.__closure__ = new Context();
             this.__closure__.parent = GLOBAL_CTX;
         }
-        this.takeCallContextAsClosure = takeCallContextAsClosure;
+        this.__take_call_context_as_closure__ = takeCallContextAsClosure;
 
         this.__info__.returnType = str(returnType);
 
@@ -101,7 +101,7 @@ export class ESFunction extends ESPrimitive <Node | BuiltInFunction> {
     override __call__ = ({ context, kwargs, dontTypeCheck}: IFuncProps, ...params: Primitive[]): Error | Primitive => {
         let ctx = context;
         const oldPath = ctx.path;
-        if (!this.takeCallContextAsClosure) {
+        if (!this.__take_call_context_as_closure__) {
             ctx = this.__closure__;
             ctx.path = context.path;
         }

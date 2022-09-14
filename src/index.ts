@@ -61,6 +61,38 @@ export interface IRunConfig {
     compileJSConfig?: ICompileConfig,
 }
 
+function runViaCompilation (msg: string, fileName: string, currentDir: string, compileJSConfig: ICompileConfig): InterpretResult {
+    const { compileToJavaScript, error } = parse(msg, { fileName, currentDir });
+    if (error) {
+        const res_ = new InterpretResult();
+        res_.error = error;
+        return res_;
+    }
+    const js = compileToJavaScript(compileJSConfig);
+    if (js.error) {
+        const res_ = new InterpretResult();
+        res_.error = js.error;
+        return res_;
+    }
+    console.log('-----------------');
+    console.log(js.val);
+    console.log('-----------------');
+
+    const executor = new Function(`${js.val}`);
+    let result: any;
+    try {
+        result = executor.call({});
+    } catch (e: any) {
+        const res_ = new InterpretResult();
+        res_.error = new Error(e.name, e.stack);
+        return res_;
+    }
+    const res_ = new InterpretResult();
+    res_.val = wrap(result);
+    console.log(result);
+    return res_;
+}
+
 /**
  * Runs the given code in the given environment.
  */
@@ -78,30 +110,7 @@ export function run (msg: string, {
 }: IRunConfig = {}): InterpretResult | ({ timeData: ITimeData } & InterpretResult) {
 
     if (compileToJS) {
-        const { compileToJavaScript, error } = parse(msg, { fileName, currentDir });
-        if (error) {
-            const res_ = new InterpretResult();
-            res_.error = error;
-            return res_;
-        }
-        const js = compileToJavaScript(compileJSConfig);
-        if (js.error) {
-            const res_ = new InterpretResult();
-            res_.error = js.error;
-            return res_;
-        }
-        const executor = new Function(js.val);
-        let result: any;
-        try {
-            result = executor.call({});
-        } catch (e: any) {
-            const res_ = new InterpretResult();
-            res_.error = new Error('RuntimeError', e.message);
-            return res_;
-        }
-        const res_ = new InterpretResult();
-        res_.val = wrap(result);
-        return res_;
+        return runViaCompilation(msg, fileName, currentDir, compileJSConfig);
     }
 
     if (currentDir) {

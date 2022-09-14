@@ -65,7 +65,7 @@ export function call (
 
     // generate context
     const callContext = context;
-    if (!self.takeCallContextAsClosure) {
+    if (!self.__take_call_context_as_closure__) {
         context = self.__closure__;
     }
     context.path = callContext.path;

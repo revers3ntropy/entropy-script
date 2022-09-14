@@ -35,3 +35,20 @@ expect([undefined, undefined, 'CustomError - custom error details'], `
     }
     a;
 `);
+
+expect([undefined, undefined, 'HelloWorld'], `
+	let var a;
+    try {
+    	throw('Hello');
+    	a = 'no';
+    } catch {
+    	a = err.name;
+    	try {
+            throw('World');
+            a += 'no';
+        } catch {
+            a += err.name;
+        }
+    }
+    a;
+`);

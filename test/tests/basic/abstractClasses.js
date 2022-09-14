@@ -2,7 +2,7 @@ const {expect, file} = require('../../testFramework');
 file('basic/abstractClasses');
 
 expect(['A'], `
-    abstract class A {};
+    abstract class A {}
 `);
 
 expect('TypeError', `

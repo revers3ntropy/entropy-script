@@ -49,7 +49,6 @@ export function initPrimitiveTypes () {
     types.error     = new ESType(true, 'Err');
 
     types.array.__generics_match__ = (props, gargs,  instance): Error | ESBoolean => {
-        console.log(str(gargs), str(instance.__value__));
         if (gargs.length < 1) {
             return new ESBoolean(true);
         }
@@ -70,7 +69,6 @@ export function initPrimitiveTypes () {
             if (typeof n !== 'number') {
                 return new Error('TypeError', 'Array 2nd generic argument must be a number');
             }
-            console.log('VALL', instance.__value__.length, n);
             if (instance.__value__.length !== n && n > -1) {
                 return new ESBoolean();
             }

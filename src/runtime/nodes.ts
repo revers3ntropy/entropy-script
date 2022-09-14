@@ -1400,7 +1400,7 @@ export class N_functionCall extends Node {
 export class N_functionDefinition extends Node {
     body: Node;
     arguments: IUninterpretedArgument[];
-    name: string;
+    name: string | undefined;
     this_: ESObject;
     returnType: Node;
     description: string;
@@ -1413,7 +1413,7 @@ export class N_functionDefinition extends Node {
         body: Node,
         argNames: IUninterpretedArgument[],
         returnType: Node,
-        name = '(anon)',
+        name?: string,
         this_: ESObject = new ESObject(),
         description=''
     ) {
@@ -1437,6 +1437,9 @@ export class N_functionDefinition extends Node {
         funcPrim.__allow_args__ = this.allowArgs;
 
         if (this.isDeclaration) {
+            if (!this.name) {
+                return new InvalidSyntaxError('Function declaration must have a name');
+            }
             if (context.hasOwn(this.name)) {
                 return new InvalidSyntaxError(`Cannot redeclare symbol '${this.name}'`);
             }
@@ -1451,7 +1454,7 @@ export class N_functionDefinition extends Node {
     }
 
     compileJS (config: ICompileConfig) {
-        const res = new CompileResult('function(');
+        const res = new CompileResult(`${this.name ? '' : '('}function ${this.name || ''}(`);
 
         for (const param of this.arguments) {
             res.val += param.name + ',';
@@ -1470,7 +1473,7 @@ export class N_functionDefinition extends Node {
         config.indent += 4;
         const bodyRes = this.body.compileJS(config);
         if (bodyRes.error) return bodyRes;
-        res.val += `${bodyRes.val}\n${indent}}`;
+        res.val += `${bodyRes.val}\n${indent}}${this.name ? '' : ')'}`;
         return res;
     }
 
@@ -1745,7 +1748,7 @@ export class N_class extends Node {
     init: N_functionDefinition | undefined;
     methods: N_functionDefinition[];
     staticMethods: N_functionDefinition[];
-    name: string;
+    name?: string;
     extends_?: Node;
     isDeclaration: boolean;
     abstract: boolean;
@@ -1762,7 +1765,7 @@ export class N_class extends Node {
         genericParams: IUninterpretedArgument[],
         extends_?: Node,
         init?: N_functionDefinition,
-        name = '(anon)',
+        name?: string,
         isDeclaration=false,
         abstract = false
     ) {
@@ -1864,6 +1867,9 @@ export class N_class extends Node {
         );
 
         if (this.isDeclaration) {
+            if (typeof this.name !== 'string') {
+                return new InvalidSyntaxError('Class declaration must have a name').position(this.pos);
+            }
             if (context.hasOwn(this.name)) {
                 return new InvalidSyntaxError(`Cannot redeclare symbol '${this.name}'`);
             }
@@ -1877,8 +1883,42 @@ export class N_class extends Node {
         return new InterpretResult(typePrim);
     }
 
-    compileJS () {
-        return new CompileResult('function(){return{};}');
+    compileJS (config: ICompileConfig) {
+        let res = `${this.name ? '' : '('}function ${this.name || ''}() {`;
+
+        const iniRes = this.init?.compileJS(config);
+        if (iniRes?.error) return iniRes;
+        if (iniRes) {
+            res += iniRes.val;
+        }
+        res += ';return {';
+
+        for (const func of this.methods) {
+            res += `${func.name || ''}(`;
+
+            for (const param of func.arguments) {
+                res += `${param.name},`;
+                if (!config.minify) {
+                    res += ' ';
+                }
+            }
+            if (config.minify) {
+                res += '){';
+            } else {
+                res += ') {\n';
+            }
+
+            const indent = ' '.repeat(config.indent);
+
+            config.indent += 4;
+            const bodyRes = func.body.compileJS(config);
+            if (bodyRes.error) return bodyRes;
+            res += `${bodyRes.val}\n${indent}}`;
+        }
+
+        res += `}${this.name ? '' : ')'}}`;
+
+        return new CompileResult(res);
     }
 
     compilePy () {

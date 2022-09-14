@@ -45,7 +45,9 @@ export const types: Map<ESType> = {};
 // global object of all native dependencies like node-fetch and fs.
 export const libs: Map<NativeObj> = {};
 
-export const CATCH_BLOCK_ERR_SYMBOL_ID = 'err';
+export const
+    CATCH_BLOCK_ERR_SYMBOL_ID = 'err',
+    ANON_FUNC_NAME = '(anon)';
 
 export const CLASS_KEYWORDS = [
     'class',

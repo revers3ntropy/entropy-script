@@ -234,7 +234,7 @@ export function generateESFunctionCallContext (
         }
 
         if (param.defaultValue && args.length <= i) {
-            const { val: defaultValue, error } = param.defaultValue.interpret(newContext);
+            const { val: defaultValue, error } = param.defaultValue.interpret(self.__closure__);
             if (error) return error;
             newContext.setOwn(param.name, defaultValue, {
                 forceThroughConst: true
@@ -243,7 +243,7 @@ export function generateESFunctionCallContext (
         }
 
         if (!dontTypeCheck) {
-            const { error, val: paramType } = param.type.interpret(newContext);
+            const { error, val: paramType } = param.type.interpret(self.__closure__);
             if (error) return error;
             const typeIncludes = paramType.__includes__({ context: parent }, args[i]);
             if (typeIncludes instanceof Error) return typeIncludes;
@@ -272,7 +272,7 @@ export function generateESFunctionCallContext (
 
         if (!arg) {
             if (kwarg.defaultValue) {
-                const { val: defaultValue, error } = kwarg.defaultValue.interpret(newContext);
+                const { val: defaultValue, error } = kwarg.defaultValue.interpret(self.__closure__);
                 if (error) return error;
                 arg = defaultValue;
             } else {
@@ -282,7 +282,7 @@ export function generateESFunctionCallContext (
 
         if (!dontTypeCheck) {
             const type = arg.__type__;
-            const { val: kwargType, error } = kwarg.type.interpret(parent);
+            const { val: kwargType, error } = kwarg.type.interpret(self.__closure__);
             if (error) return error;
             const typeIncludes = kwargType.__includes__({ context: parent }, arg);
             if (typeIncludes instanceof Error) return typeIncludes;
