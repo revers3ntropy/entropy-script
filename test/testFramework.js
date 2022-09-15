@@ -1,4 +1,8 @@
+/** @typedef {import('entropy-script').} es */
+
+/** @type {es} */
 const es = require('../build/latest.js');
+
 const path = require('path');
 
 /**
@@ -81,7 +85,7 @@ class Test {
     }
 
     /**
-     * @param {Context} env
+     * @param {module:entropy-script/src/runtime/context.Context} env
      * @returns {boolean | Error}
      */
     run (env) {
@@ -126,6 +130,11 @@ class Test {
 
 exports.Test = Test;
 
+/**
+ * @param {Record<string, *>} primary
+ * @param {Record<string, *>} secondary
+ * @returns {boolean}
+ */
 function objectsSame (primary, secondary) {
     if (primary instanceof es.ESFunction || primary instanceof es.ESType || primary instanceof es.ESSymbol) {
         return secondary === primary.str().__value__;
@@ -228,6 +237,10 @@ function arraysSame (arr1, arr2) {
 
 let currentFile = '';
 let currentID = 0;
+
+/**
+ * @param {string} name
+ */
 function file (name) {
     currentFile = name;
     currentID = -1;
@@ -242,7 +255,7 @@ function expect (expected, from) {
     const id = currentID++;
 
     Test.test(currentFile, env => {
-        /** @type {interpretResult | ({ timeData: timeData } & interpretResult)} */
+        /** @type {es.InterpretResult | ({ timeData: timeData } & es.InterpretResult)} */
         let result;
         try {
             result = es.run(from, {
@@ -253,10 +266,8 @@ function expect (expected, from) {
             return new es.TestFailed(err.stack);
         }
 
-        /*
-        let resultCompiled;
         try {
-            resultCompiled = es.run(from, {
+            const { error } = es.run(from, {
                 env,
                 fileName: 'TEST_CASE_' + currentFile + '_' + id,
                 compileToJS: true,
@@ -266,12 +277,15 @@ function expect (expected, from) {
                     indent: 0
                 }
             });
+
+            if (error) {
+                return new es.TestFailed(error.str);
+            }
         } catch (err) {
             return new es.TestFailed(err.stack);
         }
-         */
 
-        let resVal = es.strip(result.val);
+        let resVal = es.strip(result.val, { context: env });
 
         if (result.error && Array.isArray(expected)) {
             return result.error;

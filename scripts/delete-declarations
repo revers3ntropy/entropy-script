@@ -1,0 +1,9 @@
+#!/bin/bash
+
+rm -rf ./src/*.d.ts;
+rm -rf ./src/**/*.d.ts;
+rm -rf ./src/**/**/*.d.ts;
+rm -rf ./src/**/**/**/*.d.ts;
+
+rm -rf ./cli/src/*.d.ts;
+rm -rf ./cli/src/**/*.d.ts;

@@ -166,7 +166,7 @@ export class ESType extends ESPrimitive <undefined> {
         return new ESBoolean(this.__type_id__ === t.__type_id__);
     }
 
-    override __eq__ = (props: IFuncProps, t: Primitive): ESBoolean | Error => {
+    override __eq__ = (_: IFuncProps, t: Primitive): ESBoolean | Error => {
         return new ESBoolean(t === this);
     }
 
@@ -235,7 +235,7 @@ export class ESType extends ESPrimitive <undefined> {
     override __bool__ = () => new ESBoolean(true);
     override bool = this.__bool__;
 
-    override __get__ = (props: IFuncProps, k: Primitive): Primitive | Error => {
+    override __get__ = (_: IFuncProps, k: Primitive): Primitive | Error => {
         const key = k.__value__;
         if (key in this) {
             return wrap(this._[key], true);
@@ -243,10 +243,10 @@ export class ESType extends ESPrimitive <undefined> {
         return new IndexError(str(k), this);
     };
 
-    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
+    override __pipe__ = (_: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
+    override __ampersand__ = (_: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 

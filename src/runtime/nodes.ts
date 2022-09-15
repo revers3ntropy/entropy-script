@@ -1847,22 +1847,13 @@ export class N_class extends Node {
             methods.push(init);
         }
 
-        const genericParams: IRuntimeArgument[] = [];
-        for (const param of this.genericParams) {
-            const res = interpretArgument(param, context);
-            if (res instanceof Error) {
-                return res;
-            }
-            genericParams.push(res);
-        }
-
         const typePrim = new ESType(
             false,
             this.name,
             methods,
             properties,
             extends_,
-            genericParams,
+            [],
             this.abstract
         );
 

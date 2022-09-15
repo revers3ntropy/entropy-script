@@ -38,9 +38,7 @@ export function interpretArgument (arg: IUninterpretedArgument, context: Context
         if (defaultValRes.error) {
             return defaultValRes.error;
         }
-        if (defaultValRes.val instanceof ESPrimitive) {
-            defaultValue = defaultValRes.val;
-        }
+        defaultValue = defaultValRes.val;
     }
 
     return {

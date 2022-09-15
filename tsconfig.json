@@ -11,6 +11,10 @@
         "noImplicitAny": true,
         "noImplicitOverride": true,
         "noImplicitThis": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "esModuleInterop": true,
+        "strictFunctionTypes": true,
+        "declaration": true
     }
 }

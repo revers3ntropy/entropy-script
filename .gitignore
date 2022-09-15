@@ -16,4 +16,4 @@ out.py
 /build/
 cli.js
 *.js.map
-
+.d.ts

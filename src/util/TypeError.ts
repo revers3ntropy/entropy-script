@@ -6,9 +6,9 @@ import { IFuncProps, Primitive, str } from './util';
  */
 function getWhyTypesAreInvalid (props: IFuncProps, expected: Primitive, got: Primitive): string | true {
     const reason = 'something';
-    // for (const k of expected.keys(props)) {
-    //
-    // }
+    for (const k of expected.keys(props)) {
+
+    }
     // @ts-ignore
     if (reason === '') return true;
     return `Type '${got.__type_name__()}' is incompatible with type '${str(expected)}':\n` + reason;

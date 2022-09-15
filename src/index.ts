@@ -107,7 +107,7 @@ export function run (msg: string, {
         symbols: [],
         indent: 0
     },
-}: IRunConfig = {}): InterpretResult | ({ timeData: ITimeData } & InterpretResult) {
+}: IRunConfig = {}): { timeData?: ITimeData } & InterpretResult {
 
     if (compileToJS) {
         return runViaCompilation(msg, fileName, currentDir, compileJSConfig);
@@ -182,7 +182,7 @@ export function run (msg: string, {
         console.log(timeData);
     }
 
-    return {...finalRes, timeData};
+    return { ...finalRes, timeData };
 }
 
 export function parse (code: string, {

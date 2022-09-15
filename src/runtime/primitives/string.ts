@@ -20,7 +20,7 @@ export class ESString extends ESPrimitive <string> implements Iterable {
 
     override str = () => this;
 
-    override cast = (props: IFuncProps, type: Primitive): Primitive | Error => {
+    override cast = (_: IFuncProps, type: Primitive): Primitive | Error => {
         switch (type) {
             case types.number:
                 const num = parseFloat(this.__value__);
@@ -37,31 +37,31 @@ export class ESString extends ESPrimitive <string> implements Iterable {
         }
     }
 
-    override __add__ = (props: IFuncProps, n: Primitive) => {
+    override __add__ = (_: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
             return new TypeError('Str', n.__type_name__(), n.__value__);
         }
         return new ESString(this.__value__ + n.__value__);
     };
-    override __multiply__ = (props: IFuncProps, n: Primitive) => {
+    override __multiply__ = (_: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESNumber)) {
             return new TypeError('ESNumber', n.__type_name__(), n.__value__);
         }
         return new ESString(this.__value__.repeat(n.__value__));
     };
-    override __eq__ = (props: IFuncProps, n: Primitive) => {
+    override __eq__ = (_: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
             return new ESBoolean(false);
         }
         return new ESBoolean(this.__value__ === n.__value__);
     };
-    override __gt__ = (props: IFuncProps, n: Primitive) => {
+    override __gt__ = (_: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
             return new TypeError('Str', n.__type_name__(), n.__value__);
         }
         return new ESBoolean(this.__value__.length > n.__value__.length);
     };
-    override __lt__ = (props: IFuncProps, n: Primitive) => {
+    override __lt__ = (_: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
             return new TypeError('Str', n.__type_name__(), n.__value__);
         }
@@ -78,7 +78,7 @@ export class ESString extends ESPrimitive <string> implements Iterable {
 
     override clone = () => new ESString(this.__value__);
 
-    override __get__ = (props: IFuncProps, key: Primitive): Primitive => {
+    override __get__ = (_: IFuncProps, key: Primitive): Primitive => {
         // eslint-disable-next-line no-prototype-builtins
         if (key instanceof ESString && this._.hasOwnProperty(str(key))) {
             return wrap(this._[str(key)], true);
@@ -133,10 +133,10 @@ export class ESString extends ESPrimitive <string> implements Iterable {
         return this.__eq__(props, n);
     };
 
-    override __pipe__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
+    override __pipe__ = (_: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeUnion(this, n);
     }
-    override __ampersand__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
+    override __ampersand__ = (_: IFuncProps, n: Primitive): Primitive | Error => {
         return new ESTypeIntersection(this, n);
     }
 
@@ -151,7 +151,7 @@ export class ESString extends ESPrimitive <string> implements Iterable {
         return res;
     }
 
-    contains = (props: IFuncProps, n: Primitive) => {
+    contains = (_: IFuncProps, n: Primitive) => {
         if (!(n instanceof ESString)) {
             return new TypeError('Str', n.__type_name__(), n.__value__);
         }

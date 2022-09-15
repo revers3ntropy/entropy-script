@@ -5,6 +5,7 @@
     "license": "MIT",
     "main": "build/stable.js",
     "types": "index.d.ts",
+    "preferGlobal": true,
     "author": {
         "name": "revers3ntropy",
         "url": "https://entropygames.io/entropy-script"
@@ -15,13 +16,14 @@
     },
     "scripts": {
         "build": "cd cli; webpack;",
-        "build-all": "node --enable-source-maps scripts/build; cd cli; webpack;",
-        "test": "npm run build-all; node --enable-source-maps scripts/test"
+        "build:all": "node --enable-source-maps scripts/build; cd cli; webpack; cd ..; npm run build:types",
+        "build:types": "dts-bundle --baseDir . --name entropy-script --main src/index.d.ts --out ./index.d.ts; scripts/delete-declarations",
+        "test": "npm run build:all; node --enable-source-maps scripts/test"
     },
-    "preferGlobal": true,
     "devDependencies": {
         "@typescript-eslint/eslint-plugin": "^5.18.0",
         "@typescript-eslint/parser": "^5.18.0",
+        "dts-bundle": "^0.1.1",
         "eslint": "8.22.0",
         "json-loader": "^0.5.7",
         "raw-loader": "^4.0.2",

@@ -221,7 +221,7 @@ export abstract class ESPrimitive <T> {
      * Can be used to give a default or fallback value to, for example, the return value of a function
      * to narrow the type from 'something | nil' to 'something'
      */
-    public __nilish__ = (props: IFuncProps, n: Primitive): Primitive | Error => {
+    public __nilish__ = (_: IFuncProps, n: Primitive): Primitive | Error => {
         // if this is undefined, then return the
         if (this.__null__) {
             return n;
@@ -248,7 +248,7 @@ export abstract class ESPrimitive <T> {
         return type.__includes__(props, this);
     };
 
-    public is = (props: IFuncProps, obj: Primitive): ESBoolean => {
+    public is = (_: IFuncProps, obj: Primitive): ESBoolean => {
         return new ESBoolean(obj === this);
     }
 
@@ -267,7 +267,7 @@ export abstract class ESPrimitive <T> {
      * Returns true if the property is accessible on the object.
      * As a default, it will check if the property exists on the native object.
      */
-    public has_property = (props: IFuncProps, key: Primitive): ESBoolean => {
+    public has_property = (_: IFuncProps, key: Primitive): ESBoolean => {
         return new ESBoolean(str(key) in this);
     }
 
@@ -275,7 +275,7 @@ export abstract class ESPrimitive <T> {
      * Adds a description to the object,
      * which will be accessed through the built-in 'help' function.
      */
-    public describe = (props: IFuncProps, info: Primitive) => {
+    public describe = (_: IFuncProps, info: Primitive) => {
         if (this.__info__.builtin) {
             return;
         }
