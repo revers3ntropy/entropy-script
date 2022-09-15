@@ -90,7 +90,7 @@ function runScript (file: string) {
         console.log(new es.ImportError(
             file,
             `Can't resolve file '${file}'`
-        ).position(new es.Position(0, 0, 0, 'JSES-CLI')).str);
+        ).position(new es.Position(0, 0, 0, 'NES-CLI')).str);
         return;
     }
 
@@ -135,7 +135,7 @@ async function runTerminal () {
     }
 
     const res = es.run(input, {
-        fileName: 'JSES-REPL'
+        fileName: 'NES-REPL'
     });
 
     if (res.error) {

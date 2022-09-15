@@ -12,7 +12,7 @@
     },
     "bin": {
         "entropy-script": "./bin/index.js",
-        "esn": "./bin/index.js"
+        "nes": "./bin/index.js"
     },
     "scripts": {
         "build": "cd cli; webpack;",
