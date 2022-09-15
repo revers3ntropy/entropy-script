@@ -1,7 +1,7 @@
 import { PROPS_TO_OVERRIDE_ON_PRIM, types } from '../util/constants';
 import { Context } from "./context";
 import type { IFuncProps, NativeObj } from '../util/util';
-import { Error, TypeError } from "../errors";
+import { Error, InvalidSyntaxError, TypeError } from "../errors";
 import {wrap} from './wrapStrip';
 import {
     ESArray,
@@ -147,7 +147,7 @@ export function createInstance (
     instance = new ESObject,
 ): Error | Primitive {
 
-    const {context} = props;
+    const { context } = props;
 
     if (type.__primordial__) {
         return callPrimordial(params, type, props);
@@ -194,8 +194,7 @@ export function createInstance (
         // newContext, which inherits from the current closure
         __init__.__closure__ = newContext;
 
-        const res = __init__.__call__({context: newContext}, ...params);
-        // the return value of init is ignored
+        const res = __init__.__call__({ context: newContext }, ...params);
         if (res instanceof Error) {
             return res;
         }

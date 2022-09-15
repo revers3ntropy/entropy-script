@@ -71,16 +71,12 @@ export function call (
     context.path = callContext.path;
     const fn = self.__value__;
 
-    const newContext = generateESFunctionCallContext(self, params, kwargs, context, dontTypeCheck);
-    if (newContext instanceof Error) {
-        return newContext;
-    }
 
     const this_ = self.__this__ ?? new ESObject();
 
-    const setRes = newContext.setOwn('this', this_);
-    if (setRes instanceof Error) {
-        return setRes;
+    const newContext = generateESFunctionCallContext(self, params, kwargs, context, dontTypeCheck, this_);
+    if (newContext instanceof Error) {
+        return newContext;
     }
 
     if (fn instanceof Node) {

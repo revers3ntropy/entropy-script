@@ -316,7 +316,7 @@ a.do_other_thing();
 a.a;
 `);
 
-expect(['A', {a: 0, init: '<Func>', do_thing: '<Func>', do_other_thing: '<Func>'}, 0, undefined, 1, undefined, 2], `
+expect(['A', {a: 0, T: 'Num', init: '<Func>', do: '<Func>'}, 0], `
 class A {
 	a: Num;
 	T: Type;
@@ -332,4 +332,26 @@ class A {
 
 let a = A(Num);
 a.do();
+`);
+
+expect(['A', {T: 'Num', init: '<Func>'}], `
+class A {
+	T: Type;
+    init (T: Type, a: T) {
+    	this.T = T;
+    }
+};
+
+let a = A(Num, 1);
+`);
+
+expect('TypeError', `
+class A {
+	T: Type;
+    init (T: Type, a: T) {
+    	this.T = T;
+    }
+};
+
+let a = A(Num, '');
 `);

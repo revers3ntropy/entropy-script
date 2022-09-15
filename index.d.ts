@@ -549,7 +549,7 @@ declare module 'entropy-script/src/runtime/context' {
         clone(): Context;
         log(): void;
     }
-    export function generateESFunctionCallContext(self: ESFunction, args: Primitive[], kwargs: Map<Primitive>, parent: Context, dontTypeCheck: boolean): Context | Error;
+    export function generateESFunctionCallContext(self: ESFunction, args: Primitive[], kwargs: Map<Primitive>, parent: Context, dontTypeCheck: boolean, this_: Primitive): Context | Error;
 }
 
 declare module 'entropy-script/src/util/colours' {

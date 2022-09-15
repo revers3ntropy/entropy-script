@@ -266,23 +266,25 @@ function expect (expected, from) {
             return new es.TestFailed(err.stack);
         }
 
-        try {
-            const { error } = es.run(from, {
-                env,
-                fileName: 'TEST_CASE_' + currentFile + '_' + id,
-                compileToJS: true,
-                compileJSConfig: {
-                    minify: false,
-                    symbols: [],
-                    indent: 0
-                }
-            });
+        if (false) {
+            try {
+                const {error} = es.run(from, {
+                    env,
+                    fileName: 'TEST_CASE_' + currentFile + '_' + id,
+                    compileToJS: true,
+                    compileJSConfig: {
+                        minify: false,
+                        symbols: [],
+                        indent: 0
+                    }
+                });
 
-            if (error) {
-                return new es.TestFailed(error.str);
+                if (error) {
+                    return new es.TestFailed(error.str);
+                }
+            } catch (err) {
+                return new es.TestFailed(err.stack);
             }
-        } catch (err) {
-            return new es.TestFailed(err.stack);
         }
 
         let resVal = es.strip(result.val, { context: env });

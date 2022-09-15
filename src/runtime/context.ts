@@ -203,11 +203,17 @@ export function generateESFunctionCallContext (
     args: Primitive[],
     kwargs: Map<Primitive>,
     parent: Context,
-    dontTypeCheck: boolean
+    dontTypeCheck: boolean,
+    this_: Primitive
 ) {
 
     const newContext = new Context();
     newContext.parent = parent;
+
+    const setThisRes = newContext.setOwn('this', this_);
+    if (setThisRes instanceof Error) {
+        return setThisRes;
+    }
 
     const parameters = self.__args__.filter(a => !a.isKwarg);
 
@@ -234,7 +240,7 @@ export function generateESFunctionCallContext (
         }
 
         if (param.defaultValue && args.length <= i) {
-            const { val: defaultValue, error } = param.defaultValue.interpret(self.__closure__);
+            const { val: defaultValue, error } = param.defaultValue.interpret(newContext);
             if (error) return error;
             newContext.setOwn(param.name, defaultValue, {
                 forceThroughConst: true
@@ -243,7 +249,7 @@ export function generateESFunctionCallContext (
         }
 
         if (!dontTypeCheck) {
-            const { error, val: paramType } = param.type.interpret(self.__closure__);
+            const { error, val: paramType } = param.type.interpret(newContext);
             if (error) return error;
             const typeIncludes = paramType.__includes__({ context: parent }, args[i]);
             if (typeIncludes instanceof Error) return typeIncludes;

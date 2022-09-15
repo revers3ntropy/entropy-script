@@ -370,7 +370,7 @@ expect([undefined], `
     nil?();
 `);
 
-expect(['<Str>', '<Func>', ''], `
+expect(['Str', '<Func>', ''], `
 	let B = Str;
     func my_func (a: B) a;
     my_func('');

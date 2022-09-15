@@ -28,8 +28,8 @@ export const flags = {
     path: '',
     ...commandLineArgs([
         { name: 'compile', type: Boolean, alias: 'c' },
-        { name: 'outputJS', type: String },
-        { name: 'outputPy', type: String },
+        { name: 'outputJS', type: String, alias: 'j' },
+        { name: 'outputPy', type: String, alias: 'y' },
         { name: 'minify', type: Boolean, alias: 'm' },
         { name: 'path', type: String, alias: 'p', defaultOption: true },
     ]),

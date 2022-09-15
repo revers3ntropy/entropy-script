@@ -1,12 +1,12 @@
-import type {ESFunction} from '../runtime/primitives/function';
-import type {ESType} from '../runtime/primitives/type';
+import type { ESFunction } from '../runtime/primitives/function';
+import type { ESType } from '../runtime/primitives/type';
 import type { ESNamespace } from "../runtime/primitives/namespace";
 import type { ESObject } from "../runtime/primitives/object";
-import type {NativeModuleBuilder} from './module';
+import type { NativeModuleBuilder } from './module';
 import type { Map } from "../util/util";
 
 import { IS_NODE_INSTANCE, libs } from '../util/constants';
-import {Error} from '../errors';
+import { Error } from '../errors';
 import { ESJSBinding } from "../runtime/primitives/jsbinding";
 
 // All modules
