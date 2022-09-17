@@ -22,7 +22,7 @@ module.exports = {
         path: path.resolve(__dirname, 'build'),
         library: 'es',
         libraryTarget: 'umd',
-        globalObject: 'this'
+        globalObject: 'this || window'
     },
     mode: 'production',
     devtool: 'source-map',

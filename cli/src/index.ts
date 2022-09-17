@@ -203,7 +203,7 @@ async function compile (path: string, outPath: string) {
  * @returns {void}
  */
 function welcomeMessage () {
-    console.log(`Welcome to Entropy Script JS [esjs@${es.VERSION}, nodejs@${process.versions.node}]`);
+    console.log(`Welcome to Entropy Script [nes@${es.VERSION}, nodejs@${process.versions.node}]`);
     console.log("Type 'exit' to exit, 'help' for more information");
 }
 
