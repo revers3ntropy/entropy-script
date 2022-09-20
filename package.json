@@ -1,6 +1,6 @@
 {
     "name": "entropy-script",
-    "version": "3.0.7",
+    "version": "3.0.8",
     "description": "TS/JS interpreter for EntropyScript",
     "license": "MIT",
     "main": "build/stable.js",
@@ -8,7 +8,7 @@
     "preferGlobal": true,
     "author": {
         "name": "revers3ntropy",
-        "url": "https://entropygames.io/entropy-script"
+        "url": "https://revers3ntropy.com"
     },
     "bin": {
         "entropy-script": "./bin/index.js",
@@ -33,7 +33,13 @@
     "files": [
         "build/latest.js",
         "build/stable.js",
+        "index.d.ts",
         "bin",
         "cli.js"
-    ]
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Entropy-Games/entropy-script.git"
+    },
+    "homepage": "https://entropygames.io/entropy-script"
 }
